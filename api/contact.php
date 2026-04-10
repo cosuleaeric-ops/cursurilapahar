@@ -1,13 +1,22 @@
 <?php
-// Prevent any PHP warnings/notices from corrupting JSON output
+// Ensure JSON output even on fatal errors
+header('Content-Type: application/json');
 error_reporting(0);
 ini_set('display_errors', 0);
 
-header('Content-Type: application/json');
+// Catch any fatal errors and return JSON
+register_shutdown_function(function() {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Eroare server: ' . $err['message']]);
+    }
+});
 
-$body = json_decode(file_get_contents('php://input'), true);
+$raw = file_get_contents('php://input');
+$body = json_decode($raw, true);
 if (!is_array($body)) {
-    echo json_encode(['success' => false, 'message' => 'Date invalide.']);
+    echo json_encode(['success' => false, 'message' => 'Date invalide. Input primit: ' . substr($raw, 0, 100)]);
     exit;
 }
 
