@@ -96,6 +96,7 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
     </style>
 </head>
 <body>
+<?php include __DIR__ . '/admin/bar.php'; ?>
 
 <!-- ── NAVBAR ─────────────────────────────── -->
 <nav class="navbar">
