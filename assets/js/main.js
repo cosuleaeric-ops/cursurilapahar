@@ -132,7 +132,9 @@ if (nlForm) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
-      const data = await res.json();
+      const text = await res.text();
+      console.log('[subscribe] raw response:', text);
+      const data = JSON.parse(text);
 
       if (data.success) {
         msg.className = 'form-message success';
