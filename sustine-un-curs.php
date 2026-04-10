@@ -61,6 +61,7 @@ $page = $settings['pages']['sustine'] ?? [
     </style>
 </head>
 <body>
+<?php include __DIR__ . '/admin/bar.php'; ?>
 
 <!-- ── NAVBAR ─────────────────────────────── -->
 <nav class="navbar">
