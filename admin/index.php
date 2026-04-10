@@ -622,16 +622,27 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     cursor: pointer;
 }
 .clr-field button {
-    width: 32px;
-    height: 32px;
+    width: 32px; height: 32px;
     border-radius: 3px;
-    left: 5px;
-    top: 50%;
+    left: 5px; top: 50%;
     transform: translateY(-50%);
 }
-/* Make the popup bigger */
-.clr-picker { width: 280px !important; }
-.clr-gradient { height: 200px !important; }
+/* Bigger popup */
+.clr-picker { width: 320px !important; }
+.clr-gradient { height: 240px !important; }
+/* HEX ONLY: hide format toggle buttons and RGB/HSL channel inputs */
+#clr-format, .clr-format { display: none !important; }
+#clr-r-field, #clr-g-field, #clr-b-field,
+#clr-h-field, #clr-s-field, #clr-l-field,
+#clr-a-field { display: none !important; }
+/* Make the hex input prominent */
+#clr-hex-value, #clr-color-value input[id$="hex"] {
+    font-family: monospace !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+}
+/* Bigger hue slider */
+#clr-hue-slider, .clr-hue { height: 18px !important; border-radius: 9px !important; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.css">
 </head>
