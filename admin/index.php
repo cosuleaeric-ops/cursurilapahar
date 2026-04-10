@@ -68,6 +68,35 @@ function default_settings(): array {
         'contact_title'     => 'Contact',
         'contact_subtitle'  => 'Ai o întrebare sau o idee? Scrie-ne.',
         'hero_images'       => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
+        'logo_path'         => '/assets/images/logo.webp',
+        'favicon_path'      => '',
+        'nav_brand_text'    => 'Cursuri la Pahar',
+        'nav_links'         => [
+            ['label' => 'Cursuri',            'url' => '/#cursuri'],
+            ['label' => 'Cum funcționează',   'url' => '/#cum-functioneaza'],
+            ['label' => 'FAQ',                'url' => '/#faq'],
+            ['label' => 'Colaborare',         'url' => '/#colaborare'],
+            ['label' => 'Contact',            'url' => '/#contact'],
+        ],
+        'kit_api_key'       => 'kit_3ad1bb636169002be3359bd1048e0204',
+        'kit_form_id'       => '',
+        'pages'             => [
+            'sustine' => [
+                'title'       => 'Susține un curs',
+                'subtitle'    => 'Împărtășește-ți expertiza cu comunitatea noastră.',
+                'description' => 'Ești expert într-un domeniu care te pasionează? Vino să susții un curs în fața unei comunități curioase, într-un cadru relaxat, la un pahar.',
+            ],
+            'gazduieste' => [
+                'title'       => 'Găzduiește un curs',
+                'subtitle'    => 'Transformă-ți locația în spațiul unde se nasc conexiunile.',
+                'description' => 'Ai o locație cu atmosferă? Bar, café, spațiu cultural sau altceva? Hai să aducem un curs la tine și să umpleam locul de oameni curioși.',
+            ],
+            'parteneriat' => [
+                'title'       => 'Propune un parteneriat',
+                'subtitle'    => 'Construim ceva frumos împreună.',
+                'description' => 'Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre.',
+            ],
+        ],
     ];
 }
 function load_settings(): array {
@@ -199,13 +228,97 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: /admin/?tab=setari&saved=1');
         exit;
     }
+
+    // ── Save aspect (navbar brand + links)
+    if ($action === 'save_aspect') {
+        $settings = load_settings();
+        $settings['nav_brand_text'] = trim($_POST['nav_brand_text'] ?? 'Cursuri la Pahar');
+        $raw_links = explode("\n", $_POST['nav_links_raw'] ?? '');
+        $nav_links = [];
+        foreach ($raw_links as $line) {
+            $line = trim($line);
+            if (!$line) continue;
+            $parts = explode('|', $line, 2);
+            if (count($parts) === 2) {
+                $nav_links[] = ['label' => trim($parts[0]), 'url' => trim($parts[1])];
+            }
+        }
+        if ($nav_links) $settings['nav_links'] = $nav_links;
+        save_settings($settings);
+        header('Location: /admin/?tab=aspect&saved=1');
+        exit;
+    }
+
+    // ── Upload logo
+    if ($action === 'upload_logo') {
+        $file = $_FILES['logo_file'] ?? null;
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg','jpeg','png','webp','svg'])) {
+                $new_name = 'logo.' . $ext;
+                $dest = PUBLIC_HTML . '/assets/images/' . $new_name;
+                if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    $settings = load_settings();
+                    $settings['logo_path'] = '/assets/images/' . $new_name;
+                    save_settings($settings);
+                }
+            }
+        }
+        header('Location: /admin/?tab=aspect&saved=1');
+        exit;
+    }
+
+    // ── Upload favicon
+    if ($action === 'upload_favicon') {
+        $file = $_FILES['favicon_file'] ?? null;
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['ico','png'])) {
+                $dest = PUBLIC_HTML . '/favicon.' . $ext;
+                move_uploaded_file($file['tmp_name'], $dest);
+                $settings = load_settings();
+                $settings['favicon_path'] = '/favicon.' . $ext;
+                save_settings($settings);
+            }
+        }
+        header('Location: /admin/?tab=aspect&saved=1');
+        exit;
+    }
+
+    // ── Save page content
+    if ($action === 'save_page') {
+        $page_key = preg_replace('/[^a-z]/', '', $_POST['page_key'] ?? '');
+        $valid_pages = ['sustine','gazduieste','parteneriat'];
+        if (in_array($page_key, $valid_pages)) {
+            $settings = load_settings();
+            if (!isset($settings['pages'])) $settings['pages'] = [];
+            $settings['pages'][$page_key] = [
+                'title'       => trim($_POST['title'] ?? ''),
+                'subtitle'    => trim($_POST['subtitle'] ?? ''),
+                'description' => trim($_POST['description'] ?? ''),
+            ];
+            save_settings($settings);
+        }
+        header('Location: /admin/?tab=pagini&saved=1&page=' . urlencode($page_key));
+        exit;
+    }
+
+    // ── Save Kit settings
+    if ($action === 'save_kit') {
+        $settings = load_settings();
+        $settings['kit_api_key'] = trim($_POST['kit_api_key'] ?? '');
+        $settings['kit_form_id'] = trim($_POST['kit_form_id'] ?? '');
+        save_settings($settings);
+        header('Location: /admin/?tab=kit&saved=1');
+        exit;
+    }
 }
 
 // ── Load data for display ─────────────────────────────────────────────────────
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'cursuri';
-if (!in_array($tab, ['cursuri','imagini','setari'])) $tab = 'cursuri';
+if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit'])) $tab = 'cursuri';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -419,6 +532,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </a>
             <a href="/admin/?tab=setari" class="<?= $tab === 'setari' ? 'active' : '' ?>">
                 <span class="nav-icon">⚙️</span> Setări
+            </a>
+            <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
+                <span class="nav-icon">🎨</span> Aspect
+            </a>
+            <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' ? 'active' : '' ?>">
+                <span class="nav-icon">📄</span> Pagini
+            </a>
+            <a href="/admin/?tab=kit" class="<?= $tab === 'kit' ? 'active' : '' ?>">
+                <span class="nav-icon">📧</span> Kit (Email)
             </a>
         </nav>
     </aside>
@@ -666,6 +788,157 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
         <button type="submit" class="btn btn-primary" style="margin-bottom:24px">Salvează setările</button>
     </form>
+
+<?php /* ======================================================= TAB: ASPECT */ ?>
+<?php elseif ($tab === 'aspect'): ?>
+<h1 class="wp-page-title">Aspect</h1>
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Setările de aspect au fost salvate.</div>
+<?php endif; ?>
+
+<!-- Logo -->
+<div class="card">
+    <div class="card-title">Logo</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Logo curent: <code><?= h($settings['logo_path'] ?? '') ?></code></p>
+    <?php if (!empty($settings['logo_path'])): ?>
+    <img src="<?= h($settings['logo_path']) ?>" alt="Logo" style="max-height:60px;margin-bottom:12px;display:block;background:#1d2327;padding:8px;border-radius:4px;">
+    <?php endif; ?>
+    <form method="post" action="/admin/?tab=aspect" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="upload_logo">
+        <div style="display:flex;gap:8px;align-items:center">
+            <input type="file" name="logo_file" accept=".jpg,.jpeg,.png,.webp,.svg" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+            <button type="submit" class="btn btn-primary">Încarcă logo</button>
+        </div>
+        <p class="form-desc">Formate: JPG, PNG, WEBP, SVG.</p>
+    </form>
+</div>
+
+<!-- Favicon -->
+<div class="card">
+    <div class="card-title">Favicon</div>
+    <form method="post" action="/admin/?tab=aspect" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="upload_favicon">
+        <div style="display:flex;gap:8px;align-items:center">
+            <input type="file" name="favicon_file" accept=".ico,.png" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+            <button type="submit" class="btn btn-primary">Încarcă favicon</button>
+        </div>
+        <p class="form-desc">Formate: ICO, PNG. Fișierul va fi salvat ca <code>favicon.ico</code> în rădăcina site-ului.</p>
+    </form>
+</div>
+
+<!-- Brand text + Nav links -->
+<form method="post" action="/admin/?tab=aspect">
+    <input type="hidden" name="action" value="save_aspect">
+    <div class="card">
+        <div class="card-title">Navbar</div>
+        <div class="form-group">
+            <label>Text brand (lângă logo)</label>
+            <input type="text" name="nav_brand_text" value="<?= h($settings['nav_brand_text'] ?? 'Cursuri la Pahar') ?>">
+        </div>
+        <div class="form-group">
+            <label>Linkuri meniu</label>
+            <p class="form-desc" style="margin-bottom:8px">Un link per rând, format: <code>Nume|/url</code></p>
+            <textarea name="nav_links_raw" rows="6" style="font-family:monospace"><?php
+                foreach ($settings['nav_links'] ?? [] as $nl) {
+                    echo h(($nl['label'] ?? '') . '|' . ($nl['url'] ?? '')) . "\n";
+                }
+            ?></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează navbar</button>
+    </div>
+</form>
+
+<?php /* ======================================================= TAB: PAGINI */ ?>
+<?php elseif ($tab === 'pagini'): ?>
+<h1 class="wp-page-title">Pagini</h1>
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Pagina a fost salvată.</div>
+<?php endif; ?>
+
+<?php
+$page_meta = [
+    'sustine'     => ['title' => 'Susține un curs',       'url' => '/sustine-un-curs'],
+    'gazduieste'  => ['title' => 'Găzduiește un curs',    'url' => '/gazduieste-un-curs'],
+    'parteneriat' => ['title' => 'Propune un parteneriat','url' => '/propune-un-parteneriat'],
+];
+$editing_page = $_GET['page'] ?? '';
+if ($editing_page && isset($page_meta[$editing_page])):
+    $pg = $settings['pages'][$editing_page] ?? [];
+?>
+<div class="card">
+    <div class="card-title">
+        Editează: <?= h($page_meta[$editing_page]['title']) ?>
+        <a href="<?= h($page_meta[$editing_page]['url']) ?>" target="_blank" style="font-size:12px;font-weight:400;color:var(--accent);margin-left:10px">Vizualizează ↗</a>
+    </div>
+    <form method="post" action="/admin/?tab=pagini&page=<?= h($editing_page) ?>">
+        <input type="hidden" name="action" value="save_page">
+        <input type="hidden" name="page_key" value="<?= h($editing_page) ?>">
+        <div class="form-group">
+            <label>Titlu pagină</label>
+            <input type="text" name="title" value="<?= h($pg['title'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label>Subtitlu</label>
+            <input type="text" name="subtitle" value="<?= h($pg['subtitle'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label>Descriere / Intro text</label>
+            <textarea name="description" rows="4"><?= h($pg['description'] ?? '') ?></textarea>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn btn-primary">Salvează</button>
+            <a href="/admin/?tab=pagini" class="btn btn-secondary">Înapoi</a>
+        </div>
+    </form>
+</div>
+
+<?php else: ?>
+
+<!-- Pages list -->
+<div class="card">
+    <div class="card-title">Pagini disponibile</div>
+    <table class="wp-table">
+        <thead><tr><th>Pagină</th><th>URL</th><th>Acțiuni</th></tr></thead>
+        <tbody>
+            <?php foreach ($page_meta as $key => $pm): ?>
+            <tr>
+                <td style="font-weight:600"><?= h($pm['title']) ?></td>
+                <td><a href="<?= h($pm['url']) ?>" target="_blank" style="color:var(--accent)"><?= h($pm['url']) ?></a></td>
+                <td>
+                    <a href="/admin/?tab=pagini&page=<?= h($key) ?>" class="btn btn-sm btn-secondary">Editează</a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
+<?php endif; ?>
+
+<?php /* ======================================================= TAB: KIT */ ?>
+<?php elseif ($tab === 'kit'): ?>
+<h1 class="wp-page-title">Kit (Email Marketing)</h1>
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Setările Kit au fost salvate.</div>
+<?php endif; ?>
+
+<form method="post" action="/admin/?tab=kit">
+    <input type="hidden" name="action" value="save_kit">
+    <div class="card">
+        <div class="card-title">Conexiune Kit.com</div>
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="text" name="kit_api_key" value="<?= h($settings['kit_api_key'] ?? '') ?>" placeholder="kit_...">
+            <p class="form-desc">Găsești API Key-ul în <a href="https://app.kit.com/account_settings/developer_settings" target="_blank" style="color:var(--accent)">Kit → Settings → Developer</a>.</p>
+        </div>
+        <div class="form-group">
+            <label>Form ID (opțional)</label>
+            <input type="text" name="kit_form_id" value="<?= h($settings['kit_form_id'] ?? '') ?>" placeholder="ex: 1234567">
+            <p class="form-desc">Dacă vrei să adaugi abonații la un form specific. Lasă gol pentru a adăuga direct ca subscriber.</p>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează</button>
+    </div>
+</form>
 
 <?php endif; ?>
 

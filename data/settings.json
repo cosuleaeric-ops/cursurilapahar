@@ -15,5 +15,34 @@
         "\/assets\/images\/hero3.jpg",
         "\/assets\/images\/hero4.jpg",
         "\/assets\/images\/hero5.jpg"
-    ]
+    ],
+    "logo_path": "\/assets\/images\/logo.webp",
+    "favicon_path": "",
+    "nav_brand_text": "Cursuri la Pahar",
+    "nav_links": [
+        {"label": "Cursuri", "url": "\/#cursuri"},
+        {"label": "Cum funcționează", "url": "\/#cum-functioneaza"},
+        {"label": "FAQ", "url": "\/#faq"},
+        {"label": "Colaborare", "url": "\/#colaborare"},
+        {"label": "Contact", "url": "\/#contact"}
+    ],
+    "kit_api_key": "kit_3ad1bb636169002be3359bd1048e0204",
+    "kit_form_id": "",
+    "pages": {
+        "sustine": {
+            "title": "Susține un curs",
+            "subtitle": "Împărtășește-ți expertiza cu comunitatea noastră.",
+            "description": "Ești expert într-un domeniu care te pasionează? Vino să susții un curs în fața unei comunități curioase, într-un cadru relaxat, la un pahar."
+        },
+        "gazduieste": {
+            "title": "Găzduiește un curs",
+            "subtitle": "Transformă-ți locația în spațiul unde se nasc conexiunile.",
+            "description": "Ai o locație cu atmosferă? Bar, café, spațiu cultural sau altceva? Hai să aducem un curs la tine și să umpleam locul de oameni curioși."
+        },
+        "parteneriat": {
+            "title": "Propune un parteneriat",
+            "subtitle": "Construim ceva frumos împreună.",
+            "description": "Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre."
+        }
+    }
 }

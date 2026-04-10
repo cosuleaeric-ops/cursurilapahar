@@ -2,6 +2,29 @@
 /**
  * Cursuri la Pahar – Propune un parteneriat
  */
+
+// ── Load settings ─────────────────────────────────────────────────────────────
+$settings_file = __DIR__ . '/data/settings.json';
+$_defaults = [
+    'logo_path'      => '/assets/images/logo.webp',
+    'favicon_path'   => '',
+    'nav_brand_text' => 'Cursuri la Pahar',
+    'nav_links'      => [
+        ['label' => 'Cursuri',          'url' => '/#cursuri'],
+        ['label' => 'Cum funcționează', 'url' => '/#cum-functioneaza'],
+        ['label' => 'FAQ',              'url' => '/#faq'],
+        ['label' => 'Colaborare',       'url' => '/#colaborare'],
+        ['label' => 'Contact',          'url' => '/#contact'],
+    ],
+    'pages' => [],
+];
+$_loaded = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
+$settings = array_merge($_defaults, $_loaded);
+$page = $settings['pages']['parteneriat'] ?? [
+    'title'       => 'Propune un parteneriat',
+    'subtitle'    => 'Construim ceva frumos împreună.',
+    'description' => 'Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre.',
+];
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -14,6 +37,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
+    <?php if (!empty($settings['favicon_path'])): ?>
+    <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
+    <?php endif; ?>
     <style>body { padding-top: 64px; }</style>
 </head>
 <body>
@@ -22,15 +48,13 @@
 <nav class="navbar">
     <div class="navbar-inner">
         <a href="/#hero" class="navbar-logo">
-            <img src="/assets/images/logo.webp" alt="Cursuri la Pahar">
-            <span class="navbar-brand-text">Cursuri la Pahar</span>
+            <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
+            <span class="navbar-brand-text"><?= htmlspecialchars($settings['nav_brand_text']) ?></span>
         </a>
         <div class="navbar-links">
-            <a href="/#cursuri">Cursuri</a>
-            <a href="/#cum-functioneaza">Cum funcționează</a>
-            <a href="/#faq">FAQ</a>
-            <a href="/#colaborare">Colaborare</a>
-            <a href="/#contact">Contact</a>
+            <?php foreach ($settings['nav_links'] as $nl): ?>
+            <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
+            <?php endforeach; ?>
         </div>
         <div class="navbar-right">
             <div class="navbar-social">
@@ -53,11 +77,9 @@
 
 <!-- Mobile drawer -->
 <div class="navbar-drawer" id="navDrawer">
-    <a href="/#cursuri">Cursuri</a>
-    <a href="/#cum-functioneaza">Cum funcționează</a>
-    <a href="/#faq">FAQ</a>
-    <a href="/#colaborare">Colaborare</a>
-    <a href="/#contact">Contact</a>
+    <?php foreach ($settings['nav_links'] as $nl): ?>
+    <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
+    <?php endforeach; ?>
 </div>
 
 <section class="page-hero">
@@ -66,15 +88,15 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             Înapoi
         </a>
-        <h1>Compania ta<br><em style="font-style:italic;color:var(--accent)">× Cursuri la Pahar</em></h1>
-        <p>Credem în puterea colaborării și în ideea că proiectele faine cresc prin conexiuni valoroase. Dacă reprezinți un brand, o platformă media sau un proiect care rezonează cu misiunea noastră de a aduce educația într-un format relaxat, ne-ar plăcea să explorăm cum putem construi împreună.</p>
+        <h1><?= htmlspecialchars($page['title']) ?></h1>
+        <p><?= htmlspecialchars($page['subtitle']) ?></p>
     </div>
 </section>
 
 <section class="page-content-section">
     <div class="container container-narrow">
         <p style="color:var(--text-muted);line-height:1.8;margin-bottom:32px;">
-            Căutăm parteneri care pun preț pe calitate și care vor să se implice activ în experiența pe care o oferim comunității noastre. Deci, dacă te regăsești în această descriere, completează formularul de mai jos.
+            <?= htmlspecialchars($page['description']) ?>
         </p>
 
         <div class="inner-form">

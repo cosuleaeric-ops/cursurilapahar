@@ -4,10 +4,23 @@ $body = json_decode(file_get_contents('php://input'), true);
 $email = filter_var(trim($body['email'] ?? ''), FILTER_VALIDATE_EMAIL);
 if (!$email) { echo json_encode(['success'=>false,'message'=>'Email invalid.']); exit; }
 
-$response = file_get_contents('https://api.kit.com/v4/subscribers', false, stream_context_create([
+// Load API key from settings
+$settings_file = dirname(__DIR__) . '/data/settings.json';
+$settings = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
+$api_key = $settings['kit_api_key'] ?? 'kit_3ad1bb636169002be3359bd1048e0204';
+$form_id = $settings['kit_form_id'] ?? '';
+
+// If form_id set, subscribe via form endpoint; otherwise direct subscriber
+if ($form_id) {
+    $api_url = 'https://api.kit.com/v4/forms/' . urlencode($form_id) . '/subscribers';
+} else {
+    $api_url = 'https://api.kit.com/v4/subscribers';
+}
+
+$response = file_get_contents($api_url, false, stream_context_create([
     'http' => [
         'method' => 'POST',
-        'header' => "Content-Type: application/json\r\nAccept: application/json\r\nAuthorization: Bearer kit_3ad1bb636169002be3359bd1048e0204\r\n",
+        'header' => "Content-Type: application/json\r\nAccept: application/json\r\nAuthorization: Bearer " . $api_key . "\r\n",
         'content' => json_encode(['email_address' => $email, 'state' => 'active']),
         'ignore_errors' => true,
     ]
@@ -20,4 +33,3 @@ if ($code >= 200 && $code < 300) {
     $msg = $data['errors'][0]['title'] ?? 'Eroare la abonare.';
     echo json_encode(['success' => false, 'message' => $msg]);
 }
- 

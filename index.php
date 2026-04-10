@@ -17,6 +17,16 @@ function clp_default_settings(): array {
         'contact_title'    => 'Contact',
         'contact_subtitle' => 'Ai o întrebare sau o idee? Scrie-ne.',
         'hero_images'      => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
+        'logo_path'        => '/assets/images/logo.webp',
+        'favicon_path'     => '',
+        'nav_brand_text'   => 'Cursuri la Pahar',
+        'nav_links'        => [
+            ['label' => 'Cursuri',            'url' => '/#cursuri'],
+            ['label' => 'Cum funcționează',   'url' => '/#cum-functioneaza'],
+            ['label' => 'FAQ',                'url' => '/#faq'],
+            ['label' => 'Colaborare',         'url' => '/#colaborare'],
+            ['label' => 'Contact',            'url' => '/#contact'],
+        ],
     ];
 }
 $settings_file = __DIR__ . '/data/settings.json';
@@ -47,6 +57,9 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
+    <?php if (!empty($settings['favicon_path'])): ?>
+    <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
+    <?php endif; ?>
     <style>body { padding-top: 64px; }</style>
 </head>
 <body>
@@ -55,15 +68,13 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 <nav class="navbar">
     <div class="navbar-inner">
         <a href="/#hero" class="navbar-logo">
-            <img src="/assets/images/logo.webp" alt="Cursuri la Pahar">
-            <span class="navbar-brand-text">Cursuri la Pahar</span>
+            <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
+            <span class="navbar-brand-text"><?= htmlspecialchars($settings['nav_brand_text']) ?></span>
         </a>
         <div class="navbar-links">
-            <a href="/#cursuri">Cursuri</a>
-            <a href="/#cum-functioneaza">Cum funcționează</a>
-            <a href="/#faq">FAQ</a>
-            <a href="/#colaborare">Colaborare</a>
-            <a href="/#contact">Contact</a>
+            <?php foreach ($settings['nav_links'] as $nl): ?>
+            <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
+            <?php endforeach; ?>
         </div>
         <div class="navbar-right">
             <div class="navbar-social">
@@ -86,11 +97,9 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 
 <!-- Mobile drawer -->
 <div class="navbar-drawer" id="navDrawer">
-    <a href="/#cursuri">Cursuri</a>
-    <a href="/#cum-functioneaza">Cum funcționează</a>
-    <a href="/#faq">FAQ</a>
-    <a href="/#colaborare">Colaborare</a>
-    <a href="/#contact">Contact</a>
+    <?php foreach ($settings['nav_links'] as $nl): ?>
+    <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
+    <?php endforeach; ?>
 </div>
 
 <!-- ── HERO ────────────────────────────────── -->
