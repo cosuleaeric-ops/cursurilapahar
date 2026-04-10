@@ -1346,7 +1346,6 @@ function toggleMsg(uid) {
     el.classList.toggle('open');
 }
 </script>
-<?php endif; ?>
 
 <?php endif; ?>
 
