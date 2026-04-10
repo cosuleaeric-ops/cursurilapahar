@@ -80,6 +80,13 @@ function default_settings(): array {
         ],
         'kit_api_key'       => 'kit_3ad1bb636169002be3359bd1048e0204',
         'kit_form_id'       => '',
+        'color_bg'          => '#0D0D0D',
+        'color_accent'      => '#C9A84C',
+        'color_text'        => '#E8E4DC',
+        'color_text_muted'  => '#9CA3AF',
+        'color_surface'     => '#161616',
+        'font_heading'      => 'Nunito',
+        'font_body'         => 'Inter',
         'pages'             => [
             'sustine' => [
                 'title'       => 'Susține un curs',
@@ -310,6 +317,23 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings['kit_form_id'] = trim($_POST['kit_form_id'] ?? '');
         save_settings($settings);
         header('Location: /admin/?tab=kit&saved=1');
+        exit;
+    }
+
+    // ── Save design (colors + fonts)
+    if ($action === 'save_design') {
+        $settings = load_settings();
+        $color_fields = ['color_bg','color_accent','color_text','color_text_muted','color_surface'];
+        foreach ($color_fields as $f) {
+            $val = trim($_POST[$f] ?? '');
+            if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $val)) $settings[$f] = $val;
+        }
+        $font_heading = trim($_POST['font_heading'] ?? '');
+        $font_body    = trim($_POST['font_body'] ?? '');
+        if ($font_heading) $settings['font_heading'] = $font_heading;
+        if ($font_body)    $settings['font_body']    = $font_body;
+        save_settings($settings);
+        header('Location: /admin/?tab=aspect&saved=1');
         exit;
     }
 }
@@ -847,6 +871,86 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <button type="submit" class="btn btn-primary">Salvează navbar</button>
     </div>
 </form>
+
+<!-- Culori & Fonturi -->
+<form method="post" action="/admin/?tab=aspect">
+    <input type="hidden" name="action" value="save_design">
+    <div class="card" style="margin-top:20px">
+        <div class="card-title">Culori &amp; Fonturi</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div class="form-group" style="margin:0">
+                <label>Fundal principal</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_bg" value="<?= h($settings['color_bg'] ?? '#0D0D0D') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_bg" value="<?= h($settings['color_bg'] ?? '#0D0D0D') ?>" style="flex:1;font-family:monospace" placeholder="#0D0D0D" oninput="syncColor(this,'color_bg')">
+                </div>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Culoare accent</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_accent" value="<?= h($settings['color_accent'] ?? '#C9A84C') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_accent" value="<?= h($settings['color_accent'] ?? '#C9A84C') ?>" style="flex:1;font-family:monospace" placeholder="#C9A84C" oninput="syncColor(this,'color_accent')">
+                </div>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Culoare text</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_text" value="<?= h($settings['color_text'] ?? '#E8E4DC') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_text" value="<?= h($settings['color_text'] ?? '#E8E4DC') ?>" style="flex:1;font-family:monospace" placeholder="#E8E4DC" oninput="syncColor(this,'color_text')">
+                </div>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Text secundar</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_text_muted" value="<?= h($settings['color_text_muted'] ?? '#9CA3AF') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_text_muted" value="<?= h($settings['color_text_muted'] ?? '#9CA3AF') ?>" style="flex:1;font-family:monospace" placeholder="#9CA3AF" oninput="syncColor(this,'color_text_muted')">
+                </div>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Fundal carduri/secțiuni</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_surface" value="<?= h($settings['color_surface'] ?? '#161616') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_surface" value="<?= h($settings['color_surface'] ?? '#161616') ?>" style="flex:1;font-family:monospace" placeholder="#161616" oninput="syncColor(this,'color_surface')">
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+            <div class="form-group" style="margin:0">
+                <label>Font titluri</label>
+                <select name="font_heading" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff">
+                    <?php foreach (['Nunito','Playfair Display','Montserrat','Raleway','Oswald','Lora','Poppins','DM Serif Display','Bebas Neue','Cormorant Garamond'] as $f): ?>
+                    <option value="<?= h($f) ?>" <?= ($settings['font_heading'] ?? 'Nunito') === $f ? 'selected' : '' ?>><?= h($f) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="form-desc">Font folosit pentru titluri și headinguri.</p>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Font text</label>
+                <select name="font_body" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff">
+                    <?php foreach (['Inter','Roboto','Open Sans','Lato','Source Sans 3','DM Sans','Nunito','Mulish','Cabin','Karla'] as $f): ?>
+                    <option value="<?= h($f) ?>" <?= ($settings['font_body'] ?? 'Inter') === $f ? 'selected' : '' ?>><?= h($f) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="form-desc">Font folosit pentru textele din pagină.</p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvează design</button>
+    </div>
+</form>
+<script>
+// Sync color picker <-> text input
+function syncColor(el, name) {
+    const siblings = document.querySelectorAll('[name="' + name + '"]');
+    siblings.forEach(s => { if (s !== el) s.value = el.value; });
+}
+document.querySelectorAll('input[type="color"]').forEach(picker => {
+    const name = picker.getAttribute('name');
+    picker.addEventListener('input', () => syncColor(picker, name));
+});
+</script>
 
 <?php /* ======================================================= TAB: PAGINI */ ?>
 <?php elseif ($tab === 'pagini'): ?>

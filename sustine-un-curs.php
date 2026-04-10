@@ -35,12 +35,28 @@ $page = $settings['pages']['sustine'] ?? [
     <meta name="description" content="Susține un curs la Cursuri la Pahar. Vino să împărtășești expertiza ta cu comunitatea noastră.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <?php
+    $font_heading = $settings['font_heading'] ?? 'Nunito';
+    $font_body    = $settings['font_body']    ?? 'Inter';
+    $fonts_param  = 'family=' . urlencode($font_heading) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=' . urlencode($font_body) . ':wght@300;400;500&display=swap';
+    ?>
+    <link href="https://fonts.googleapis.com/css2?<?= $fonts_param ?>" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
     <?php if (!empty($settings['favicon_path'])): ?>
     <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
     <?php endif; ?>
-    <style>body { padding-top: 64px; }</style>
+    <style>
+    :root {
+        --bg:           <?= htmlspecialchars($settings['color_bg']         ?? '#0D0D0D') ?>;
+        --accent:       <?= htmlspecialchars($settings['color_accent']     ?? '#C9A84C') ?>;
+        --text:         <?= htmlspecialchars($settings['color_text']       ?? '#E8E4DC') ?>;
+        --text-muted:   <?= htmlspecialchars($settings['color_text_muted'] ?? '#9CA3AF') ?>;
+        --surface:      <?= htmlspecialchars($settings['color_surface']    ?? '#161616') ?>;
+        --font-sans:    '<?= htmlspecialchars($font_body) ?>', system-ui, sans-serif;
+        --font-heading: '<?= htmlspecialchars($font_heading) ?>', sans-serif;
+    }
+    body { padding-top: 64px; }
+    </style>
 </head>
 <body>
 
