@@ -50,11 +50,19 @@ foreach ($changed as $file) {
     }
     if (!$is_webhook && !$is_deployable) continue;
 
+    $api_url = 'https://api.github.com/repos/' . REPO . '/contents/' . $file . '?ref=' . $commit_sha;
     $ctx = stream_context_create(['http' => [
-        'header' => "Authorization: token " . GITHUB_TOKEN . "\r\nUser-Agent: CLP-Deploy\r\n",
+        'header' => implode("\r\n", [
+            'Authorization: token ' . GITHUB_TOKEN,
+            'User-Agent: CLP-Deploy',
+            'Accept: application/vnd.github.v3.raw',
+        ]),
     ]]);
-    $content = @file_get_contents($base_url . $file, false, $ctx);
-    if ($content === false || strlen($content) === 0) continue;
+    $content = @file_get_contents($api_url, false, $ctx);
+    if ($content === false || strlen($content) === 0) {
+        file_put_contents(LOG_FILE, date('Y-m-d H:i:s') . " FAIL: $file\n", FILE_APPEND);
+        continue;
+    }
 
     $dest = PUBLIC_HTML . '/' . $file;
     $dir  = dirname($dest);
