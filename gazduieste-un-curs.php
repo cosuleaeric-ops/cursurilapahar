@@ -143,7 +143,6 @@ $page = $settings['pages']['gazduieste'] ?? [
         </div>
 
         <div class="inner-form">
-            <h2><?= htmlspecialchars($page['form_title'] ?? 'Hai să punem ceva frumos la cale!') ?></h2>
             <form class="inner-page-form" data-form-type="gazduieste" novalidate>
                 <div class="form-row">
                     <div class="form-group">

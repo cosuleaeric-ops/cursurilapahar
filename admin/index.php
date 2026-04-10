@@ -419,7 +419,6 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'title'       => trim($_POST['title'] ?? ''),
                 'subtitle'    => trim($_POST['subtitle'] ?? ''),
                 'description' => trim($_POST['description'] ?? ''),
-                'form_title'  => trim($_POST['form_title'] ?? ''),
             ];
             save_settings($settings);
         }
@@ -1169,10 +1168,6 @@ if ($editing_page && isset($page_meta[$editing_page])):
         <div class="form-group">
             <label>Descriere / Intro text</label>
             <textarea name="description" rows="4"><?= h($pg['description'] ?? '') ?></textarea>
-        </div>
-        <div class="form-group">
-            <label>Titlu formular (h2 deasupra câmpurilor)</label>
-            <input type="text" name="form_title" value="<?= h($pg['form_title'] ?? '') ?>" placeholder="Ex: Completează formularul">
         </div>
         <div style="display:flex;gap:8px;">
             <button type="submit" class="btn btn-primary">Salvează</button>
