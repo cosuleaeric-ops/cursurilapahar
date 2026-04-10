@@ -275,7 +275,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Upload favicon
+    // ── Upload favicon (circular crop via GD, saved as PNG)
     if ($action === 'upload_favicon') {
         $file = $_FILES['favicon_file'] ?? null;
         $favicon_error = '';
@@ -288,17 +288,58 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             if (!in_array($ext, ['ico','png','jpg','jpeg','webp'])) {
-                $favicon_error = 'Format neacceptat: ' . h($ext) . '. Folosește ICO, PNG, JPG sau WEBP.';
+                $favicon_error = 'Format neacceptat: ' . h($ext) . '. Folosește PNG, JPG sau WEBP.';
+            } elseif (!function_exists('imagecreatefrompng')) {
+                $favicon_error = 'Extensia GD nu este disponibilă pe server.';
             } else {
-                $dest = PUBLIC_HTML . '/favicon.' . $ext;
-                if (!move_uploaded_file($file['tmp_name'], $dest)) {
-                    $favicon_error = 'Eroare la salvare fișier. Verifică permisiunile directorului (public_html trebuie să fie writable).';
+                // Load source image
+                $src = null;
+                if ($ext === 'png')                  $src = @imagecreatefrompng($file['tmp_name']);
+                elseif (in_array($ext, ['jpg','jpeg'])) $src = @imagecreatefromjpeg($file['tmp_name']);
+                elseif ($ext === 'webp')             $src = @imagecreatefromwebp($file['tmp_name']);
+                elseif ($ext === 'ico')              $src = @imagecreatefromstring(file_get_contents($file['tmp_name']));
+
+                if (!$src) {
+                    $favicon_error = 'Nu am putut citi imaginea. Încearcă alt fișier.';
                 } else {
-                    $settings = load_settings();
-                    $settings['favicon_path'] = '/favicon.' . $ext;
-                    save_settings($settings);
-                    header('Location: /admin/?tab=aspect&saved=1');
-                    exit;
+                    $size = 512; // internal resolution
+                    $orig_w = imagesx($src);
+                    $orig_h = imagesy($src);
+                    // Crop to square from center
+                    $sq = min($orig_w, $orig_h);
+                    $cx = (int)(($orig_w - $sq) / 2);
+                    $cy = (int)(($orig_h - $sq) / 2);
+                    // Create output canvas with alpha
+                    $out = imagecreatetruecolor($size, $size);
+                    imagealphablending($out, false);
+                    imagesavealpha($out, true);
+                    $transparent = imagecolorallocatealpha($out, 0, 0, 0, 127);
+                    imagefill($out, 0, 0, $transparent);
+                    // Resize source square onto canvas
+                    imagecopyresampled($out, $src, 0, 0, $cx, $cy, $size, $size, $sq, $sq);
+                    // Apply circular mask: set pixels outside circle to transparent
+                    $r = $size / 2;
+                    for ($y = 0; $y < $size; $y++) {
+                        for ($x = 0; $x < $size; $x++) {
+                            $dx = $x - $r; $dy = $y - $r;
+                            if (($dx * $dx + $dy * $dy) > ($r * $r)) {
+                                imagesetpixel($out, $x, $y, $transparent);
+                            }
+                        }
+                    }
+                    imagedestroy($src);
+                    $dest = PUBLIC_HTML . '/favicon.png';
+                    if (!imagepng($out, $dest)) {
+                        $favicon_error = 'Eroare la salvare favicon. Verifică permisiunile directorului.';
+                    } else {
+                        imagedestroy($out);
+                        $settings = load_settings();
+                        $settings['favicon_path'] = '/favicon.png';
+                        save_settings($settings);
+                        header('Location: /admin/?tab=aspect&saved=1');
+                        exit;
+                    }
+                    imagedestroy($out);
                 }
             }
         }
