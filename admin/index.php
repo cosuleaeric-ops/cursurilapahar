@@ -612,7 +612,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .clr-field { width: 100%; }
 .clr-field input {
     width: 100%;
-    padding: 9px 12px 9px 50px !important;
+    padding: 9px 48px 9px 12px !important;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-family: monospace;
@@ -624,8 +624,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 .clr-field button {
     width: 36px; height: calc(100% - 2px);
-    border-radius: 3px 0 0 3px;
-    left: 1px; right: auto; top: 1px;
+    border-radius: 0 3px 3px 0;
+    right: 1px; left: auto; top: 1px;
     transform: none;
 }
 /* Bigger popup */
