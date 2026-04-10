@@ -143,7 +143,9 @@ if (nlForm) {
       }
     } catch (err) {
       msg.className = 'form-message error';
-      msg.textContent = 'Ceva n-a mers bine. Încearcă din nou sau scrie-ne la contact@cursurilapahar.ro';
+      msg.textContent = err.message && err.message !== 'Eroare necunoscută'
+        ? err.message
+        : 'Ceva n-a mers bine. Încearcă din nou sau scrie-ne la contact@cursurilapahar.ro';
     } finally {
       btn.disabled = false;
       btn.textContent = 'Anunță-mă';

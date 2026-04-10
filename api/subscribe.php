@@ -21,13 +21,14 @@ $ch = curl_init($api_url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode(['email_address' => $email, 'state' => 'active']),
+    CURLOPT_POSTFIELDS     => json_encode(['email_address' => $email]),
     CURLOPT_HTTPHEADER     => [
         'Content-Type: application/json',
         'Accept: application/json',
         'Authorization: Bearer ' . $api_key,
     ],
     CURLOPT_TIMEOUT        => 10,
+    CURLOPT_SSL_VERIFYPEER => false,
 ]);
 $response = curl_exec($ch);
 $code     = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
