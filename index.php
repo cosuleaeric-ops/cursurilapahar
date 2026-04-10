@@ -140,7 +140,8 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 <section class="hero" id="hero">
     <div class="hero-slides">
         <?php foreach ($settings['hero_images'] as $idx => $hero_img): ?>
-        <div class="hero-slide<?= $idx === 0 ? ' active' : '' ?>" style="background-image:url('<?= htmlspecialchars($hero_img) ?>')"></div>
+        <div class="hero-slide<?= $idx === 0 ? ' active' : '' ?>"
+             <?= $idx === 0 ? "style=\"background-image:url('" . htmlspecialchars($hero_img) . "')\"" : "data-bg=\"" . htmlspecialchars($hero_img) . "\"" ?>></div>
         <?php endforeach; ?>
     </div>
     <div class="hero-overlay"></div>
@@ -217,7 +218,8 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 </section>
 
 <!-- ── NEWSLETTER ─────────────────────────── -->
-<section class="section section-dark" id="newsletter">
+<?php $nl_bg = $settings['hero_images'][0] ?? '/assets/images/hero1.jpg'; ?>
+<section class="section section-dark section-bg-blur" id="newsletter" style="--section-bg-img:url('<?= htmlspecialchars($nl_bg) ?>')">
     <div class="container container-narrow">
         <div class="newsletter-icon" aria-hidden="true">✉</div>
         <h2 class="section-title"><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
@@ -257,7 +259,8 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 </section>
 
 <!-- ── FAQ ────────────────────────────────── -->
-<section class="section section-dark" id="faq">
+<?php $faq_bg = $settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg'; ?>
+<section class="section section-dark section-bg-blur" id="faq" style="--section-bg-img:url('<?= htmlspecialchars($faq_bg) ?>')">
     <div class="container container-narrow">
         <h2 class="section-title">Întrebări frecvente</h2>
         <div class="faq-list">

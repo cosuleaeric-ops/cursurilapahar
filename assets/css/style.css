@@ -337,7 +337,7 @@ ul { list-style: none; }
 .hero-title em {
   font-style: normal;
   color: var(--accent);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 /* Scroll hint */
@@ -453,6 +453,35 @@ ul { list-style: none; }
   margin-top: 32px;
   font-size: 1.05rem;
   line-height: 1.8;
+}
+
+/* ── Blurred background sections ─────────── */
+.section-bg-blur {
+  position: relative;
+  overflow: hidden;
+}
+.section-bg-blur::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  background-image: var(--section-bg-img);
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px);
+  transform: scale(1.08);
+  z-index: 0;
+}
+.section-bg-blur::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+  z-index: 1;
+}
+.section-bg-blur > .container,
+.section-bg-blur > .container-narrow {
+  position: relative;
+  z-index: 2;
 }
 
 /* ══════════════════════════════════════════
