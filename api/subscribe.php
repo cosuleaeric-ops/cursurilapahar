@@ -36,6 +36,10 @@ $data = json_decode($response, true);
 if ($code >= 200 && $code < 300) {
     echo json_encode(['success' => true]);
 } else {
-    $msg = $data['errors'][0]['title'] ?? 'Eroare la abonare.';
-    echo json_encode(['success' => false, 'message' => $msg]);
+    $msg = $data['errors'][0]['title'] ?? $data['message'] ?? 'Eroare la abonare.';
+    // Debug: log full response
+    @file_put_contents(dirname(__DIR__) . '/data/subscribe_debug.log',
+        date('Y-m-d H:i:s') . " | code=$code | url=$api_url | key=" . substr($api_key,0,12) . "... | response=" . $response . "\n",
+        FILE_APPEND);
+    echo json_encode(['success' => false, 'message' => $msg, '_debug_code' => $code]);
 }
