@@ -41,7 +41,7 @@
         {"q": "Cine poate participa?",                "a": "Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu; evenimentul este creat pentru toți cei care vor să îmbine socializarea cu o doză de cunoaștere."},
         {"q": "Când va avea loc următorul eveniment?", "a": "Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru. Pe lângă asta, poți vedea calendarul și pe pagina noastră de Instagram."}
     ],
-    "color_bg": "#0D0D0D",
+    "color_bg": "#FF0000",
     "color_accent": "#C9A84C",
     "color_text": "#E8E4DC",
     "color_text_muted": "#9CA3AF",
