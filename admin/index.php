@@ -1240,7 +1240,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-panel.active { display:block; }
 .msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
 .msg-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:.15s; }
-.msg-card:hover { border-color:rgba(255,255,255,.18); background:#222; }
+.msg-card:hover { border-color:rgba(255,255,255,.12); background:#1e1e1e; }
 .msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .msg-card-name { font-size:14px; font-weight:600; color:var(--text); }
 .msg-card-date { font-size:11px; color:var(--text-muted); white-space:nowrap; }
