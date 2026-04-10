@@ -75,7 +75,7 @@ ul { list-style: none; }
   font-family: 'Anton', var(--font-serif);
   font-size: 60px;
   font-weight: 400;
-  letter-spacing: 0.04em;
+  letter-spacing: -0.025em;
   text-transform: uppercase;
 }
 .section-subtitle {

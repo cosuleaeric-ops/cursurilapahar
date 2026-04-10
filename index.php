@@ -214,7 +214,6 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
                         </span>
                         <?php endif; ?>
                     </div>
-                    <span class="btn btn-secondary">Cumpără bilet →</span>
                 </div>
             </a>
             <?php endforeach; ?>
