@@ -762,7 +762,7 @@ ul { list-style: none; }
   font-weight: 500;
   color: var(--text-muted);
 }
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group textarea {
   background: rgba(255,255,255,.06);
   border: 1.5px solid var(--border);
@@ -774,9 +774,9 @@ ul { list-style: none; }
   transition: border-color var(--transition);
   -webkit-appearance: none;
 }
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group textarea:focus { border-color: var(--accent); }
-.form-group input::placeholder,
+.form-group input:not([type="checkbox"]):not([type="radio"])::placeholder,
 .form-group textarea::placeholder { color: var(--text-faint); }
 
 /* Form messages */
