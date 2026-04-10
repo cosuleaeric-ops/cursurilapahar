@@ -251,64 +251,55 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 <div class="admin-body">
 
-    <!-- Import from LiveTickets -->
-    <div class="card">
-        <h2>Importă din LiveTickets</h2>
-        <div class="import-row">
-            <input type="url" id="ltUrl" placeholder="https://www.livetickets.ro/bilete/slug-eveniment">
-            <button class="btn btn-accent" onclick="importLT()">Importă</button>
-        </div>
-        <div id="importMsg"></div>
-    </div>
-
-    <!-- Add / Edit form -->
+    <!-- Add course -->
     <div class="card">
         <h2><?= $edit_course ? 'Editează cursul' : 'Adaugă curs nou' ?></h2>
-        <form method="post" action="/admin/">
+
+        <?php if (!$edit_course): ?>
+        <!-- Import row -->
+        <div class="import-row" style="margin-bottom:16px;">
+            <input type="url" id="ltUrl" placeholder="https://www.livetickets.ro/bilete/slug-eveniment" style="flex:1;">
+            <button class="btn btn-accent" onclick="importLT()">Importă</button>
+        </div>
+        <div id="importMsg" style="margin-bottom:12px;font-size:13px;"></div>
+        <?php endif; ?>
+
+        <form method="post" action="/admin/" id="courseForm" <?= !$edit_course ? 'style="display:none"' : '' ?>>
             <input type="hidden" name="action" value="save">
-            <input type="hidden" name="course_id" id="courseId" value="<?= h($edit_course['id'] ?? '') ?>">
-            <div class="form-grid">
-                <div class="form-group full">
-                    <label for="f_title">Titlu *</label>
-                    <input type="text" id="f_title" name="title" value="<?= h($edit_course['title'] ?? '') ?>" required>
-                </div>
-                <div class="form-group">
-                    <label for="f_date_display">Dată afișată</label>
-                    <input type="text" id="f_date_display" name="date_display" value="<?= h($edit_course['date_display'] ?? '') ?>" placeholder="Ex: 25 Mai 2026">
-                </div>
-                <div class="form-group">
-                    <label for="f_date_raw">Dată (YYYY-MM-DD)</label>
-                    <input type="date" id="f_date_raw" name="date_raw" value="<?= h($edit_course['date_raw'] ?? '') ?>">
-                </div>
-                <div class="form-group">
-                    <label for="f_time">Oră</label>
-                    <input type="text" id="f_time" name="time" value="<?= h($edit_course['time'] ?? '') ?>" placeholder="Ex: 19:00">
-                </div>
-                <div class="form-group">
-                    <label for="f_location">Locație</label>
-                    <input type="text" id="f_location" name="location" value="<?= h($edit_course['location'] ?? '') ?>" placeholder="Ex: Twisted Olives, București">
-                </div>
-                <div class="form-group full">
-                    <label for="f_lt_url">URL LiveTickets</label>
-                    <input type="url" id="f_lt_url" name="livetickets_url" value="<?= h($edit_course['livetickets_url'] ?? '') ?>" placeholder="https://www.livetickets.ro/bilete/...">
-                </div>
-                <div class="form-group full">
-                    <label for="f_image_url">URL Imagine</label>
-                    <input type="url" id="f_image_url" name="image_url" value="<?= h($edit_course['image_url'] ?? '') ?>" placeholder="https://livetickets-cdn.azureedge.net/itemimages/...">
-                    <div class="image-preview" id="imagePreview">
-                        <?php if (!empty($edit_course['image_url'])): ?>
-                        <img src="<?= h($edit_course['image_url']) ?>" alt="Preview">
-                        <?php endif; ?>
+            <input type="hidden" name="course_id"       id="courseId"      value="<?= h($edit_course['id'] ?? '') ?>">
+            <input type="hidden" name="title"           id="f_title"       value="<?= h($edit_course['title'] ?? '') ?>">
+            <input type="hidden" name="date_display"    id="f_date_display" value="<?= h($edit_course['date_display'] ?? '') ?>">
+            <input type="hidden" name="date_raw"        id="f_date_raw"    value="<?= h($edit_course['date_raw'] ?? '') ?>">
+            <input type="hidden" name="time"            id="f_time"        value="<?= h($edit_course['time'] ?? '') ?>">
+            <input type="hidden" name="location"        id="f_location"    value="<?= h($edit_course['location'] ?? '') ?>">
+            <input type="hidden" name="livetickets_url" id="f_lt_url"      value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
+            <input type="hidden" name="image_url"       id="f_image_url"   value="<?= h($edit_course['image_url'] ?? '') ?>">
+            <input type="hidden" name="active"          id="f_active"      value="1">
+
+            <!-- Preview (shown after import or in edit mode) -->
+            <div id="coursePreview" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;<?= !$edit_course ? 'display:none' : '' ?>">
+                <?php if ($edit_course): ?>
+                <div style="display:flex;gap:16px;align-items:flex-start;">
+                    <?php if (!empty($edit_course['image_url'])): ?>
+                    <img src="<?= h($edit_course['image_url']) ?>" style="width:100px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;" alt="">
+                    <?php endif; ?>
+                    <div>
+                        <div style="font-weight:700;margin-bottom:4px;" id="prev_title"><?= h($edit_course['title'] ?? '') ?></div>
+                        <div style="color:var(--text-muted);font-size:13px;" id="prev_meta"><?= h(($edit_course['date_display'] ?? '') . ' · ' . ($edit_course['time'] ?? '') . ' · ' . ($edit_course['location'] ?? '')) ?></div>
                     </div>
                 </div>
-                <div class="form-group full">
-                    <div class="checkbox-row">
-                        <input type="checkbox" id="f_active" name="active" value="1" <?= !empty($edit_course['active']) || !$edit_course ? 'checked' : '' ?>>
-                        <label for="f_active">Curs activ (vizibil pe site)</label>
+                <?php else: ?>
+                <div style="display:flex;gap:16px;align-items:flex-start;">
+                    <img id="prev_img" src="" style="width:100px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;display:none;" alt="">
+                    <div>
+                        <div style="font-weight:700;margin-bottom:4px;" id="prev_title"></div>
+                        <div style="color:var(--text-muted);font-size:13px;" id="prev_meta"></div>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
-            <div style="display:flex;gap:10px;margin-top:16px;">
+
+            <div style="display:flex;gap:10px;">
                 <button type="submit" class="btn btn-accent"><?= $edit_course ? 'Salvează modificările' : 'Adaugă cursul' ?></button>
                 <?php if ($edit_course): ?>
                 <a href="/admin/" class="btn btn-outline">Anulează</a>
@@ -376,24 +367,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 </div><!-- /admin-body -->
 
 <script>
-// Image URL preview
-document.getElementById('f_image_url').addEventListener('input', function() {
-    const preview = document.getElementById('imagePreview');
-    const val = this.value.trim();
-    if (val) {
-        preview.innerHTML = '<img src="' + val.replace(/"/g, '%22') + '" alt="Preview" onerror="this.style.display=\'none\'" onload="this.style.display=\'block\'">';
-    } else {
-        preview.innerHTML = '';
-    }
-});
-
-// Import from LiveTickets
 async function importLT() {
     const url = document.getElementById('ltUrl').value.trim();
     const msg = document.getElementById('importMsg');
-    if (!url) { msg.className = 'error'; msg.textContent = 'Introdu un URL.'; return; }
+    if (!url) { msg.style.color='var(--danger)'; msg.textContent = 'Introdu un URL.'; return; }
 
-    msg.className = ''; msg.textContent = 'Se importă…';
+    msg.style.color = 'var(--text-muted)'; msg.textContent = 'Se importă…';
 
     try {
         const res  = await fetch('/api/livetickets.php', {
@@ -413,20 +392,25 @@ async function importLT() {
             document.getElementById('f_lt_url').value        = d.livetickets_url || '';
             document.getElementById('f_image_url').value     = d.image_url || '';
             document.getElementById('courseId').value        = '';
-            document.getElementById('f_active').checked      = true;
 
-            // Trigger image preview
-            document.getElementById('f_image_url').dispatchEvent(new Event('input'));
+            // Update preview
+            document.getElementById('prev_title').textContent = d.title || '';
+            document.getElementById('prev_meta').textContent  =
+                [d.date_display, d.time, d.location].filter(Boolean).join(' · ');
+            const img = document.getElementById('prev_img');
+            if (d.image_url) { img.src = d.image_url; img.style.display = 'block'; }
 
-            msg.className = 'success';
-            msg.textContent = 'Import reușit! Verifică datele și apasă "Adaugă cursul".';
+            document.getElementById('coursePreview').style.display = 'block';
+            document.getElementById('courseForm').style.display    = 'block';
+
+            msg.style.color = 'var(--success)'; msg.textContent = '✓ Import reușit!';
         } else {
-            msg.className = 'error';
+            msg.style.color = 'var(--danger)';
             msg.textContent = data.message || 'Eroare la import.';
         }
     } catch (err) {
-        msg.className = 'error';
-        msg.textContent = 'Eroare de rețea.';
+        msg.style.color = 'var(--danger)';
+        msg.textContent = 'Eroare: ' + err.message;
     }
 }
 </script>

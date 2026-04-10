@@ -1,9 +1,11 @@
 <?php
-session_start();
 header('Content-Type: application/json');
 
-// Simple admin session check
-if (empty($_SESSION['clp_admin'])) {
+// Cookie-based auth check
+define('AUTH_SECRET', 'clp-auth-xk9p-2026-secret');
+$cookie   = $_COOKIE['clp_auth'] ?? '';
+$expected = hash_hmac('sha256', 'clp_admin_ok', AUTH_SECRET);
+if (!$cookie || !hash_equals($expected, $cookie)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
@@ -76,46 +78,34 @@ if ($start_date) {
     }
 }
 
-// Parse location
+// Parse location (API: location.name, location.address, location.city)
 $location = '';
-if (!empty($event['venue']['name'])) {
-    $location = $event['venue']['name'];
-    if (!empty($event['venue']['city'])) {
-        $location .= ', ' . $event['venue']['city'];
-    }
-} elseif (!empty($event['location'])) {
-    $location = $event['location'];
+$loc = $event['location'] ?? [];
+if (is_array($loc)) {
+    $parts = array_filter([$loc['name'] ?? '', $loc['address'] ?? '', $loc['city'] ?? '']);
+    $location = implode(', ', $parts);
+} elseif (is_string($loc)) {
+    $location = $loc;
 }
 
-// Find Background MEDIUM image
+// Find Background MEDIUM image (API fields: name, size, path, token)
 $image_url = '';
-$images = $event['images'] ?? $event['itemImages'] ?? [];
+$images = $event['images'] ?? [];
+$fallback_url = '';
 foreach ($images as $img) {
-    $type = strtolower($img['type'] ?? $img['imageType'] ?? '');
-    $size = strtolower($img['size'] ?? $img['imageSize'] ?? '');
-    if (str_contains($type, 'background') && str_contains($size, 'medium')) {
-        // Build CDN URL
-        $path  = $img['path'] ?? $img['imagePath'] ?? '';
-        $token = $img['token'] ?? $img['sasToken'] ?? '';
-        if ($path) {
-            $image_url = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path;
-            if ($token) $image_url .= '?' . $token;
-        }
+    $name = $img['name'] ?? '';
+    $size = $img['size'] ?? '';
+    $path  = $img['path'] ?? '';
+    $token = $img['token'] ?? '';
+    if (!$path) continue;
+    $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path . ($token ? '?' . $token : '');
+    if (!$fallback_url) $fallback_url = $cdn;
+    if ($name === 'Background' && $size === 'MEDIUM') {
+        $image_url = $cdn;
         break;
     }
 }
-// Fallback: first image with a path if no background medium found
-if (!$image_url) {
-    foreach ($images as $img) {
-        $path  = $img['path'] ?? $img['imagePath'] ?? '';
-        $token = $img['token'] ?? $img['sasToken'] ?? '';
-        if ($path) {
-            $image_url = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path;
-            if ($token) $image_url .= '?' . $token;
-            break;
-        }
-    }
-}
+if (!$image_url) $image_url = $fallback_url;
 
 echo json_encode([
     'success' => true,
