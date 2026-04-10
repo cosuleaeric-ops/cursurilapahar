@@ -1,5 +1,4 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/lsjcloab/public_html/
-    - /bin/cp -R $DIRECTORY/. $DEPLOYPATH
+    - /usr/bin/rsync -av --exclude='.git' --exclude='.cpanel.yml' --exclude='.github' --exclude='.claude' --exclude='preview.html' --exclude='server.py' $DIRECTORY/ /home/lsjcloab/public_html/
