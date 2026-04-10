@@ -57,10 +57,12 @@ if (!is_dir($log_dir)) @mkdir($log_dir, 0755, true);
     FILE_APPEND | LOCK_EX
 );
 
-// Send email (best-effort)
-$headers  = "From: noreply@robotache.ro\r\n";
-$headers .= "Reply-To: $email\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8";
-@mail('contact@cursurilapahar.ro', $subject, $body_text, $headers);
+// Send email (best-effort, skip if mail() not available)
+if (function_exists('mail')) {
+    $headers  = "From: noreply@robotache.ro\r\n";
+    $headers .= "Reply-To: $email\r\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8";
+    @mail('contact@cursurilapahar.ro', $subject, $body_text, $headers);
+}
 
 echo json_encode(['success' => true]);
