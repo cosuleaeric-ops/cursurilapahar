@@ -113,7 +113,6 @@ $page = $settings['pages']['sustine'] ?? [
         </p>
 
         <div class="inner-form">
-            <h2><?= htmlspecialchars($page['form_title'] ?? 'Completează formularul') ?></h2>
             <form class="inner-page-form" data-form-type="sustine" novalidate>
                 <div class="form-row">
                     <div class="form-group">

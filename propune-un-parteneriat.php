@@ -113,7 +113,6 @@ $page = $settings['pages']['parteneriat'] ?? [
         </p>
 
         <div class="inner-form">
-            <h2><?= htmlspecialchars($page['form_title'] ?? 'Propune un parteneriat') ?></h2>
             <form class="inner-page-form" data-form-type="parteneriat" novalidate>
                 <div class="form-row">
                     <div class="form-group">
