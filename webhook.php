@@ -2,9 +2,8 @@
 define('WEBHOOK_SECRET', 'clp-deploy-secret-2026');
 define('REPO',           'cosuleaeric-ops/cursurilapahar');
 define('BRANCH',         'main');
-define('PUBLIC_HTML',    '/home/lsjcloab/public_html');
-define('LOG_FILE',       PUBLIC_HTML . '/deploy.log');
-define('GITHUB_TOKEN',   '***REMOVED***');
+define('PUBLIC_HTML',    __DIR__);
+define('LOG_FILE',       __DIR__ . '/deploy.log');
 
 $payload   = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
@@ -30,6 +29,7 @@ foreach (($data['commits'] ?? []) as $commit) {
 $changed = array_unique($changed);
 
 $updated = 0;
+$errors  = [];
 $commit_sha = $data['after'] ?? BRANCH;
 $base_url = 'https://raw.githubusercontent.com/' . REPO . '/' . $commit_sha . '/';
 
@@ -44,31 +44,31 @@ foreach ($changed as $file) {
     $is_deployable = false;
     foreach ($deploy_prefixes as $prefix) {
         if ($file === $prefix || str_starts_with($file, $prefix)) {
-            $is_deployable = true;
-            break;
+            $is_deployable = true; break;
         }
     }
     if (!$is_webhook && !$is_deployable) continue;
 
-    $api_url = 'https://api.github.com/repos/' . REPO . '/contents/' . $file . '?ref=' . $commit_sha;
-    $ctx = stream_context_create(['http' => [
-        'header' => implode("\r\n", [
-            'Authorization: token ' . GITHUB_TOKEN,
-            'User-Agent: CLP-Deploy',
-            'Accept: application/vnd.github.v3.raw',
-        ]),
-    ]]);
-    $content = @file_get_contents($api_url, false, $ctx);
+    $content = @file_get_contents($base_url . $file);
     if ($content === false || strlen($content) === 0) {
-        file_put_contents(LOG_FILE, date('Y-m-d H:i:s') . " FAIL: $file\n", FILE_APPEND);
+        $errors[] = "DOWNLOAD_FAIL: $file";
         continue;
     }
 
     $dest = PUBLIC_HTML . '/' . $file;
     $dir  = dirname($dest);
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents($dest, $content);
-    $updated++;
+    if (!is_dir($dir)) {
+        if (!@mkdir($dir, 0755, true)) {
+            $errors[] = "MKDIR_FAIL: $dir";
+            continue;
+        }
+    }
+    $written = @file_put_contents($dest, $content);
+    if ($written === false) {
+        $errors[] = "WRITE_FAIL: $dest";
+    } else {
+        $updated++;
+    }
 }
 
 // Remove deleted deployable files
@@ -76,21 +76,22 @@ foreach ($removed as $file) {
     $is_deployable = false;
     foreach ($deploy_prefixes as $prefix) {
         if ($file === $prefix || str_starts_with($file, $prefix)) {
-            $is_deployable = true;
-            break;
+            $is_deployable = true; break;
         }
     }
     if (!$is_deployable) continue;
     $dest = PUBLIC_HTML . '/' . $file;
-    if (file_exists($dest)) unlink($dest);
+    if (file_exists($dest)) @unlink($dest);
 }
 
-// Create data dir + empty courses.json ONLY if it doesn't exist yet on server
+// Create data dir + empty courses.json ONLY if it doesn't exist yet
 $data_dir = PUBLIC_HTML . '/data';
 if (!is_dir($data_dir)) {
-    mkdir($data_dir, 0755, true);
-    file_put_contents($data_dir . '/courses.json', '[]');
+    @mkdir($data_dir, 0755, true);
+    @file_put_contents($data_dir . '/courses.json', '[]');
 }
 
-file_put_contents(LOG_FILE, date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)\n", FILE_APPEND);
- 
+$log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)";
+if (!empty($errors)) $log .= " | ERRORS: " . implode(', ', $errors);
+$log .= "\n";
+@file_put_contents(LOG_FILE, $log, FILE_APPEND);
