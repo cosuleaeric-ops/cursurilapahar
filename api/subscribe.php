@@ -16,11 +16,9 @@ if (!$api_key) {
     echo json_encode(['success'=>false,'message'=>'API key lipsă în setări.']); exit;
 }
 
-// Kit v4: public endpoints use api_key as query param, not Bearer
-$base = $form_id
+$api_url = $form_id
     ? 'https://api.kit.com/v4/forms/' . urlencode($form_id) . '/subscribers'
     : 'https://api.kit.com/v4/subscribers';
-$api_url = $base . '?api_key=' . urlencode($api_key);
 
 $ch = curl_init($api_url);
 curl_setopt_array($ch, [
@@ -30,6 +28,7 @@ curl_setopt_array($ch, [
     CURLOPT_HTTPHEADER     => [
         'Content-Type: application/json',
         'Accept: application/json',
+        'Authorization: Token ' . $api_key,
     ],
     CURLOPT_TIMEOUT        => 15,
     CURLOPT_SSL_VERIFYPEER => false,
