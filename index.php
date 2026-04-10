@@ -148,7 +148,6 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 
     <div class="hero-content">
         <h1 class="hero-title"><?= $settings['hero_title'] ?></h1>
-        <a href="#cursuri" class="btn btn-primary"><?= htmlspecialchars($settings['hero_btn']) ?></a>
     </div>
 
     <div class="hero-scroll-hint" aria-hidden="true">
