@@ -3,6 +3,13 @@
  * Cursuri la Pahar – Main Page
  */
 
+// ── Serve WebP when available ─────────────────────────────────────────────────
+function img_webp(string $path): string {
+    $webp = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $path);
+    $file = __DIR__ . $webp;
+    return (str_starts_with($path, '/assets/') && file_exists($file)) ? $webp : $path;
+}
+
 // ── Load settings ─────────────────────────────────────────────────────────────
 function clp_default_settings(): array {
     return [
@@ -141,7 +148,7 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
     <div class="hero-slides">
         <?php foreach ($settings['hero_images'] as $idx => $hero_img): ?>
         <div class="hero-slide<?= $idx === 0 ? ' active' : '' ?>"
-             <?= $idx === 0 ? "style=\"background-image:url('" . htmlspecialchars($hero_img) . "')\"" : "data-bg=\"" . htmlspecialchars($hero_img) . "\"" ?>></div>
+             <?= $idx === 0 ? "style=\"background-image:url('" . htmlspecialchars(img_webp($hero_img)) . "')\"" : "data-bg=\"" . htmlspecialchars(img_webp($hero_img)) . "\"" ?>></div>
         <?php endforeach; ?>
     </div>
     <div class="hero-overlay"></div>
@@ -217,7 +224,7 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 </section>
 
 <!-- ── NEWSLETTER ─────────────────────────── -->
-<?php $nl_bg = $settings['hero_images'][0] ?? '/assets/images/hero1.jpg'; ?>
+<?php $nl_bg = img_webp($settings['hero_images'][0] ?? '/assets/images/hero1.jpg'); ?>
 <section class="section section-dark section-bg-blur" id="newsletter" style="--section-bg-img:url('<?= htmlspecialchars($nl_bg) ?>')">
     <div class="container container-narrow">
         <div class="newsletter-icon" aria-hidden="true">✉</div>
@@ -258,7 +265,7 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 </section>
 
 <!-- ── FAQ ────────────────────────────────── -->
-<?php $faq_bg = $settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg'; ?>
+<?php $faq_bg = img_webp($settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg'); ?>
 <section class="section section-dark section-bg-blur" id="faq" style="--section-bg-img:url('<?= htmlspecialchars($faq_bg) ?>')">
     <div class="container container-narrow">
         <h2 class="section-title">Întrebări frecvente</h2>
