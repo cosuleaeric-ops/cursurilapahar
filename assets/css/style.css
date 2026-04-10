@@ -21,13 +21,21 @@
   --shadow:      0 4px 24px rgba(0,0,0,.5);
   --transition:  .25s ease;
 
-  --font-serif:  'Anton', sans-serif;
+  --font-serif:  'Nunito', sans-serif;
   --font-sans:   'Inter', system-ui, sans-serif;
 }
 
 /* ── Reset ──────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-h1, h2, h3, h4 { font-family: var(--font-serif); letter-spacing: -0.025em; text-transform: uppercase; }
+#cursuri .section-title,
+#cum-functioneaza .section-title,
+#faq .section-title,
+#colaborare .section-title,
+#contact .section-title {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
   background: var(--bg);
