@@ -108,9 +108,10 @@ $page = $settings['pages']['parteneriat'] ?? [
             Înapoi
         </a>
         <h1 style="font-family:var(--font-heading);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin-bottom:12px;"><?= htmlspecialchars($page['title']) ?></h1>
-        <p style="color:var(--text-muted);line-height:1.8;margin-bottom:32px;">
-            <?= htmlspecialchars($page['description']) ?>
-        </p>
+        <div style="color:var(--text-muted);line-height:1.8;margin-bottom:32px;">
+            <p>Credem în <strong style="color:var(--text)">puterea colaborării</strong> și în ideea că <strong style="color:var(--text)">proiectele faine cresc prin conexiuni valoroase</strong>. Dacă reprezinți un brand, o platformă media sau un proiect care rezonează cu misiunea noastră de a aduce educația într-un format relaxat, ne-ar plăcea să explorăm cum putem construi împreună.</p>
+            <p style="margin-top:16px;">Căutăm parteneri care <strong style="color:var(--text)">pun preț pe calitate</strong> și care vor să se implice activ în experiența pe care o oferim comunității noastre. Deci, dacă te regăsești în această descriere, completează formularul de mai jos.</p>
+        </div>
 
         <div class="inner-form">
             <form class="inner-page-form" data-form-type="parteneriat" novalidate>

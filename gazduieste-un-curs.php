@@ -108,38 +108,16 @@ $page = $settings['pages']['gazduieste'] ?? [
             Înapoi
         </a>
         <h1 style="font-family:var(--font-heading);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin-bottom:12px;"><?= htmlspecialchars($page['title']) ?></h1>
-        <p style="color:var(--text-muted);line-height:1.8;margin-bottom:28px;">
-            <?= htmlspecialchars($page['description']) ?>
-        </p>
-
-        <div class="benefits-list">
-            <div class="benefit-item">
-                <div class="benefit-item-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                </div>
-                <div class="benefit-item-text">
-                    <strong>Vizibilitate</strong>
-                    <span>Atragi un public nou, dornic de experiențe de calitate.</span>
-                </div>
-            </div>
-            <div class="benefit-item">
-                <div class="benefit-item-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-                </div>
-                <div class="benefit-item-text">
-                    <strong>Comunitate</strong>
-                    <span>Spațiul tău devine un punct de reper pentru educație și socializare.</span>
-                </div>
-            </div>
-            <div class="benefit-item">
-                <div class="benefit-item-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                </div>
-                <div class="benefit-item-text">
-                    <strong>Vibe</strong>
-                    <span>Îți umpli locația cu energie pozitivă și oameni pasionați.</span>
-                </div>
-            </div>
+        <div style="color:var(--text-muted);line-height:1.8;margin-bottom:28px;">
+            <p>Ai o locație cu vibe fain și vrei să o transformi într-un loc de întâlnire al participanților Cursuri la Pahar? Well, noi căutăm parteneri care să devină „acasă" pentru evenimentele noastre!</p>
+            <p style="margin-top:16px;">Ai un <strong style="color:var(--text)">bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong style="color:var(--text)">Cursuri la Pahar</strong> la tine. Punem preț pe locurile care inspiră creativitate și care oferă cadrul perfect pentru networking și învățare relaxată.</p>
+            <p style="margin-top:16px;"><strong style="color:var(--text)">De ce să devii locație parteneră?</strong></p>
+            <ul style="margin-top:8px;padding-left:20px;">
+                <li><strong style="color:var(--text)">Vizibilitate:</strong> Atragi un public nou, dornic de experiențe de calitate.</li>
+                <li><strong style="color:var(--text)">Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
+                <li><strong style="color:var(--text)">Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
+            </ul>
+            <p style="margin-top:16px;">Dacă crezi că spațiul tău se potrivește cu conceptul nostru și vrei să fim parteneri în organizarea următoarelor ediții, abia așteptăm să te cunoaștem! <strong style="color:var(--text)">Completează formularul de mai jos și hai să punem ceva frumos la cale!</strong></p>
         </div>
 
         <div class="inner-form">
