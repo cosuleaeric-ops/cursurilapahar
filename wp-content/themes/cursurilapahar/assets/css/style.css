@@ -135,6 +135,9 @@ ul { list-style: none; }
 /* ══════════════════════════════════════════
    FIXED NAVBAR
 ══════════════════════════════════════════ */
+.admin-bar .navbar { top: 32px; }
+@media screen and (max-width: 782px) { .admin-bar .navbar { top: 46px; } }
+
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
