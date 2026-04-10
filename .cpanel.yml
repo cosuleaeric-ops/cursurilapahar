@@ -1,4 +1,5 @@
 ---
 deployment:
   tasks:
-    - /usr/bin/rsync -av --exclude='.git' --exclude='.cpanel.yml' --exclude='.github' --exclude='.claude' --exclude='preview.html' --exclude='server.py' $DIRECTORY/ /home/lsjcloab/public_html/
+    - export DEPLOYPATH=/home/lsjcloab/public_html
+    - /bin/cp $DIRECTORY/index.php $DEPLOYPATH/index.php
