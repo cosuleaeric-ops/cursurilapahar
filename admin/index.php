@@ -1241,6 +1241,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
 .msg-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:.15s; }
 .msg-card:hover { border-color:rgba(255,255,255,.2); }
+.msg-card:active { background:var(--bg-card); border-color:var(--border); }
 .msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .msg-card-name { font-size:14px; font-weight:600; color:var(--text); }
 .msg-card-date { font-size:11px; color:var(--text-muted); white-space:nowrap; }
@@ -1315,7 +1316,10 @@ if (file_exists($log_file) && filesize($log_file)) {
         </div>
         <?php if ($preview): ?><div class="msg-card-preview"><?= h($preview) ?></div><?php endif; ?>
         <div class="msg-detail" id="msg-<?= $uid ?>">
-            <?php foreach ($msg['fields'] as $lbl => $val): ?>
+            <?php foreach ($msg['fields'] as $lbl => $val):
+                $lbl_lc = strtolower($lbl);
+                if ($lbl_lc === 'trimis de pe' || $lbl_lc === 'data') continue;
+            ?>
             <div class="msg-detail-row">
                 <span class="msg-detail-lbl"><?= h($lbl) ?></span>
                 <span class="msg-detail-val"><?= h($val) ?></span>
