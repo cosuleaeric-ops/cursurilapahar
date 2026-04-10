@@ -1230,71 +1230,122 @@ if ($editing_page && isset($page_meta[$editing_page])):
 <?php /* ======================================================= TAB: MESAJE */ ?>
 <?php elseif ($tab === 'mesaje'): ?>
 <h1 class="wp-page-title">Mesaje</h1>
+<style>
+.msg-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+.msg-tab { padding:8px 18px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-size:13px; font-weight:500; cursor:pointer; transition:.15s; }
+.msg-tab:hover { background:rgba(255,255,255,.06); color:var(--text); }
+.msg-tab.active { background:var(--sidebar-active-bg); border-color:transparent; color:#fff; }
+.msg-tab .msg-count { display:inline-block; background:rgba(255,255,255,.18); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:5px; }
+.msg-panel { display:none; }
+.msg-panel.active { display:block; }
+.msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.msg-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:.15s; }
+.msg-card:hover { border-color:rgba(255,255,255,.18); background:#222; }
+.msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.msg-card-name { font-size:14px; font-weight:600; color:var(--text); }
+.msg-card-date { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+.msg-card-preview { padding:0 16px 14px; font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-detail { display:none; padding:16px; border-top:1px solid var(--border); background:var(--bg-surface); }
+.msg-detail.open { display:block; }
+.msg-detail-row { display:flex; gap:10px; font-size:13px; line-height:1.6; }
+.msg-detail-row + .msg-detail-row { margin-top:4px; }
+.msg-detail-lbl { color:var(--text-muted); min-width:110px; flex-shrink:0; }
+.msg-detail-val { color:var(--text); }
+.msg-detail-actions { margin-top:12px; }
+.msg-empty { color:var(--text-muted); font-size:13px; padding:12px 0; }
+</style>
 
 <?php
 $log_file = dirname(SETTINGS_FILE) . '/messages.log';
-if (!file_exists($log_file) || !filesize($log_file)):
-?>
-<div class="card">
-    <p style="color:var(--text-muted);padding:8px 0">Nu există mesaje încă.</p>
-</div>
-<?php else:
+$categories = [
+    'contact'     => ['label' => 'Contact',           'icon' => '💬'],
+    'sustine'     => ['label' => 'Susține un curs',   'icon' => '🎤'],
+    'gazduieste'  => ['label' => 'Locații',           'icon' => '📍'],
+    'parteneriat' => ['label' => 'Parteneriate',      'icon' => '🤝'],
+];
+$grouped = array_fill_keys(array_keys($categories), []);
+
+if (file_exists($log_file) && filesize($log_file)) {
     $raw    = file_get_contents($log_file);
     $blocks = preg_split('/(?=^===)/m', $raw);
     $blocks = array_values(array_filter(array_map('trim', $blocks)));
     $blocks = array_reverse($blocks);
-    $type_labels = [
-        'contact'     => '💬 Contact',
-        'sustine'     => '🎤 Susține un curs',
-        'gazduieste'  => '🏠 Găzduiește un curs',
-        'parteneriat' => '🤝 Propune un parteneriat',
-    ];
-?>
-<div class="card">
-    <div class="card-title">Mesaje primite (<?= count($blocks) ?>)</div>
-    <?php foreach ($blocks as $block):
+    foreach ($blocks as $block) {
         preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
-        $date      = trim($m[1] ?? '');
-        $type      = trim($m[2] ?? 'contact');
-        $type_lbl  = $type_labels[$type] ?? ucfirst($type);
-        $body      = trim(preg_replace('/^===.*===\n?/m', '', $block));
-        $body      = trim(preg_replace('/\n---\nData:.*$/s', '', $body));
-        $lines     = array_filter(explode("\n", $body));
-        $email_val = '';
+        $type = trim($m[2] ?? 'contact');
+        if (!isset($grouped[$type])) $type = 'contact';
+        $date = trim($m[1] ?? '');
+        $body = trim(preg_replace('/^===.*===\n?/m', '', $block));
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $body))));
+        $fields = [];
         foreach ($lines as $l) {
-            if (stripos($l, 'email:') === 0) { $email_val = trim(substr($l, 6)); break; }
+            $sep = strpos($l, ':');
+            if ($sep !== false) $fields[trim(substr($l,0,$sep))] = trim(substr($l,$sep+1));
         }
+        $grouped[$type][] = ['date' => $date, 'fields' => $fields];
+    }
+}
+?>
+
+<div class="msg-tabs">
+<?php foreach ($categories as $key => $cat): $cnt = count($grouped[$key]); ?>
+    <button class="msg-tab <?= $key === 'contact' ? 'active' : '' ?>" onclick="showMsgTab('<?= $key ?>')">
+        <?= $cat['icon'] ?> <?= $cat['label'] ?><?php if ($cnt): ?><span class="msg-count"><?= $cnt ?></span><?php endif; ?>
+    </button>
+<?php endforeach; ?>
+</div>
+
+<?php foreach ($categories as $key => $cat): ?>
+<div class="msg-panel <?= $key === 'contact' ? 'active' : '' ?>" id="msg-panel-<?= $key ?>">
+<?php if (empty($grouped[$key])): ?>
+    <div class="card"><p class="msg-empty">Niciun mesaj în această categorie.</p></div>
+<?php else: ?>
+    <div class="msg-cards">
+    <?php foreach ($grouped[$key] as $i => $msg):
+        $name    = $msg['fields']['Nume'] ?? $msg['fields']['nume'] ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—';
+        $email   = $msg['fields']['Email'] ?? $msg['fields']['email'] ?? '';
+        $preview = '';
+        foreach ($msg['fields'] as $k => $v) { if (strtolower($k) !== 'email' && strtolower($k) !== 'nume') { $preview = $v; break; } }
+        $uid = $key . '_' . $i;
     ?>
-    <div style="border:1px solid var(--border);border-radius:6px;padding:16px 18px;margin-bottom:12px;background:var(--sidebar-bg)">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px">
-            <span style="font-weight:600;font-size:13px"><?= h($type_lbl) ?></span>
-            <span style="font-size:12px;color:var(--text-muted)"><?= h($date) ?></span>
+    <div class="msg-card" onclick="toggleMsg('<?= $uid ?>')">
+        <div class="msg-card-head">
+            <span class="msg-card-name"><?= h($name) ?></span>
+            <span class="msg-card-date"><?= h($msg['date']) ?></span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-        <?php foreach ($lines as $line):
-            if (!$line) continue;
-            $sep = strpos($line, ':');
-            if ($sep === false): ?>
-            <div style="font-size:13px;color:var(--text-muted)"><?= h($line) ?></div>
-            <?php else:
-                $lbl = trim(substr($line, 0, $sep));
-                $val = trim(substr($line, $sep + 1));
-            ?>
-            <div style="display:flex;gap:8px;font-size:13px;line-height:1.5">
-                <span style="color:var(--text-muted);min-width:120px;flex-shrink:0"><?= h($lbl) ?></span>
-                <span style="color:var(--text)"><?= h($val) ?></span>
+        <?php if ($preview): ?><div class="msg-card-preview"><?= h($preview) ?></div><?php endif; ?>
+        <div class="msg-detail" id="msg-<?= $uid ?>">
+            <?php foreach ($msg['fields'] as $lbl => $val): ?>
+            <div class="msg-detail-row">
+                <span class="msg-detail-lbl"><?= h($lbl) ?></span>
+                <span class="msg-detail-val"><?= h($val) ?></span>
+            </div>
+            <?php endforeach; ?>
+            <?php if ($email): ?>
+            <div class="msg-detail-actions">
+                <a href="mailto:<?= h($email) ?>" class="btn btn-secondary" style="font-size:12px;padding:5px 14px" onclick="event.stopPropagation()">Răspunde ↗</a>
             </div>
             <?php endif; ?>
-        <?php endforeach; ?>
         </div>
-        <?php if ($email_val): ?>
-        <div style="margin-top:10px">
-            <a href="mailto:<?= h($email_val) ?>" class="btn btn-secondary" style="font-size:12px;padding:6px 14px">Răspunde ↗</a>
-        </div>
-        <?php endif; ?>
     </div>
     <?php endforeach; ?>
+    </div>
+<?php endif; ?>
 </div>
+<?php endforeach; ?>
+
+<script>
+function showMsgTab(key) {
+    document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('msg-panel-' + key).classList.add('active');
+}
+function toggleMsg(uid) {
+    const el = document.getElementById('msg-' + uid);
+    el.classList.toggle('open');
+}
+</script>
 <?php endif; ?>
 
 <?php endif; ?>
