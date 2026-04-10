@@ -1321,11 +1321,6 @@ if (file_exists($log_file) && filesize($log_file)) {
                 <span class="msg-detail-val"><?= h($val) ?></span>
             </div>
             <?php endforeach; ?>
-            <?php if ($email): ?>
-            <div class="msg-detail-actions">
-                <a href="mailto:<?= h($email) ?>" class="btn btn-secondary" style="font-size:12px;padding:5px 14px" onclick="event.stopPropagation()">Răspunde ↗</a>
-            </div>
-            <?php endif; ?>
         </div>
     </div>
     <?php endforeach; ?>
