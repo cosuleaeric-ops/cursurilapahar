@@ -17,16 +17,22 @@ if ($form_id) {
     $api_url = 'https://api.kit.com/v4/subscribers';
 }
 
-$response = file_get_contents($api_url, false, stream_context_create([
-    'http' => [
-        'method' => 'POST',
-        'header' => "Content-Type: application/json\r\nAccept: application/json\r\nAuthorization: Bearer " . $api_key . "\r\n",
-        'content' => json_encode(['email_address' => $email, 'state' => 'active']),
-        'ignore_errors' => true,
-    ]
-]));
+$ch = curl_init($api_url);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => json_encode(['email_address' => $email, 'state' => 'active']),
+    CURLOPT_HTTPHEADER     => [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Authorization: Bearer ' . $api_key,
+    ],
+    CURLOPT_TIMEOUT        => 10,
+]);
+$response = curl_exec($ch);
+$code     = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 $data = json_decode($response, true);
-$code = $http_response_header ? (int)substr($http_response_header[0], 9, 3) : 0;
 if ($code >= 200 && $code < 300) {
     echo json_encode(['success' => true]);
 } else {
