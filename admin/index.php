@@ -630,18 +630,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 /* Bigger popup */
 .clr-picker { width: 320px !important; }
 #clr-color-area { height: 240px !important; }
-/* HEX ONLY — correct selectors for Coloris 0.23.0 */
+/* Hide format toggle (hex only) */
 #clr-format { display: none !important; }
-#clr-color-value-r, #clr-color-value-g, #clr-color-value-b,
-#clr-color-value-h, #clr-color-value-s, #clr-color-value-l,
-#clr-color-value-a { display: none !important; }
-#clr-color-value label:not([for="clr-color-value-hex"]) { display: none !important; }
-/* Hex input styling */
-#clr-color-value-hex { font-family: monospace !important; font-size: 14px !important; text-transform: uppercase !important; width: 100% !important; }
-/* Bigger hue slider */
-#clr-hue-slider { height: 18px !important; border-radius: 9px !important; }
+/* Hide alpha slider */
+.clr-alpha { display: none !important; }
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.css">
+<link rel="stylesheet" href="/assets/css/coloris.min.css">
 </head>
 <body>
 
@@ -1108,7 +1102,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <button type="submit" class="btn btn-primary">Salvează design</button>
     </div>
 </form>
-<script src="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.js"></script>
+<script src="/assets/js/coloris.min.js"></script>
 <script>
 Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: false, selectInput: true, clearButton: false,
     swatches: ['#0D0D0D','#161616','#1A1A1A','#ffffff','#C9A84C','#b8922e','#FFB000','#E8E4DC','#9CA3AF'],
