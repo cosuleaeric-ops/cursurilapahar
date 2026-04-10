@@ -35,6 +35,7 @@ if (file_exists(EVENTS_FILE)) {
     <div class="navbar-inner">
         <a href="#hero" class="navbar-logo">
             <img src="assets/images/logo.webp" alt="Cursuri la Pahar">
+            <span class="navbar-brand-text">Cursuri la Pahar</span>
         </a>
         <div class="navbar-links">
             <a href="#cursuri">Cursuri</a>
