@@ -140,7 +140,7 @@ function clp_curs_meta_box_html( $post ) {
             document.getElementById('clp_livetickets_url').value = url;
             var titleInput = document.getElementById('title');
             if (titleInput && !titleInput.value) titleInput.value = d.title || '';
-            status.textContent = d.image_set ? '✅ Date + poză importate! Salvează postarea.' : '✅ Date importate! (poza nu a putut fi adăugată)';
+            status.textContent = d.image_set ? '✅ Date + poză importate! Salvează postarea.' : '✅ Date importate! Eroare poză: ' + (d.image_error || '?');
         })
         .catch(function() { status.textContent = '❌ Eroare de rețea.'; });
     });
@@ -228,8 +228,9 @@ add_action( 'wp_ajax_clp_fetch_livetickets', function () {
     }
 
     // Sideload image and set as featured image if post_id provided
-    $post_id   = intval( $_POST['post_id'] ?? 0 );
-    $image_set = false;
+    $post_id     = intval( $_POST['post_id'] ?? 0 );
+    $image_set   = false;
+    $image_error = '';
     if ( $image_url && $post_id && current_user_can( 'edit_post', $post_id ) ) {
         require_once ABSPATH . 'wp-admin/includes/media.php';
         require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -238,7 +239,13 @@ add_action( 'wp_ajax_clp_fetch_livetickets', function () {
         if ( ! is_wp_error( $thumb_id ) ) {
             set_post_thumbnail( $post_id, $thumb_id );
             $image_set = true;
+        } else {
+            $image_error = $thumb_id->get_error_message();
         }
+    } elseif ( ! $post_id ) {
+        $image_error = 'post_id=0';
+    } elseif ( ! $image_url ) {
+        $image_error = 'no image_url';
     }
 
     wp_send_json_success( [
@@ -248,6 +255,7 @@ add_action( 'wp_ajax_clp_fetch_livetickets', function () {
         'time'         => $start->format('H:i'),
         'location'     => implode( ', ', $location_parts ),
         'image_set'    => $image_set,
+        'image_error'  => $image_error,
     ] );
 } );
 
