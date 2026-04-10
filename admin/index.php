@@ -1270,7 +1270,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-panel.active { display:block; }
 .msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
 .msg-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:.15s; }
-.msg-card:hover { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.03); }
+.msg-card:hover { background:rgba(255,255,255,.03); }
 .msg-delete-btn { background:transparent; border:1px solid var(--danger, #e74c3c); color:var(--danger, #e74c3c); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:.15s; }
 .msg-delete-btn:hover { background:var(--danger, #e74c3c); color:#fff; }
 .msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
