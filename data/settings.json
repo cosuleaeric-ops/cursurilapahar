@@ -26,6 +26,21 @@
         {"label": "Colaborare", "url": "\/#colaborare"},
         {"label": "Contact", "url": "\/#contact"}
     ],
+    "steps": [
+        {"title": "Verifici calendarul",  "text": "Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea."},
+        {"title": "Cumperi biletul",       "text": "Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv."},
+        {"title": "Vii la eveniment",      "text": "Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil."},
+        {"title": "Înveți & socializezi",  "text": "Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese."}
+    ],
+    "faq_items": [
+        {"q": "Ce este Cursuri la Pahar?",           "a": "Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul."},
+        {"q": "Cât durează un eveniment?",            "a": "Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&A, unde poți pune orice fel de întrebări."},
+        {"q": "Cât costă un bilet?",                  "a": "Biletul standard costă 50 de lei, iar biletul pentru studenți costă 30 de lei."},
+        {"q": "Despre ce sunt cursurile?",            "a": "Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie. Practic, încercăm să transformăm subiectele „grele" în povești numai bune de ascultat la un pahar."},
+        {"q": "Unde au loc evenimentele?",            "a": "Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan). Alegem locații unde atmosfera este caldă și unde poți savura o băutură în timp ce asculți ceva interesant."},
+        {"q": "Cine poate participa?",                "a": "Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu; evenimentul este creat pentru toți cei care vor să îmbine socializarea cu o doză de cunoaștere."},
+        {"q": "Când va avea loc următorul eveniment?", "a": "Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru. Pe lângă asta, poți vedea calendarul și pe pagina noastră de Instagram."}
+    ],
     "color_bg": "#0D0D0D",
     "color_accent": "#C9A84C",
     "color_text": "#E8E4DC",

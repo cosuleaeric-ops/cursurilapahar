@@ -78,6 +78,21 @@ function default_settings(): array {
             ['label' => 'Colaborare',         'url' => '/#colaborare'],
             ['label' => 'Contact',            'url' => '/#contact'],
         ],
+        'steps' => [
+            ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
+            ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
+            ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
+            ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
+        ],
+        'faq_items' => [
+            ['q' => 'Ce este Cursuri la Pahar?',           'a' => 'Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul.'],
+            ['q' => 'Cât durează un eveniment?',            'a' => 'Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&A, unde poți pune orice fel de întrebări.'],
+            ['q' => 'Cât costă un bilet?',                  'a' => 'Biletul standard costă 50 de lei, iar biletul pentru studenți costă 30 de lei.'],
+            ['q' => 'Despre ce sunt cursurile?',            'a' => 'Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie.'],
+            ['q' => 'Unde au loc evenimentele?',            'a' => 'Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan).'],
+            ['q' => 'Cine poate participa?',                'a' => 'Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu.'],
+            ['q' => 'Când va avea loc următorul eveniment?', 'a' => 'Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru.'],
+        ],
         'kit_api_key'       => 'kit_3ad1bb636169002be3359bd1048e0204',
         'kit_form_id'       => '',
         'color_bg'          => '#0D0D0D',
@@ -231,6 +246,25 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($fields as $f) {
             $settings[$f] = $_POST[$f] ?? $settings[$f];
         }
+        // Steps
+        $step_titles = $_POST['step_title'] ?? [];
+        $step_texts  = $_POST['step_text']  ?? [];
+        if (!empty($step_titles)) {
+            $steps = [];
+            foreach ($step_titles as $i => $title) {
+                $steps[] = ['title' => trim($title), 'text' => trim($step_texts[$i] ?? '')];
+            }
+            $settings['steps'] = $steps;
+        }
+        // FAQ
+        $faq_qs = $_POST['faq_q'] ?? [];
+        $faq_as = $_POST['faq_a'] ?? [];
+        $faq_items = [];
+        foreach ($faq_qs as $i => $q) {
+            $q = trim($q); $a = trim($faq_as[$i] ?? '');
+            if ($q) $faq_items[] = ['q' => $q, 'a' => $a];
+        }
+        if (!empty($faq_items)) $settings['faq_items'] = $faq_items;
         save_settings($settings);
         header('Location: /admin/?tab=setari&saved=1');
         exit;
@@ -864,8 +898,59 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </div>
         </div>
 
+        <div class="card">
+            <div class="card-title">Cum funcționează – Pași</div>
+            <?php foreach ($settings['steps'] as $i => $step): $n = $i + 1; ?>
+            <div style="background:var(--sidebar-bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Pasul <?= $n ?></div>
+                <div class="form-group">
+                    <label>Titlu</label>
+                    <input type="text" name="step_title[]" value="<?= h($step['title']) ?>">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Text</label>
+                    <textarea name="step_text[]" rows="2"><?= h($step['text']) ?></textarea>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="card">
+            <div class="card-title">FAQ – Întrebări frecvente</div>
+            <div id="faq-editor">
+                <?php foreach ($settings['faq_items'] as $i => $item): ?>
+                <div class="faq-edit-item" style="background:var(--sidebar-bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px;position:relative">
+                    <button type="button" onclick="removeFaqItem(this)" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>
+                    <div class="form-group">
+                        <label>Întrebare</label>
+                        <input type="text" name="faq_q[]" value="<?= h($item['q']) ?>">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label>Răspuns</label>
+                        <textarea name="faq_a[]" rows="3"><?= h($item['a']) ?></textarea>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" onclick="addFaqItem()" class="btn btn-secondary" style="margin-top:4px;font-size:13px">+ Adaugă întrebare</button>
+        </div>
+
         <button type="submit" class="btn btn-primary" style="margin-bottom:24px">Salvează setările</button>
     </form>
+    <script>
+    function addFaqItem() {
+        const editor = document.getElementById('faq-editor');
+        const div = document.createElement('div');
+        div.className = 'faq-edit-item';
+        div.style.cssText = 'background:var(--sidebar-bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px;position:relative';
+        div.innerHTML = '<button type="button" onclick="removeFaqItem(this)" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>'
+            + '<div class="form-group"><label>Întrebare</label><input type="text" name="faq_q[]" value=""></div>'
+            + '<div class="form-group" style="margin-bottom:0"><label>Răspuns</label><textarea name="faq_a[]" rows="3"></textarea></div>';
+        editor.appendChild(div);
+        div.querySelector('input').focus();
+    }
+    function removeFaqItem(btn) { btn.closest('.faq-edit-item').remove(); }
+    </script>
 
 <?php /* ======================================================= TAB: ASPECT */ ?>
 <?php elseif ($tab === 'aspect'): ?>

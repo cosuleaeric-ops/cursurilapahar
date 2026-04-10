@@ -27,6 +27,21 @@ function clp_default_settings(): array {
             ['label' => 'Colaborare',         'url' => '/#colaborare'],
             ['label' => 'Contact',            'url' => '/#contact'],
         ],
+        'steps' => [
+            ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
+            ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
+            ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
+            ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
+        ],
+        'faq_items' => [
+            ['q' => 'Ce este Cursuri la Pahar?',          'a' => 'Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul.'],
+            ['q' => 'Cât durează un eveniment?',           'a' => 'Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&A, unde poți pune orice fel de întrebări.'],
+            ['q' => 'Cât costă un bilet?',                 'a' => 'Biletul standard costă 50 de lei, iar biletul pentru studenți costă 30 de lei.'],
+            ['q' => 'Despre ce sunt cursurile?',           'a' => 'Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie. Practic, încercăm să transformăm subiectele „grele" în povești numai bune de ascultat la un pahar.'],
+            ['q' => 'Unde au loc evenimentele?',           'a' => 'Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan). Alegem locații unde atmosfera este caldă și unde poți savura o băutură în timp ce asculți ceva interesant.'],
+            ['q' => 'Cine poate participa?',               'a' => 'Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu; evenimentul este creat pentru toți cei care vor să îmbine socializarea cu o doză de cunoaștere.'],
+            ['q' => 'Când va avea loc următorul eveniment?','a' => 'Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru. Pe lângă asta, poți vedea calendarul și pe pagina noastră de Instagram.'],
+        ],
     ];
 }
 $settings_file = __DIR__ . '/data/settings.json';
@@ -216,42 +231,24 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 </section>
 
 <!-- ── CUM FUNCȚIONEAZĂ ────────────────────── -->
+<?php $step_icons = [
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>',
+]; ?>
 <section class="section" id="cum-functioneaza">
     <div class="container">
         <h2 class="section-title">Cum funcționează</h2>
         <div class="steps-grid">
+            <?php foreach ($settings['steps'] as $i => $step): ?>
             <div class="step">
-                <div class="step-number">01</div>
-                <div class="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                </div>
-                <h3>Verifici calendarul</h3>
-                <p>Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.</p>
+                <div class="step-number"><?= str_pad($i + 1, 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="step-icon"><?= $step_icons[$i] ?? $step_icons[0] ?></div>
+                <h3><?= htmlspecialchars($step['title']) ?></h3>
+                <p><?= htmlspecialchars($step['text']) ?></p>
             </div>
-            <div class="step">
-                <div class="step-number">02</div>
-                <div class="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-                </div>
-                <h3>Cumperi biletul</h3>
-                <p>Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">03</div>
-                <div class="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
-                </div>
-                <h3>Vii la eveniment</h3>
-                <p>Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">04</div>
-                <div class="step-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                </div>
-                <h3>Înveți &amp; socializezi</h3>
-                <p>Asculți expertul, pui orice întrebare la Q&amp;A și cunoști oameni faini cu aceleași interese.</p>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -261,77 +258,17 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
     <div class="container container-narrow">
         <h2 class="section-title">Întrebări frecvente</h2>
         <div class="faq-list">
-
+            <?php foreach ($settings['faq_items'] as $faq): ?>
             <div class="faq-item">
                 <button class="faq-question" aria-expanded="false">
-                    Ce este Cursuri la Pahar?
+                    <?= htmlspecialchars($faq['q']) ?>
                     <span class="faq-icon" aria-hidden="true"></span>
                 </button>
                 <div class="faq-answer">
-                    <p>Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul.</p>
+                    <p><?= nl2br(htmlspecialchars($faq['a'])) ?></p>
                 </div>
             </div>
-
-            <div class="faq-item">
-                <button class="faq-question" aria-expanded="false">
-                    Cât durează un eveniment?
-                    <span class="faq-icon" aria-hidden="true"></span>
-                </button>
-                <div class="faq-answer">
-                    <p>Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&amp;A, unde poți pune orice fel de întrebări.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <button class="faq-question" aria-expanded="false">
-                    Cât costă un bilet?
-                    <span class="faq-icon" aria-hidden="true"></span>
-                </button>
-                <div class="faq-answer">
-                    <p>Biletul standard costă <strong>50 de lei</strong>, iar biletul pentru studenți costă <strong>30 de lei</strong>.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <button class="faq-question" aria-expanded="false">
-                    Despre ce sunt cursurile?
-                    <span class="faq-icon" aria-hidden="true"></span>
-                </button>
-                <div class="faq-answer">
-                    <p>Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie. Practic, încercăm să transformăm subiectele „grele" în povești numai bune de ascultat la un pahar.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <button class="faq-question" aria-expanded="false">
-                    Unde au loc evenimentele?
-                    <span class="faq-icon" aria-hidden="true"></span>
-                </button>
-                <div class="faq-answer">
-                    <p>Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan). Alegem locații unde atmosfera este caldă și unde poți savura o băutură în timp ce asculți ceva interesant.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <button class="faq-question" aria-expanded="false">
-                    Cine poate participa?
-                    <span class="faq-icon" aria-hidden="true"></span>
-                </button>
-                <div class="faq-answer">
-                    <p>Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu; evenimentul este creat pentru toți cei care vor să îmbine socializarea cu o doză de cunoaștere.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <button class="faq-question" aria-expanded="false">
-                    Când va avea loc următorul eveniment?
-                    <span class="faq-icon" aria-hidden="true"></span>
-                </button>
-                <div class="faq-answer">
-                    <p>Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru. Pe lângă asta, poți vedea calendarul și pe pagina noastră de Instagram.</p>
-                </div>
-            </div>
-
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
