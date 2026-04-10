@@ -37,9 +37,13 @@ if ($code >= 200 && $code < 300) {
     echo json_encode(['success' => true]);
 } else {
     $msg = $data['errors'][0]['title'] ?? $data['message'] ?? 'Eroare la abonare.';
-    // Debug: log full response
-    @file_put_contents(dirname(__DIR__) . '/data/subscribe_debug.log',
-        date('Y-m-d H:i:s') . " | code=$code | url=$api_url | key=" . substr($api_key,0,12) . "... | response=" . $response . "\n",
-        FILE_APPEND);
-    echo json_encode(['success' => false, 'message' => $msg, '_debug_code' => $code]);
+    $curl_err = isset($ch_err) ? $ch_err : '';
+    echo json_encode([
+        'success'   => false,
+        'message'   => $msg,
+        '_code'     => $code,
+        '_response' => $response,
+        '_key_prefix' => substr($api_key, 0, 15) . '...',
+        '_url'      => $api_url,
+    ]);
 }
