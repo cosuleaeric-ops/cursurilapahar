@@ -123,10 +123,11 @@ function clp_curs_meta_box_html( $post ) {
         var status = document.getElementById('clp_lt_status');
         if (!url) { status.textContent = 'Introdu un URL.'; return; }
         status.textContent = 'Se încarcă...';
+        var postId = document.getElementById('post_ID') ? document.getElementById('post_ID').value : 0;
         fetch(ajaxurl, {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'action=clp_fetch_livetickets&nonce=<?php echo wp_create_nonce("clp_lt_nonce"); ?>&url=' + encodeURIComponent(url)
+            body: 'action=clp_fetch_livetickets&nonce=<?php echo wp_create_nonce("clp_lt_nonce"); ?>&url=' + encodeURIComponent(url) + '&post_id=' + encodeURIComponent(postId)
         })
         .then(r => r.json())
         .then(function(res) {
@@ -137,10 +138,9 @@ function clp_curs_meta_box_html( $post ) {
             document.getElementById('clp_time').value         = d.time || '';
             document.getElementById('clp_location').value     = d.location || '';
             document.getElementById('clp_livetickets_url').value = url;
-            // Set post title
             var titleInput = document.getElementById('title');
             if (titleInput && !titleInput.value) titleInput.value = d.title || '';
-            status.textContent = '✅ Date importate!';
+            status.textContent = d.image_set ? '✅ Date + poză importate! Salvează postarea.' : '✅ Date importate! (poza nu a putut fi adăugată)';
         })
         .catch(function() { status.textContent = '❌ Eroare de rețea.'; });
     });
@@ -182,7 +182,6 @@ add_action( 'wp_ajax_clp_fetch_livetickets', function () {
     }
 
     $input_url = sanitize_text_field( $_POST['url'] ?? '' );
-    // Extract slug from URL
     $slug = preg_replace( '#^https?://[^/]+/bilete/#', '', $input_url );
     $slug = trim( $slug, '/' );
 
@@ -214,12 +213,41 @@ add_action( 'wp_ajax_clp_fetch_livetickets', function () {
         $data['location']['city']    ?? '',
     ]);
 
+    // Find Background image URL (prefer MEDIUM, fallback to any Background)
+    $image_url = '';
+    if ( ! empty( $data['images'] ) ) {
+        $fallback = '';
+        foreach ( $data['images'] as $img ) {
+            if ( ( $img['name'] ?? '' ) === 'Background' ) {
+                $url = 'https://livetickets-cdn.azureedge.net/itemimages/' . $img['path'] . '?' . $img['token'];
+                if ( empty( $fallback ) ) $fallback = $url;
+                if ( ( $img['size'] ?? '' ) === 'MEDIUM' ) { $image_url = $url; break; }
+            }
+        }
+        if ( empty( $image_url ) ) $image_url = $fallback;
+    }
+
+    // Sideload image and set as featured image if post_id provided
+    $post_id   = intval( $_POST['post_id'] ?? 0 );
+    $image_set = false;
+    if ( $image_url && $post_id && current_user_can( 'edit_post', $post_id ) ) {
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        $thumb_id = media_sideload_image( $image_url, $post_id, sanitize_text_field( $data['name'] ), 'id' );
+        if ( ! is_wp_error( $thumb_id ) ) {
+            set_post_thumbnail( $post_id, $thumb_id );
+            $image_set = true;
+        }
+    }
+
     wp_send_json_success( [
         'title'        => $data['name'],
         'date_display' => $date_display,
         'date_raw'     => $start->format('Y-m-d'),
         'time'         => $start->format('H:i'),
         'location'     => implode( ', ', $location_parts ),
+        'image_set'    => $image_set,
     ] );
 } );
 
