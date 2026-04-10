@@ -2,9 +2,10 @@
 define('WEBHOOK_SECRET', 'clp-deploy-secret-2026');
 define('REPO',           'cosuleaeric-ops/cursurilapahar');
 define('BRANCH',         'main');
-define('PUBLIC_HTML',    '/home/lsjcloab/public_html');
-define('LOG_FILE',       '/home/lsjcloab/public_html/deploy.log');
-define('REAL_DIR',       __DIR__);
+$public_html = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '/home/lsjcloab/public_html', '/');
+define('PUBLIC_HTML', $public_html);
+define('LOG_FILE',    $public_html . '/deploy.log');
+define('REAL_DIR',    __DIR__);
 
 $payload   = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
