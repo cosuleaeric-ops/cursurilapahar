@@ -21,13 +21,17 @@ if (!$url) {
 
 // Extract slug from LiveTickets URL
 // e.g. https://www.livetickets.ro/bilete/some-event-slug
+$path  = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
+$parts = explode('/', $path);
+// slug is the segment after 'bilete'
 $slug = '';
-if (preg_match('#livetickets\.ro/bilete/([^/?#]+)#i', $url, $m)) {
-    $slug = $m[1];
+$bilete_idx = array_search('bilete', $parts);
+if ($bilete_idx !== false && isset($parts[$bilete_idx + 1])) {
+    $slug = $parts[$bilete_idx + 1];
 }
 
 if (!$slug) {
-    echo json_encode(['success' => false, 'message' => 'Nu am putut extrage slug-ul din URL.']);
+    echo json_encode(['success' => false, 'message' => 'URL invalid. Asigură-te că e un link de tip livetickets.ro/bilete/...']);
     exit;
 }
 
