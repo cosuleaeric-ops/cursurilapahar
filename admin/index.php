@@ -278,18 +278,31 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Upload favicon
     if ($action === 'upload_favicon') {
         $file = $_FILES['favicon_file'] ?? null;
-        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+        $favicon_error = '';
+        if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            $favicon_error = 'Nu ai selectat niciun fișier.';
+        } elseif ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+            $favicon_error = 'Fișierul este prea mare (limită server).';
+        } elseif ($file['error'] !== UPLOAD_ERR_OK) {
+            $favicon_error = 'Eroare upload (cod ' . $file['error'] . ').';
+        } else {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, ['ico','png','jpg','jpeg','webp'])) {
+            if (!in_array($ext, ['ico','png','jpg','jpeg','webp'])) {
+                $favicon_error = 'Format neacceptat: ' . h($ext) . '. Folosește ICO, PNG, JPG sau WEBP.';
+            } else {
                 $dest = PUBLIC_HTML . '/favicon.' . $ext;
-                move_uploaded_file($file['tmp_name'], $dest);
-                $settings = load_settings();
-                $settings['favicon_path'] = '/favicon.' . $ext;
-                save_settings($settings);
+                if (!move_uploaded_file($file['tmp_name'], $dest)) {
+                    $favicon_error = 'Eroare la salvare fișier. Verifică permisiunile directorului (public_html trebuie să fie writable).';
+                } else {
+                    $settings = load_settings();
+                    $settings['favicon_path'] = '/favicon.' . $ext;
+                    save_settings($settings);
+                    header('Location: /admin/?tab=aspect&saved=1');
+                    exit;
+                }
             }
         }
-        header('Location: /admin/?tab=aspect&saved=1');
-        exit;
+        // Fall through to render page with $favicon_error set
     }
 
     // ── Save page content
@@ -840,6 +853,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 <!-- Favicon -->
 <div class="card">
     <div class="card-title">Favicon</div>
+    <?php if (!empty($settings['favicon_path'])): ?>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Favicon curent: <code><?= h($settings['favicon_path']) ?></code></p>
+    <?php endif; ?>
+    <?php if (!empty($favicon_error)): ?>
+    <div style="background:#fcf0f1;border:1px solid #f5c6cb;color:#c0392b;padding:10px 14px;border-radius:4px;font-size:13px;margin-bottom:12px"><?= $favicon_error ?></div>
+    <?php endif; ?>
     <form method="post" action="/admin/?tab=aspect" enctype="multipart/form-data">
         <input type="hidden" name="action" value="upload_favicon">
         <div style="display:flex;gap:8px;align-items:center">
