@@ -86,3 +86,4 @@ if (!is_dir($data_dir)) {
 }
 
 file_put_contents(LOG_FILE, date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)\n", FILE_APPEND);
+ 
