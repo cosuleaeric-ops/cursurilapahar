@@ -15,19 +15,21 @@ $form_id = trim($settings['kit_form_id'] ?? '');
 if (!$api_key) {
     echo json_encode(['success'=>false,'message'=>'API key lipsă în setări.']); exit;
 }
-if (!$form_id) {
-    echo json_encode(['success'=>false,'message'=>'Form ID lipsă în setări Kit.']); exit;
-}
 
-// ConvertKit / Kit v3 API
-$api_url = 'https://api.convertkit.com/v3/forms/' . urlencode($form_id) . '/subscribe';
+$api_url = $form_id
+    ? 'https://api.kit.com/v4/forms/' . urlencode($form_id) . '/subscribers'
+    : 'https://api.kit.com/v4/subscribers';
 
 $ch = curl_init($api_url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode(['api_key' => $api_key, 'email' => $email]),
-    CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'Accept: application/json'],
+    CURLOPT_POSTFIELDS     => json_encode(['email_address' => $email]),
+    CURLOPT_HTTPHEADER     => [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Authorization: Bearer ' . $api_key,
+    ],
     CURLOPT_TIMEOUT        => 15,
     CURLOPT_SSL_VERIFYPEER => false,
 ]);
@@ -41,9 +43,9 @@ if ($response === false || $code === 0) {
 }
 
 $data = json_decode($response, true);
-if ($code >= 200 && $code < 300 && isset($data['subscription'])) {
+if ($code >= 200 && $code < 300) {
     echo json_encode(['success' => true]);
 } else {
-    $msg = $data['message'] ?? $data['error'] ?? ('HTTP ' . $code . ': ' . substr($response, 0, 120));
+    $msg = $data['errors'][0]['title'] ?? $data['message'] ?? ('HTTP ' . $code . ': ' . substr($response, 0, 200));
     echo json_encode(['success' => false, 'message' => $msg]);
 }
