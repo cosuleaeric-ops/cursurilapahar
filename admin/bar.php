@@ -28,6 +28,7 @@ $current = $_SERVER['REQUEST_URI'] ?? '/';
 #clp-adminbar .bar-sep { flex: 1; }
 #clp-adminbar .bar-logout { border-right: none; border-left: 1px solid rgba(255,255,255,.07); }
 body { padding-top: 32px !important; }
+.navbar { top: 32px !important; }
 </style>
 <div id="clp-adminbar">
     <a href="/admin/" class="bar-brand">⚙ Admin</a>
