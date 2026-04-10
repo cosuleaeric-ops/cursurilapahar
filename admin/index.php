@@ -468,29 +468,26 @@ if (is_authenticated()) {
 // Collect images for imagini tab
 function get_all_images(): array {
     $imgs = [];
-    // Base images dir
-    $base = PUBLIC_HTML . '/assets/images/';
-    if (is_dir($base)) {
-        foreach (scandir($base) as $f) {
+    // Helper: collect files from a dir, skipping .webp when a .jpg/.jpeg/.png exists
+    $collect = function(string $dir, string $url_prefix, bool $deletable) use (&$imgs) {
+        if (!is_dir($dir)) return;
+        $files = scandir($dir);
+        $names = array_map(fn($f) => strtolower($f), $files);
+        foreach ($files as $f) {
             if ($f === '.' || $f === '..') continue;
-            if (!is_file($base . $f)) continue;
+            if (!is_file($dir . '/' . $f)) continue;
             $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg','jpeg','png','webp','gif','avif'])) {
-                $imgs[] = ['url' => '/assets/images/' . $f, 'name' => $f, 'deletable' => false];
+            if (!in_array($ext, ['jpg','jpeg','png','webp','gif','avif'])) continue;
+            // Skip .webp if a matching .jpg/.jpeg/.png exists (it's an auto-generated duplicate)
+            if ($ext === 'webp') {
+                $base = strtolower(pathinfo($f, PATHINFO_FILENAME));
+                if (in_array($base . '.jpg', $names) || in_array($base . '.jpeg', $names) || in_array($base . '.png', $names)) continue;
             }
+            $imgs[] = ['url' => $url_prefix . $f, 'name' => $f, 'deletable' => $deletable];
         }
-    }
-    // Uploads dir
-    if (is_dir(UPLOADS_DIR)) {
-        foreach (scandir(UPLOADS_DIR) as $f) {
-            if ($f === '.' || $f === '..') continue;
-            if (!is_file(UPLOADS_DIR . '/' . $f)) continue;
-            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg','jpeg','png','webp','gif','avif'])) {
-                $imgs[] = ['url' => UPLOADS_URL . '/' . $f, 'name' => $f, 'deletable' => true];
-            }
-        }
-    }
+    };
+    $collect(PUBLIC_HTML . '/assets/images/', '/assets/images/', false);
+    $collect(UPLOADS_DIR, UPLOADS_URL . '/', true);
     return $imgs;
 }
 ?>
