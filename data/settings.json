@@ -46,6 +46,8 @@
     "color_text": "#E8E4DC",
     "color_text_muted": "#9CA3AF",
     "color_surface": "#161616",
+    "color_btn_hover": "#b8922e",
+    "color_banner": "#FFB000",
     "font_heading": "Nunito",
     "font_body": "Inter",
     "kit_api_key": "kit_3ad1bb636169002be3359bd1048e0204",

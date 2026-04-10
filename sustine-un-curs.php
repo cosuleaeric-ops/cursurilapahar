@@ -54,6 +54,8 @@ $page = $settings['pages']['sustine'] ?? [
         --surface:      <?= htmlspecialchars($settings['color_surface']    ?? '#161616') ?>;
         --font-sans:    '<?= htmlspecialchars($font_body) ?>', system-ui, sans-serif;
         --font-heading: '<?= htmlspecialchars($font_heading) ?>', sans-serif;
+        --btn-hover:    <?= htmlspecialchars($settings['color_btn_hover'] ?? '#b8922e') ?>;
+        --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
     }
     body { padding-top: 64px; }
     </style>

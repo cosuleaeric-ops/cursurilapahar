@@ -101,7 +101,7 @@ ul { list-style: none; }
   background: var(--accent);
   color: #0D0D0D;
 }
-.btn-primary:hover { background: #b8922e; }
+.btn-primary:hover { background: var(--btn-hover, #b8922e); }
 
 .btn-secondary {
   background: transparent;
@@ -117,7 +117,7 @@ ul { list-style: none; }
   color: #0D0D0D;
   font-weight: 700;
 }
-.btn-accent:hover { background: #b8922e; }
+.btn-accent:hover { background: var(--btn-hover, #b8922e); }
 
 /* ── Logo ───────────────────────────────── */
 .logo-text {
@@ -265,7 +265,7 @@ ul { list-style: none; }
 
 /* ── Announcement Banner ─────────────────── */
 .announcement-banner {
-  background: #FFB000;
+  background: var(--banner-bg, #FFB000);
   color: #0D0D0D;
   text-align: center;
   padding: 11px 20px;

@@ -100,6 +100,8 @@ function default_settings(): array {
         'color_text'        => '#E8E4DC',
         'color_text_muted'  => '#9CA3AF',
         'color_surface'     => '#161616',
+        'color_btn_hover'   => '#b8922e',
+        'color_banner'      => '#FFB000',
         'font_heading'      => 'Nunito',
         'font_body'         => 'Inter',
         'pages'             => [
@@ -411,7 +413,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Save design (colors + fonts)
     if ($action === 'save_design') {
         $settings = load_settings();
-        $color_fields = ['color_bg','color_accent','color_text','color_text_muted','color_surface'];
+        $color_fields = ['color_bg','color_accent','color_text','color_text_muted','color_surface','color_btn_hover','color_banner'];
         foreach ($color_fields as $f) {
             $val = trim($_POST[$f] ?? '');
             if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $val)) $settings[$f] = $val;
@@ -430,7 +432,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'cursuri';
-if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit'])) $tab = 'cursuri';
+if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje'])) $tab = 'cursuri';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -653,6 +655,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </a>
             <a href="/admin/?tab=kit" class="<?= $tab === 'kit' ? 'active' : '' ?>">
                 <span class="nav-icon">📧</span> Kit (Email)
+            </a>
+            <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
+                <span class="nav-icon">💬</span> Mesaje
             </a>
         </nav>
     </aside>
@@ -1059,6 +1064,20 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
                     <input type="text" name="color_surface" value="<?= h($settings['color_surface'] ?? '#161616') ?>" style="flex:1;font-family:monospace" placeholder="#161616" oninput="syncColor(this,'color_surface')">
                 </div>
             </div>
+            <div class="form-group" style="margin:0">
+                <label>Hover butoane</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_btn_hover" value="<?= h($settings['color_btn_hover'] ?? '#b8922e') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_btn_hover" value="<?= h($settings['color_btn_hover'] ?? '#b8922e') ?>" style="flex:1;font-family:monospace" placeholder="#b8922e" oninput="syncColor(this,'color_btn_hover')">
+                </div>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Fundal banner anunț</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" name="color_banner" value="<?= h($settings['color_banner'] ?? '#FFB000') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                    <input type="text" name="color_banner" value="<?= h($settings['color_banner'] ?? '#FFB000') ?>" style="flex:1;font-family:monospace" placeholder="#FFB000" oninput="syncColor(this,'color_banner')">
+                </div>
+            </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
@@ -1188,6 +1207,76 @@ if ($editing_page && isset($page_meta[$editing_page])):
         <button type="submit" class="btn btn-primary">Salvează</button>
     </div>
 </form>
+
+<?php /* ======================================================= TAB: MESAJE */ ?>
+<?php elseif ($tab === 'mesaje'): ?>
+<h1 class="wp-page-title">Mesaje</h1>
+
+<?php
+$log_file = dirname(SETTINGS_FILE) . '/messages.log';
+if (!file_exists($log_file) || !filesize($log_file)):
+?>
+<div class="card">
+    <p style="color:var(--text-muted);padding:8px 0">Nu există mesaje încă.</p>
+</div>
+<?php else:
+    $raw    = file_get_contents($log_file);
+    $blocks = preg_split('/(?=^===)/m', $raw);
+    $blocks = array_values(array_filter(array_map('trim', $blocks)));
+    $blocks = array_reverse($blocks);
+    $type_labels = [
+        'contact'     => '💬 Contact',
+        'sustine'     => '🎤 Susține un curs',
+        'gazduieste'  => '🏠 Găzduiește un curs',
+        'parteneriat' => '🤝 Propune un parteneriat',
+    ];
+?>
+<div class="card">
+    <div class="card-title">Mesaje primite (<?= count($blocks) ?>)</div>
+    <?php foreach ($blocks as $block):
+        preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
+        $date      = trim($m[1] ?? '');
+        $type      = trim($m[2] ?? 'contact');
+        $type_lbl  = $type_labels[$type] ?? ucfirst($type);
+        $body      = trim(preg_replace('/^===.*===\n?/m', '', $block));
+        $body      = trim(preg_replace('/\n---\nData:.*$/s', '', $body));
+        $lines     = array_filter(explode("\n", $body));
+        $email_val = '';
+        foreach ($lines as $l) {
+            if (stripos($l, 'email:') === 0) { $email_val = trim(substr($l, 6)); break; }
+        }
+    ?>
+    <div style="border:1px solid var(--border);border-radius:6px;padding:16px 18px;margin-bottom:12px;background:var(--sidebar-bg)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+            <span style="font-weight:600;font-size:13px"><?= h($type_lbl) ?></span>
+            <span style="font-size:12px;color:var(--text-muted)"><?= h($date) ?></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+        <?php foreach ($lines as $line):
+            if (!$line) continue;
+            $sep = strpos($line, ':');
+            if ($sep === false): ?>
+            <div style="font-size:13px;color:var(--text-muted)"><?= h($line) ?></div>
+            <?php else:
+                $lbl = trim(substr($line, 0, $sep));
+                $val = trim(substr($line, $sep + 1));
+            ?>
+            <div style="display:flex;gap:8px;font-size:13px;line-height:1.5">
+                <span style="color:var(--text-muted);min-width:120px;flex-shrink:0"><?= h($lbl) ?></span>
+                <span style="color:var(--text)"><?= h($val) ?></span>
+            </div>
+            <?php endif; ?>
+        <?php endforeach; ?>
+        </div>
+        <?php if ($email_val): ?>
+        <div style="margin-top:10px">
+            <a href="mailto:<?= h($email_val) ?>" class="btn btn-secondary" style="font-size:12px;padding:6px 14px">Răspunde ↗</a>
+        </div>
+        <?php endif; ?>
+    </div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
 
 <?php endif; ?>
 
