@@ -4,7 +4,6 @@ define('REPO',           'cosuleaeric-ops/cursurilapahar');
 define('BRANCH',         'main');
 define('PUBLIC_HTML',    '/home/lsjcloab/public_html');
 define('LOG_FILE',       PUBLIC_HTML . '/deploy.log');
-define('THEME_PATH',     'wp-content/themes/cursurilapahar');
 
 $payload   = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
@@ -33,11 +32,22 @@ $updated = 0;
 $commit_sha = $data['after'] ?? BRANCH;
 $base_url = 'https://raw.githubusercontent.com/' . REPO . '/' . $commit_sha . '/';
 
-// Deploy changed files (theme + webhook self-update)
+// Files/prefixes to deploy
+$deploy_prefixes = [
+    'index.php', 'api/', 'admin/', 'assets/', '.htaccess',
+    'sustine-un-curs.php', 'gazduieste-un-curs.php', 'propune-un-parteneriat.php'
+];
+
 foreach ($changed as $file) {
-    $is_theme   = str_starts_with($file, THEME_PATH . '/');
-    $is_webhook = ($file === 'webhook.php');
-    if (!$is_theme && !$is_webhook) continue;
+    $is_webhook   = ($file === 'webhook.php');
+    $is_deployable = false;
+    foreach ($deploy_prefixes as $prefix) {
+        if ($file === $prefix || str_starts_with($file, $prefix)) {
+            $is_deployable = true;
+            break;
+        }
+    }
+    if (!$is_webhook && !$is_deployable) continue;
 
     $content = file_get_contents($base_url . $file);
     if ($content === false) continue;
@@ -49,11 +59,25 @@ foreach ($changed as $file) {
     $updated++;
 }
 
-// Remove deleted theme files
+// Remove deleted deployable files
 foreach ($removed as $file) {
-    if (!str_starts_with($file, THEME_PATH . '/')) continue;
+    $is_deployable = false;
+    foreach ($deploy_prefixes as $prefix) {
+        if ($file === $prefix || str_starts_with($file, $prefix)) {
+            $is_deployable = true;
+            break;
+        }
+    }
+    if (!$is_deployable) continue;
     $dest = PUBLIC_HTML . '/' . $file;
     if (file_exists($dest)) unlink($dest);
+}
+
+// Create data dir + empty courses.json ONLY if it doesn't exist yet on server
+$data_dir = PUBLIC_HTML . '/data';
+if (!is_dir($data_dir)) {
+    mkdir($data_dir, 0755, true);
+    file_put_contents($data_dir . '/courses.json', '[]');
 }
 
 file_put_contents(LOG_FILE, date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)\n", FILE_APPEND);

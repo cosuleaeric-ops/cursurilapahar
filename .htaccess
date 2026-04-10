@@ -1,0 +1,10 @@
+Options -Indexes
+RewriteEngine On
+
+# Route /sustine-un-curs etc to PHP files
+RewriteRule ^sustine-un-curs/?$ /sustine-un-curs.php [L]
+RewriteRule ^gazduieste-un-curs/?$ /gazduieste-un-curs.php [L]
+RewriteRule ^propune-un-parteneriat/?$ /propune-un-parteneriat.php [L]
+
+# Block access to data directory
+RewriteRule ^data/ - [F,L]

@@ -117,18 +117,10 @@ if (nlForm) {
     msg.className = 'form-message';
 
     try {
-      const formData = new FormData();
-      formData.append('action', 'clp_subscribe');
-      formData.append('nonce', window.clpAjax ? window.clpAjax.nonce : '');
-
-      const res  = await fetch(window.clpAjax ? window.clpAjax.ajaxUrl : '/wp-admin/admin-ajax.php', {
+      const res  = await fetch('/api/subscribe.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'clp_subscribe',
-          nonce:  window.clpAjax ? window.clpAjax.nonce : '',
-          email
-        })
+        body: JSON.stringify({ email })
       });
       const data = await res.json();
 
@@ -137,7 +129,7 @@ if (nlForm) {
         msg.textContent = 'Mulțumim! Te vom anunța cu 2 săptămâni înainte de fiecare eveniment.';
         nlForm.querySelector('#nlEmail').value = '';
       } else {
-        throw new Error((data.data && data.data.message) || 'Eroare necunoscută');
+        throw new Error(data.message || 'Eroare necunoscută');
       }
     } catch (err) {
       msg.className = 'form-message error';
@@ -158,8 +150,6 @@ if (contactForm) {
     const btn = contactForm.querySelector('button[type="submit"]');
 
     const payload = {
-      action:    'clp_contact',
-      nonce:     window.clpAjax ? window.clpAjax.nonce : '',
       form_type: 'contact',
       name:      contactForm.querySelector('#contactName').value.trim(),
       email:     contactForm.querySelector('#contactEmail').value.trim(),
@@ -177,7 +167,7 @@ if (contactForm) {
     msg.className = 'form-message';
 
     try {
-      const res  = await fetch(window.clpAjax ? window.clpAjax.ajaxUrl : '/wp-admin/admin-ajax.php', {
+      const res  = await fetch('/api/contact.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -189,7 +179,7 @@ if (contactForm) {
         msg.textContent = 'Mesaj trimis! Îți răspundem în cel mai scurt timp.';
         contactForm.reset();
       } else {
-        throw new Error((data.data && data.data.message) || 'Eroare');
+        throw new Error(data.message || 'Eroare');
       }
     } catch {
       msg.className = 'form-message error';
@@ -221,15 +211,13 @@ innerForms.forEach(form => {
       }
     });
     payload.form_type = type;
-    payload.action    = 'clp_contact';
-    payload.nonce     = window.clpAjax ? window.clpAjax.nonce : '';
 
     btn.disabled = true;
     btn.textContent = 'Se trimite…';
     if (msg) { msg.className = 'form-message'; }
 
     try {
-      const res  = await fetch(window.clpAjax ? window.clpAjax.ajaxUrl : '/wp-admin/admin-ajax.php', {
+      const res  = await fetch('/api/contact.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -243,7 +231,7 @@ innerForms.forEach(form => {
         }
         form.reset();
       } else {
-        throw new Error((data.data && data.data.message) || 'Eroare');
+        throw new Error(data.message || 'Eroare');
       }
     } catch {
       if (msg) {
