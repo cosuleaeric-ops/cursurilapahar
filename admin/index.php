@@ -612,7 +612,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .clr-field { width: 100%; }
 .clr-field input {
     width: 100%;
-    padding: 9px 12px 9px 44px;
+    padding: 9px 12px 9px 48px;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-family: monospace;
@@ -622,10 +622,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     cursor: pointer;
 }
 .clr-field button {
-    width: 32px; height: 32px;
-    border-radius: 3px;
-    left: 5px; top: 50%;
-    transform: translateY(-50%);
+    width: 36px; height: calc(100% - 2px);
+    border-radius: 3px 0 0 3px;
+    left: 1px; right: auto; top: 1px;
+    transform: none;
 }
 /* Bigger popup */
 .clr-picker { width: 320px !important; }
