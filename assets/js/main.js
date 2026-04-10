@@ -215,14 +215,18 @@ innerForms.forEach(form => {
     const type = form.dataset.formType || 'contact';
 
     const formData = new FormData(form);
-    const payload  = Object.fromEntries(formData.entries());
-    // Include checkboxes as array
+    const payload  = {};
+    formData.forEach((value, key) => {
+      if (key.endsWith('[]')) {
+        if (!payload[key]) payload[key] = [];
+        payload[key].push(value);
+      } else {
+        payload[key] = value;
+      }
+    });
+    // Include unchecked checkbox groups as empty arrays
     form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       if (!payload[cb.name]) payload[cb.name] = [];
-      if (cb.checked) {
-        if (!Array.isArray(payload[cb.name])) payload[cb.name] = [];
-        payload[cb.name].push(cb.value);
-      }
     });
     payload.form_type = type;
 

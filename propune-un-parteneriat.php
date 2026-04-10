@@ -136,14 +136,21 @@ $page = $settings['pages']['parteneriat'] ?? [
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="pp_type">Tipul parteneriatului *</label>
-                    <select id="pp_type" name="partnership_type" required>
-                        <option value="" disabled selected>Alege tipul...</option>
-                        <option value="media">Parteneriat Media (vizibilitate, promovare, PR)</option>
-                        <option value="product">Activare de produs (sampling, experiență directă cu participanții)</option>
-                        <option value="strategic">Parteneriat Strategic / Financiar (sponsorizare)</option>
-                        <option value="other">Altul</option>
-                    </select>
+                    <label>Tipul parteneriatului</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="partnership_type[]" value="media"> Parteneriat Media (vizibilitate, promovare, PR)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="partnership_type[]" value="product"> Activare de produs (sampling, experiență directă cu participanții)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="partnership_type[]" value="strategic"> Parteneriat Strategic / Financiar (sponsorizare)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="partnership_type[]" value="other"> Altul
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="pp_vision">Cum vizualizezi colaborarea cu Cursuri la Pahar? *</label>
