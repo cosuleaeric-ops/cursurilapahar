@@ -240,7 +240,9 @@ innerForms.forEach(form => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error('Răspuns invalid de la server: ' + text.substring(0, 200)); }
 
       if (data.success) {
         if (msg) {
@@ -251,10 +253,10 @@ innerForms.forEach(form => {
       } else {
         throw new Error(data.message || 'Eroare');
       }
-    } catch {
+    } catch (err) {
       if (msg) {
         msg.className = 'form-message error';
-        msg.textContent = 'Ceva n-a mers bine. Scrie-ne direct la contact@cursurilapahar.ro';
+        msg.textContent = err.message || 'Ceva n-a mers bine. Scrie-ne direct la contact@cursurilapahar.ro';
       }
     } finally {
       btn.disabled = false;
