@@ -71,6 +71,13 @@ ul { list-style: none; }
   margin-bottom: 12px;
   text-align: center;
 }
+#cursuri > .container > .section-title {
+  font-family: 'Bebas Neue', var(--font-serif);
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .section-subtitle {
   color: var(--text-muted);
   text-align: center;
