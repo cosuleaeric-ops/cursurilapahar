@@ -612,7 +612,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .clr-field { width: 100%; }
 .clr-field input {
     width: 100%;
-    padding: 9px 12px 9px 48px;
+    padding: 9px 12px 9px 50px !important;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-family: monospace;
@@ -620,6 +620,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     background: #fff;
     color: #1d2327;
     cursor: pointer;
+    box-sizing: border-box;
 }
 .clr-field button {
     width: 36px; height: calc(100% - 2px);
