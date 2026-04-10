@@ -83,6 +83,14 @@ function clp_curs_meta_box_html( $post ) {
     $livetickets_url = get_post_meta( $post->ID, '_curs_livetickets_url', true );
     $active          = get_post_meta( $post->ID, '_curs_active', true );
     ?>
+    <div style="background:#f0f7ff;border:1px solid #b3d4f5;border-radius:4px;padding:12px 16px;margin-bottom:16px;">
+        <strong>⚡ Import automat din LiveTickets</strong>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+            <input type="url" id="clp_lt_import_url" style="flex:1;" class="regular-text" placeholder="https://www.livetickets.ro/bilete/...">
+            <button type="button" id="clp_lt_import_btn" class="button button-primary">Importă</button>
+            <span id="clp_lt_status" style="color:#666;font-size:13px;"></span>
+        </div>
+    </div>
     <table class="form-table">
         <tr>
             <th><label for="clp_date_display">Dată afișată (ex: 15 Mai)</label></th>
@@ -102,13 +110,41 @@ function clp_curs_meta_box_html( $post ) {
         </tr>
         <tr>
             <th><label for="clp_livetickets_url">URL bilete (LiveTickets)</label></th>
-            <td><input type="url" id="clp_livetickets_url" name="clp_livetickets_url" value="<?php echo esc_attr( $livetickets_url ); ?>" class="regular-text" placeholder="https://livetickets.ro/..."></td>
+            <td><input type="url" id="clp_livetickets_url" name="clp_livetickets_url" value="<?php echo esc_attr( $livetickets_url ); ?>" class="regular-text" placeholder="https://www.livetickets.ro/bilete/..."></td>
         </tr>
         <tr>
             <th><label for="clp_active">Activ (vizibil pe site)</label></th>
             <td><input type="checkbox" id="clp_active" name="clp_active" value="1" <?php checked( $active, '1' ); ?>></td>
         </tr>
     </table>
+    <script>
+    document.getElementById('clp_lt_import_btn').addEventListener('click', function() {
+        var url = document.getElementById('clp_lt_import_url').value.trim();
+        var status = document.getElementById('clp_lt_status');
+        if (!url) { status.textContent = 'Introdu un URL.'; return; }
+        status.textContent = 'Se încarcă...';
+        fetch(ajaxurl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'action=clp_fetch_livetickets&nonce=<?php echo wp_create_nonce("clp_lt_nonce"); ?>&url=' + encodeURIComponent(url)
+        })
+        .then(r => r.json())
+        .then(function(res) {
+            if (!res.success) { status.textContent = '❌ ' + (res.data.message || 'Eroare'); return; }
+            var d = res.data;
+            document.getElementById('clp_date_display').value = d.date_display || '';
+            document.getElementById('clp_date_raw').value     = d.date_raw || '';
+            document.getElementById('clp_time').value         = d.time || '';
+            document.getElementById('clp_location').value     = d.location || '';
+            document.getElementById('clp_livetickets_url').value = url;
+            // Set post title
+            var titleInput = document.getElementById('title');
+            if (titleInput && !titleInput.value) titleInput.value = d.title || '';
+            status.textContent = '✅ Date importate!';
+        })
+        .catch(function() { status.textContent = '❌ Eroare de rețea.'; });
+    });
+    </script>
     <?php
 }
 
@@ -137,6 +173,54 @@ add_action( 'save_post', function ( $post_id ) {
     // Checkbox: active
     $active = isset( $_POST['clp_active'] ) ? '1' : '0';
     update_post_meta( $post_id, '_curs_active', $active );
+} );
+
+// ── AJAX: clp_fetch_livetickets ─────────────────────────────────────────────
+add_action( 'wp_ajax_clp_fetch_livetickets', function () {
+    if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'clp_lt_nonce' ) ) {
+        wp_send_json_error( [ 'message' => 'Nonce invalid.' ], 403 );
+    }
+
+    $input_url = sanitize_text_field( $_POST['url'] ?? '' );
+    // Extract slug from URL
+    $slug = preg_replace( '#^https?://[^/]+/bilete/#', '', $input_url );
+    $slug = trim( $slug, '/' );
+
+    if ( empty( $slug ) ) {
+        wp_send_json_error( [ 'message' => 'URL invalid.' ], 400 );
+    }
+
+    $api_url  = 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode( $slug );
+    $response = wp_remote_get( $api_url, [ 'timeout' => 15 ] );
+
+    if ( is_wp_error( $response ) ) {
+        wp_send_json_error( [ 'message' => 'Nu s-a putut contacta LiveTickets.' ], 500 );
+    }
+
+    $data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+    if ( empty( $data['name'] ) ) {
+        wp_send_json_error( [ 'message' => 'Evenimentul nu a fost găsit.' ], 404 );
+    }
+
+    $start   = new DateTime( $data['start_date'] );
+    $months  = [ 1=>'Ianuarie',2=>'Februarie',3=>'Martie',4=>'Aprilie',5=>'Mai',6=>'Iunie',
+                 7=>'Iulie',8=>'August',9=>'Septembrie',10=>'Octombrie',11=>'Noiembrie',12=>'Decembrie' ];
+    $date_display = $start->format('j') . ' ' . $months[ (int) $start->format('n') ];
+
+    $location_parts = array_filter([
+        $data['location']['name']    ?? '',
+        $data['location']['address'] ?? '',
+        $data['location']['city']    ?? '',
+    ]);
+
+    wp_send_json_success( [
+        'title'        => $data['name'],
+        'date_display' => $date_display,
+        'date_raw'     => $start->format('Y-m-d'),
+        'time'         => $start->format('H:i'),
+        'location'     => implode( ', ', $location_parts ),
+    ] );
 } );
 
 // ── AJAX: clp_subscribe ──────────────────────────────────────────────────────
