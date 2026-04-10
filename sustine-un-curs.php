@@ -108,9 +108,10 @@ $page = $settings['pages']['sustine'] ?? [
             Înapoi
         </a>
         <h1 style="font-family:var(--font-heading);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin-bottom:12px;"><?= htmlspecialchars($page['title']) ?></h1>
-        <p style="color:var(--text-muted);line-height:1.8;margin-bottom:32px;">
-            <?= htmlspecialchars($page['description']) ?>
-        </p>
+        <div style="color:var(--text-muted);line-height:1.8;margin-bottom:32px;">
+            <p>Căutăm voci noi pentru <strong style="color:var(--text)">Cursuri la Pahar</strong>! Dacă ai experiență într-un domeniu care te pasionează și vrei să dai mai departe din învățăturile tale, te așteptăm să susții un curs în cadrul evenimentelor noastre.</p>
+            <p style="margin-top:16px;">Punem preț pe calitatea informației și pe vibe-ul bun, așa că, dacă ești gata să inspiri comunitatea cu învățăturile tale, <strong style="color:var(--text)">completează formularul de mai jos</strong>!</p>
+        </div>
 
         <div class="inner-form">
             <form class="inner-page-form" data-form-type="sustine" novalidate>
