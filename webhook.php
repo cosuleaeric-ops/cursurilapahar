@@ -30,7 +30,8 @@ foreach (($data['commits'] ?? []) as $commit) {
 $changed = array_unique($changed);
 
 $updated = 0;
-$base_url = 'https://raw.githubusercontent.com/' . REPO . '/' . BRANCH . '/';
+$commit_sha = $data['after'] ?? BRANCH;
+$base_url = 'https://raw.githubusercontent.com/' . REPO . '/' . $commit_sha . '/';
 
 // Deploy changed files (theme + webhook self-update)
 foreach ($changed as $file) {
