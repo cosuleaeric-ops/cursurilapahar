@@ -607,7 +607,33 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .image-item-actions { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .hero-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); cursor: pointer; }
 .hero-check input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+
+/* ── Coloris overrides ── */
+.clr-field { width: 100%; }
+.clr-field input {
+    width: 100%;
+    padding: 9px 12px 9px 44px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    background: #fff;
+    color: #1d2327;
+    cursor: pointer;
+}
+.clr-field button {
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* Make the popup bigger */
+.clr-picker { width: 280px !important; }
+.clr-gradient { height: 200px !important; }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.css">
 </head>
 <body>
 
@@ -1030,55 +1056,24 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <div class="card-title">Culori &amp; Fonturi</div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <?php
+            $color_fields_ui = [
+                'color_bg'         => ['label' => 'Fundal principal',      'default' => '#0D0D0D'],
+                'color_accent'     => ['label' => 'Culoare accent',         'default' => '#C9A84C'],
+                'color_text'       => ['label' => 'Culoare text',           'default' => '#E8E4DC'],
+                'color_text_muted' => ['label' => 'Text secundar',          'default' => '#9CA3AF'],
+                'color_surface'    => ['label' => 'Fundal carduri/secțiuni','default' => '#161616'],
+                'color_btn_hover'  => ['label' => 'Hover butoane',          'default' => '#b8922e'],
+                'color_banner'     => ['label' => 'Fundal banner anunț',    'default' => '#FFB000'],
+            ];
+            foreach ($color_fields_ui as $fname => $meta):
+                $val = h($settings[$fname] ?? $meta['default']);
+            ?>
             <div class="form-group" style="margin:0">
-                <label>Fundal principal</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_bg" value="<?= h($settings['color_bg'] ?? '#0D0D0D') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_bg" value="<?= h($settings['color_bg'] ?? '#0D0D0D') ?>" style="flex:1;font-family:monospace" placeholder="#0D0D0D" oninput="syncColor(this,'color_bg')">
-                </div>
+                <label><?= $meta['label'] ?></label>
+                <input type="text" name="<?= $fname ?>" value="<?= $val ?>" data-coloris>
             </div>
-            <div class="form-group" style="margin:0">
-                <label>Culoare accent</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_accent" value="<?= h($settings['color_accent'] ?? '#C9A84C') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_accent" value="<?= h($settings['color_accent'] ?? '#C9A84C') ?>" style="flex:1;font-family:monospace" placeholder="#C9A84C" oninput="syncColor(this,'color_accent')">
-                </div>
-            </div>
-            <div class="form-group" style="margin:0">
-                <label>Culoare text</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_text" value="<?= h($settings['color_text'] ?? '#E8E4DC') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_text" value="<?= h($settings['color_text'] ?? '#E8E4DC') ?>" style="flex:1;font-family:monospace" placeholder="#E8E4DC" oninput="syncColor(this,'color_text')">
-                </div>
-            </div>
-            <div class="form-group" style="margin:0">
-                <label>Text secundar</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_text_muted" value="<?= h($settings['color_text_muted'] ?? '#9CA3AF') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_text_muted" value="<?= h($settings['color_text_muted'] ?? '#9CA3AF') ?>" style="flex:1;font-family:monospace" placeholder="#9CA3AF" oninput="syncColor(this,'color_text_muted')">
-                </div>
-            </div>
-            <div class="form-group" style="margin:0">
-                <label>Fundal carduri/secțiuni</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_surface" value="<?= h($settings['color_surface'] ?? '#161616') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_surface" value="<?= h($settings['color_surface'] ?? '#161616') ?>" style="flex:1;font-family:monospace" placeholder="#161616" oninput="syncColor(this,'color_surface')">
-                </div>
-            </div>
-            <div class="form-group" style="margin:0">
-                <label>Hover butoane</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_btn_hover" value="<?= h($settings['color_btn_hover'] ?? '#b8922e') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_btn_hover" value="<?= h($settings['color_btn_hover'] ?? '#b8922e') ?>" style="flex:1;font-family:monospace" placeholder="#b8922e" oninput="syncColor(this,'color_btn_hover')">
-                </div>
-            </div>
-            <div class="form-group" style="margin:0">
-                <label>Fundal banner anunț</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" name="color_banner" value="<?= h($settings['color_banner'] ?? '#FFB000') ?>" style="width:44px;height:34px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer">
-                    <input type="text" name="color_banner" value="<?= h($settings['color_banner'] ?? '#FFB000') ?>" style="flex:1;font-family:monospace" placeholder="#FFB000" oninput="syncColor(this,'color_banner')">
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
@@ -1105,15 +1100,20 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <button type="submit" class="btn btn-primary">Salvează design</button>
     </div>
 </form>
+<script src="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.js"></script>
 <script>
-// Sync color picker <-> text input
-function syncColor(el, name) {
-    const siblings = document.querySelectorAll('[name="' + name + '"]');
-    siblings.forEach(s => { if (s !== el) s.value = el.value; });
-}
-document.querySelectorAll('input[type="color"]').forEach(picker => {
-    const name = picker.getAttribute('name');
-    picker.addEventListener('input', () => syncColor(picker, name));
+Coloris({
+    el: '[data-coloris]',
+    format: 'hex',
+    forceAlpha: false,
+    focusInput: false,
+    selectInput: true,
+    clearButton: false,
+    swatches: [
+        '#0D0D0D','#161616','#1A1A1A','#ffffff',
+        '#C9A84C','#b8922e','#FFB000','#d4a017',
+        '#E8E4DC','#9CA3AF','#6B7280','#374151',
+    ],
 });
 </script>
 
