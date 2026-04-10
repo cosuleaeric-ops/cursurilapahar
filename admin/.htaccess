@@ -1,0 +1,6 @@
+# Deny direct access to admin folder from outside (optional extra layer)
+# The PHP session auth is the primary protection.
+# Uncomment and configure if you want to add IP restriction:
+# Order Deny,Allow
+# Deny from all
+# Allow from YOUR.IP.HERE

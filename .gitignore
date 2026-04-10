@@ -1,0 +1,13 @@
+# Logs & user data
+data/messages.log
+
+# Preview & dev files
+preview.html
+server.py
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+*.swp
