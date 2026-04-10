@@ -644,7 +644,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 /* Bigger hue slider */
 #clr-hue-slider, .clr-hue { height: 18px !important; border-radius: 9px !important; }
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.css">
 </head>
 <body>
 
@@ -1082,7 +1081,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             ?>
             <div class="form-group" style="margin:0">
                 <label><?= $meta['label'] ?></label>
-                <input type="text" name="<?= $fname ?>" value="<?= $val ?>" data-coloris>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="color" id="picker_<?= $fname ?>" value="<?= $val ?>"
+                           oninput="document.getElementById('val_<?= $fname ?>').value=this.value"
+                           style="width:44px;height:38px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:#fff">
+                    <input type="text" name="<?= $fname ?>" id="val_<?= $fname ?>" value="<?= $val ?>"
+                           oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('picker_<?= $fname ?>').value=this.value"
+                           style="flex:1;font-family:monospace;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;color:#1d2327">
+                </div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -1111,22 +1117,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <button type="submit" class="btn btn-primary">Salvează design</button>
     </div>
 </form>
-<script src="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.js"></script>
-<script>
-Coloris({
-    el: '[data-coloris]',
-    format: 'hex',
-    forceAlpha: false,
-    focusInput: false,
-    selectInput: true,
-    clearButton: false,
-    swatches: [
-        '#0D0D0D','#161616','#1A1A1A','#ffffff',
-        '#C9A84C','#b8922e','#FFB000','#d4a017',
-        '#E8E4DC','#9CA3AF','#6B7280','#374151',
-    ],
-});
-</script>
 
 <?php /* ======================================================= TAB: PAGINI */ ?>
 <?php elseif ($tab === 'pagini'): ?>
