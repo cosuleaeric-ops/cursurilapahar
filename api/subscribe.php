@@ -9,7 +9,7 @@ if (!$email) { echo json_encode(['success'=>false,'message'=>'Email invalid.']);
 
 $settings_file = dirname(__DIR__) . '/data/settings.json';
 $settings = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
-$api_key = trim($settings['kit_api_key'] ?? '');
+$api_key = preg_replace('/\s+/', '', $settings['kit_api_key'] ?? '');
 $form_id = trim($settings['kit_form_id'] ?? '');
 
 if (!$api_key) {
@@ -47,5 +47,5 @@ if ($code >= 200 && $code < 300) {
     echo json_encode(['success' => true]);
 } else {
     $msg = $data['errors'][0]['title'] ?? $data['message'] ?? ('HTTP ' . $code . ': ' . substr($response, 0, 200));
-    echo json_encode(['success' => false, 'message' => $msg]);
+    echo json_encode(['success' => false, 'message' => $msg . ' [key_len=' . strlen($api_key) . ' prefix=' . substr($api_key,0,8) . ']']);
 }
