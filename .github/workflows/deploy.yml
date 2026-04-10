@@ -1,17 +1,14 @@
-name: Deploy → Hostico (robotache.ro)
+name: Deploy via FTP
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   deploy:
-    name: FTP Deploy
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -20,15 +17,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
-          protocol: ftp
-          port: 21
-          dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.git*/**
-            **/.github/**
             **/.claude/**
-            **/preview.html
-            **/server.py
-            **/data/messages.log
-            **/.DS_Store
+            **/data/**
+            .claude/
+            data/
