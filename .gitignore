@@ -11,3 +11,4 @@ server.py
 # Editor
 .vscode/
 *.swp
+*.zip
