@@ -305,10 +305,11 @@ ul { list-style: none; }
   position: absolute; inset: 0; z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgba(0,0,0,.1) 0%,
-    rgba(0,0,0,.0) 20%,
-    rgba(0,0,0,.6) 60%,
-    rgba(0,0,0,.92) 85%,
+    rgba(0,0,0,.05) 0%,
+    rgba(0,0,0,.0) 15%,
+    rgba(0,0,0,.3) 45%,
+    rgba(0,0,0,.75) 70%,
+    rgba(0,0,0,.95) 88%,
     rgba(0,0,0,1) 100%
   );
 }
