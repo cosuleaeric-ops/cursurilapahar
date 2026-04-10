@@ -36,3 +36,4 @@ $headers = "From: noreply@cursurilapahar.ro\r\nReply-To: $email\r\nContent-Type:
 mail('contact@cursurilapahar.ro', $subject, $body_text, $headers);
 
 echo json_encode(['success' => true]);
+ 

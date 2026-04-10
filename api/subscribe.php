@@ -20,3 +20,4 @@ if ($code >= 200 && $code < 300) {
     $msg = $data['errors'][0]['title'] ?? 'Eroare la abonare.';
     echo json_encode(['success' => false, 'message' => $msg]);
 }
+ 

@@ -8,3 +8,4 @@ RewriteRule ^propune-un-parteneriat/?$ /propune-un-parteneriat.php [L]
 
 # Block access to data directory
 RewriteRule ^data/ - [F,L]
+ 
