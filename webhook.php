@@ -4,6 +4,7 @@ define('REPO',           'cosuleaeric-ops/cursurilapahar');
 define('BRANCH',         'main');
 define('PUBLIC_HTML',    '/home/lsjcloab/public_html');
 define('LOG_FILE',       PUBLIC_HTML . '/deploy.log');
+define('GITHUB_TOKEN',   '***REMOVED***');
 
 $payload   = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
@@ -49,7 +50,11 @@ foreach ($changed as $file) {
     }
     if (!$is_webhook && !$is_deployable) continue;
 
-    $content = file_get_contents($base_url . $file);
+    $ctx = stream_context_create(['http' => [
+        'header'        => "Authorization: token " . GITHUB_TOKEN . "\r\nUser-Agent: CLP-Deploy\r\n",
+        'ignore_errors' => true,
+    ]]);
+    $content = file_get_contents($base_url . $file, false, $ctx);
     if ($content === false) continue;
 
     $dest = PUBLIC_HTML . '/' . $file;
