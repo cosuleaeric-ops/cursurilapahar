@@ -629,21 +629,19 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 }
 /* Bigger popup */
 .clr-picker { width: 320px !important; }
-.clr-gradient { height: 240px !important; }
-/* HEX ONLY: hide format toggle buttons and RGB/HSL channel inputs */
-#clr-format, .clr-format { display: none !important; }
-#clr-r-field, #clr-g-field, #clr-b-field,
-#clr-h-field, #clr-s-field, #clr-l-field,
-#clr-a-field { display: none !important; }
-/* Make the hex input prominent */
-#clr-hex-value, #clr-color-value input[id$="hex"] {
-    font-family: monospace !important;
-    font-size: 14px !important;
-    text-transform: uppercase !important;
-}
+#clr-color-area { height: 240px !important; }
+/* HEX ONLY — correct selectors for Coloris 0.23.0 */
+#clr-format { display: none !important; }
+#clr-color-value-r, #clr-color-value-g, #clr-color-value-b,
+#clr-color-value-h, #clr-color-value-s, #clr-color-value-l,
+#clr-color-value-a { display: none !important; }
+#clr-color-value label:not([for="clr-color-value-hex"]) { display: none !important; }
+/* Hex input styling */
+#clr-color-value-hex { font-family: monospace !important; font-size: 14px !important; text-transform: uppercase !important; width: 100% !important; }
 /* Bigger hue slider */
-#clr-hue-slider, .clr-hue { height: 18px !important; border-radius: 9px !important; }
+#clr-hue-slider { height: 18px !important; border-radius: 9px !important; }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.css">
 </head>
 <body>
 
@@ -1081,14 +1079,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             ?>
             <div class="form-group" style="margin:0">
                 <label><?= $meta['label'] ?></label>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="color" id="picker_<?= $fname ?>" value="<?= $val ?>"
-                           oninput="document.getElementById('val_<?= $fname ?>').value=this.value"
-                           style="width:44px;height:38px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:#fff">
-                    <input type="text" name="<?= $fname ?>" id="val_<?= $fname ?>" value="<?= $val ?>"
-                           oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('picker_<?= $fname ?>').value=this.value"
-                           style="flex:1;font-family:monospace;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;color:#1d2327">
-                </div>
+                <input type="text" name="<?= $fname ?>" value="<?= $val ?>" data-coloris>
             </div>
             <?php endforeach; ?>
         </div>
@@ -1117,6 +1108,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <button type="submit" class="btn btn-primary">Salvează design</button>
     </div>
 </form>
+<script src="https://cdn.jsdelivr.net/npm/@mdbassit/coloris@0.23.0/dist/coloris.min.js"></script>
+<script>
+Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: false, selectInput: true, clearButton: false,
+    swatches: ['#0D0D0D','#161616','#1A1A1A','#ffffff','#C9A84C','#b8922e','#FFB000','#E8E4DC','#9CA3AF'],
+});
+</script>
 
 <?php /* ======================================================= TAB: PAGINI */ ?>
 <?php elseif ($tab === 'pagini'): ?>
