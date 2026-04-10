@@ -51,11 +51,10 @@ foreach ($changed as $file) {
     if (!$is_webhook && !$is_deployable) continue;
 
     $ctx = stream_context_create(['http' => [
-        'header'        => "Authorization: token " . GITHUB_TOKEN . "\r\nUser-Agent: CLP-Deploy\r\n",
-        'ignore_errors' => true,
+        'header' => "Authorization: token " . GITHUB_TOKEN . "\r\nUser-Agent: CLP-Deploy\r\n",
     ]]);
-    $content = file_get_contents($base_url . $file, false, $ctx);
-    if ($content === false) continue;
+    $content = @file_get_contents($base_url . $file, false, $ctx);
+    if ($content === false || strlen($content) === 0) continue;
 
     $dest = PUBLIC_HTML . '/' . $file;
     $dir  = dirname($dest);
