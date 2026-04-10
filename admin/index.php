@@ -1,19 +1,39 @@
 <?php
 define('ADMIN_PASSWORD', 'clp2026admin');
-define('COURSES_FILE', dirname(__DIR__) . '/data/courses.json');
+define('AUTH_SECRET',    'clp-auth-xk9p-2026-secret');
+define('COURSES_FILE',   dirname(__DIR__) . '/data/courses.json');
 
-session_start();
+// ── Cookie-based auth (no sessions needed) ────────────────────────────────────
+function is_authenticated(): bool {
+    $cookie = $_COOKIE['clp_auth'] ?? '';
+    if (!$cookie) return false;
+    $expected = hash_hmac('sha256', 'clp_admin_ok', AUTH_SECRET);
+    return hash_equals($expected, $cookie);
+}
+function set_auth_cookie(): void {
+    $token = hash_hmac('sha256', 'clp_admin_ok', AUTH_SECRET);
+    setcookie('clp_auth', $token, [
+        'expires'  => time() + 86400 * 30,
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+}
+function clear_auth_cookie(): void {
+    setcookie('clp_auth', '', ['expires' => time() - 3600, 'path' => '/']);
+}
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
 if (isset($_POST['login_password'])) {
     if ($_POST['login_password'] === ADMIN_PASSWORD) {
-        $_SESSION['clp_admin'] = true;
+        set_auth_cookie();
+        header('Location: /admin/');
+        exit;
     } else {
         $login_error = 'Parolă incorectă.';
     }
 }
 if (isset($_GET['logout'])) {
-    session_destroy();
+    clear_auth_cookie();
     header('Location: /admin/');
     exit;
 }
@@ -31,7 +51,7 @@ function save_courses(array $courses): void {
 
 // ── Actions (only when authenticated) ────────────────────────────────────────
 $action_msg = '';
-if (!empty($_SESSION['clp_admin'])) {
+if (!empty(is_authenticated())) {
 
     // Delete
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
@@ -99,7 +119,7 @@ if (!empty($_SESSION['clp_admin'])) {
 // ── Load data for display ─────────────────────────────────────────────────────
 $courses = [];
 $edit_course = null;
-if (!empty($_SESSION['clp_admin'])) {
+if (!empty(is_authenticated())) {
     $courses = load_courses();
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 
@@ -207,7 +227,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 </head>
 <body>
 
-<?php if (empty($_SESSION['clp_admin'])): ?>
+<?php if (empty(is_authenticated())): ?>
 <!-- ── LOGIN ── -->
 <div class="login-wrap">
     <div class="login-box">
