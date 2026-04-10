@@ -204,12 +204,37 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             $allowed = ['jpg','jpeg','png','webp','gif','avif'];
             if (in_array($ext, $allowed)) {
-                $new_name = preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name']));
+                $base = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($file['name'], PATHINFO_FILENAME));
+                $new_name = $base . '.webp';
                 $dest = UPLOADS_DIR . '/' . $new_name;
-                if (move_uploaded_file($file['tmp_name'], $dest)) {
-                    $upload_ok = 'Imaginea a fost încărcată: ' . h($new_name);
+                $img = match($ext) {
+                    'jpg','jpeg' => @imagecreatefromjpeg($file['tmp_name']),
+                    'png'        => @imagecreatefrompng($file['tmp_name']),
+                    'webp'       => @imagecreatefromwebp($file['tmp_name']),
+                    'gif'        => @imagecreatefromgif($file['tmp_name']),
+                    default      => false,
+                };
+                if ($img) {
+                    // Resize to max 1920px wide
+                    $w = imagesx($img); $h = imagesy($img);
+                    if ($w > 1920) {
+                        $img2 = imagescale($img, 1920, (int)($h * 1920 / $w), IMG_BICUBIC);
+                        imagedestroy($img); $img = $img2;
+                    }
+                    if (imagewebp($img, $dest, 82)) {
+                        imagedestroy($img);
+                        $upload_ok = 'Imaginea a fost încărcată și convertită în WebP: ' . h($new_name);
+                    } else {
+                        imagedestroy($img);
+                        $upload_error = 'Eroare la salvarea WebP.';
+                    }
                 } else {
-                    $upload_error = 'Eroare la salvarea fișierului.';
+                    // GD can't read it (e.g. avif) — save as-is
+                    if (move_uploaded_file($file['tmp_name'], UPLOADS_DIR . '/' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name'])))) {
+                        $upload_ok = 'Imaginea a fost încărcată: ' . h(basename($file['name']));
+                    } else {
+                        $upload_error = 'Eroare la salvarea fișierului.';
+                    }
                 }
             } else {
                 $upload_error = 'Format neacceptat. Folosește JPG, PNG, WEBP sau GIF.';
@@ -815,7 +840,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
                 <input type="file" name="image_file" accept="image/*" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
                 <button type="submit" class="btn btn-primary">Încarcă</button>
             </div>
-            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF. Imaginile uploadate sunt salvate în <code>/assets/images/uploads/</code>.</p>
+            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
         </form>
     </div>
 
