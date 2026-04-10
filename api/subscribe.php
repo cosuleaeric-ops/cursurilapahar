@@ -7,50 +7,43 @@ $body = json_decode(file_get_contents('php://input'), true);
 $email = filter_var(trim($body['email'] ?? ''), FILTER_VALIDATE_EMAIL);
 if (!$email) { echo json_encode(['success'=>false,'message'=>'Email invalid.']); exit; }
 
-// Load API key from settings
 $settings_file = dirname(__DIR__) . '/data/settings.json';
 $settings = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
-$api_key = trim($settings['kit_api_key'] ?? 'kit_3ad1bb636169002be3359bd1048e0204');
+$api_key = trim($settings['kit_api_key'] ?? '');
 $form_id = trim($settings['kit_form_id'] ?? '');
 
 if (!$api_key) {
     echo json_encode(['success'=>false,'message'=>'API key lipsă în setări.']); exit;
 }
-
-if (!function_exists('curl_init')) {
-    echo json_encode(['success'=>false,'message'=>'cURL nu este disponibil pe server.']); exit;
+if (!$form_id) {
+    echo json_encode(['success'=>false,'message'=>'Form ID lipsă în setări Kit.']); exit;
 }
 
-$api_url = $form_id
-    ? 'https://api.kit.com/v4/forms/' . urlencode($form_id) . '/subscribers'
-    : 'https://api.kit.com/v4/subscribers';
+// ConvertKit / Kit v3 API
+$api_url = 'https://api.convertkit.com/v3/forms/' . urlencode($form_id) . '/subscribe';
 
 $ch = curl_init($api_url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode(['email_address' => $email]),
-    CURLOPT_HTTPHEADER     => [
-        'Content-Type: application/json',
-        'Accept: application/json',
-        'Authorization: Bearer ' . $api_key,
-    ],
+    CURLOPT_POSTFIELDS     => json_encode(['api_key' => $api_key, 'email' => $email]),
+    CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'Accept: application/json'],
     CURLOPT_TIMEOUT        => 15,
     CURLOPT_SSL_VERIFYPEER => false,
 ]);
-$response  = curl_exec($ch);
-$curl_err  = curl_error($ch);
-$code      = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$response = curl_exec($ch);
+$curl_err = curl_error($ch);
+$code     = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 if ($response === false || $code === 0) {
-    echo json_encode(['success'=>false,'message'=>'Nu am putut contacta Kit: ' . $curl_err]); exit;
+    echo json_encode(['success'=>false,'message'=>'Eroare conexiune: ' . $curl_err]); exit;
 }
 
 $data = json_decode($response, true);
-if ($code >= 200 && $code < 300) {
+if ($code >= 200 && $code < 300 && isset($data['subscription'])) {
     echo json_encode(['success' => true]);
 } else {
-    $msg = $data['errors'][0]['title'] ?? $data['message'] ?? ('Kit HTTP ' . $code . ': ' . substr($response, 0, 120));
+    $msg = $data['message'] ?? $data['error'] ?? ('HTTP ' . $code . ': ' . substr($response, 0, 120));
     echo json_encode(['success' => false, 'message' => $msg]);
 }
