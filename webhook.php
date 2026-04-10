@@ -2,8 +2,9 @@
 define('WEBHOOK_SECRET', 'clp-deploy-secret-2026');
 define('REPO',           'cosuleaeric-ops/cursurilapahar');
 define('BRANCH',         'main');
-define('PUBLIC_HTML',    __DIR__);
-define('LOG_FILE',       __DIR__ . '/deploy.log');
+define('PUBLIC_HTML',    '/home/lsjcloab/public_html');
+define('LOG_FILE',       '/home/lsjcloab/public_html/deploy.log');
+define('REAL_DIR',       __DIR__);
 
 $payload   = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
@@ -91,7 +92,7 @@ if (!is_dir($data_dir)) {
     @file_put_contents($data_dir . '/courses.json', '[]');
 }
 
-$log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)";
+$log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files) __DIR__=" . REAL_DIR;
 if (!empty($errors)) $log .= " | ERRORS: " . implode(', ', $errors);
 $log .= "\n";
 @file_put_contents(LOG_FILE, $log, FILE_APPEND);
