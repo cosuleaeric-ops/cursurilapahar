@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/$USER/public_html/
+    - /bin/cp -R $DIRECTORY/. $DEPLOYPATH
+    - /bin/find $DEPLOYPATH -name "*.git*" -delete
