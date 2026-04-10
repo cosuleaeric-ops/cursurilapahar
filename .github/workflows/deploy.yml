@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           protocol: ftps
-          port: 21
+          port: 990
           dangerous-clean-slate: false
           exclude: |
             **/.git*
