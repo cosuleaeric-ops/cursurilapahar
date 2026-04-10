@@ -3,7 +3,30 @@
  * Cursuri la Pahar – Main Page
  */
 
-// Load and filter courses
+// ── Load settings ─────────────────────────────────────────────────────────────
+function clp_default_settings(): array {
+    return [
+        'announcement'     => '🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?',
+        'hero_title'       => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
+        'hero_btn'         => 'Vezi următoarele cursuri',
+        'courses_title'    => 'Următoarele cursuri',
+        'newsletter_title' => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
+        'newsletter_desc'  => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar, cu 2 săptămâni înainte ca acestea să aibă loc.',
+        'collab_title'     => 'Colaborare',
+        'collab_subtitle'  => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
+        'contact_title'    => 'Contact',
+        'contact_subtitle' => 'Ai o întrebare sau o idee? Scrie-ne.',
+        'hero_images'      => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
+    ];
+}
+$settings_file = __DIR__ . '/data/settings.json';
+$settings = clp_default_settings();
+if (file_exists($settings_file)) {
+    $loaded = json_decode(file_get_contents($settings_file), true) ?: [];
+    $settings = array_merge($settings, $loaded);
+}
+
+// ── Load and filter courses ───────────────────────────────────────────────────
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
 if (file_exists($json_file)) {
@@ -73,17 +96,15 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 <!-- ── HERO ────────────────────────────────── -->
 <section class="hero" id="hero">
     <div class="hero-slides">
-        <div class="hero-slide active" style="background-image:url('/assets/images/hero1.jpg')"></div>
-        <div class="hero-slide" style="background-image:url('/assets/images/hero2.jpg')"></div>
-        <div class="hero-slide" style="background-image:url('/assets/images/hero3.jpg')"></div>
-        <div class="hero-slide" style="background-image:url('/assets/images/hero4.jpg')"></div>
-        <div class="hero-slide" style="background-image:url('/assets/images/hero5.jpg')"></div>
+        <?php foreach ($settings['hero_images'] as $idx => $hero_img): ?>
+        <div class="hero-slide<?= $idx === 0 ? ' active' : '' ?>" style="background-image:url('<?= htmlspecialchars($hero_img) ?>')"></div>
+        <?php endforeach; ?>
     </div>
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
-        <h1 class="hero-title">Cursuri ținute de experți<br><em>la un pahar în oraș.</em></h1>
-        <a href="#cursuri" class="btn btn-primary">Vezi următoarele cursuri</a>
+        <h1 class="hero-title"><?= $settings['hero_title'] ?></h1>
+        <a href="#cursuri" class="btn btn-primary"><?= htmlspecialchars($settings['hero_btn']) ?></a>
     </div>
 
     <div class="hero-scroll-hint" aria-hidden="true">
@@ -93,13 +114,13 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 
 <!-- ── ANNOUNCEMENT BANNER ────────────────── -->
 <div class="announcement-banner">
-    🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?
+    <?= htmlspecialchars($settings['announcement']) ?>
 </div>
 
 <!-- ── CURSURI ─────────────────────────────── -->
 <section class="section" id="cursuri">
     <div class="container">
-        <h2 class="section-title">Următoarele cursuri</h2>
+        <h2 class="section-title"><?= htmlspecialchars($settings['courses_title']) ?></h2>
 
         <?php if (empty($courses)): ?>
         <p class="no-events">Nu există cursuri programate momentan.<br>
@@ -156,8 +177,8 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 <section class="section section-dark" id="newsletter">
     <div class="container container-narrow">
         <div class="newsletter-icon" aria-hidden="true">✉</div>
-        <h2 class="section-title">Fii primul care află când au loc evenimentele Cursuri la Pahar</h2>
-        <p class="newsletter-desc">Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar, cu 2 săptămâni înainte ca acestea să aibă loc.</p>
+        <h2 class="section-title"><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
+        <p class="newsletter-desc"><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
         <form class="newsletter-form" id="newsletterForm" novalidate>
             <div class="newsletter-fields">
                 <input type="email" name="email" id="nlEmail" placeholder="Adresa ta de email" required autocomplete="email">
@@ -293,8 +314,8 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 <!-- ── COLABORARE ─────────────────────────── -->
 <section class="section" id="colaborare">
     <div class="container">
-        <h2 class="section-title">Colaborare</h2>
-        <p class="section-subtitle">Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.</p>
+        <h2 class="section-title"><?= htmlspecialchars($settings['collab_title']) ?></h2>
+        <p class="section-subtitle"><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
         <div class="collab-grid">
             <a href="/sustine-un-curs" class="collab-card">
                 <div class="collab-icon">
@@ -327,8 +348,8 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
 <!-- ── CONTACT ────────────────────────────── -->
 <section class="section section-dark" id="contact">
     <div class="container container-narrow">
-        <h2 class="section-title">Contact</h2>
-        <p class="section-subtitle">Ai o întrebare sau o idee? Scrie-ne.</p>
+        <h2 class="section-title"><?= htmlspecialchars($settings['contact_title']) ?></h2>
+        <p class="section-subtitle"><?= htmlspecialchars($settings['contact_subtitle']) ?></p>
         <form class="contact-form" id="contactForm" novalidate>
             <div class="form-row">
                 <div class="form-group">

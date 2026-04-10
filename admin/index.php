@@ -2,8 +2,12 @@
 define('ADMIN_PASSWORD', 'clp2026admin');
 define('AUTH_SECRET',    'clp-auth-xk9p-2026-secret');
 define('COURSES_FILE',   dirname(__DIR__) . '/data/courses.json');
+define('SETTINGS_FILE',  dirname(__DIR__) . '/data/settings.json');
+define('UPLOADS_DIR',    dirname(__DIR__) . '/assets/images/uploads');
+define('UPLOADS_URL',    '/assets/images/uploads');
+define('PUBLIC_HTML',    dirname(__DIR__));
 
-// ── Cookie-based auth (no sessions needed) ────────────────────────────────────
+// ── Cookie-based auth ─────────────────────────────────────────────────────────
 function is_authenticated(): bool {
     $cookie = $_COOKIE['clp_auth'] ?? '';
     if (!$cookie) return false;
@@ -39,6 +43,8 @@ if (isset($_GET['logout'])) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+
 function load_courses(): array {
     if (!file_exists(COURSES_FILE)) return [];
     return json_decode(file_get_contents(COURSES_FILE), true) ?: [];
@@ -49,22 +55,48 @@ function save_courses(array $courses): void {
     file_put_contents(COURSES_FILE, json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
-// ── Actions (only when authenticated) ────────────────────────────────────────
-$action_msg = '';
-if (!empty(is_authenticated())) {
+function default_settings(): array {
+    return [
+        'announcement'      => '🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?',
+        'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
+        'hero_btn'          => 'Vezi următoarele cursuri',
+        'courses_title'     => 'Următoarele cursuri',
+        'newsletter_title'  => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
+        'newsletter_desc'   => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar, cu 2 săptămâni înainte ca acestea să aibă loc.',
+        'collab_title'      => 'Colaborare',
+        'collab_subtitle'   => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
+        'contact_title'     => 'Contact',
+        'contact_subtitle'  => 'Ai o întrebare sau o idee? Scrie-ne.',
+        'hero_images'       => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
+    ];
+}
+function load_settings(): array {
+    if (!file_exists(SETTINGS_FILE)) return default_settings();
+    $data = json_decode(file_get_contents(SETTINGS_FILE), true) ?: [];
+    return array_merge(default_settings(), $data);
+}
+function save_settings(array $settings): void {
+    $dir = dirname(SETTINGS_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
 
-    // Delete
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+// ── Actions (only when authenticated) ────────────────────────────────────────
+if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    // ── Delete course
+    if ($action === 'delete_course') {
         $id = $_POST['id'] ?? '';
         $courses = load_courses();
         $courses = array_filter($courses, fn($c) => ($c['id'] ?? '') !== $id);
         save_courses($courses);
-        header('Location: /admin/');
+        header('Location: /admin/?tab=cursuri');
         exit;
     }
 
-    // Toggle active
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle') {
+    // ── Toggle course active
+    if ($action === 'toggle_course') {
         $id = $_POST['id'] ?? '';
         $courses = load_courses();
         foreach ($courses as &$c) {
@@ -73,68 +105,141 @@ if (!empty(is_authenticated())) {
                 break;
             }
         }
+        unset($c);
         save_courses($courses);
-        header('Location: /admin/');
+        header('Location: /admin/?tab=cursuri');
         exit;
     }
 
-    // Save course (add or edit)
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save') {
+    // ── Save course
+    if ($action === 'save_course') {
         $id = trim($_POST['course_id'] ?? '');
         $courses = load_courses();
-
         $entry = [
-            'id'             => $id ?: uniqid('c', true),
-            'title'          => trim($_POST['title'] ?? ''),
-            'date_display'   => trim($_POST['date_display'] ?? ''),
-            'date_raw'       => trim($_POST['date_raw'] ?? ''),
-            'time'           => trim($_POST['time'] ?? ''),
-            'location'       => trim($_POST['location'] ?? ''),
+            'id'              => $id ?: uniqid('c', true),
+            'title'           => trim($_POST['title'] ?? ''),
+            'date_display'    => trim($_POST['date_display'] ?? ''),
+            'date_raw'        => trim($_POST['date_raw'] ?? ''),
+            'time'            => trim($_POST['time'] ?? ''),
+            'location'        => trim($_POST['location'] ?? ''),
             'livetickets_url' => trim($_POST['livetickets_url'] ?? ''),
-            'image_url'      => trim($_POST['image_url'] ?? ''),
-            'active'         => !empty($_POST['active']),
+            'image_url'       => trim($_POST['image_url'] ?? ''),
+            'active'          => !empty($_POST['active']),
         ];
-
         if ($id) {
-            // Update existing
             $found = false;
             foreach ($courses as &$c) {
-                if (($c['id'] ?? '') === $id) {
-                    $c = $entry;
-                    $found = true;
-                    break;
-                }
+                if (($c['id'] ?? '') === $id) { $c = $entry; $found = true; break; }
             }
+            unset($c);
             if (!$found) $courses[] = $entry;
         } else {
             $courses[] = $entry;
         }
-
         save_courses($courses);
-        header('Location: /admin/');
+        header('Location: /admin/?tab=cursuri');
+        exit;
+    }
+
+    // ── Upload image
+    if ($action === 'upload_image') {
+        if (!is_dir(UPLOADS_DIR)) mkdir(UPLOADS_DIR, 0755, true);
+        $file = $_FILES['image_file'] ?? null;
+        $upload_error = '';
+        $upload_ok    = '';
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg','jpeg','png','webp','gif','avif'];
+            if (in_array($ext, $allowed)) {
+                $new_name = preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name']));
+                $dest = UPLOADS_DIR . '/' . $new_name;
+                if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    $upload_ok = 'Imaginea a fost încărcată: ' . h($new_name);
+                } else {
+                    $upload_error = 'Eroare la salvarea fișierului.';
+                }
+            } else {
+                $upload_error = 'Format neacceptat. Folosește JPG, PNG, WEBP sau GIF.';
+            }
+        } else {
+            $upload_error = 'Niciun fișier selectat sau eroare la upload.';
+        }
+        // Fall through to display
+    }
+
+    // ── Delete uploaded image
+    if ($action === 'delete_image') {
+        $filename = basename($_POST['filename'] ?? '');
+        if ($filename) {
+            $path = UPLOADS_DIR . '/' . $filename;
+            if (file_exists($path)) unlink($path);
+        }
+        header('Location: /admin/?tab=imagini');
+        exit;
+    }
+
+    // ── Save hero images
+    if ($action === 'save_hero_images') {
+        $settings = load_settings();
+        $selected = $_POST['hero_images'] ?? [];
+        $settings['hero_images'] = array_values(array_filter(array_map('trim', $selected)));
+        save_settings($settings);
+        header('Location: /admin/?tab=imagini&saved=1');
+        exit;
+    }
+
+    // ── Save settings
+    if ($action === 'save_settings') {
+        $settings = load_settings();
+        $fields = ['announcement','hero_title','hero_btn','courses_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
+        foreach ($fields as $f) {
+            $settings[$f] = $_POST[$f] ?? $settings[$f];
+        }
+        save_settings($settings);
+        header('Location: /admin/?tab=setari&saved=1');
         exit;
     }
 }
 
 // ── Load data for display ─────────────────────────────────────────────────────
-$courses = [];
-$edit_course = null;
-if (!empty(is_authenticated())) {
+$courses  = [];
+$settings = load_settings();
+$tab      = $_GET['tab'] ?? 'cursuri';
+if (!in_array($tab, ['cursuri','imagini','setari'])) $tab = 'cursuri';
+
+if (is_authenticated()) {
     $courses = load_courses();
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
+}
 
-    // Edit mode
-    if (isset($_GET['edit'])) {
-        foreach ($courses as $c) {
-            if (($c['id'] ?? '') === $_GET['edit']) {
-                $edit_course = $c;
-                break;
+// Collect images for imagini tab
+function get_all_images(): array {
+    $imgs = [];
+    // Base images dir
+    $base = PUBLIC_HTML . '/assets/images/';
+    if (is_dir($base)) {
+        foreach (scandir($base) as $f) {
+            if ($f === '.' || $f === '..') continue;
+            if (!is_file($base . $f)) continue;
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg','jpeg','png','webp','gif','avif'])) {
+                $imgs[] = ['url' => '/assets/images/' . $f, 'name' => $f, 'deletable' => false];
             }
         }
     }
+    // Uploads dir
+    if (is_dir(UPLOADS_DIR)) {
+        foreach (scandir(UPLOADS_DIR) as $f) {
+            if ($f === '.' || $f === '..') continue;
+            if (!is_file(UPLOADS_DIR . '/' . $f)) continue;
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg','jpeg','png','webp','gif','avif'])) {
+                $imgs[] = ['url' => UPLOADS_URL . '/' . $f, 'name' => $f, 'deletable' => true];
+            }
+        }
+    }
+    return $imgs;
 }
-
-function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -145,215 +250,267 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-    --bg: #0D0D0D;
-    --surface: #161616;
-    --surface2: #1E1E1E;
-    --border: #2a2a2a;
-    --accent: #C9A84C;
-    --accent-dim: #a88836;
-    --text: #E8E4DC;
-    --text-muted: #888;
-    --danger: #c0392b;
-    --success: #27ae60;
-    --font: 'Segoe UI', system-ui, sans-serif;
+    --bg: #f0f0f1;
+    --surface: #fff;
+    --header-bg: #1d2327;
+    --header-text: #fff;
+    --sidebar-bg: #1d2327;
+    --sidebar-text: #a7aaad;
+    --sidebar-active: #fff;
+    --sidebar-active-bg: #2271b1;
+    --accent: #2271b1;
+    --accent-hover: #135e96;
+    --text: #1d2327;
+    --text-muted: #646970;
+    --border: #c3c4c7;
+    --danger: #d63638;
+    --success: #00a32a;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; line-height: 1.5; min-height: 100vh; }
 
-/* Login */
+/* ── Login ── */
 .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-.login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 40px; width: 320px; }
-.login-box h1 { font-size: 20px; color: var(--accent); margin-bottom: 24px; text-align: center; }
-.login-box input { width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; margin-bottom: 12px; }
-.login-box input:focus { outline: none; border-color: var(--accent); }
+.login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 40px; width: 320px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.login-box h1 { font-size: 20px; color: var(--text); margin-bottom: 24px; text-align: center; }
+.login-box input[type="password"] { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; margin-bottom: 12px; background: #fff; color: var(--text); }
+.login-box input[type="password"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .login-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; }
 
-/* Layout */
-.admin-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
-.admin-header .brand { color: var(--accent); font-weight: 700; font-size: 16px; }
-.admin-body { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+/* ── Top bar ── */
+.wp-header { background: var(--header-bg); color: var(--header-text); height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+.wp-header .brand { font-size: 14px; font-weight: 600; color: var(--header-text); text-decoration: none; }
+.wp-header .brand span { opacity: .7; font-weight: 400; }
 
-/* Buttons */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
-.btn:hover { opacity: .85; }
-.btn-accent { background: var(--accent); color: #0D0D0D; }
-.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-success-toggle { background: #1a3a2a; border: 1px solid var(--success); color: var(--success); }
-.btn-inactive-toggle { background: #2a1a1a; border: 1px solid #555; color: #888; }
+/* ── Layout ── */
+.wp-layout { display: flex; min-height: calc(100vh - 46px); margin-top: 46px; }
 
-/* Cards / sections */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
-.card h2 { font-size: 16px; color: var(--accent); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-
-/* Table */
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 8px 10px; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
-td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-.course-title { font-weight: 600; }
-.course-date { color: var(--text-muted); font-size: 13px; }
-.actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-/* Form */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group.full { grid-column: 1 / -1; }
-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-input[type="text"], input[type="url"], input[type="date"], input[type="time"], textarea {
-    width: 100%; padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; font-family: inherit;
+/* ── Sidebar ── */
+.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; }
+.wp-sidebar nav a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px 8px 14px; color: var(--sidebar-text);
+    text-decoration: none; font-size: 13px; font-weight: 500;
+    border-left: 3px solid transparent; transition: background .1s, color .1s;
 }
-input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-.checkbox-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
-.checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
-.checkbox-row label { font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0; cursor: pointer; }
+.wp-sidebar nav a:hover { color: var(--sidebar-active); background: rgba(255,255,255,.07); }
+.wp-sidebar nav a.active { color: var(--sidebar-active); background: var(--sidebar-active-bg); border-left-color: rgba(255,255,255,.3); }
+.wp-sidebar nav a .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-section { padding: 14px 14px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #50575e; font-weight: 700; }
 
-/* Import section */
-.import-row { display: flex; gap: 10px; }
-.import-row input { flex: 1; }
+/* ── Main content ── */
+.wp-main { flex: 1; padding: 20px 24px; min-width: 0; }
+.wp-page-title { font-size: 22px; font-weight: 400; color: var(--text); margin-bottom: 20px; line-height: 1.3; }
+
+/* ── Cards ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+.card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 3px; border: 1px solid transparent; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: none; line-height: 2; transition: background .1s; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+.btn-secondary { background: #f6f7f7; border-color: #c3c4c7; color: var(--text); }
+.btn-secondary:hover { background: #f0f0f1; border-color: #a7aaad; }
+.btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-danger:hover { background: #b32d2e; border-color: #b32d2e; }
+.btn-sm { padding: 2px 10px; font-size: 12px; line-height: 1.8; }
+.btn-link { background: transparent; border-color: transparent; color: var(--accent); padding: 0; line-height: 1.5; }
+.btn-link:hover { color: var(--accent-hover); text-decoration: underline; }
+
+/* Toggle status buttons */
+.status-active { background: #edfaef; border-color: #00a32a; color: #00a32a; }
+.status-active:hover { background: #d8f5dc; }
+.status-inactive { background: #f6f7f7; border-color: #c3c4c7; color: var(--text-muted); }
+.status-inactive:hover { background: #f0f0f1; }
+
+/* ── Logout button ── */
+.btn-logout { background: transparent; border: 1px solid rgba(255,255,255,.25); color: rgba(255,255,255,.8); padding: 4px 10px; font-size: 12px; line-height: 1.8; border-radius: 3px; cursor: pointer; text-decoration: none; }
+.btn-logout:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+/* ── Forms ── */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px;
+    font-size: 13px; font-family: inherit; color: var(--text); background: #fff;
+    transition: border-color .1s;
+}
+.form-group input:focus,
+.form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.import-row { display: flex; gap: 8px; }
+.import-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; color: var(--text); }
+.import-row input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 #importMsg { margin-top: 8px; font-size: 13px; }
-#importMsg.success { color: var(--success); }
-#importMsg.error { color: var(--danger); }
-.image-preview { margin-top: 8px; }
-.image-preview img { max-width: 200px; max-height: 120px; border-radius: 6px; border: 1px solid var(--border); }
 
-/* Responsive */
-@media (max-width: 640px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .form-group.full { grid-column: 1; }
-}
+/* Course preview card */
+.course-preview { display: flex; gap: 14px; align-items: flex-start; background: #f6f7f7; border: 1px solid var(--border); border-radius: 4px; padding: 14px; margin: 14px 0; }
+.course-preview img { width: 90px; height: 56px; object-fit: cover; border-radius: 3px; flex-shrink: 0; border: 1px solid var(--border); }
+.course-preview-body { flex: 1; min-width: 0; }
+.course-preview-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.course-preview-meta { font-size: 12px; color: var(--text-muted); }
+
+/* ── Table ── */
+.wp-table { width: 100%; border-collapse: collapse; }
+.wp-table th { text-align: left; padding: 8px 12px; font-size: 12px; font-weight: 700; color: var(--text-muted); background: #f6f7f7; border-bottom: 1px solid var(--border); }
+.wp-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 13px; }
+.wp-table tbody tr:last-child td { border-bottom: none; }
+.wp-table tbody tr:hover td { background: #f9f9f9; }
+.course-thumb { width: 60px; height: 40px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); display: block; }
+.course-thumb-empty { width: 60px; height: 40px; background: #f0f0f1; border: 1px solid var(--border); border-radius: 3px; }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* ── Notice ── */
+.notice { padding: 10px 16px; border-radius: 3px; border-left: 4px solid; margin-bottom: 16px; font-size: 13px; }
+.notice-success { background: #edfaef; border-left-color: var(--success); color: #00653a; }
+.notice-error   { background: #fce8e8; border-left-color: var(--danger); color: #8c1415; }
+
+/* ── Images grid ── */
+.images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.image-item { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: #fff; }
+.image-item img { width: 100%; height: 100px; object-fit: cover; display: block; }
+.image-item-body { padding: 8px; }
+.image-item-name { font-size: 11px; color: var(--text-muted); word-break: break-all; margin-bottom: 6px; }
+.image-item-actions { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.hero-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); cursor: pointer; }
+.hero-check input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<?php if (empty(is_authenticated())): ?>
-<!-- ── LOGIN ── -->
+<?php if (!is_authenticated()): ?>
+<!-- ── LOGIN ─────────────────────────────────────────────────────────────────── -->
 <div class="login-wrap">
     <div class="login-box">
-        <h1>Cursuri la Pahar<br><small style="font-size:13px;color:var(--text-muted)">Admin</small></h1>
+        <h1>Cursuri la Pahar<br><small style="font-size:13px;color:var(--text-muted);font-weight:400">Panou de administrare</small></h1>
         <?php if (!empty($login_error)): ?>
         <p class="login-error"><?= h($login_error) ?></p>
         <?php endif; ?>
         <form method="post">
             <input type="password" name="login_password" placeholder="Parolă" autofocus>
-            <button type="submit" class="btn btn-accent" style="width:100%;justify-content:center">Intră</button>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px">Intră</button>
         </form>
     </div>
 </div>
 
 <?php else: ?>
-<!-- ── ADMIN PANEL ── -->
-<header class="admin-header">
-    <span class="brand">Cursuri la Pahar – Admin</span>
-    <a href="/admin/?logout=1" class="btn btn-outline btn-sm">Deconectează-te</a>
+<!-- ── ADMIN PANEL ─────────────────────────────────────────────────────────── -->
+
+<header class="wp-header">
+    <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
+    <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
-<div class="admin-body">
+<div class="wp-layout">
 
-    <!-- Add course -->
+    <!-- ── SIDEBAR ── -->
+    <aside class="wp-sidebar">
+        <nav>
+            <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
+                <span class="nav-icon">📋</span> Cursuri
+            </a>
+            <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
+                <span class="nav-icon">🖼️</span> Imagini
+            </a>
+            <a href="/admin/?tab=setari" class="<?= $tab === 'setari' ? 'active' : '' ?>">
+                <span class="nav-icon">⚙️</span> Setări
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="wp-main">
+
+<?php /* ======================================================= TAB: CURSURI */ ?>
+<?php if ($tab === 'cursuri'): ?>
+
+    <h1 class="wp-page-title">Cursuri</h1>
+
+    <!-- Import section -->
     <div class="card">
-        <h2><?= $edit_course ? 'Editează cursul' : 'Adaugă curs nou' ?></h2>
-
-        <?php if (!$edit_course): ?>
-        <!-- Import row -->
-        <div class="import-row" style="margin-bottom:16px;">
-            <input type="url" id="ltUrl" placeholder="https://www.livetickets.ro/bilete/slug-eveniment" style="flex:1;">
-            <button class="btn btn-accent" onclick="importLT()">Importă</button>
+        <div class="card-title">Importă curs din LiveTickets</div>
+        <div class="import-row">
+            <input type="url" id="ltUrl" placeholder="https://www.livetickets.ro/bilete/slug-eveniment">
+            <button class="btn btn-primary" onclick="importLT()">Importă</button>
         </div>
-        <div id="importMsg" style="margin-bottom:12px;font-size:13px;"></div>
-        <?php endif; ?>
+        <div id="importMsg"></div>
 
-        <form method="post" action="/admin/" id="courseForm" <?= !$edit_course ? 'style="display:none"' : '' ?>>
-            <input type="hidden" name="action" value="save">
-            <input type="hidden" name="course_id"       id="courseId"      value="<?= h($edit_course['id'] ?? '') ?>">
-            <input type="hidden" name="title"           id="f_title"       value="<?= h($edit_course['title'] ?? '') ?>">
-            <input type="hidden" name="date_display"    id="f_date_display" value="<?= h($edit_course['date_display'] ?? '') ?>">
-            <input type="hidden" name="date_raw"        id="f_date_raw"    value="<?= h($edit_course['date_raw'] ?? '') ?>">
-            <input type="hidden" name="time"            id="f_time"        value="<?= h($edit_course['time'] ?? '') ?>">
-            <input type="hidden" name="location"        id="f_location"    value="<?= h($edit_course['location'] ?? '') ?>">
-            <input type="hidden" name="livetickets_url" id="f_lt_url"      value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
-            <input type="hidden" name="image_url"       id="f_image_url"   value="<?= h($edit_course['image_url'] ?? '') ?>">
-            <input type="hidden" name="active"          id="f_active"      value="1">
+        <!-- Hidden form — shown after import -->
+        <form method="post" action="/admin/?tab=cursuri" id="courseForm" style="display:none;margin-top:14px;">
+            <input type="hidden" name="action" value="save_course">
+            <input type="hidden" name="course_id"        id="f_id">
+            <input type="hidden" name="title"            id="f_title">
+            <input type="hidden" name="date_display"     id="f_date_display">
+            <input type="hidden" name="date_raw"         id="f_date_raw">
+            <input type="hidden" name="time"             id="f_time">
+            <input type="hidden" name="location"         id="f_location">
+            <input type="hidden" name="livetickets_url"  id="f_lt_url">
+            <input type="hidden" name="image_url"        id="f_image_url">
+            <input type="hidden" name="active"           value="1">
 
-            <!-- Preview (shown after import or in edit mode) -->
-            <div id="coursePreview" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;<?= !$edit_course ? 'display:none' : '' ?>">
-                <?php if ($edit_course): ?>
-                <div style="display:flex;gap:16px;align-items:flex-start;">
-                    <?php if (!empty($edit_course['image_url'])): ?>
-                    <img src="<?= h($edit_course['image_url']) ?>" style="width:100px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;" alt="">
-                    <?php endif; ?>
-                    <div>
-                        <div style="font-weight:700;margin-bottom:4px;" id="prev_title"><?= h($edit_course['title'] ?? '') ?></div>
-                        <div style="color:var(--text-muted);font-size:13px;" id="prev_meta"><?= h(($edit_course['date_display'] ?? '') . ' · ' . ($edit_course['time'] ?? '') . ' · ' . ($edit_course['location'] ?? '')) ?></div>
-                    </div>
+            <div class="course-preview" id="coursePreview" style="display:none">
+                <img id="prev_img" src="" alt="" style="display:none">
+                <div class="course-preview-body">
+                    <div class="course-preview-title" id="prev_title"></div>
+                    <div class="course-preview-meta" id="prev_meta"></div>
                 </div>
-                <?php else: ?>
-                <div style="display:flex;gap:16px;align-items:flex-start;">
-                    <img id="prev_img" src="" style="width:100px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;display:none;" alt="">
-                    <div>
-                        <div style="font-weight:700;margin-bottom:4px;" id="prev_title"></div>
-                        <div style="color:var(--text-muted);font-size:13px;" id="prev_meta"></div>
-                    </div>
-                </div>
-                <?php endif; ?>
             </div>
 
-            <div style="display:flex;gap:10px;">
-                <button type="submit" class="btn btn-accent"><?= $edit_course ? 'Salvează modificările' : 'Adaugă cursul' ?></button>
-                <?php if ($edit_course): ?>
-                <a href="/admin/" class="btn btn-outline">Anulează</a>
-                <?php endif; ?>
-            </div>
+            <button type="submit" class="btn btn-primary">Adaugă cursul</button>
         </form>
     </div>
 
-    <!-- Courses list -->
+    <!-- Courses table -->
     <div class="card">
-        <h2>Cursuri (<?= count($courses) ?>)</h2>
+        <div class="card-title">Cursuri (<?= count($courses) ?>)</div>
         <?php if (empty($courses)): ?>
         <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
         <?php else: ?>
-        <table>
+        <table class="wp-table">
             <thead>
                 <tr>
+                    <th style="width:72px">Imagine</th>
                     <th>Titlu</th>
                     <th>Dată</th>
-                    <th>Locație</th>
-                    <th>Status</th>
-                    <th>Acțiuni</th>
+                    <th style="width:100px">Status</th>
+                    <th style="width:180px">Acțiuni</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($courses as $c): ?>
                 <tr>
                     <td>
-                        <div class="course-title"><?= h($c['title'] ?? '') ?></div>
-                        <?php if (!empty($c['time'])): ?>
-                        <div class="course-date"><?= h($c['time']) ?></div>
+                        <?php if (!empty($c['image_url'])): ?>
+                        <img class="course-thumb" src="<?= h($c['image_url']) ?>" alt="">
+                        <?php else: ?>
+                        <div class="course-thumb-empty"></div>
                         <?php endif; ?>
                     </td>
-                    <td class="course-date"><?= h($c['date_display'] ?? $c['date_raw'] ?? '') ?></td>
-                    <td class="course-date"><?= h($c['location'] ?? '') ?></td>
+                    <td style="font-weight:600"><?= h($c['title'] ?? '') ?></td>
+                    <td style="color:var(--text-muted)"><?= h($c['date_display'] ?? $c['date_raw'] ?? '') ?></td>
                     <td>
-                        <form method="post" style="display:inline">
-                            <input type="hidden" name="action" value="toggle">
+                        <form method="post" action="/admin/?tab=cursuri" style="display:inline">
+                            <input type="hidden" name="action" value="toggle_course">
                             <input type="hidden" name="id" value="<?= h($c['id'] ?? '') ?>">
-                            <button type="submit" class="btn btn-sm <?= !empty($c['active']) ? 'btn-success-toggle' : 'btn-inactive-toggle' ?>">
+                            <button type="submit" class="btn btn-sm <?= !empty($c['active']) ? 'status-active' : 'status-inactive' ?>">
                                 <?= !empty($c['active']) ? 'Activ' : 'Inactiv' ?>
                             </button>
                         </form>
                     </td>
                     <td>
-                        <div class="actions">
-                            <a href="/admin/?edit=<?= urlencode($c['id'] ?? '') ?>" class="btn btn-outline btn-sm">Editează</a>
-                            <form method="post" onsubmit="return confirm('Ștergi cursul?')">
-                                <input type="hidden" name="action" value="delete">
+                        <div class="row-actions">
+                            <form method="post" action="/admin/?tab=cursuri" onsubmit="return confirm('Ștergi cursul?')" style="display:inline">
+                                <input type="hidden" name="action" value="delete_course">
                                 <input type="hidden" name="id" value="<?= h($c['id'] ?? '') ?>">
-                                <button type="submit" class="btn btn-danger btn-sm">Șterge</button>
+                                <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
                             </form>
                             <?php if (!empty($c['livetickets_url'])): ?>
-                            <a href="<?= h($c['livetickets_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline btn-sm">LiveTickets ↗</a>
+                            <a href="<?= h($c['livetickets_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">LiveTickets ↗</a>
                             <?php endif; ?>
                         </div>
                     </td>
@@ -364,15 +521,165 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
         <?php endif; ?>
     </div>
 
-</div><!-- /admin-body -->
+<?php /* ======================================================= TAB: IMAGINI */ ?>
+<?php elseif ($tab === 'imagini'): ?>
+
+    <h1 class="wp-page-title">Imagini</h1>
+
+    <?php if (isset($_GET['saved'])): ?>
+    <div class="notice notice-success">Setările imaginilor hero au fost salvate.</div>
+    <?php endif; ?>
+
+    <?php if (!empty($upload_ok ?? '')): ?>
+    <div class="notice notice-success"><?= h($upload_ok) ?></div>
+    <?php endif; ?>
+    <?php if (!empty($upload_error ?? '')): ?>
+    <div class="notice notice-error"><?= h($upload_error) ?></div>
+    <?php endif; ?>
+
+    <!-- Upload -->
+    <div class="card">
+        <div class="card-title">Încarcă imagine nouă</div>
+        <form method="post" action="/admin/?tab=imagini" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="upload_image">
+            <div style="display:flex;gap:8px;align-items:center">
+                <input type="file" name="image_file" accept="image/*" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+                <button type="submit" class="btn btn-primary">Încarcă</button>
+            </div>
+            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF. Imaginile uploadate sunt salvate în <code>/assets/images/uploads/</code>.</p>
+        </form>
+    </div>
+
+    <!-- Images grid with hero selection -->
+    <?php $all_images = get_all_images(); ?>
+    <div class="card">
+        <div class="card-title">Toate imaginile</div>
+        <?php if (empty($all_images)): ?>
+        <p style="color:var(--text-muted)">Nu există imagini.</p>
+        <?php else: ?>
+        <form method="post" action="/admin/?tab=imagini">
+            <input type="hidden" name="action" value="save_hero_images">
+            <div class="images-grid">
+                <?php foreach ($all_images as $img):
+                    $is_hero = in_array($img['url'], $settings['hero_images'] ?? []);
+                ?>
+                <div class="image-item">
+                    <img src="<?= h($img['url']) ?>" alt="<?= h($img['name']) ?>">
+                    <div class="image-item-body">
+                        <div class="image-item-name"><?= h($img['name']) ?></div>
+                        <div class="image-item-actions">
+                            <label class="hero-check">
+                                <input type="checkbox" name="hero_images[]" value="<?= h($img['url']) ?>" <?= $is_hero ? 'checked' : '' ?>>
+                                Hero
+                            </label>
+                            <?php if ($img['deletable']): ?>
+                            <form method="post" action="/admin/?tab=imagini" onsubmit="return confirm('Ștergi imaginea?')" style="display:inline">
+                                <input type="hidden" name="action" value="delete_image">
+                                <input type="hidden" name="filename" value="<?= h($img['name']) ?>">
+                                <button type="submit" class="btn btn-sm btn-danger" style="padding:1px 7px">✕</button>
+                            </form>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <div style="margin-top:16px">
+                <button type="submit" class="btn btn-primary">Salvează imaginile hero</button>
+                <span style="font-size:12px;color:var(--text-muted);margin-left:10px">Bifează imaginile care apar în slideshow-ul hero.</span>
+            </div>
+        </form>
+        <?php endif; ?>
+    </div>
+
+<?php /* ======================================================= TAB: SETARI */ ?>
+<?php elseif ($tab === 'setari'): ?>
+
+    <h1 class="wp-page-title">Setări</h1>
+
+    <?php if (isset($_GET['saved'])): ?>
+    <div class="notice notice-success">Setările au fost salvate cu succes.</div>
+    <?php endif; ?>
+
+    <form method="post" action="/admin/?tab=setari">
+        <input type="hidden" name="action" value="save_settings">
+
+        <div class="card">
+            <div class="card-title">Banner &amp; Hero</div>
+
+            <div class="form-group">
+                <label for="s_announcement">Anunț banner</label>
+                <textarea id="s_announcement" name="announcement" rows="2"><?= h($settings['announcement']) ?></textarea>
+                <p class="form-desc">Textul afișat în bannerul de anunț de sub hero.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="s_hero_title">Titlu hero</label>
+                <textarea id="s_hero_title" name="hero_title" rows="3"><?= h($settings['hero_title']) ?></textarea>
+                <p class="form-desc">Suportă HTML, ex: <code>&lt;em&gt;text italic&lt;/em&gt;</code>, <code>&lt;br&gt;</code>.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="s_hero_btn">Text buton hero</label>
+                <input type="text" id="s_hero_btn" name="hero_btn" value="<?= h($settings['hero_btn']) ?>">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Secțiuni</div>
+
+            <div class="form-group">
+                <label for="s_courses_title">Titlu secțiune Cursuri</label>
+                <input type="text" id="s_courses_title" name="courses_title" value="<?= h($settings['courses_title']) ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="s_newsletter_title">Titlu secțiune Newsletter</label>
+                <input type="text" id="s_newsletter_title" name="newsletter_title" value="<?= h($settings['newsletter_title']) ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="s_newsletter_desc">Descriere Newsletter</label>
+                <textarea id="s_newsletter_desc" name="newsletter_desc" rows="3"><?= h($settings['newsletter_desc']) ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="s_collab_title">Titlu secțiune Colaborare</label>
+                <input type="text" id="s_collab_title" name="collab_title" value="<?= h($settings['collab_title']) ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="s_collab_subtitle">Subtitlu secțiune Colaborare</label>
+                <textarea id="s_collab_subtitle" name="collab_subtitle" rows="2"><?= h($settings['collab_subtitle']) ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="s_contact_title">Titlu secțiune Contact</label>
+                <input type="text" id="s_contact_title" name="contact_title" value="<?= h($settings['contact_title']) ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="s_contact_subtitle">Subtitlu secțiune Contact</label>
+                <textarea id="s_contact_subtitle" name="contact_subtitle" rows="2"><?= h($settings['contact_subtitle']) ?></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-bottom:24px">Salvează setările</button>
+    </form>
+
+<?php endif; ?>
+
+    </main>
+</div><!-- /wp-layout -->
 
 <script>
 async function importLT() {
     const url = document.getElementById('ltUrl').value.trim();
     const msg = document.getElementById('importMsg');
-    if (!url) { msg.style.color='var(--danger)'; msg.textContent = 'Introdu un URL.'; return; }
+    if (!url) { msg.style.cssText = 'color:var(--danger);margin-top:8px;font-size:13px'; msg.textContent = 'Introdu un URL.'; return; }
 
-    msg.style.color = 'var(--text-muted)'; msg.textContent = 'Se importă…';
+    msg.style.cssText = 'color:var(--text-muted);margin-top:8px;font-size:13px';
+    msg.textContent = 'Se importă…';
 
     try {
         const res  = await fetch('/api/livetickets.php', {
@@ -384,14 +691,14 @@ async function importLT() {
 
         if (data.success && data.data) {
             const d = data.data;
-            document.getElementById('f_title').value         = d.title || '';
-            document.getElementById('f_date_display').value  = d.date_display || '';
-            document.getElementById('f_date_raw').value      = d.date_raw || '';
-            document.getElementById('f_time').value          = d.time || '';
-            document.getElementById('f_location').value      = d.location || '';
-            document.getElementById('f_lt_url').value        = d.livetickets_url || '';
-            document.getElementById('f_image_url').value     = d.image_url || '';
-            document.getElementById('courseId').value        = '';
+            document.getElementById('f_id').value           = '';
+            document.getElementById('f_title').value        = d.title || '';
+            document.getElementById('f_date_display').value = d.date_display || '';
+            document.getElementById('f_date_raw').value     = d.date_raw || '';
+            document.getElementById('f_time').value         = d.time || '';
+            document.getElementById('f_location').value     = d.location || '';
+            document.getElementById('f_lt_url').value       = d.livetickets_url || '';
+            document.getElementById('f_image_url').value    = d.image_url || '';
 
             // Update preview
             document.getElementById('prev_title').textContent = d.title || '';
@@ -400,10 +707,11 @@ async function importLT() {
             const img = document.getElementById('prev_img');
             if (d.image_url) { img.src = d.image_url; img.style.display = 'block'; }
 
-            document.getElementById('coursePreview').style.display = 'block';
+            document.getElementById('coursePreview').style.display = 'flex';
             document.getElementById('courseForm').style.display    = 'block';
 
-            msg.style.color = 'var(--success)'; msg.textContent = '✓ Import reușit!';
+            msg.style.color = 'var(--success)';
+            msg.textContent = '✓ Import reușit! Verifică detaliile și apasă "Adaugă cursul".';
         } else {
             msg.style.color = 'var(--danger)';
             msg.textContent = data.message || 'Eroare la import.';
@@ -418,4 +726,3 @@ async function importLT() {
 <?php endif; ?>
 </body>
 </html>
- 

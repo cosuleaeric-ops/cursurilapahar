@@ -1,0 +1,19 @@
+{
+    "announcement": "🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?",
+    "hero_title": "Cursuri ținute de experți<br><em>la un pahar în oraș.<\/em>",
+    "hero_btn": "Vezi următoarele cursuri",
+    "courses_title": "Următoarele cursuri",
+    "newsletter_title": "Fii primul care află când au loc evenimentele Cursuri la Pahar",
+    "newsletter_desc": "Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar, cu 2 săptămâni înainte ca acestea să aibă loc.",
+    "collab_title": "Colaborare",
+    "collab_subtitle": "Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.",
+    "contact_title": "Contact",
+    "contact_subtitle": "Ai o întrebare sau o idee? Scrie-ne.",
+    "hero_images": [
+        "\/assets\/images\/hero1.jpg",
+        "\/assets\/images\/hero2.jpg",
+        "\/assets\/images\/hero3.jpg",
+        "\/assets\/images\/hero4.jpg",
+        "\/assets\/images\/hero5.jpg"
+    ]
+}
