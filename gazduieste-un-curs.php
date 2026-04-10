@@ -101,19 +101,13 @@ $page = $settings['pages']['gazduieste'] ?? [
     <?php endforeach; ?>
 </div>
 
-<section class="page-hero">
-    <div class="container">
-        <a href="/" class="page-hero-back">
+<section class="page-content-section">
+    <div class="container container-narrow">
+        <a href="/" class="page-hero-back" style="margin-bottom:16px;display:inline-flex;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             Înapoi
         </a>
-        <h1><?= htmlspecialchars($page['title']) ?></h1>
-        <p><?= htmlspecialchars($page['subtitle']) ?></p>
-    </div>
-</section>
-
-<section class="page-content-section">
-    <div class="container container-narrow">
+        <h1 style="font-family:var(--font-heading);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin-bottom:12px;"><?= htmlspecialchars($page['title']) ?></h1>
         <p style="color:var(--text-muted);line-height:1.8;margin-bottom:28px;">
             <?= htmlspecialchars($page['description']) ?>
         </p>
@@ -149,7 +143,7 @@ $page = $settings['pages']['gazduieste'] ?? [
         </div>
 
         <div class="inner-form">
-            <h2>Hai să punem ceva frumos la cale!</h2>
+            <h2><?= htmlspecialchars($page['form_title'] ?? 'Hai să punem ceva frumos la cale!') ?></h2>
             <form class="inner-page-form" data-form-type="gazduieste" novalidate>
                 <div class="form-row">
                     <div class="form-group">
