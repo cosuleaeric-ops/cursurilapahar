@@ -8,12 +8,22 @@
   if (!slides.length) return;
   let current = 0;
 
+  function loadSlide(slide) {
+    if (slide.dataset.bg && !slide.style.backgroundImage)
+      slide.style.backgroundImage = "url('" + slide.dataset.bg + "')";
+  }
+
   function next() {
     slides[current].classList.remove('active');
     current = (current + 1) % slides.length;
+    loadSlide(slides[current]);
     slides[current].classList.add('active');
+    // Preload next
+    loadSlide(slides[(current + 1) % slides.length]);
   }
 
+  // Preload slide #1 right away (hidden but ready)
+  if (slides[1]) loadSlide(slides[1]);
   setInterval(next, 4500);
 })();
 
