@@ -539,7 +539,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .wp-layout { display: flex; min-height: calc(100vh - 46px); margin-top: 46px; }
 
 /* ── Sidebar ── */
-.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; }
+.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .wp-sidebar nav a {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 14px 8px 14px; color: var(--sidebar-text);
@@ -700,7 +700,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
             <a href="/admin/?tab=setari" class="<?= $tab === 'setari' ? 'active' : '' ?>">
-                <span class="nav-icon">⚙️</span> Setări
+                <span class="nav-icon">⚙️</span> Texte
             </a>
             <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
                 <span class="nav-icon">🎨</span> Aspect
