@@ -452,6 +452,36 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: /admin/?tab=aspect&saved=1');
         exit;
     }
+
+    // ── Delete message
+    if ($action === 'delete_message') {
+        $idx  = (int)($_POST['msg_index'] ?? -1);
+        $type = preg_replace('/[^a-z]/', '', $_POST['msg_type'] ?? '');
+        $log_file = dirname(SETTINGS_FILE) . '/messages.log';
+        if ($idx >= 0 && $type && file_exists($log_file)) {
+            $raw    = file_get_contents($log_file);
+            $blocks = preg_split('/(?=^===)/m', $raw);
+            $blocks = array_values(array_filter(array_map('trim', $blocks)));
+            // Find blocks of this type and remove the one at index $idx
+            $type_i = 0;
+            $to_remove = -1;
+            for ($b = count($blocks) - 1; $b >= 0; $b--) {
+                preg_match('/^===\s*.*?\s*\|\s*(\S+)\s*===/m', $blocks[$b], $m);
+                $block_type = trim($m[1] ?? 'contact');
+                if (!in_array($block_type, ['contact','sustine','gazduieste','parteneriat'])) $block_type = 'contact';
+                if ($block_type === $type) {
+                    if ($type_i === $idx) { $to_remove = $b; break; }
+                    $type_i++;
+                }
+            }
+            if ($to_remove >= 0) {
+                array_splice($blocks, $to_remove, 1);
+                file_put_contents($log_file, implode("\n\n", $blocks) . "\n", LOCK_EX);
+            }
+        }
+        header('Location: /admin/?tab=mesaje&deleted=1');
+        exit;
+    }
 }
 
 // ── Load data for display ─────────────────────────────────────────────────────
@@ -1227,6 +1257,9 @@ if ($editing_page && isset($page_meta[$editing_page])):
 <?php /* ======================================================= TAB: MESAJE */ ?>
 <?php elseif ($tab === 'mesaje'): ?>
 <h1 class="wp-page-title">Mesaje</h1>
+<?php if (isset($_GET['deleted'])): ?>
+<div class="notice notice-success">Mesajul a fost șters.</div>
+<?php endif; ?>
 <style>
 .msg-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
 .msg-tab { padding:8px 18px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-size:13px; font-weight:500; cursor:pointer; transition:.15s; }
@@ -1237,8 +1270,9 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-panel.active { display:block; }
 .msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
 .msg-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:.15s; }
-.msg-card:hover { border-color:rgba(255,255,255,.2); }
-.msg-card:active { background:var(--bg-card); border-color:var(--border); }
+.msg-card:hover { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.03); }
+.msg-delete-btn { background:transparent; border:1px solid var(--danger, #e74c3c); color:var(--danger, #e74c3c); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:.15s; }
+.msg-delete-btn:hover { background:var(--danger, #e74c3c); color:#fff; }
 .msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .msg-card-name { font-size:14px; font-weight:600; color:var(--text); }
 .msg-card-date { font-size:11px; color:var(--text-muted); white-space:nowrap; }
@@ -1322,6 +1356,14 @@ if (file_exists($log_file) && filesize($log_file)) {
                 <span class="msg-detail-val"><?= h($val) ?></span>
             </div>
             <?php endforeach; ?>
+            <div class="msg-detail-actions">
+                <form method="post" action="/admin/?tab=mesaje" style="display:inline" onsubmit="return confirm('Sigur vrei să ștergi acest mesaj?')">
+                    <input type="hidden" name="action" value="delete_message">
+                    <input type="hidden" name="msg_type" value="<?= h($key) ?>">
+                    <input type="hidden" name="msg_index" value="<?= $i ?>">
+                    <button type="submit" class="msg-delete-btn">Șterge</button>
+                </form>
+            </div>
         </div>
     </div>
     <?php endforeach; ?>
