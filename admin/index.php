@@ -280,7 +280,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $file = $_FILES['favicon_file'] ?? null;
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, ['ico','png'])) {
+            if (in_array($ext, ['ico','png','jpg','jpeg','webp'])) {
                 $dest = PUBLIC_HTML . '/favicon.' . $ext;
                 move_uploaded_file($file['tmp_name'], $dest);
                 $settings = load_settings();
@@ -843,10 +843,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <form method="post" action="/admin/?tab=aspect" enctype="multipart/form-data">
         <input type="hidden" name="action" value="upload_favicon">
         <div style="display:flex;gap:8px;align-items:center">
-            <input type="file" name="favicon_file" accept=".ico,.png" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+            <input type="file" name="favicon_file" accept=".ico,.png,.jpg,.jpeg,.webp" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
             <button type="submit" class="btn btn-primary">Încarcă favicon</button>
         </div>
-        <p class="form-desc">Formate: ICO, PNG. Fișierul va fi salvat ca <code>favicon.ico</code> în rădăcina site-ului.</p>
+        <p class="form-desc">Formate: ICO, PNG, JPG, WEBP. Fișierul va fi salvat în rădăcina site-ului.</p>
     </form>
 </div>
 
