@@ -13,7 +13,8 @@ add_action( 'after_setup_theme', function () {
 
 // ── Enqueue Assets ───────────────────────────────────────────────────────────
 add_action( 'wp_enqueue_scripts', function () {
-    $ver = '1.0.0';
+    $css_file = get_template_directory() . '/assets/css/style.css';
+    $ver = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
 
     wp_enqueue_style(
         'clp-style',
