@@ -338,40 +338,41 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$src) {
                     $favicon_error = 'Nu am putut citi imaginea. Încearcă alt fișier.';
                 } else {
-                    $size = 512; // internal resolution
+                    $size   = 128; // 128px is plenty for a favicon, avoids memory issues
                     $orig_w = imagesx($src);
                     $orig_h = imagesy($src);
-                    // Crop to square from center
+                    // Center-crop to square
                     $sq = min($orig_w, $orig_h);
                     $cx = (int)(($orig_w - $sq) / 2);
                     $cy = (int)(($orig_h - $sq) / 2);
-                    // Create output canvas with alpha
+                    // Create output canvas with transparency
                     $out = imagecreatetruecolor($size, $size);
                     imagealphablending($out, false);
                     imagesavealpha($out, true);
-                    $transparent = imagecolorallocatealpha($out, 0, 0, 0, 127);
-                    imagefill($out, 0, 0, $transparent);
-                    // Resize source square onto canvas
+                    $trans = imagecolorallocatealpha($out, 0, 0, 0, 127);
+                    imagefill($out, 0, 0, $trans);
+                    // Resize source onto canvas
                     imagecopyresampled($out, $src, 0, 0, $cx, $cy, $size, $size, $sq, $sq);
-                    // Apply circular mask: set pixels outside circle to transparent
-                    $r = $size / 2;
-                    for ($y = 0; $y < $size; $y++) {
-                        for ($x = 0; $x < $size; $x++) {
-                            $dx = $x - $r; $dy = $y - $r;
+                    imagedestroy($src);
+                    // Circular mask — 128×128 = 16 384 pixels (lightweight)
+                    $r = $size / 2.0;
+                    for ($py = 0; $py < $size; $py++) {
+                        for ($px = 0; $px < $size; $px++) {
+                            $dx = $px - $r + 0.5;
+                            $dy = $py - $r + 0.5;
                             if (($dx * $dx + $dy * $dy) > ($r * $r)) {
-                                imagesetpixel($out, $x, $y, $transparent);
+                                imagesetpixel($out, $px, $py, $trans);
                             }
                         }
                     }
-                    imagedestroy($src);
                     $dest = PUBLIC_HTML . '/favicon.png';
                     if (!imagepng($out, $dest)) {
                         $favicon_error = 'Eroare la salvare favicon. Verifică permisiunile directorului.';
                     } else {
-                        imagedestroy($out);
                         $settings = load_settings();
                         $settings['favicon_path'] = '/favicon.png';
                         save_settings($settings);
+                        imagedestroy($out);
                         header('Location: /admin/?tab=aspect&saved=1');
                         exit;
                     }
