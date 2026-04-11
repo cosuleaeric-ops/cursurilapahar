@@ -211,7 +211,7 @@ ul { list-style: none; }
   margin-left: auto;
 }
 .navbar-links a {
-  font-size: var(--nav-link-size, .9rem);
+  font-size: 13px;
   font-weight: var(--nav-link-weight, 700);
   color: var(--nav-link-color, #fff);
   letter-spacing: var(--nav-link-spacing, 0.10em);

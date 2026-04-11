@@ -200,6 +200,7 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
     </div>
 </footer>
 
+<?php include __DIR__ . '/includes/footer.php'; ?>
 <script src="/assets/js/main.js?v=<?php echo filemtime(__DIR__.'/assets/js/main.js'); ?>"></script>
 <script>history.scrollRestoration = 'manual';</script>
 </body>

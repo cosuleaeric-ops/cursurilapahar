@@ -209,6 +209,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
     </div>
 </footer>
 
+<?php include __DIR__ . '/includes/footer.php'; ?>
 <script src="/assets/js/main.js?v=<?php echo filemtime(__DIR__.'/assets/js/main.js'); ?>"></script>
 <script>history.scrollRestoration = 'manual';</script>
 </body>
