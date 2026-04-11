@@ -99,29 +99,42 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     display: none; position: fixed; top: 32px; right: 0; z-index: 999998;
     background: #1d2327; border-radius: 0 0 0 10px;
     box-shadow: -4px 4px 24px rgba(0,0,0,.6);
-    padding: 16px 18px; min-width: 320px;
+    padding: 16px 18px; width: 360px; max-height: calc(100vh - 40px); overflow-y: auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 12px; color: #a7aaad;
 }
 #clp-font-panel.visible { display: block; }
-#clp-font-panel .fp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-#clp-font-panel .fp-row label { width: 90px; font-size: 11px; color: #777; flex-shrink: 0; }
-#clp-font-panel .fp-row select {
+#clp-font-panel .fp-section {
+    font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: .08em;
+    margin: 14px 0 8px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 12px;
+}
+#clp-font-panel .fp-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+#clp-font-panel .fp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+#clp-font-panel .fp-row label { width: 80px; font-size: 11px; color: #777; flex-shrink: 0; }
+#clp-font-panel .fp-row select,
+#clp-font-panel .fp-row input[type=number] {
     flex: 1; background: #2c3338; color: #fff;
     border: 1px solid rgba(255,255,255,.15); border-radius: 5px;
-    padding: 5px 8px; font-size: 12px; cursor: pointer;
+    padding: 4px 6px; font-size: 12px; cursor: pointer;
 }
+#clp-font-panel .fp-row input[type=number] { max-width: 64px; flex: none; }
+#clp-font-panel .fp-row .fp-unit { color: #555; font-size: 11px; }
+#clp-font-panel .fp-row-sizes { display: flex; align-items: center; gap: 6px; flex: 1; }
+#clp-font-panel .fp-row-sizes input { width: 52px; text-align: center; }
+#clp-font-panel .fp-row-sizes span { color: #555; font-size: 10px; }
+#clp-font-panel .fp-italic-btn {
+    background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.15);
+    border-radius: 5px; width: 32px; height: 28px; cursor: pointer; font-style: italic;
+    font-size: 13px; font-weight: 700; transition: .15s; flex-shrink: 0;
+}
+#clp-font-panel .fp-italic-btn.on { background: #2271b1; border-color: #2271b1; }
 #clp-font-panel .fp-preview {
     background: #2c3338; border-radius: 6px; padding: 12px 14px;
-    margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;
+    margin: 12px 0; display: flex; flex-direction: column; gap: 6px;
 }
-#clp-font-panel .fp-preview-heading {
-    font-size: 20px; font-weight: 700; color: #fff; line-height: 1.2;
-}
-#clp-font-panel .fp-preview-body {
-    font-size: 13px; color: #9ca3af; line-height: 1.5;
-}
-#clp-font-panel .fp-actions { display: flex; align-items: center; gap: 10px; }
+#clp-font-panel .fp-preview-heading { font-size: 20px; font-weight: 700; color: #fff; line-height: 1.2; }
+#clp-font-panel .fp-preview-body { font-size: 13px; color: #9ca3af; line-height: 1.5; }
+#clp-font-panel .fp-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
 #clp-fp-save { background: #2271b1; color: #fff; border: none; border-radius: 5px;
     padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; }
 #clp-fp-save:hover { background: #135e96; }
@@ -248,27 +261,83 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
     </div>
 </div>
 
+<?php
+$_clp_fh_w     = $_clp_s['fh_weight']   ?? '';
+$_clp_fh_i     = !empty($_clp_s['fh_italic']);
+$_clp_fh_lg    = $_clp_s['fh_size_lg']  ?? '';
+$_clp_fh_md    = $_clp_s['fh_size_md']  ?? '';
+$_clp_fh_sm    = $_clp_s['fh_size_sm']  ?? '';
+$_clp_fb_w     = $_clp_s['fb_weight']   ?? '';
+$_clp_fb_lg    = $_clp_s['fb_size_lg']  ?? '';
+$_clp_fb_md    = $_clp_s['fb_size_md']  ?? '';
+$_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
+?>
 <!-- Global fonts panel -->
 <div id="clp-font-panel">
+    <div class="fp-section">Font titluri</div>
     <div class="fp-row">
-        <label>Font titluri</label>
-        <select id="clp-fp-heading" onchange="clpFontApply('heading')">
+        <label>Familie</label>
+        <select id="clp-fp-heading" onchange="clpFontApply()">
             <?php foreach ($_clp_heading_fonts as $f): ?>
             <option value="<?= htmlspecialchars($f) ?>" <?= $_clp_fh === $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
     <div class="fp-row">
-        <label>Font text</label>
-        <select id="clp-fp-body" onchange="clpFontApply('body')">
+        <label>Greutate</label>
+        <select id="clp-fp-fh-weight" onchange="clpFontApply()">
+            <option value="">—</option>
+            <?php foreach ([300,400,500,600,700,800,900] as $w): ?>
+            <option value="<?= $w ?>" <?= $_clp_fh_w == $w ? 'selected' : '' ?>><?= $w ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button class="fp-italic-btn <?= $_clp_fh_i ? 'on' : '' ?>" id="clp-fp-fh-italic" onclick="this.classList.toggle('on');clpFontApply()" title="Italic">I</button>
+    </div>
+    <div class="fp-row">
+        <label>Mărime</label>
+        <div class="fp-row-sizes">
+            <input type="number" id="clp-fp-fh-lg" value="<?= htmlspecialchars($_clp_fh_lg) ?>" min="10" max="200" placeholder="—" oninput="clpFontApply()">
+            <span>desktop</span>
+            <input type="number" id="clp-fp-fh-md" value="<?= htmlspecialchars($_clp_fh_md) ?>" min="10" max="200" placeholder="—" oninput="clpFontApply()">
+            <span>tabletă</span>
+            <input type="number" id="clp-fp-fh-sm" value="<?= htmlspecialchars($_clp_fh_sm) ?>" min="10" max="200" placeholder="—" oninput="clpFontApply()">
+            <span>telefon</span>
+        </div>
+    </div>
+
+    <div class="fp-section">Font text corp</div>
+    <div class="fp-row">
+        <label>Familie</label>
+        <select id="clp-fp-body" onchange="clpFontApply()">
             <?php foreach ($_clp_body_fonts as $f): ?>
             <option value="<?= htmlspecialchars($f) ?>" <?= $_clp_fb === $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
+    <div class="fp-row">
+        <label>Greutate</label>
+        <select id="clp-fp-fb-weight" onchange="clpFontApply()">
+            <option value="">—</option>
+            <?php foreach ([300,400,500,600,700,800,900] as $w): ?>
+            <option value="<?= $w ?>" <?= $_clp_fb_w == $w ? 'selected' : '' ?>><?= $w ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="fp-row">
+        <label>Mărime</label>
+        <div class="fp-row-sizes">
+            <input type="number" id="clp-fp-fb-lg" value="<?= htmlspecialchars($_clp_fb_lg) ?>" min="10" max="60" placeholder="—" oninput="clpFontApply()">
+            <span>desktop</span>
+            <input type="number" id="clp-fp-fb-md" value="<?= htmlspecialchars($_clp_fb_md) ?>" min="10" max="60" placeholder="—" oninput="clpFontApply()">
+            <span>tabletă</span>
+            <input type="number" id="clp-fp-fb-sm" value="<?= htmlspecialchars($_clp_fb_sm) ?>" min="10" max="60" placeholder="—" oninput="clpFontApply()">
+            <span>telefon</span>
+        </div>
+    </div>
+
     <div class="fp-preview">
-        <span class="fp-preview-heading" id="clp-prev-h" style="font-family:'<?= htmlspecialchars($_clp_fh) ?>',sans-serif">Titlu exemplu — Cursuri la Pahar</span>
-        <span class="fp-preview-body" id="clp-prev-b" style="font-family:'<?= htmlspecialchars($_clp_fb) ?>',system-ui,sans-serif">Text de paragraf — educație la un pahar în oraș, cu experți și oameni faini.</span>
+        <span class="fp-preview-heading" id="clp-prev-h" style="font-family:'<?= htmlspecialchars($_clp_fh) ?>',sans-serif;<?= $_clp_fh_w ? 'font-weight:'.$_clp_fh_w.';' : '' ?><?= $_clp_fh_i ? 'font-style:italic;' : '' ?><?= $_clp_fh_lg ? 'font-size:'.$_clp_fh_lg.'px;' : '' ?>">Titlu exemplu — Cursuri la Pahar</span>
+        <span class="fp-preview-body" id="clp-prev-b" style="font-family:'<?= htmlspecialchars($_clp_fb) ?>',system-ui,sans-serif;<?= $_clp_fb_w ? 'font-weight:'.$_clp_fb_w.';' : '' ?><?= $_clp_fb_lg ? 'font-size:'.$_clp_fb_lg.'px;' : '' ?>">Text de paragraf — educație la un pahar în oraș, cu experți și oameni faini.</span>
     </div>
     <div class="fp-actions">
         <button id="clp-fp-save" onclick="clpSaveFonts()">Salvează</button>
@@ -452,29 +521,79 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
         if (open) document.getElementById('clp-toolbar').classList.remove('visible');
     };
 
-    window.clpFontApply = function(type) {
-        if (type === 'heading') {
-            const fam = document.getElementById('clp-fp-heading').value;
-            clpLoadFont(fam);
-            document.documentElement.style.setProperty('--font-heading', "'" + fam + "', sans-serif");
-            document.getElementById('clp-prev-h').style.fontFamily = "'" + fam + "', sans-serif";
-        } else {
-            const fam = document.getElementById('clp-fp-body').value;
-            clpLoadFont(fam);
-            document.documentElement.style.setProperty('--font-sans', "'" + fam + "', system-ui, sans-serif");
-            document.getElementById('clp-prev-b').style.fontFamily = "'" + fam + "', system-ui, sans-serif";
+    window.clpFontApply = function() {
+        const fhFam = document.getElementById('clp-fp-heading').value;
+        const fbFam = document.getElementById('clp-fp-body').value;
+        const fhW   = document.getElementById('clp-fp-fh-weight').value;
+        const fhI   = document.getElementById('clp-fp-fh-italic').classList.contains('on');
+        const fhLg  = document.getElementById('clp-fp-fh-lg').value;
+        const fhMd  = document.getElementById('clp-fp-fh-md').value;
+        const fhSm  = document.getElementById('clp-fp-fh-sm').value;
+        const fbW   = document.getElementById('clp-fp-fb-weight').value;
+        const fbLg  = document.getElementById('clp-fp-fb-lg').value;
+        const fbMd  = document.getElementById('clp-fp-fb-md').value;
+        const fbSm  = document.getElementById('clp-fp-fb-sm').value;
+
+        clpLoadFont(fhFam);
+        clpLoadFont(fbFam);
+
+        // Apply CSS variables
+        document.documentElement.style.setProperty('--font-heading', "'" + fhFam + "', sans-serif");
+        document.documentElement.style.setProperty('--font-sans', "'" + fbFam + "', system-ui, sans-serif");
+
+        // Inject responsive overrides via a dynamic style tag
+        let styleEl = document.getElementById('clp-typo-override');
+        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'clp-typo-override'; document.head.appendChild(styleEl); }
+        let css = '';
+        const hSel = '.section-title, h1, h2, h3';
+        if (fhW || fhI || fhLg) {
+            css += hSel + '{';
+            if (fhW)  css += 'font-weight:' + fhW + '!important;';
+            if (fhI)  css += 'font-style:italic!important;';
+            else      css += 'font-style:normal!important;';
+            if (fhLg) css += 'font-size:' + fhLg + 'px!important;';
+            css += '}';
         }
+        if (fhMd) css += '@media(max-width:1024px){' + hSel + '{font-size:' + fhMd + 'px!important;}}';
+        if (fhSm) css += '@media(max-width:768px){'  + hSel + '{font-size:' + fhSm + 'px!important;}}';
+        if (fbW || fbLg) {
+            css += 'body,p{';
+            if (fbW)  css += 'font-weight:' + fbW + '!important;';
+            if (fbLg) css += 'font-size:' + fbLg + 'px!important;';
+            css += '}';
+        }
+        if (fbMd) css += '@media(max-width:1024px){body{font-size:' + fbMd + 'px!important;}}';
+        if (fbSm) css += '@media(max-width:768px){body{font-size:'  + fbSm + 'px!important;}}';
+        styleEl.textContent = css;
+
+        // Update preview
+        const ph = document.getElementById('clp-prev-h');
+        ph.style.fontFamily  = "'" + fhFam + "', sans-serif";
+        ph.style.fontWeight  = fhW  || '';
+        ph.style.fontStyle   = fhI  ? 'italic' : 'normal';
+        ph.style.fontSize    = fhLg ? fhLg + 'px' : '';
+        const pb = document.getElementById('clp-prev-b');
+        pb.style.fontFamily  = "'" + fbFam + "', system-ui, sans-serif";
+        pb.style.fontWeight  = fbW  || '';
+        pb.style.fontSize    = fbLg ? fbLg + 'px' : '';
     };
 
     window.clpSaveFonts = function() {
-        const fh = document.getElementById('clp-fp-heading').value;
-        const fb = document.getElementById('clp-fp-body').value;
         const btn = document.getElementById('clp-fp-save');
         btn.textContent = '…';
         const fd = new FormData();
-        fd.append('action', 'save_global_fonts');
-        fd.append('font_heading', fh);
-        fd.append('font_body',    fb);
+        fd.append('action',       'save_global_fonts');
+        fd.append('font_heading', document.getElementById('clp-fp-heading').value);
+        fd.append('font_body',    document.getElementById('clp-fp-body').value);
+        fd.append('fh_weight',    document.getElementById('clp-fp-fh-weight').value);
+        fd.append('fh_italic',    document.getElementById('clp-fp-fh-italic').classList.contains('on') ? '1' : '');
+        fd.append('fh_size_lg',   document.getElementById('clp-fp-fh-lg').value);
+        fd.append('fh_size_md',   document.getElementById('clp-fp-fh-md').value);
+        fd.append('fh_size_sm',   document.getElementById('clp-fp-fh-sm').value);
+        fd.append('fb_weight',    document.getElementById('clp-fp-fb-weight').value);
+        fd.append('fb_size_lg',   document.getElementById('clp-fp-fb-lg').value);
+        fd.append('fb_size_md',   document.getElementById('clp-fp-fb-md').value);
+        fd.append('fb_size_sm',   document.getElementById('clp-fp-fb-sm').value);
         fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
             .then(r => r.json())
             .then(d => {

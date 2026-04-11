@@ -723,12 +723,22 @@ if (is_authenticated() && ($action === 'save_navbar_live')) {
 if (is_authenticated() && ($action === 'save_global_fonts')) {
     $allowed_h = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
     $allowed_b = ['Inter','Roboto','Open Sans','Lato','DM Sans','Nunito','Rubik','Source Sans 3','Mulish','Cabin','Karla','Poppins'];
+    header('Content-Type: application/json');
+    $s  = load_settings();
     $fh = trim($_POST['font_heading'] ?? '');
     $fb = trim($_POST['font_body']    ?? '');
-    header('Content-Type: application/json');
-    $s = load_settings();
     if ($fh && in_array($fh, $allowed_h)) $s['font_heading'] = $fh;
     if ($fb && in_array($fb, $allowed_b)) $s['font_body']    = $fb;
+    // Weight / italic / sizes
+    foreach (['fh_weight','fb_weight'] as $k) {
+        $v = (int)($_POST[$k] ?? 0);
+        $s[$k] = ($v >= 100 && $v <= 900) ? (string)$v : '';
+    }
+    $s['fh_italic'] = !empty($_POST['fh_italic']) ? '1' : '';
+    foreach (['fh_size_lg','fh_size_md','fh_size_sm','fb_size_lg','fb_size_md','fb_size_sm'] as $k) {
+        $v = (int)($_POST[$k] ?? 0);
+        $s[$k] = $v > 0 ? (string)$v : '';
+    }
     save_settings($s);
     echo json_encode(['ok' => true]);
     exit;

@@ -172,6 +172,36 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         --nav-logo-h:       <?= htmlspecialchars($settings['nav_logo_h']       ?? '40') ?>px;
     }
     body { padding-top: 88px; }
+    <?php
+    // Typography overrides from global font settings
+    $fhW  = $settings['fh_weight']  ?? '';
+    $fhI  = !empty($settings['fh_italic']);
+    $fhLg = $settings['fh_size_lg'] ?? '';
+    $fhMd = $settings['fh_size_md'] ?? '';
+    $fhSm = $settings['fh_size_sm'] ?? '';
+    $fbW  = $settings['fb_weight']  ?? '';
+    $fbLg = $settings['fb_size_lg'] ?? '';
+    $fbMd = $settings['fb_size_md'] ?? '';
+    $fbSm = $settings['fb_size_sm'] ?? '';
+    $hSel = '.section-title,h1,h2,h3';
+    if ($fhW || $fhI || $fhLg) {
+        echo $hSel . '{';
+        if ($fhW)  echo 'font-weight:' . (int)$fhW . '!important;';
+        if ($fhI)  echo 'font-style:italic!important;';
+        if ($fhLg) echo 'font-size:' . (int)$fhLg . 'px!important;';
+        echo '}';
+    }
+    if ($fhMd) echo '@media(max-width:1024px){' . $hSel . '{font-size:' . (int)$fhMd . 'px!important;}}';
+    if ($fhSm) echo '@media(max-width:768px){'  . $hSel . '{font-size:' . (int)$fhSm . 'px!important;}}';
+    if ($fbW || $fbLg) {
+        echo 'body,p{';
+        if ($fbW)  echo 'font-weight:' . (int)$fbW . '!important;';
+        if ($fbLg) echo 'font-size:' . (int)$fbLg . 'px!important;';
+        echo '}';
+    }
+    if ($fbMd) echo '@media(max-width:1024px){body{font-size:' . (int)$fbMd . 'px!important;}}';
+    if ($fbSm) echo '@media(max-width:768px){body{font-size:'  . (int)$fbSm . 'px!important;}}';
+    ?>
     </style>
 </head>
 <body>
