@@ -210,7 +210,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <!-- ── NAVBAR ─────────────────────────────── -->
 <nav class="navbar">
     <div class="navbar-inner">
-        <a href="/#hero" class="navbar-logo">
+        <a href="/" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
             <span class="navbar-brand-text" <?= clp_e('nav_brand_text', $settings) ?>>
                 <?php $nb=explode(' ', $settings['nav_brand_text'], 2); ?>
