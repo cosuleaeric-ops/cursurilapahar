@@ -242,7 +242,7 @@ shuffle($vote_courses);
     <div class="navbar-inner">
         <a href="/#hero" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
-            <span class="navbar-brand-text"><?= implode("\n", explode(' ', htmlspecialchars($settings['nav_brand_text']), 2)) ?></span>
+            <span class="navbar-brand-text"><?php $nb=explode(' ',htmlspecialchars($settings['nav_brand_text']),2); echo $nb[0].'<br>'.($nb[1]??''); ?></span>
         </a>
         <div class="navbar-links">
             <?php foreach ($settings['nav_links'] as $nl): ?>
