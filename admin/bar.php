@@ -550,33 +550,44 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         clpApply();
     };
 
-    // Mobile styles from PHP for preview injection
+    // Device styles from PHP for preview injection
+    const _tabletStyles = <?= json_encode($_clp_s['element_styles_tablet'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
     const _mobileStyles = <?= json_encode($_clp_s['element_styles_mobile'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
+    const _devices = ['desktop', 'tablet', 'mobile'];
+    const _deviceIcons = { desktop: '\u{1F5A5}\uFE0F', tablet: '\u{1F4BB}', mobile: '\u{1F4F1}' };
+    const _deviceTitles = { desktop: 'Editezi: Desktop', tablet: 'Editezi: Tabletă', mobile: 'Editezi: Telefon' };
+    const _deviceWidths = { desktop: null, tablet: '768px', mobile: '390px' };
 
     window.clpToggleDevice = function() {
-        editDevice = editDevice === 'desktop' ? 'mobile' : 'desktop';
+        const idx = (_devices.indexOf(editDevice) + 1) % 3;
+        editDevice = _devices[idx];
         const btn = document.getElementById('clp-tb-device');
-        btn.textContent = editDevice === 'desktop' ? '\u{1F5A5}\uFE0F' : '\u{1F4F1}';
-        btn.title = editDevice === 'desktop' ? 'Editezi: Desktop' : 'Editezi: Mobile';
+        btn.textContent = _deviceIcons[editDevice];
+        btn.title = _deviceTitles[editDevice];
 
-        let preview = document.getElementById('clp-mobile-preview');
-        if (editDevice === 'mobile') {
-            // Inject mobile styles as regular rules (no media query needed)
+        let preview = document.getElementById('clp-device-preview');
+        if (editDevice !== 'desktop') {
             if (!preview) {
                 preview = document.createElement('style');
-                preview.id = 'clp-mobile-preview';
+                preview.id = 'clp-device-preview';
                 document.head.appendChild(preview);
             }
-            let css = '/* Mobile preview */\n';
-            for (const [key, style] of Object.entries(_mobileStyles)) {
+            const styles = editDevice === 'tablet' ? _tabletStyles : _mobileStyles;
+            const width = _deviceWidths[editDevice];
+            let css = '/* ' + editDevice + ' preview */\n';
+            // Apply tablet styles for both tablet and mobile preview
+            if (editDevice === 'mobile') {
+                for (const [key, style] of Object.entries(_tabletStyles)) {
+                    css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
+                }
+            }
+            for (const [key, style] of Object.entries(styles)) {
                 css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
             }
-            // Constrain page width to simulate mobile
-            css += 'body:not(#x) { max-width: 390px !important; margin-left: auto !important; margin-right: auto !important; }\n';
-            css += '.navbar { max-width: 390px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
+            css += 'body:not(#x) { max-width: ' + width + ' !important; margin-left: auto !important; margin-right: auto !important; }\n';
+            css += '.navbar { max-width: ' + width + ' !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
             preview.textContent = css;
         } else {
-            // Remove mobile preview
             if (preview) preview.remove();
         }
     };

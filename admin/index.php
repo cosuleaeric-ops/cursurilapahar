@@ -786,7 +786,11 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
         : trim(strip_tags($raw));
     $style = trim($_POST['style'] ?? '');
     $device = trim($_POST['device'] ?? 'desktop');
-    $styles_key = ($device === 'mobile') ? 'element_styles_mobile' : 'element_styles';
+    $styles_key = match($device) {
+        'tablet' => 'element_styles_tablet',
+        'mobile' => 'element_styles_mobile',
+        default  => 'element_styles',
+    };
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
                      'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
                      'steps_title','faq_title','nav_brand_text',

@@ -4,12 +4,20 @@ if (!isset($settings)) {
     $settings = file_exists($_es_file) ? (json_decode(file_get_contents($_es_file), true) ?: []) : [];
 }
 $_desktop = $settings['element_styles'] ?? [];
+$_tablet  = $settings['element_styles_tablet'] ?? [];
 $_mobile  = $settings['element_styles_mobile'] ?? [];
-if ($_desktop || $_mobile): ?>
+if ($_desktop || $_tablet || $_mobile): ?>
 <style>
 <?php foreach ($_desktop as $key => $style): ?>
 [data-edit-key="<?= htmlspecialchars($key) ?>"] { <?= htmlspecialchars($style) ?>; }
 <?php endforeach; ?>
+<?php if ($_tablet): ?>
+@media (max-width: 1024px) {
+<?php foreach ($_tablet as $key => $style): ?>
+  [data-edit-key="<?= htmlspecialchars($key) ?>"] { <?= htmlspecialchars($style) ?>; }
+<?php endforeach; ?>
+}
+<?php endif; ?>
 <?php if ($_mobile): ?>
 @media (max-width: 768px) {
 <?php foreach ($_mobile as $key => $style): ?>
