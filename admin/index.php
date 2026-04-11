@@ -51,18 +51,21 @@ function get_active_password(): string {
     return ADMIN_PASSWORD;
 }
 
-// Ensure auth_secret exists in settings (generate on first run)
-function ensure_auth_secret(): void {
-    if (get_auth_secret()) return;
+// Ensure secrets exist in settings (generate on first run)
+function ensure_secrets(): void {
     $settings = file_exists(SETTINGS_FILE)
         ? (json_decode(file_get_contents(SETTINGS_FILE), true) ?: [])
         : [];
-    $settings['auth_secret'] = bin2hex(random_bytes(32));
-    $dir = dirname(SETTINGS_FILE);
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    $changed = false;
+    if (empty($settings['auth_secret']))    { $settings['auth_secret']    = bin2hex(random_bytes(32)); $changed = true; }
+    if (empty($settings['webhook_secret'])) { $settings['webhook_secret'] = bin2hex(random_bytes(32)); $changed = true; }
+    if ($changed) {
+        $dir = dirname(SETTINGS_FILE);
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
 }
-ensure_auth_secret();
+ensure_secrets();
 
 if (isset($_POST['login_password'])) {
     if ($_POST['login_password'] === get_active_password()) {
@@ -490,6 +493,15 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         save_settings($settings);
         clear_auth_cookie();
         header('Location: /admin/');
+        exit;
+    }
+
+    // ── Regenerate webhook secret
+    if ($action === 'regenerate_webhook_secret') {
+        $settings = load_settings();
+        $settings['webhook_secret'] = bin2hex(random_bytes(32));
+        save_settings($settings);
+        header('Location: /admin/?tab=securitate&webhook_saved=1');
         exit;
     }
 
@@ -1650,6 +1662,22 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
     <form method="post" action="/admin/?tab=securitate" onsubmit="return confirm('Ești sigur? Vei fi deconectat.')">
         <input type="hidden" name="action" value="regenerate_secret">
         <button type="submit" class="btn btn-danger">Regenerează cheia de sesiune</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-title">Webhook secret (GitHub)</div>
+    <?php if (isset($_GET['webhook_saved'])): ?>
+    <div class="notice notice-success" style="margin-bottom:12px">Secret regenerat. Actualizează-l și în setările webhook-ului de pe GitHub.</div>
+    <?php endif; ?>
+    <?php $wh_secret = load_settings()['webhook_secret'] ?? ''; ?>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">
+        Secretul curent (copiază-l în GitHub → repo → Settings → Webhooks):
+    </p>
+    <code style="display:block;background:#f6f7f7;border:1px solid var(--border);padding:10px 12px;border-radius:4px;font-size:13px;word-break:break-all;margin-bottom:14px;user-select:all"><?= h($wh_secret) ?></code>
+    <form method="post" action="/admin/?tab=securitate" onsubmit="return confirm('Vei trebui să actualizezi și webhook-ul pe GitHub cu noul secret.')">
+        <input type="hidden" name="action" value="regenerate_webhook_secret">
+        <button type="submit" class="btn btn-danger">Regenerează webhook secret</button>
     </form>
 </div>
 

@@ -1,6 +1,10 @@
 <?php
-if (file_exists(__DIR__ . '/private/secrets.php')) require __DIR__ . '/private/secrets.php';
-if (!defined('WEBHOOK_SECRET')) define('WEBHOOK_SECRET', 'clp-deploy-secret-2026');
+// Load webhook secret from settings.json (managed by admin, not in code)
+$_wh_settings_file = __DIR__ . '/data/settings.json';
+$_wh_settings = file_exists($_wh_settings_file)
+    ? (json_decode(file_get_contents($_wh_settings_file), true) ?: [])
+    : [];
+define('WEBHOOK_SECRET', $_wh_settings['webhook_secret'] ?? '');
 
 define('REPO',        'cosuleaeric-ops/cursurilapahar');
 define('BRANCH',      'main');
