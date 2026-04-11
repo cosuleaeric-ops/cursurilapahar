@@ -102,7 +102,7 @@ shuffle($vote_courses);
         display: flex;
         flex-direction: column;
         gap: 10px;
-        max-width: 800px;
+        max-width: 500px;
         margin: 0 auto;
     }
 
