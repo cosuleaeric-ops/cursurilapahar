@@ -12,6 +12,10 @@ function clp_is_admin(): bool {
 }
 if (!clp_is_admin()) return;
 $current = $_SERVER['REQUEST_URI'] ?? '/';
+$_clp_s  = file_exists(dirname(__DIR__) . '/data/settings.json')
+    ? (json_decode(file_get_contents(dirname(__DIR__) . '/data/settings.json'), true) ?: []) : [];
+$_clp_fh = $_clp_s['font_heading'] ?? 'Nunito';
+$_clp_fb = $_clp_s['font_body']    ?? 'Inter';
 ?>
 <style>
 #clp-adminbar {
@@ -78,6 +82,41 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 #clp-tb-ok { color: #00a32a; display: none; font-size: 16px; }
 #clp-tb-el { color: #fff; font-weight: 600; font-size: 11px;
     background: rgba(255,255,255,.08); padding: 3px 8px; border-radius: 4px; }
+
+/* Font panel */
+#clp-font-panel {
+    display: none; position: fixed; top: 32px; right: 0; z-index: 999998;
+    background: #1d2327; border-radius: 0 0 0 10px;
+    box-shadow: -4px 4px 24px rgba(0,0,0,.6);
+    padding: 16px 18px; min-width: 320px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px; color: #a7aaad;
+}
+#clp-font-panel.visible { display: block; }
+#clp-font-panel .fp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+#clp-font-panel .fp-row label { width: 90px; font-size: 11px; color: #777; flex-shrink: 0; }
+#clp-font-panel .fp-row select {
+    flex: 1; background: #2c3338; color: #fff;
+    border: 1px solid rgba(255,255,255,.15); border-radius: 5px;
+    padding: 5px 8px; font-size: 12px; cursor: pointer;
+}
+#clp-font-panel .fp-preview {
+    background: #2c3338; border-radius: 6px; padding: 12px 14px;
+    margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;
+}
+#clp-font-panel .fp-preview-heading {
+    font-size: 20px; font-weight: 700; color: #fff; line-height: 1.2;
+}
+#clp-font-panel .fp-preview-body {
+    font-size: 13px; color: #9ca3af; line-height: 1.5;
+}
+#clp-font-panel .fp-actions { display: flex; align-items: center; gap: 10px; }
+#clp-fp-save { background: #2271b1; color: #fff; border: none; border-radius: 5px;
+    padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; }
+#clp-fp-save:hover { background: #135e96; }
+#clp-fp-ok { color: #00a32a; font-size: 14px; display: none; }
+#clp-fonts-btn { color: #c0d0ff !important; }
+#clp-fonts-btn.active { background: #2c3338 !important; color: #fff !important; }
 </style>
 
 <div id="clp-adminbar">
@@ -90,11 +129,44 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     <a href="/admin/?tab=mesaje">💬 Mesaje</a>
     <a href="/admin/?tab=vot">❤️ Vot</a>
     <span class="bar-sep"></span>
+    <button class="bar-link" id="clp-fonts-btn" onclick="clpToggleFontPanel()">🔤 Fonturi</button>
     <button class="bar-link" id="clp-edit-btn" onclick="clpToggleEdit()">✏ Editează live</button>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
     <?php endif; ?>
     <a href="/admin/?logout=1" class="bar-logout">Ieșire</a>
+</div>
+
+<?php
+$_clp_heading_fonts = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
+$_clp_body_fonts    = ['Inter','Roboto','Open Sans','Lato','DM Sans','Nunito','Rubik','Source Sans 3','Mulish','Cabin','Karla','Poppins'];
+?>
+<!-- Global fonts panel -->
+<div id="clp-font-panel">
+    <div class="fp-row">
+        <label>Font titluri</label>
+        <select id="clp-fp-heading" onchange="clpFontApply('heading')">
+            <?php foreach ($_clp_heading_fonts as $f): ?>
+            <option value="<?= htmlspecialchars($f) ?>" <?= $_clp_fh === $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="fp-row">
+        <label>Font text</label>
+        <select id="clp-fp-body" onchange="clpFontApply('body')">
+            <?php foreach ($_clp_body_fonts as $f): ?>
+            <option value="<?= htmlspecialchars($f) ?>" <?= $_clp_fb === $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="fp-preview">
+        <span class="fp-preview-heading" id="clp-prev-h" style="font-family:'<?= htmlspecialchars($_clp_fh) ?>',sans-serif">Titlu exemplu — Cursuri la Pahar</span>
+        <span class="fp-preview-body" id="clp-prev-b" style="font-family:'<?= htmlspecialchars($_clp_fb) ?>',system-ui,sans-serif">Text de paragraf — educație la un pahar în oraș, cu experți și oameni faini.</span>
+    </div>
+    <div class="fp-actions">
+        <button id="clp-fp-save" onclick="clpSaveFonts()">Salvează</button>
+        <span id="clp-fp-ok">✓ Salvat</span>
+    </div>
 </div>
 
 <!-- Floating edit toolbar -->
@@ -244,5 +316,74 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
                 }
             });
     };
+})();
+
+// ── Global font panel ────────────────────────────────────────────────────────
+(function(){
+    function clpLoadFont(family) {
+        const id = 'clp-gf-' + family.replace(/\s+/g, '-').toLowerCase();
+        if (document.getElementById(id)) return;
+        const link = document.createElement('link');
+        link.id   = id;
+        link.rel  = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family='
+            + encodeURIComponent(family)
+            + ':ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap';
+        document.head.appendChild(link);
+    }
+
+    window.clpToggleFontPanel = function() {
+        const panel = document.getElementById('clp-font-panel');
+        const btn   = document.getElementById('clp-fonts-btn');
+        const open  = panel.classList.toggle('visible');
+        btn.classList.toggle('active', open);
+        // Close edit toolbar if open
+        if (open) document.getElementById('clp-toolbar').classList.remove('visible');
+    };
+
+    window.clpFontApply = function(type) {
+        if (type === 'heading') {
+            const fam = document.getElementById('clp-fp-heading').value;
+            clpLoadFont(fam);
+            document.documentElement.style.setProperty('--font-heading', "'" + fam + "', sans-serif");
+            document.getElementById('clp-prev-h').style.fontFamily = "'" + fam + "', sans-serif";
+        } else {
+            const fam = document.getElementById('clp-fp-body').value;
+            clpLoadFont(fam);
+            document.documentElement.style.setProperty('--font-sans', "'" + fam + "', system-ui, sans-serif");
+            document.getElementById('clp-prev-b').style.fontFamily = "'" + fam + "', system-ui, sans-serif";
+        }
+    };
+
+    window.clpSaveFonts = function() {
+        const fh = document.getElementById('clp-fp-heading').value;
+        const fb = document.getElementById('clp-fp-body').value;
+        const btn = document.getElementById('clp-fp-save');
+        btn.textContent = '…';
+        const fd = new FormData();
+        fd.append('action', 'save_global_fonts');
+        fd.append('font_heading', fh);
+        fd.append('font_body',    fb);
+        fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+            .then(r => r.json())
+            .then(d => {
+                btn.textContent = 'Salvează';
+                if (d.ok) {
+                    const ok = document.getElementById('clp-fp-ok');
+                    ok.style.display = 'inline';
+                    setTimeout(() => ok.style.display = 'none', 2000);
+                }
+            });
+    };
+
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('clp-font-panel');
+        const btn   = document.getElementById('clp-fonts-btn');
+        if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            panel.classList.remove('visible');
+            btn.classList.remove('active');
+        }
+    });
 })();
 </script>

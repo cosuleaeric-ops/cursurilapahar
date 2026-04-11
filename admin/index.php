@@ -694,6 +694,21 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// ── Global fonts (from live site editor) ─────────────────────────────────────
+if (is_authenticated() && ($action === 'save_global_fonts')) {
+    $allowed_h = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
+    $allowed_b = ['Inter','Roboto','Open Sans','Lato','DM Sans','Nunito','Rubik','Source Sans 3','Mulish','Cabin','Karla','Poppins'];
+    $fh = trim($_POST['font_heading'] ?? '');
+    $fb = trim($_POST['font_body']    ?? '');
+    header('Content-Type: application/json');
+    $s = load_settings();
+    if ($fh && in_array($fh, $allowed_h)) $s['font_heading'] = $fh;
+    if ($fb && in_array($fb, $allowed_b)) $s['font_body']    = $fb;
+    save_settings($s);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 // ── Inline edit (from live site editor) ──────────────────────────────────────
 if (is_authenticated() && ($action === 'save_inline_edit')) {
     $key   = trim($_POST['key']   ?? '');
