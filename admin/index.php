@@ -1152,117 +1152,233 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <div class="notice notice-success">Setările au fost salvate cu succes.</div>
     <?php endif; ?>
 
+    <style>
+    .tf-card { background: var(--surface, #fff); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+    .tf-card-title { padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .tf-row { border-bottom: 1px solid var(--border); }
+    .tf-row:last-child { border-bottom: none; }
+    .tf-header { display: flex; align-items: center; gap: 12px; padding: 11px 18px; cursor: pointer; user-select: none; transition: background .12s; }
+    .tf-header:hover { background: rgba(255,255,255,.04); }
+    .tf-label { font-size: 13px; font-weight: 600; color: var(--text); min-width: 180px; flex-shrink: 0; }
+    .tf-preview { font-size: 12px; color: var(--text-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tf-arrow { color: var(--text-muted); font-size: 11px; transition: transform .2s; flex-shrink: 0; }
+    .tf-row.open .tf-arrow { transform: rotate(180deg); }
+    .tf-body { display: none; padding: 4px 18px 16px; }
+    .tf-row.open .tf-body { display: block; }
+    .tf-body .form-desc { margin-top: 6px; }
+
+    .tf-step { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
+    .tf-step-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; user-select: none; background: var(--sidebar-bg); transition: background .12s; }
+    .tf-step-header:hover { background: rgba(255,255,255,.04); }
+    .tf-step-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); flex: 1; }
+    .tf-step-preview { font-size: 12px; color: var(--text-muted); flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tf-step-body { display: none; padding: 14px 16px; background: var(--sidebar-bg); border-top: 1px solid var(--border); }
+    .tf-step.open .tf-step-body { display: block; }
+    .tf-step.open .tf-arrow { transform: rotate(180deg); }
+
+    .faq-edit-item .faq-item-header { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+    .faq-edit-item .faq-item-preview { font-size: 12px; color: var(--text-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .faq-edit-item .faq-item-body { display: none; margin-top: 12px; }
+    .faq-edit-item.open .faq-item-body { display: block; }
+    .faq-edit-item.open .tf-arrow { transform: rotate(180deg); }
+    </style>
+
     <form method="post" action="/admin/?tab=setari">
         <input type="hidden" name="action" value="save_settings">
 
-        <div class="card">
-            <div class="card-title">Banner &amp; Hero</div>
+        <div class="tf-card">
+            <div class="tf-card-title">Banner &amp; Hero</div>
 
-            <div class="form-group">
-                <label for="s_announcement">Anunț banner</label>
-                <textarea id="s_announcement" name="announcement" rows="2"><?= h($settings['announcement']) ?></textarea>
-                <p class="form-desc">Textul afișat în bannerul de anunț de sub hero.</p>
-            </div>
-
-            <div class="form-group">
-                <label for="s_hero_title">Titlu hero</label>
-                <textarea id="s_hero_title" name="hero_title" rows="3"><?= h($settings['hero_title']) ?></textarea>
-                <p class="form-desc">Suportă HTML, ex: <code>&lt;em&gt;text italic&lt;/em&gt;</code>, <code>&lt;br&gt;</code>.</p>
-            </div>
-
-            <div class="form-group">
-                <label for="s_hero_btn">Text buton hero</label>
-                <input type="text" id="s_hero_btn" name="hero_btn" value="<?= h($settings['hero_btn']) ?>">
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Secțiuni</div>
-
-            <div class="form-group">
-                <label for="s_courses_title">Titlu secțiune Cursuri</label>
-                <input type="text" id="s_courses_title" name="courses_title" value="<?= h($settings['courses_title']) ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="s_newsletter_title">Titlu secțiune Newsletter</label>
-                <input type="text" id="s_newsletter_title" name="newsletter_title" value="<?= h($settings['newsletter_title']) ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="s_newsletter_desc">Descriere Newsletter</label>
-                <textarea id="s_newsletter_desc" name="newsletter_desc" rows="3"><?= h($settings['newsletter_desc']) ?></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="s_collab_title">Titlu secțiune Colaborare</label>
-                <input type="text" id="s_collab_title" name="collab_title" value="<?= h($settings['collab_title']) ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="s_collab_subtitle">Subtitlu secțiune Colaborare</label>
-                <textarea id="s_collab_subtitle" name="collab_subtitle" rows="2"><?= h($settings['collab_subtitle']) ?></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="s_contact_title">Titlu secțiune Contact</label>
-                <input type="text" id="s_contact_title" name="contact_title" value="<?= h($settings['contact_title']) ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="s_contact_subtitle">Subtitlu secțiune Contact</label>
-                <textarea id="s_contact_subtitle" name="contact_subtitle" rows="2"><?= h($settings['contact_subtitle']) ?></textarea>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Cum funcționează – Pași</div>
-            <?php foreach ($settings['steps'] as $i => $step): $n = $i + 1; ?>
-            <div style="background:var(--sidebar-bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px">
-                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Pasul <?= $n ?></div>
-                <div class="form-group">
-                    <label>Titlu</label>
-                    <input type="text" name="step_title[]" value="<?= h($step['title']) ?>">
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Anunț banner</span>
+                    <span class="tf-preview"><?= h($settings['announcement']) ?></span>
+                    <span class="tf-arrow">▼</span>
                 </div>
-                <div class="form-group" style="margin-bottom:0">
-                    <label>Text</label>
-                    <textarea name="step_text[]" rows="2"><?= h($step['text']) ?></textarea>
+                <div class="tf-body">
+                    <textarea id="s_announcement" name="announcement" rows="2" class="form-group" style="margin:0;width:100%"><?= h($settings['announcement']) ?></textarea>
+                    <p class="form-desc">Textul afișat în bannerul de anunț de sub hero.</p>
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Titlu hero</span>
+                    <span class="tf-preview"><?= h(strip_tags($settings['hero_title'])) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <textarea id="s_hero_title" name="hero_title" rows="3" style="width:100%"><?= h($settings['hero_title']) ?></textarea>
+                    <p class="form-desc">Suportă HTML, ex: <code>&lt;em&gt;text italic&lt;/em&gt;</code>, <code>&lt;br&gt;</code>.</p>
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Text buton hero</span>
+                    <span class="tf-preview"><?= h($settings['hero_btn']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <input type="text" id="s_hero_btn" name="hero_btn" value="<?= h($settings['hero_btn']) ?>" style="width:100%">
+                </div>
+            </div>
+        </div>
+
+        <div class="tf-card">
+            <div class="tf-card-title">Secțiuni</div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Titlu Cursuri</span>
+                    <span class="tf-preview"><?= h($settings['courses_title']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <input type="text" id="s_courses_title" name="courses_title" value="<?= h($settings['courses_title']) ?>" style="width:100%">
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Titlu Newsletter</span>
+                    <span class="tf-preview"><?= h($settings['newsletter_title']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <input type="text" id="s_newsletter_title" name="newsletter_title" value="<?= h($settings['newsletter_title']) ?>" style="width:100%">
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Descriere Newsletter</span>
+                    <span class="tf-preview"><?= h($settings['newsletter_desc']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <textarea id="s_newsletter_desc" name="newsletter_desc" rows="3" style="width:100%"><?= h($settings['newsletter_desc']) ?></textarea>
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Titlu Colaborare</span>
+                    <span class="tf-preview"><?= h($settings['collab_title']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <input type="text" id="s_collab_title" name="collab_title" value="<?= h($settings['collab_title']) ?>" style="width:100%">
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Subtitlu Colaborare</span>
+                    <span class="tf-preview"><?= h($settings['collab_subtitle']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <textarea id="s_collab_subtitle" name="collab_subtitle" rows="2" style="width:100%"><?= h($settings['collab_subtitle']) ?></textarea>
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Titlu Contact</span>
+                    <span class="tf-preview"><?= h($settings['contact_title']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <input type="text" id="s_contact_title" name="contact_title" value="<?= h($settings['contact_title']) ?>" style="width:100%">
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Subtitlu Contact</span>
+                    <span class="tf-preview"><?= h($settings['contact_subtitle']) ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <textarea id="s_contact_subtitle" name="contact_subtitle" rows="2" style="width:100%"><?= h($settings['contact_subtitle']) ?></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="tf-card">
+            <div class="tf-card-title">Cum funcționează – Pași</div>
+            <?php foreach ($settings['steps'] as $i => $step): $n = $i + 1; ?>
+            <div class="tf-step <?= $n === 1 ? '' : '' ?>">
+                <div class="tf-step-header" onclick="this.closest('.tf-step').classList.toggle('open')">
+                    <span class="tf-step-label">Pasul <?= $n ?></span>
+                    <span class="tf-step-preview"><?= h($step['title']) ?></span>
+                    <span class="tf-arrow" style="color:var(--text-muted);font-size:11px;transition:transform .2s">▼</span>
+                </div>
+                <div class="tf-step-body">
+                    <div class="form-group">
+                        <label>Titlu</label>
+                        <input type="text" name="step_title[]" value="<?= h($step['title']) ?>">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label>Text</label>
+                        <textarea name="step_text[]" rows="2"><?= h($step['text']) ?></textarea>
+                    </div>
                 </div>
             </div>
             <?php endforeach; ?>
         </div>
 
-        <div class="card">
-            <div class="card-title">FAQ – Întrebări frecvente</div>
-            <div id="faq-editor">
+        <div class="tf-card">
+            <div class="tf-card-title">FAQ – Întrebări frecvente</div>
+            <div id="faq-editor" style="padding:8px 8px 4px">
                 <?php foreach ($settings['faq_items'] as $i => $item): ?>
-                <div class="faq-edit-item" style="background:var(--sidebar-bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px;position:relative">
-                    <button type="button" onclick="removeFaqItem(this)" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>
-                    <div class="form-group">
-                        <label>Întrebare</label>
-                        <input type="text" name="faq_q[]" value="<?= h($item['q']) ?>">
+                <div class="faq-edit-item" style="background:var(--sidebar-bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative">
+                    <div class="faq-item-header" onclick="this.closest('.faq-edit-item').classList.toggle('open')">
+                        <span style="font-size:13px;font-weight:600;color:var(--text);flex-shrink:0">Q</span>
+                        <span class="faq-item-preview"><?= h($item['q']) ?></span>
+                        <span class="tf-arrow" style="color:var(--text-muted);font-size:11px;transition:transform .2s;margin-right:24px">▼</span>
+                        <button type="button" onclick="event.stopPropagation();this.closest('.faq-edit-item').remove()" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>
                     </div>
-                    <div class="form-group" style="margin-bottom:0">
-                        <label>Răspuns</label>
-                        <textarea name="faq_a[]" rows="3"><?= h($item['a']) ?></textarea>
+                    <div class="faq-item-body">
+                        <div class="form-group" style="margin-top:10px">
+                            <label>Întrebare</label>
+                            <input type="text" name="faq_q[]" value="<?= h($item['q']) ?>">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label>Răspuns</label>
+                            <textarea name="faq_a[]" rows="3"><?= h($item['a']) ?></textarea>
+                        </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
             </div>
-            <button type="button" onclick="addFaqItem()" class="btn btn-secondary" style="margin-top:4px;font-size:13px">+ Adaugă întrebare</button>
+            <div style="padding:0 8px 12px">
+                <button type="button" onclick="addFaqItem()" class="btn btn-secondary" style="font-size:13px">+ Adaugă întrebare</button>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary" style="margin-bottom:24px">Salvează setările</button>
     </form>
     <script>
+    function toggleTf(header) {
+        header.closest('.tf-row').classList.toggle('open');
+    }
     function addFaqItem() {
         const editor = document.getElementById('faq-editor');
         const div = document.createElement('div');
-        div.className = 'faq-edit-item';
-        div.style.cssText = 'background:var(--sidebar-bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px;position:relative';
-        div.innerHTML = '<button type="button" onclick="removeFaqItem(this)" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>'
-            + '<div class="form-group"><label>Întrebare</label><input type="text" name="faq_q[]" value=""></div>'
-            + '<div class="form-group" style="margin-bottom:0"><label>Răspuns</label><textarea name="faq_a[]" rows="3"></textarea></div>';
+        div.className = 'faq-edit-item open';
+        div.style.cssText = 'background:var(--sidebar-bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative';
+        div.innerHTML = '<div class="faq-item-header" onclick="this.closest(\'.faq-edit-item\').classList.toggle(\'open\')">'
+            + '<span style="font-size:13px;font-weight:600;color:var(--text);flex-shrink:0">Q</span>'
+            + '<span class="faq-item-preview">Întrebare nouă</span>'
+            + '<span class="tf-arrow" style="color:var(--text-muted);font-size:11px;transition:transform .2s;margin-right:24px">▼</span>'
+            + '<button type="button" onclick="event.stopPropagation();this.closest(\'.faq-edit-item\').remove()" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>'
+            + '</div>'
+            + '<div class="faq-item-body" style="display:block">'
+            + '<div class="form-group" style="margin-top:10px"><label>Întrebare</label><input type="text" name="faq_q[]" value=""></div>'
+            + '<div class="form-group" style="margin-bottom:0"><label>Răspuns</label><textarea name="faq_a[]" rows="3"></textarea></div>'
+            + '</div>';
         editor.appendChild(div);
         div.querySelector('input').focus();
     }
