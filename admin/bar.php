@@ -605,8 +605,25 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
 // ── Section Background Editor ─────────────────────────────────────────────────
 (function(){
     let selSection = null;
-    // Gallery images passed from PHP
-    const galleryImgs = <?= json_encode(array_values($_clp_s['hero_images'] ?? [])) ?>;
+    // All images from assets/images + uploads
+    const galleryImgs = <?php
+        $_sbg_imgs = [];
+        $_sbg_dirs = [
+            [dirname(__DIR__) . '/assets/images', '/assets/images/'],
+            [dirname(__DIR__) . '/assets/images/uploads', '/assets/images/uploads/'],
+        ];
+        foreach ($_sbg_dirs as [$dir, $prefix]) {
+            if (!is_dir($dir)) continue;
+            foreach (scandir($dir) as $f) {
+                if ($f[0] === '.' || !is_file("$dir/$f")) continue;
+                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                if (in_array($ext, ['jpg','jpeg','png','webp','gif'])) {
+                    $_sbg_imgs[] = $prefix . $f;
+                }
+            }
+        }
+        echo json_encode(array_values(array_unique($_sbg_imgs)));
+    ?>;
 
     // Build gallery on init
     (function buildGallery() {
