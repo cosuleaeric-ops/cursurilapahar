@@ -217,6 +217,7 @@ ul { list-style: none; }
   letter-spacing: var(--nav-link-spacing, 0.10em);
   transition: color var(--transition);
   white-space: nowrap;
+  cursor: pointer;
 }
 .navbar-links a:hover { color: var(--accent); }
 .navbar-right {
