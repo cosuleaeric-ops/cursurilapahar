@@ -111,6 +111,11 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
   }));
 })();
 
+// ── Email validator ───────────────────────
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 // ── Newsletter form ───────────────────────
 const nlForm = document.getElementById('newsletterForm');
 if (nlForm) {
@@ -121,6 +126,11 @@ if (nlForm) {
     const btn   = nlForm.querySelector('button[type="submit"]');
 
     if (!email) return;
+    if (!isValidEmail(email)) {
+      msg.className = 'form-message error';
+      msg.textContent = 'Adresa de email nu este validă. Verifică formatul (ex: nume@exemplu.ro).';
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = 'Se trimite…';
@@ -173,6 +183,11 @@ if (contactForm) {
     if (!payload.name || !payload.email || !payload.message) {
       msg.className = 'form-message error';
       msg.textContent = 'Te rugăm completează toate câmpurile.';
+      return;
+    }
+    if (!isValidEmail(payload.email)) {
+      msg.className = 'form-message error';
+      msg.textContent = 'Adresa de email nu este validă. Verifică formatul (ex: nume@exemplu.ro).';
       return;
     }
 
@@ -229,6 +244,19 @@ innerForms.forEach(form => {
       if (!payload[cb.name]) payload[cb.name] = [];
     });
     payload.form_type = type;
+
+    // Validate email if present
+    const emailField = form.querySelector('input[type="email"]');
+    if (emailField) {
+      const emailVal = emailField.value.trim();
+      if (!emailVal || !isValidEmail(emailVal)) {
+        if (msg) {
+          msg.className = 'form-message error';
+          msg.textContent = 'Adresa de email nu este validă. Verifică formatul (ex: nume@exemplu.ro).';
+        }
+        return;
+      }
+    }
 
     btn.disabled = true;
     btn.textContent = 'Se trimite…';
