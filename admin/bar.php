@@ -596,6 +596,11 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             for (const [key, style] of Object.entries(styles)) {
                 css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
             }
+            // Constrain page width to simulate device
+            css += 'body:not(#x) { max-width: ' + width + 'px !important; margin-left: auto !important; margin-right: auto !important; }\n';
+            css += '.navbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
+            css += '#clp-adminbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
+
             styleEl.textContent = css;
             document.head.appendChild(styleEl);
 
