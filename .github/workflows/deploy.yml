@@ -5,18 +5,40 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  deploy-robotache:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy via FTP
+      - name: Deploy to robotache.ro
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          force-upload: true
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.claude/**
+            **/data/**
+            .claude/
+            data/
+
+  deploy-cursurilapahar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to cursurilapahar.ro
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST_2 }}
+          username: ${{ secrets.FTP_USERNAME_2 }}
+          password: ${{ secrets.FTP_PASSWORD_2 }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR_2 }}
           dangerous-clean-slate: false
           force-upload: true
           exclude: |
