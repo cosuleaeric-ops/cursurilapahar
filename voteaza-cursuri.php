@@ -232,11 +232,13 @@ shuffle($vote_courses);
 
 <!-- ── PAGE CONTENT ─────────────────────── -->
 <section class="vote-section">
-    <div class="vote-header">
-        <a href="/" onclick="if(history.length>1){history.back();return false}" class="page-hero-back" style="display:inline-flex;margin-bottom:24px;">
+    <div style="max-width:500px;margin:0 auto 24px;">
+        <a href="/" onclick="if(history.length>1){history.back();return false}" class="page-hero-back" style="display:inline-flex;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             Înapoi
         </a>
+    </div>
+    <div class="vote-header">
         <h1 <?= clp_e('vote_title', $settings) ?>><?= htmlspecialchars($vote_title) ?></h1>
         <p <?= clp_e('vote_subtitle', $settings) ?>><?= htmlspecialchars($vote_subtitle) ?></p>
     </div>
