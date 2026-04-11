@@ -64,7 +64,7 @@ shuffle($vote_courses);
     .vote-section {
         max-width: 900px;
         margin: 0 auto;
-        padding: 60px 20px 80px;
+        padding: 100px 20px 80px;
     }
     .vote-header {
         text-align: center;
