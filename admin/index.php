@@ -699,20 +699,53 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
     $key   = trim($_POST['key']   ?? '');
     $value = trim($_POST['value'] ?? '');
     $style = trim($_POST['style'] ?? '');
-    $allowed = ['hero_title','announcement','courses_title','newsletter_title',
-                'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
+    $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
+                     'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
     header('Content-Type: application/json');
-    if ($key && in_array($key, $allowed)) {
+    $ok = false;
+    if ($key) {
         $s = load_settings();
-        $s[$key] = $value;
         if (!isset($s['element_styles'])) $s['element_styles'] = [];
-        if ($style) $s['element_styles'][$key] = $style;
-        else unset($s['element_styles'][$key]);
-        save_settings($s);
-        echo json_encode(['ok' => true]);
-    } else {
-        echo json_encode(['ok' => false]);
+
+        // step_{i}_title or step_{i}_text
+        if (preg_match('/^step_(\d+)_(title|text)$/', $key, $m)) {
+            $idx  = (int)$m[1];
+            $prop = $m[2];
+            $defaults = [
+                ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
+                ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
+                ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
+                ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
+            ];
+            if (!isset($s['steps'])) $s['steps'] = $defaults;
+            if (isset($s['steps'][$idx])) {
+                $s['steps'][$idx][$prop] = $value;
+                if ($style) $s['element_styles'][$key] = $style;
+                else unset($s['element_styles'][$key]);
+                $ok = true;
+            }
+        // faq_{i}_q or faq_{i}_a
+        } elseif (preg_match('/^faq_(\d+)_(q|a)$/', $key, $m)) {
+            $idx  = (int)$m[1];
+            $prop = $m[2];
+            if (!isset($s['faq_items'])) $s['faq_items'] = [];
+            if (isset($s['faq_items'][$idx])) {
+                $s['faq_items'][$idx][$prop] = $value;
+                if ($style) $s['element_styles'][$key] = $style;
+                else unset($s['element_styles'][$key]);
+                $ok = true;
+            }
+        // flat keys
+        } elseif (in_array($key, $flat_allowed)) {
+            $s[$key] = $value;
+            if ($style) $s['element_styles'][$key] = $style;
+            else unset($s['element_styles'][$key]);
+            $ok = true;
+        }
+
+        if ($ok) save_settings($s);
     }
+    echo json_encode(['ok' => $ok]);
     exit;
 }
 

@@ -146,7 +146,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     $font_body    = $settings['font_body']    ?? 'Inter';
     $fonts_param  = 'family=' . urlencode($font_heading) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=' . urlencode($font_body) . ':wght@300;400;500&display=swap';
     ?>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@800&<?= $fonts_param ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&<?= $fonts_param ?>" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
     <?php if (!empty($settings['favicon_path'])): ?>
     <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
@@ -312,8 +312,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
             <div class="step">
                 <div class="step-number"><?= str_pad($i + 1, 2, '0', STR_PAD_LEFT) ?></div>
                 <div class="step-icon"><?= $step_icons[$i] ?? $step_icons[0] ?></div>
-                <h3><?= htmlspecialchars($step['title']) ?></h3>
-                <p><?= htmlspecialchars($step['text']) ?></p>
+                <h3 <?= clp_e('step_'.$i.'_title', $settings) ?>><?= htmlspecialchars($step['title']) ?></h3>
+                <p <?= clp_e('step_'.$i.'_text', $settings) ?>><?= htmlspecialchars($step['text']) ?></p>
             </div>
             <?php endforeach; ?>
         </div>
@@ -326,14 +326,14 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="container container-narrow">
         <h2 class="section-title">Întrebări frecvente</h2>
         <div class="faq-list">
-            <?php foreach ($settings['faq_items'] as $faq): ?>
+            <?php foreach ($settings['faq_items'] as $fi => $faq): ?>
             <div class="faq-item">
                 <button class="faq-question" aria-expanded="false">
-                    <?= htmlspecialchars($faq['q']) ?>
+                    <span <?= clp_e('faq_'.$fi.'_q', $settings) ?>><?= htmlspecialchars($faq['q']) ?></span>
                     <span class="faq-icon" aria-hidden="true"></span>
                 </button>
                 <div class="faq-answer">
-                    <p><?= nl2br(htmlspecialchars($faq['a'])) ?></p>
+                    <p <?= clp_e('faq_'.$fi.'_a', $settings) ?>><?= htmlspecialchars($faq['a']) ?></p>
                 </div>
             </div>
             <?php endforeach; ?>

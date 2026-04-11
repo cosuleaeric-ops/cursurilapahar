@@ -116,6 +116,7 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
         <option value="Poppins, sans-serif">Poppins</option>
         <option value="Inter, sans-serif">Inter</option>
         <option value="Nunito, sans-serif">Nunito</option>
+        <option value="Rubik, sans-serif">Rubik</option>
         <option value="Anton, sans-serif">Anton</option>
         <option value="Georgia, serif">Georgia</option>
         <option value="system-ui, sans-serif">System</option>
@@ -188,8 +189,18 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
         if (!selEl) return;
         const fw = document.getElementById('clp-tb-fw').value;
         const it = document.getElementById('clp-tb-italic').classList.contains('on');
-        const ff = document.getElementById('clp-tb-ff').value;
+        let   ff = document.getElementById('clp-tb-ff').value;
         const fs = document.getElementById('clp-tb-fs').value;
+
+        // Anton only has one weight — auto-switch to Poppins when weight is changed
+        if (fw && !ff) {
+            const currentFont = window.getComputedStyle(selEl).fontFamily.toLowerCase();
+            if (currentFont.includes('anton')) {
+                ff = 'Poppins, sans-serif';
+                document.getElementById('clp-tb-ff').value = 'Poppins, sans-serif';
+            }
+        }
+
         selEl.style.fontWeight  = fw  || '';
         selEl.style.fontStyle   = it  ? 'italic' : '';
         selEl.style.fontFamily  = ff  || '';
