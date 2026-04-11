@@ -265,42 +265,63 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $upload_ok    = '';
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','webp','gif','avif'];
+            $allowed = ['jpg','jpeg','png','webp','gif','avif','heic','heif'];
             if (in_array($ext, $allowed)) {
                 $base = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($file['name'], PATHINFO_FILENAME));
-                $new_name = $base . '.webp';
+                $new_name = $base . '-' . time() . '.webp';
                 $dest = UPLOADS_DIR . '/' . $new_name;
-                $img = match($ext) {
-                    'jpg','jpeg' => @imagecreatefromjpeg($file['tmp_name']),
-                    'png'        => @imagecreatefrompng($file['tmp_name']),
-                    'webp'       => @imagecreatefromwebp($file['tmp_name']),
-                    'gif'        => @imagecreatefromgif($file['tmp_name']),
-                    default      => false,
-                };
-                if ($img) {
-                    // Resize to max 1920px wide
-                    $w = imagesx($img); $h = imagesy($img);
-                    if ($w > 1920) {
-                        $img2 = imagescale($img, 1920, (int)($h * 1920 / $w), IMG_BICUBIC);
-                        imagedestroy($img); $img = $img2;
-                    }
-                    if (imagewebp($img, $dest, 82)) {
-                        imagedestroy($img);
-                        $upload_ok = 'Imaginea a fost încărcată și convertită în WebP: ' . h($new_name);
+                // HEIC/HEIF: requires Imagick (GD doesn't support it)
+                if (in_array($ext, ['heic','heif'])) {
+                    if (class_exists('Imagick')) {
+                        try {
+                            $imagick = new Imagick($file['tmp_name']);
+                            $imagick->setImageFormat('webp');
+                            $imagick->setImageCompressionQuality(82);
+                            if ($imagick->getImageWidth() > 1920) {
+                                $imagick->resizeImage(1920, 0, Imagick::FILTER_LANCZOS, 1);
+                            }
+                            $imagick->writeImage($dest);
+                            $imagick->clear();
+                            $upload_ok = 'Imaginea HEIC a fost convertită în WebP: ' . h($new_name);
+                        } catch (Exception $e) {
+                            $upload_error = 'Eroare la conversia HEIC: ' . h($e->getMessage());
+                        }
                     } else {
-                        imagedestroy($img);
-                        $upload_error = 'Eroare la salvarea WebP.';
+                        $upload_error = 'Serverul nu suportă HEIC (lipsește extensia Imagick). Convertește în JPG/PNG înainte de upload.';
                     }
                 } else {
-                    // GD can't read it (e.g. avif) — save as-is
-                    if (move_uploaded_file($file['tmp_name'], UPLOADS_DIR . '/' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name'])))) {
-                        $upload_ok = 'Imaginea a fost încărcată: ' . h(basename($file['name']));
+                    $img = match($ext) {
+                        'jpg','jpeg' => @imagecreatefromjpeg($file['tmp_name']),
+                        'png'        => @imagecreatefrompng($file['tmp_name']),
+                        'webp'       => @imagecreatefromwebp($file['tmp_name']),
+                        'gif'        => @imagecreatefromgif($file['tmp_name']),
+                        default      => false,
+                    };
+                    if ($img) {
+                        // Resize to max 1920px wide
+                        $w = imagesx($img); $h = imagesy($img);
+                        if ($w > 1920) {
+                            $img2 = imagescale($img, 1920, (int)($h * 1920 / $w), IMG_BICUBIC);
+                            imagedestroy($img); $img = $img2;
+                        }
+                        if (imagewebp($img, $dest, 82)) {
+                            imagedestroy($img);
+                            $upload_ok = 'Imaginea a fost încărcată și convertită în WebP: ' . h($new_name);
+                        } else {
+                            imagedestroy($img);
+                            $upload_error = 'Eroare la salvarea WebP.';
+                        }
                     } else {
-                        $upload_error = 'Eroare la salvarea fișierului.';
+                        // GD can't read it (e.g. avif) — save as-is
+                        if (move_uploaded_file($file['tmp_name'], UPLOADS_DIR . '/' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name'])))) {
+                            $upload_ok = 'Imaginea a fost încărcată: ' . h(basename($file['name']));
+                        } else {
+                            $upload_error = 'Eroare la salvarea fișierului.';
+                        }
                     }
                 }
             } else {
-                $upload_error = 'Format neacceptat. Folosește JPG, PNG, WEBP sau GIF.';
+                $upload_error = 'Format neacceptat. Folosește JPG, PNG, WEBP, GIF sau HEIC.';
             }
         } else {
             $upload_error = 'Niciun fișier selectat sau eroare la upload.';
@@ -392,12 +413,26 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $file = $_FILES['logo_file'] ?? null;
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg','jpeg','png','webp','svg'])) {
+            if (in_array($ext, ['jpg','jpeg','png','webp','svg','heic','heif'])) {
                 $uploads_dir = PUBLIC_HTML . '/assets/images/uploads';
                 if (!is_dir($uploads_dir)) @mkdir($uploads_dir, 0755, true);
-                $new_name = 'logo-' . time() . '.' . $ext;
+                $out_ext  = in_array($ext, ['heic','heif']) ? 'webp' : $ext;
+                $new_name = 'logo-' . time() . '.' . $out_ext;
                 $dest = $uploads_dir . '/' . $new_name;
-                if (move_uploaded_file($file['tmp_name'], $dest)) {
+                $saved = false;
+                if (in_array($ext, ['heic','heif']) && class_exists('Imagick')) {
+                    try {
+                        $im = new Imagick($file['tmp_name']);
+                        $im->setImageFormat('webp');
+                        $im->setImageCompressionQuality(90);
+                        $im->writeImage($dest);
+                        $im->clear();
+                        $saved = true;
+                    } catch (Exception $e) { $saved = false; }
+                } else {
+                    $saved = move_uploaded_file($file['tmp_name'], $dest);
+                }
+                if ($saved) {
                     $settings = load_settings();
                     $settings['logo_path'] = '/assets/images/uploads/' . $new_name;
                     save_settings($settings);
@@ -1276,7 +1311,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <form method="post" action="/admin/?tab=imagini" enctype="multipart/form-data">
             <input type="hidden" name="action" value="upload_image">
             <div style="display:flex;gap:8px;align-items:center">
-                <input type="file" name="image_file" accept="image/*" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+                <input type="file" name="image_file" accept="image/*,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
                 <button type="submit" class="btn btn-primary">Încarcă</button>
             </div>
             <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
@@ -1651,7 +1686,7 @@ function addNavLink() {
     <form method="post" action="/admin/?tab=aspect" enctype="multipart/form-data">
         <input type="hidden" name="action" value="upload_logo">
         <div style="display:flex;gap:8px;align-items:center">
-            <input type="file" name="logo_file" accept=".jpg,.jpeg,.png,.webp,.svg" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+            <input type="file" name="logo_file" accept=".jpg,.jpeg,.png,.webp,.svg,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
             <button type="submit" class="btn btn-primary">Încarcă logo</button>
         </div>
         <p class="form-desc">Formate: JPG, PNG, WEBP, SVG.</p>
