@@ -192,7 +192,7 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     <button class="bar-link" id="clp-fonts-btn" onclick="clpToggleFontPanel()">🔤 Fonturi</button>
     <button class="bar-link" id="clp-navbar-btn" onclick="clpToggleNavbarPanel()">🖊 Navbar</button>
     <button class="bar-link" id="clp-edit-btn" onclick="clpToggleEdit()">✏ Editează live</button>
-    <button class="bar-link" id="clp-tb-device" onclick="clpToggleDevice()" style="color:#f0c040 !important;font-weight:600 !important;">🖥️</button>
+    <button class="bar-link" id="clp-tb-device" onclick="clpToggleDevice()" style="color:#f0c040 !important;font-weight:600 !important;">🖥️ Desktop</button>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
     <?php endif; ?>
@@ -553,7 +553,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     const _tabletStyles = <?= json_encode($_clp_s['element_styles_tablet'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
     const _mobileStyles = <?= json_encode($_clp_s['element_styles_mobile'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
     const _devices = ['desktop', 'tablet', 'mobile'];
-    const _deviceIcons = { desktop: '\u{1F5A5}\uFE0F', tablet: '\u{1F4BB}', mobile: '\u{1F4F1}' };
+    const _deviceLabels = { desktop: '\u{1F5A5}\uFE0F Desktop', tablet: '\u{1F4BB} Tabletă', mobile: '\u{1F4F1} Telefon' };
     const _deviceTitles = { desktop: 'Editezi: Desktop', tablet: 'Editezi: Tabletă', mobile: 'Editezi: Telefon' };
     const _deviceWidths = { desktop: null, tablet: '768px', mobile: '390px' };
 
@@ -569,7 +569,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         const idx = (_devices.indexOf(editDevice) + 1) % 3;
         editDevice = _devices[idx];
         const btn = document.getElementById('clp-tb-device');
-        btn.textContent = _deviceIcons[editDevice];
+        btn.textContent = _deviceLabels[editDevice];
         btn.title = _deviceTitles[editDevice];
 
         // Re-read computed styles if an element is selected
