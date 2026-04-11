@@ -574,32 +574,35 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
 
         if (selEl) clpOnFocus({ currentTarget: selEl });
 
-        // Remove existing preview
-        let overlay = document.getElementById('clp-preview-overlay');
+        // Remove existing preview styles
         let styleEl = document.getElementById('clp-device-preview');
-        if (overlay) overlay.remove();
         if (styleEl) styleEl.remove();
 
         if (editDevice !== 'desktop') {
             const width = editDevice === 'tablet' ? 768 : 390;
+
+            // Inject device styles + resize window
+            styleEl = document.createElement('style');
+            styleEl.id = 'clp-device-preview';
+            let css = '/* ' + editDevice + ' preview */\n';
+
+            // Apply saved device styles
+            const styles = editDevice === 'tablet' ? _tabletStyles : _mobileStyles;
+            if (editDevice === 'mobile') {
+                for (const [key, style] of Object.entries(_tabletStyles)) {
+                    css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
+                }
+            }
+            for (const [key, style] of Object.entries(styles)) {
+                css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
+            }
+            styleEl.textContent = css;
+            document.head.appendChild(styleEl);
+
+            // Open preview in popup window at device size
             const height = editDevice === 'tablet' ? 1024 : 844;
-
-            // Create overlay with iframe
-            overlay = document.createElement('div');
-            overlay.id = 'clp-preview-overlay';
-            overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
-
-            const label = document.createElement('div');
-            label.style.cssText = 'color:#fff;font-size:13px;font-family:-apple-system,sans-serif;opacity:.7;';
-            label.textContent = _deviceTitles[editDevice] + ' (' + width + '×' + height + ') — Click pe ' + _deviceLabels[editDevice] + ' pentru a ieși';
-
-            const frame = document.createElement('iframe');
-            frame.src = location.href;
-            frame.style.cssText = 'width:' + width + 'px;height:' + height + 'px;border:2px solid rgba(255,255,255,.2);border-radius:16px;background:#000;';
-
-            overlay.appendChild(label);
-            overlay.appendChild(frame);
-            document.body.appendChild(overlay);
+            const popup = window.open(location.href, 'clp_preview', 'width=' + width + ',height=' + height + ',scrollbars=yes,resizable=yes');
+            if (popup) popup.focus();
         }
     };
 
