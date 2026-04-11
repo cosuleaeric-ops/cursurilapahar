@@ -835,11 +835,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 <!-- ── ADMIN PANEL ─────────────────────────────────────────────────────────── -->
 
 <header class="wp-header">
-    <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
     <div style="display:flex;align-items:center;gap:10px">
+        <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
         <a href="/" target="_blank" style="color:rgba(255,255,255,.7);font-size:12px;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,.2);border-radius:3px;transition:background .1s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background=''">🌐 Vezi site</a>
-        <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
     </div>
+    <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
 <div class="wp-layout">

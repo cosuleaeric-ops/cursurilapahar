@@ -200,6 +200,7 @@ ul { list-style: none; }
   display: flex;
   gap: 28px;
   align-items: center;
+  margin-left: auto;
 }
 .navbar-links a {
   font-size: .9rem;
@@ -349,7 +350,7 @@ ul { list-style: none; }
 }
 .hero-title {
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 5.5vw, 4.5rem);
+  font-size: clamp(1.65rem, 5.5vw, 4.5rem);
   font-weight: 400;
   line-height: 1.1;
   color: #fff;
