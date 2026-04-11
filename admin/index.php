@@ -288,8 +288,8 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Resize to max 1920px wide
                     $w = imagesx($img); $h = imagesy($img);
                     if ($w > 1920) {
-                        $img2 = imagescale($img, 1920, (int)($h * 1920 / $w), IMG_BICUBIC);
-                        imagedestroy($img); $img = $img2;
+                        $img2 = imagescale($img, 1920, -1);
+                        if ($img2) { imagedestroy($img); $img = $img2; }
                     }
                     if (imagewebp($img, $dest, 82)) {
                         imagedestroy($img);
