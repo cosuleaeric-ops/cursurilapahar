@@ -121,31 +121,31 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="guc_name">Nume și prenume *</label>
-                        <input type="text" id="guc_name" name="name" placeholder="Ion Popescu" required>
+                        <input type="text" id="guc_name" name="name" required>
                     </div>
                     <div class="form-group">
                         <label for="guc_email">Email *</label>
-                        <input type="email" id="guc_email" name="email" placeholder="email@exemplu.ro" required>
+                        <input type="email" id="guc_email" name="email" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="guc_phone">Număr de telefon</label>
-                        <input type="tel" id="guc_phone" name="phone" placeholder="07xx xxx xxx">
+                        <input type="tel" id="guc_phone" name="phone">
                     </div>
                     <div class="form-group">
                         <label for="guc_venue">Cum se numește localul? *</label>
-                        <input type="text" id="guc_venue" name="venue_name" placeholder="Ex: Twisted Olives" required>
+                        <input type="text" id="guc_venue" name="venue_name" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="guc_city">În ce oraș? *</label>
-                        <input type="text" id="guc_city" name="city" placeholder="București" required>
+                        <input type="text" id="guc_city" name="city" required>
                     </div>
                     <div class="form-group">
                         <label for="guc_capacity">Capacitate (seated)</label>
-                        <input type="text" id="guc_capacity" name="capacity" placeholder="Ex: 50 persoane">
+                        <input type="text" id="guc_capacity" name="capacity">
                     </div>
                 </div>
                 <div class="form-group">
@@ -167,7 +167,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
                 </div>
                 <div class="form-group">
                     <label for="guc_other">Mai e ceva ce vrei să ne transmiți?</label>
-                    <textarea id="guc_other" name="other" rows="3" placeholder="Orice altceva relevant despre spațiu sau despre tine..."></textarea>
+                    <textarea id="guc_other" name="other" rows="3"></textarea>
                 </div>
                 <button type="submit" class="btn btn-accent">Trimite</button>
                 <div class="form-message" aria-live="polite"></div>

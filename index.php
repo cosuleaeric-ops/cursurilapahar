@@ -346,7 +346,7 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
         <p class="newsletter-desc" <?= clp_e('newsletter_desc',$settings) ?>><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
         <form class="newsletter-form" id="newsletterForm" novalidate>
             <div class="newsletter-fields">
-                <input type="email" name="email" id="nlEmail" placeholder="Adresa ta de email" required autocomplete="email">
+                <input type="email" name="email" id="nlEmail" required autocomplete="email">
                 <button type="submit" class="btn btn-accent">Anunță-mă</button>
             </div>
             <p class="newsletter-note">100% gratuit. Te poți dezabona oricând.</p>
@@ -448,16 +448,16 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
             <div class="form-row">
                 <div class="form-group">
                     <label for="contactName">Nume</label>
-                    <input type="text" id="contactName" name="name" placeholder="Numele tău" required>
+                    <input type="text" id="contactName" name="name" required>
                 </div>
                 <div class="form-group">
                     <label for="contactEmail">Email</label>
-                    <input type="email" id="contactEmail" name="email" placeholder="email@exemplu.ro" required>
+                    <input type="email" id="contactEmail" name="email" required>
                 </div>
             </div>
             <div class="form-group">
                 <label for="contactMsg">Mesaj</label>
-                <textarea id="contactMsg" name="message" rows="5" placeholder="Scrie mesajul tău aici..." required></textarea>
+                <textarea id="contactMsg" name="message" rows="5" required></textarea>
             </div>
             <button type="submit" class="btn btn-accent">Trimite mesajul</button>
             <div class="form-message" id="contactMessage" aria-live="polite"></div>

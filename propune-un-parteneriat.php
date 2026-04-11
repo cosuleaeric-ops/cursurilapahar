@@ -114,21 +114,21 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
                 <div class="form-row">
                     <div class="form-group">
                         <label for="pp_partner">Nume partener / companie *</label>
-                        <input type="text" id="pp_partner" name="partner_name" placeholder="Ex: Brandul Tău SRL" required>
+                        <input type="text" id="pp_partner" name="partner_name" required>
                     </div>
                     <div class="form-group">
                         <label for="pp_contact">Persoana de contact *</label>
-                        <input type="text" id="pp_contact" name="contact_person" placeholder="Nume și prenume" required>
+                        <input type="text" id="pp_contact" name="contact_person" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="pp_email">Email *</label>
-                        <input type="email" id="pp_email" name="email" placeholder="email@companie.ro" required>
+                        <input type="email" id="pp_email" name="email" required>
                     </div>
                     <div class="form-group">
                         <label for="pp_phone">Număr de telefon</label>
-                        <input type="tel" id="pp_phone" name="phone" placeholder="07xx xxx xxx">
+                        <input type="tel" id="pp_phone" name="phone">
                     </div>
                 </div>
                 <div class="form-group">
@@ -150,15 +150,15 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
                 </div>
                 <div class="form-group">
                     <label for="pp_vision">Cum vizualizezi colaborarea cu Cursuri la Pahar? *</label>
-                    <textarea id="pp_vision" name="vision" rows="4" placeholder="Descrie cum îți imaginezi parteneriatul..." required></textarea>
+                    <textarea id="pp_vision" name="vision" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="pp_values">De ce crezi că valorile noastre se aliniază?</label>
-                    <textarea id="pp_values" name="values_alignment" rows="3" placeholder="Ce vă apropie ca misiune și viziune..."></textarea>
+                    <textarea id="pp_values" name="values_alignment" rows="3"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="pp_other">Mai e ceva ce vrei să ne transmiți?</label>
-                    <textarea id="pp_other" name="other" rows="2" placeholder="Orice altceva relevant..."></textarea>
+                    <textarea id="pp_other" name="other" rows="2"></textarea>
                 </div>
                 <button type="submit" class="btn btn-accent">Trimite</button>
                 <div class="form-message" aria-live="polite"></div>
