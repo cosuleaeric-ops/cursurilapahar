@@ -599,10 +599,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             styleEl.textContent = css;
             document.head.appendChild(styleEl);
 
-            // Open preview in popup window at device size
-            const height = editDevice === 'tablet' ? 1024 : 844;
-            const popup = window.open(location.href, 'clp_preview', 'width=' + width + ',height=' + height + ',scrollbars=yes,resizable=yes');
-            if (popup) popup.focus();
         }
     };
 
