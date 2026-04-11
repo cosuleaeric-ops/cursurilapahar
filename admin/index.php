@@ -786,7 +786,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .wp-layout { display: flex; min-height: calc(100vh - 46px); margin-top: 46px; }
 
 /* ── Sidebar ── */
-.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; position: sticky; top: 46px; height: calc(100vh - 46px); overflow-y: auto; }
 .wp-sidebar nav a {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 14px 8px 14px; color: var(--sidebar-text);
