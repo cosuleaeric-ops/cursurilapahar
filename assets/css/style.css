@@ -768,7 +768,14 @@ ul { list-style: none; }
   font-size: .93rem;
   line-height: 1.65;
   flex: 1;
-  padding: 10px 24px 24px;
+  padding: 10px 24px 0;
+}
+.collab-link {
+  color: var(--accent);
+  font-size: .9rem;
+  font-weight: 600;
+  padding: 12px 24px 24px;
+  display: block;
 }
 
 /* ══════════════════════════════════════════

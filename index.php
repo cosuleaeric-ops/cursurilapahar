@@ -416,6 +416,7 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
                 </div>
                 <h3>Susține un curs</h3>
                 <p>Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre.</p>
+                <span class="collab-link">Află mai mult →</span>
             </a>
             <a href="/gazduieste-un-curs" class="collab-card">
                 <div class="collab-card-img">
@@ -423,6 +424,7 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
                 </div>
                 <h3>Găzduiește un curs</h3>
                 <p>Ai o locație cu vibe fain? Transformă-o în spațiul unde se nasc conexiunile și ideile noi.</p>
+                <span class="collab-link">Află mai mult →</span>
             </a>
             <a href="/propune-un-parteneriat" class="collab-card">
                 <div class="collab-card-img">
@@ -430,6 +432,7 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
                 </div>
                 <h3>Propune un parteneriat</h3>
                 <p>Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună.</p>
+                <span class="collab-link">Află mai mult →</span>
             </a>
         </div>
     </div>
