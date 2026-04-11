@@ -6,10 +6,10 @@ $_wh_settings = file_exists($_wh_settings_file)
     : [];
 define('WEBHOOK_SECRET', $_wh_settings['webhook_secret'] ?? '');
 
-define('REPO',        'cosuleaeric-ops/cursurilapahar');
-define('BRANCH',      'main');
-define('PUBLIC_HTML', '/home/lsjcloab/public_html');
-define('LOG_FILE',    '/home/lsjcloab/public_html/deploy.log');
+define('REPO',        $_wh_settings['webhook_repo']   ?? 'cosuleaeric-ops/cursurilapahar');
+define('BRANCH',      $_wh_settings['webhook_branch'] ?? 'main');
+define('PUBLIC_HTML', $_wh_settings['webhook_path']   ?? __DIR__);
+define('LOG_FILE',    (defined('PUBLIC_HTML') ? PUBLIC_HTML : __DIR__) . '/deploy.log');
 
 $payload   = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';

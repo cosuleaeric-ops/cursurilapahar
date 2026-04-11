@@ -2,7 +2,7 @@
 if (file_exists(dirname(__DIR__) . '/private/secrets.php')) {
     require dirname(__DIR__) . '/private/secrets.php';
 }
-if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', 'clp2026admin');
+if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', '');
 define('COURSES_FILE',      dirname(__DIR__) . '/data/courses.json');
 define('VOTE_COURSES_FILE', dirname(__DIR__) . '/data/vote_courses.json');
 define('SETTINGS_FILE',     dirname(__DIR__) . '/data/settings.json');
