@@ -65,9 +65,7 @@ $sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Punem preț pe calitatea inf
     }
     body { padding-top: 88px; }
     </style>
-    <?php if (!empty($settings['head_scripts'])): ?>
-    <?= $settings['head_scripts'] ?>
-    <?php endif; ?>
+    <?php include __DIR__ . '/includes/head-scripts.php'; ?>
 </head>
 <body>
 <?php include __DIR__ . '/admin/bar.php'; ?>

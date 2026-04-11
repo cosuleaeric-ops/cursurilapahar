@@ -65,9 +65,7 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
     }
     body { padding-top: 88px; }
     </style>
-    <?php if (!empty($settings['head_scripts'])): ?>
-    <?= $settings['head_scripts'] ?>
-    <?php endif; ?>
+    <?php include __DIR__ . '/includes/head-scripts.php'; ?>
 </head>
 <body>
 <?php include __DIR__ . '/admin/bar.php'; ?>

@@ -320,7 +320,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Save settings
     if ($action === 'save_settings') {
         $settings = load_settings();
-        $fields = ['announcement','hero_title','hero_btn','courses_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle','head_scripts'];
+        $fields = ['announcement','hero_title','hero_btn','courses_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
         foreach ($fields as $f) {
             $settings[$f] = $_POST[$f] ?? $settings[$f];
         }
@@ -693,6 +693,15 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: /admin/?tab=mesaje&deleted=1');
         exit;
     }
+}
+
+// ── Save head scripts (analytics/tracking) ───────────────────────────────────
+if (is_authenticated() && $action === 'save_head_scripts') {
+    $s = load_settings();
+    $s['head_scripts'] = $_POST['head_scripts'] ?? '';
+    save_settings($s);
+    header('Location: /admin/?tab=aspect&saved=1');
+    exit;
 }
 
 // ── Navbar live (from live site editor) ──────────────────────────────────────
@@ -1495,26 +1504,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </div>
         </div>
 
-        <!-- Analytics & head scripts -->
-        <div class="tf-card" style="margin-top:8px">
-            <div class="tf-card-title">📊 Analytics &amp; Tracking</div>
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Cod head (scripts)</span>
-                    <span class="tf-preview"><?= $settings['head_scripts'] ? '✓ Configurat' : 'Necompletat' ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <p class="form-desc" style="margin-bottom:10px">
-                        Lipește aici codul de tracking pentru <strong>Umami</strong>, <strong>Google Analytics</strong> sau orice alt script.
-                        Va fi inserat automat în <code>&lt;head&gt;</code> pe toate paginile site-ului.
-                    </p>
-                    <textarea name="head_scripts" rows="7" style="width:100%;font-family:monospace;font-size:12px;line-height:1.6"><?= htmlspecialchars($settings['head_scripts'] ?? '') ?></textarea>
-                    <p class="form-desc" style="margin-top:8px;color:#d63638">⚠ Codul este inserat fără filtrare — adaugă doar scripturi de încredere.</p>
-                </div>
-            </div>
-        </div>
-
         <button type="submit" class="btn btn-primary" style="margin-bottom:24px">Salvează setările</button>
     </form>
     <script>
@@ -1709,6 +1698,25 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
     swatches: ['#0D0D0D','#161616','#1A1A1A','#ffffff','#C9A84C','#b8922e','#FFB000','#E8E4DC','#9CA3AF'],
 });
 </script>
+
+<!-- Analytics & Tracking -->
+<form method="post" action="/admin/?tab=aspect">
+    <input type="hidden" name="action" value="save_head_scripts">
+    <div class="card" style="margin-top:20px">
+        <div class="card-title">📊 Analytics &amp; Tracking</div>
+        <div class="form-group">
+            <label>Cod <code>&lt;head&gt;</code> (scripts analytics)</label>
+            <textarea name="head_scripts" rows="8" style="font-family:monospace;font-size:12px;line-height:1.6" placeholder="<!-- Umami -->
+<script defer src=&quot;https://cloud.umami.is/script.js&quot; data-website-id=&quot;...&quot;></script>
+
+<!-- Google Analytics (GA4) -->
+<script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX&quot;></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');</script>"><?= htmlspecialchars($settings['head_scripts'] ?? '') ?></textarea>
+            <p class="form-desc">Codul este inserat în <code>&lt;head&gt;</code> pe <strong>toate paginile</strong> site-ului. Adaugă scripturi de tracking, Umami, Google Analytics etc. <span style="color:#d63638">⚠ Nu filtrăm codul — adaugă doar surse de încredere.</span></p>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează</button>
+    </div>
+</form>
 
 <?php /* ======================================================= TAB: PAGINI */ ?>
 <?php elseif ($tab === 'pagini'): ?>
