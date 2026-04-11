@@ -88,7 +88,7 @@ ul { list-style: none; }
   text-transform: uppercase;
 }
 @media (max-width: 768px) {
-  #cursuri > .container > .section-title { font-size: 36px; }
+  #cursuri > .container > .section-title { font-size: 30px; font-weight: 900; }
 }
 .section-subtitle {
   color: var(--text-muted);
