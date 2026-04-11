@@ -385,6 +385,28 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     let editMode = false;
     let selEl = null, selKey = null;
 
+    // Keys that store/return HTML (not plain text)
+    const htmlKeys = ['hero_title', 'announcement',
+        'sustine_intro_1', 'sustine_intro_2',
+        'gazduieste_intro_1', 'gazduieste_intro_2',
+        'parteneriat_intro_1', 'parteneriat_intro_2'];
+
+    function clpGetValue(el, key) {
+        return htmlKeys.includes(key) ? el.innerHTML : el.innerText.trim();
+    }
+
+    // Silent background save (no UI feedback) — used for auto-save on blur
+    function clpAutoSave(el, key, value, style) {
+        const fd = new FormData();
+        fd.append('action', 'save_inline_edit');
+        fd.append('key',    key);
+        fd.append('value',  value);
+        fd.append('style',  style);
+        fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+            .then(r => r.json())
+            .then(d => { if (d.ok) el._clpOrig = value; });
+    }
+
     window.clpToggleEdit = function() {
         editMode = !editMode;
         const btn = document.getElementById('clp-edit-btn');
@@ -398,10 +420,12 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
                 el.contentEditable = 'true';
                 el.addEventListener('focus', clpOnFocus);
                 el.addEventListener('keydown', clpOnKey);
+                el.addEventListener('blur', clpOnBlur);
             } else {
                 el.contentEditable = 'false';
                 el.removeEventListener('focus', clpOnFocus);
                 el.removeEventListener('keydown', clpOnKey);
+                el.removeEventListener('blur', clpOnBlur);
                 el.classList.remove('clp-sel');
             }
         });
@@ -418,6 +442,9 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         document.querySelectorAll('[data-edit-key]').forEach(x => x.classList.remove('clp-sel'));
         selEl.classList.add('clp-sel');
 
+        // Store original content for change detection
+        selEl._clpOrig = clpGetValue(selEl, selKey);
+
         // Read current computed styles
         const cs = window.getComputedStyle(selEl);
         const fw = Math.round(parseInt(cs.fontWeight)/100)*100;
@@ -430,6 +457,27 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         document.getElementById('clp-tb-el').textContent = selKey;
         document.getElementById('clp-toolbar').classList.add('visible');
         document.getElementById('clp-tb-ok').style.display = 'none';
+    }
+
+    // Auto-save when focus leaves an element and content changed
+    function clpOnBlur(e) {
+        const el  = e.currentTarget;
+        const key = el.dataset.editKey;
+        const cur = clpGetValue(el, key);
+        if (cur === el._clpOrig) return; // nothing changed
+
+        // Read current toolbar styles (still reflect this element since blur fires before next focus)
+        const fw = document.getElementById('clp-tb-fw').value;
+        const it = document.getElementById('clp-tb-italic').classList.contains('on');
+        const ff = document.getElementById('clp-tb-ff').value;
+        const fs = document.getElementById('clp-tb-fs').value;
+        const parts = [];
+        if (fw) parts.push('font-weight:' + fw);
+        if (it) parts.push('font-style:italic');
+        if (ff) parts.push('font-family:' + ff);
+        if (fs) parts.push('font-size:' + fs + 'px');
+
+        clpAutoSave(el, key, cur, parts.join(';'));
     }
 
     function clpOnKey(e) {
@@ -477,12 +525,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         if (ff)  parts.push('font-family:' + ff);
         if (fs)  parts.push('font-size:' + fs + 'px');
 
-        // Use innerHTML for fields that contain HTML (em, br tags); innerText for the rest
-        const htmlKeys = ['hero_title', 'announcement',
-            'sustine_intro_1', 'sustine_intro_2',
-            'gazduieste_intro_1', 'gazduieste_intro_2',
-            'parteneriat_intro_1', 'parteneriat_intro_2'];
-        const value = htmlKeys.includes(selKey) ? selEl.innerHTML : selEl.innerText.trim();
+        const value = clpGetValue(selEl, selKey);
 
         const fd = new FormData();
         fd.append('action', 'save_inline_edit');
@@ -497,6 +540,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             .then(d => {
                 btn.textContent = 'Salvează';
                 if (d.ok) {
+                    if (selEl) selEl._clpOrig = value; // Mark as saved
                     const ok = document.getElementById('clp-tb-ok');
                     ok.style.display = 'inline';
                     setTimeout(() => ok.style.display = 'none', 2000);
