@@ -32,8 +32,16 @@ function clear_auth_cookie(): void {
     setcookie('clp_auth', '', ['expires' => time() - 3600, 'path' => '/']);
 }
 
+function get_active_password(): string {
+    if (file_exists(SETTINGS_FILE)) {
+        $s = json_decode(file_get_contents(SETTINGS_FILE), true) ?: [];
+        if (!empty($s['admin_password'])) return $s['admin_password'];
+    }
+    return ADMIN_PASSWORD;
+}
+
 if (isset($_POST['login_password'])) {
-    if ($_POST['login_password'] === ADMIN_PASSWORD) {
+    if ($_POST['login_password'] === get_active_password()) {
         set_auth_cookie();
         header('Location: /admin/');
         exit;
@@ -444,11 +452,25 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Save Kit settings
     if ($action === 'save_kit') {
         $settings = load_settings();
-        $settings['kit_api_key']    = trim($_POST['kit_api_key'] ?? '');
-        $settings['kit_form_id']    = trim($_POST['kit_form_id'] ?? '');
-        $settings['github_token']   = trim($_POST['github_token'] ?? '');
+        $settings['kit_api_key'] = trim($_POST['kit_api_key'] ?? '');
+        $settings['kit_form_id'] = trim($_POST['kit_form_id'] ?? '');
         save_settings($settings);
         header('Location: /admin/?tab=kit&saved=1');
+        exit;
+    }
+
+    // ── Change admin password
+    if ($action === 'change_password') {
+        $new     = trim($_POST['new_password']     ?? '');
+        $confirm = trim($_POST['confirm_password'] ?? '');
+        if ($new && $new === $confirm && strlen($new) >= 6) {
+            $settings = load_settings();
+            $settings['admin_password'] = $new;
+            save_settings($settings);
+            header('Location: /admin/?tab=securitate&saved=1');
+        } else {
+            header('Location: /admin/?tab=securitate&error=1');
+        }
         exit;
     }
 
@@ -546,7 +568,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'cursuri';
-if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot'])) $tab = 'cursuri';
+if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','securitate'])) $tab = 'cursuri';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -801,6 +823,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </a>
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
+            </a>
+            <a href="/admin/?tab=securitate" class="<?= $tab === 'securitate' ? 'active' : '' ?>">
+                <span class="nav-icon">🔒</span> Securitate
             </a>
         </nav>
     </aside>
@@ -1554,6 +1579,35 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
         </tbody>
     </table>
     <?php endif; ?>
+</div>
+
+<?php /* ======================================================= TAB: SECURITATE */ ?>
+<?php elseif ($tab === 'securitate'): ?>
+
+<h1 class="wp-page-title">Securitate</h1>
+
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Parola a fost schimbată cu succes.</div>
+<?php endif; ?>
+<?php if (isset($_GET['error'])): ?>
+<div class="notice notice-error">Parolele nu coincid sau sunt prea scurte (minim 6 caractere).</div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-title">Schimbă parola de admin</div>
+    <form method="post" action="/admin/?tab=securitate" style="max-width:400px">
+        <input type="hidden" name="action" value="change_password">
+        <div class="form-group">
+            <label for="new_password">Parolă nouă</label>
+            <input type="password" id="new_password" name="new_password" placeholder="Minim 6 caractere" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirmă parola</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repetă parola" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary">Schimbă parola</button>
+    </form>
+    <p class="form-desc" style="margin-top:12px">Parola este salvată în <code>data/settings.json</code> și nu apare nicăieri în cod sau Git.</p>
 </div>
 
 <?php endif; ?>
