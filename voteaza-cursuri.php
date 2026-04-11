@@ -72,7 +72,7 @@ shuffle($vote_courses);
 
     /* ── Vote page layout ── */
     .vote-section {
-        max-width: 900px;
+        max-width: 500px;
         margin: 0 auto;
         padding: 100px 20px 80px;
     }
@@ -248,14 +248,14 @@ shuffle($vote_courses);
             $desc = htmlspecialchars($vc['description'] ?? '');
         ?>
         <div class="vote-card" id="vc-<?= $vid ?>">
-            <div class="vote-card-header">
+            <div class="vote-card-header" onclick="toggleVoteDesc('<?= $vid ?>')">
                 <span class="vote-emoji"><?= $emoji ?></span>
                 <span class="vote-name"><?= $name ?></span>
                 <button class="vote-btn" data-id="<?= $vid ?>" onclick="event.stopPropagation();toggleVote(this)">
                     <span class="heart">♡</span>
                 </button>
                 <?php if ($desc): ?>
-                <span class="vote-toggle-icon" onclick="toggleVoteDesc('<?= $vid ?>')">▾</span>
+                <span class="vote-toggle-icon">▾</span>
                 <?php endif; ?>
             </div>
             <?php if ($desc): ?>
