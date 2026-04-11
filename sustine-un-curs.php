@@ -40,7 +40,7 @@ $page = $settings['pages']['sustine'] ?? [
     $font_body    = $settings['font_body']    ?? 'Inter';
     $fonts_param  = 'family=' . urlencode($font_heading) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=' . urlencode($font_body) . ':wght@300;400;500&display=swap';
     ?>
-    <link href="https://fonts.googleapis.com/css2?<?= $fonts_param ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&<?= $fonts_param ?>" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
     <?php if (!empty($settings['favicon_path'])): ?>
     <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
