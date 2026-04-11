@@ -98,60 +98,66 @@ shuffle($vote_courses);
 
     /* ── Grid ── */
     .vote-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-        align-items: start;
-    }
-    @media (min-width: 900px) {
-        .vote-grid {
-            grid-template-columns: 1fr 1fr;
-            align-items: start;
-        }
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
-    /* ── Card ── */
+    /* ── Card — single row ── */
     .vote-card {
         background: var(--surface);
         border: 1px solid rgba(255,255,255,.07);
-        border-radius: 14px;
+        border-radius: 12px;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-self: start;
-        transition: border-color .2s, box-shadow .2s;
+        transition: border-color .2s;
     }
     .vote-card:hover {
         border-color: rgba(201,168,76,.25);
-        box-shadow: 0 4px 24px rgba(0,0,0,.3);
     }
 
-    /* Card header (clickable for desc toggle) */
+    /* Card header: emoji + name + heart + toggle — all inline */
     .vote-card-header {
         display: flex;
         align-items: center;
-        gap: 14px;
-        padding: 22px 22px 20px;
+        gap: 12px;
+        padding: 14px 18px;
         cursor: pointer;
         user-select: none;
     }
     .vote-emoji {
-        font-size: 2rem;
+        font-size: 1.6rem;
         line-height: 1;
         flex-shrink: 0;
-        width: 42px;
-        text-align: center;
     }
     .vote-name {
         flex: 1;
         font-family: var(--font-heading);
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 700;
         color: var(--text);
         line-height: 1.3;
     }
+    .vote-btn {
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        font-size: 1.4rem;
+        color: var(--text-muted);
+        line-height: 1;
+        flex-shrink: 0;
+        transition: color .15s, transform .15s;
+    }
+    .vote-btn:hover { color: #e05565; transform: scale(1.15); }
+    .vote-btn.voted { color: #e05565; }
+    .vote-btn.voted .heart { animation: heartPop .25s ease; }
+    @keyframes heartPop {
+        0%   { transform: scale(1); }
+        50%  { transform: scale(1.4); }
+        100% { transform: scale(1); }
+    }
     .vote-toggle-icon {
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: var(--text-muted);
         transition: transform .25s;
         flex-shrink: 0;
@@ -174,65 +180,12 @@ shuffle($vote_courses);
         overflow: hidden;
     }
     .vote-desc {
-        padding: 0 22px 20px;
+        padding: 0 18px 16px;
         color: var(--text-muted);
-        font-size: .95rem;
+        font-size: .93rem;
         line-height: 1.7;
         border-top: 1px solid rgba(255,255,255,.06);
-        padding-top: 16px;
-    }
-
-    /* Footer with heart */
-    .vote-card-footer {
-        margin-top: auto;
-        padding: 16px 22px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        border-top: 1px solid rgba(255,255,255,.06);
-    }
-    .vote-btn {
-        background: none;
-        border: 1.5px solid rgba(255,255,255,.15);
-        border-radius: 50px;
-        padding: 8px 18px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        color: var(--text-muted);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: border-color .2s, color .2s, background .2s;
-        font-family: var(--font-sans);
-        line-height: 1;
-    }
-    .vote-btn:hover {
-        border-color: rgba(220,53,69,.5);
-        color: #e05565;
-        background: rgba(220,53,69,.08);
-    }
-    .vote-btn.voted {
-        border-color: #e05565;
-        color: #e05565;
-        background: rgba(220,53,69,.1);
-    }
-    .vote-btn .heart {
-        font-size: 1.25rem;
-        line-height: 1;
-        transition: transform .15s;
-    }
-    .vote-btn.voted .heart {
-        animation: heartPop .25s ease;
-    }
-    @keyframes heartPop {
-        0%   { transform: scale(1); }
-        50%  { transform: scale(1.4); }
-        100% { transform: scale(1); }
-    }
-    .vote-btn-label {
-        font-size: .85rem;
-        font-weight: 600;
-        letter-spacing: .01em;
+        padding-top: 14px;
     }
 
     /* Empty state */
@@ -295,10 +248,15 @@ shuffle($vote_courses);
             $desc = htmlspecialchars($vc['description'] ?? '');
         ?>
         <div class="vote-card" id="vc-<?= $vid ?>">
-            <div class="vote-card-header" onclick="toggleVoteDesc('<?= $vid ?>')">
+            <div class="vote-card-header">
                 <span class="vote-emoji"><?= $emoji ?></span>
                 <span class="vote-name"><?= $name ?></span>
-                <span class="vote-toggle-icon">▾</span>
+                <button class="vote-btn" data-id="<?= $vid ?>" onclick="event.stopPropagation();toggleVote(this)">
+                    <span class="heart">♡</span>
+                </button>
+                <?php if ($desc): ?>
+                <span class="vote-toggle-icon" onclick="toggleVoteDesc('<?= $vid ?>')">▾</span>
+                <?php endif; ?>
             </div>
             <?php if ($desc): ?>
             <div class="vote-desc-wrap">
@@ -307,12 +265,6 @@ shuffle($vote_courses);
                 </div>
             </div>
             <?php endif; ?>
-            <div class="vote-card-footer">
-                <button class="vote-btn" data-id="<?= $vid ?>" onclick="toggleVote(this)">
-                    <span class="heart">♡</span>
-                    <span class="vote-btn-label">Îmi place</span>
-                </button>
-            </div>
         </div>
         <?php endforeach; ?>
     </div>
@@ -360,11 +312,9 @@ function applyVoted(btn, isVoted) {
     if (isVoted) {
         btn.classList.add('voted');
         btn.querySelector('.heart').textContent = '♥';
-        btn.querySelector('.vote-btn-label').textContent = 'Îți place';
     } else {
         btn.classList.remove('voted');
         btn.querySelector('.heart').textContent = '♡';
-        btn.querySelector('.vote-btn-label').textContent = 'Îmi place';
     }
 }
 
