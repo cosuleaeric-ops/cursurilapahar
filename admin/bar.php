@@ -550,11 +550,35 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         clpApply();
     };
 
+    // Mobile styles from PHP for preview injection
+    const _mobileStyles = <?= json_encode($_clp_s['element_styles_mobile'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
+
     window.clpToggleDevice = function() {
         editDevice = editDevice === 'desktop' ? 'mobile' : 'desktop';
         const btn = document.getElementById('clp-tb-device');
         btn.textContent = editDevice === 'desktop' ? '\u{1F5A5}\uFE0F' : '\u{1F4F1}';
         btn.title = editDevice === 'desktop' ? 'Editezi: Desktop' : 'Editezi: Mobile';
+
+        let preview = document.getElementById('clp-mobile-preview');
+        if (editDevice === 'mobile') {
+            // Inject mobile styles as regular rules (no media query needed)
+            if (!preview) {
+                preview = document.createElement('style');
+                preview.id = 'clp-mobile-preview';
+                document.head.appendChild(preview);
+            }
+            let css = '/* Mobile preview */\n';
+            for (const [key, style] of Object.entries(_mobileStyles)) {
+                css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
+            }
+            // Constrain page width to simulate mobile
+            css += 'body:not(#x) { max-width: 390px !important; margin-left: auto !important; margin-right: auto !important; }\n';
+            css += '.navbar { max-width: 390px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
+            preview.textContent = css;
+        } else {
+            // Remove mobile preview
+            if (preview) preview.remove();
+        }
     };
 
     window.clpSave = function() {
