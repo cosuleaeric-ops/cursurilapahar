@@ -694,6 +694,31 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// ── Navbar live (from live site editor) ──────────────────────────────────────
+if (is_authenticated() && ($action === 'save_navbar_live')) {
+    header('Content-Type: application/json');
+    $s = load_settings();
+    $color_keys = ['nav_bg','nav_brand_color','nav_link_color'];
+    $num_keys   = ['nav_brand_size','nav_brand_weight','nav_link_weight','nav_logo_h'];
+    $font_keys  = ['nav_brand_font'];
+    $allowed_fonts = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
+    foreach ($color_keys as $k) {
+        $v = trim($_POST[$k] ?? '');
+        if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) $s[$k] = $v;
+    }
+    foreach ($num_keys as $k) {
+        $v = (int)($_POST[$k] ?? 0);
+        if ($v > 0) $s[$k] = (string)$v;
+    }
+    foreach ($font_keys as $k) {
+        $v = trim($_POST[$k] ?? '');
+        if ($v && in_array($v, $allowed_fonts)) $s[$k] = $v;
+    }
+    save_settings($s);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 // ── Global fonts (from live site editor) ─────────────────────────────────────
 if (is_authenticated() && ($action === 'save_global_fonts')) {
     $allowed_h = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
@@ -716,7 +741,7 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
     $style = trim($_POST['style'] ?? '');
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
                      'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
-                     'steps_title','faq_title'];
+                     'steps_title','faq_title','nav_brand_text'];
     header('Content-Type: application/json');
     $ok = false;
     if ($key) {
@@ -747,6 +772,16 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
             if (!isset($s['faq_items'])) $s['faq_items'] = [];
             if (isset($s['faq_items'][$idx])) {
                 $s['faq_items'][$idx][$prop] = $value;
+                if ($style) $s['element_styles'][$key] = $style;
+                else unset($s['element_styles'][$key]);
+                $ok = true;
+            }
+        // nav_link_{i}_label
+        } elseif (preg_match('/^nav_link_(\d+)_label$/', $key, $m)) {
+            $idx = (int)$m[1];
+            if (!isset($s['nav_links'])) $s['nav_links'] = [];
+            if (isset($s['nav_links'][$idx])) {
+                $s['nav_links'][$idx]['label'] = $value;
                 if ($style) $s['element_styles'][$key] = $style;
                 else unset($s['element_styles'][$key]);
                 $ok = true;

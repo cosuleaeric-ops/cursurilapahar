@@ -164,7 +164,7 @@ ul { list-style: none; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: #000;
+  background: var(--nav-bg, #000);
   border-bottom: 1px solid rgba(255,255,255,.08);
   height: 88px;
   display: flex;
@@ -186,7 +186,7 @@ ul { list-style: none; }
   gap: 10px;
 }
 .navbar-logo img {
-  height: 40px;
+  height: var(--nav-logo-h, 40px);
   width: auto;
   display: block;
   mix-blend-mode: screen;
@@ -196,10 +196,10 @@ ul { list-style: none; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: 'Poppins', sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  color: #fff;
+  font-family: var(--nav-brand-font, 'Poppins', sans-serif);
+  font-size: var(--nav-brand-size, 20px);
+  font-weight: var(--nav-brand-weight, 800);
+  color: var(--nav-brand-color, #fff);
   letter-spacing: -0.03em;
   text-transform: uppercase;
   line-height: 1.1;
@@ -211,9 +211,9 @@ ul { list-style: none; }
   margin-left: auto;
 }
 .navbar-links a {
-  font-size: .9rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: var(--nav-link-size, .9rem);
+  font-weight: var(--nav-link-weight, 700);
+  color: var(--nav-link-color, #fff);
   transition: color var(--transition);
   white-space: nowrap;
 }

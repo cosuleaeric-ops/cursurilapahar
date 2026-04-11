@@ -16,6 +16,17 @@ $_clp_s  = file_exists(dirname(__DIR__) . '/data/settings.json')
     ? (json_decode(file_get_contents(dirname(__DIR__) . '/data/settings.json'), true) ?: []) : [];
 $_clp_fh = $_clp_s['font_heading'] ?? 'Nunito';
 $_clp_fb = $_clp_s['font_body']    ?? 'Inter';
+// Navbar settings
+$_clp_nav = [
+    'nav_bg'           => $_clp_s['nav_bg']           ?? '#000000',
+    'nav_brand_color'  => $_clp_s['nav_brand_color']  ?? '#ffffff',
+    'nav_brand_size'   => $_clp_s['nav_brand_size']   ?? '20',
+    'nav_brand_weight' => $_clp_s['nav_brand_weight'] ?? '800',
+    'nav_brand_font'   => $_clp_s['nav_brand_font']   ?? 'Poppins',
+    'nav_link_color'   => $_clp_s['nav_link_color']   ?? '#ffffff',
+    'nav_link_weight'  => $_clp_s['nav_link_weight']  ?? '700',
+    'nav_logo_h'       => $_clp_s['nav_logo_h']       ?? '40',
+];
 ?>
 <style>
 #clp-adminbar {
@@ -117,6 +128,41 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 #clp-fp-ok { color: #00a32a; font-size: 14px; display: none; }
 #clp-fonts-btn { color: #c0d0ff !important; }
 #clp-fonts-btn.active { background: #2c3338 !important; color: #fff !important; }
+#clp-navbar-btn { color: #a0f0c0 !important; }
+#clp-navbar-btn.active { background: #2c3338 !important; color: #fff !important; }
+
+/* Navbar panel */
+#clp-navbar-panel {
+    display: none; position: fixed; top: 32px; right: 0; z-index: 999997;
+    background: #1d2327; border-radius: 0 0 0 10px;
+    box-shadow: -4px 4px 24px rgba(0,0,0,.6);
+    padding: 16px 18px; min-width: 340px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px; color: #a7aaad;
+}
+#clp-navbar-panel.visible { display: block; }
+#clp-navbar-panel .np-section { font-size: 10px; color: #555; text-transform: uppercase;
+    letter-spacing: .08em; margin: 12px 0 6px; border-top: 1px solid rgba(255,255,255,.07);
+    padding-top: 10px; }
+#clp-navbar-panel .np-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+#clp-navbar-panel .np-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+#clp-navbar-panel .np-row label { width: 110px; font-size: 11px; color: #777; flex-shrink: 0; }
+#clp-navbar-panel .np-row input[type=color] {
+    width: 36px; height: 26px; border: none; border-radius: 4px; cursor: pointer;
+    background: none; padding: 1px; flex-shrink: 0;
+}
+#clp-navbar-panel .np-row input[type=number],
+#clp-navbar-panel .np-row select {
+    flex: 1; background: #2c3338; color: #fff;
+    border: 1px solid rgba(255,255,255,.15); border-radius: 5px;
+    padding: 4px 6px; font-size: 12px;
+}
+#clp-navbar-panel .np-row input[type=color] + input[type=number] { flex: none; width: 54px; }
+#clp-navbar-panel .np-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+#clp-np-save { background: #2271b1; color: #fff; border: none; border-radius: 5px;
+    padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; }
+#clp-np-save:hover { background: #135e96; }
+#clp-np-ok { color: #00a32a; font-size: 14px; display: none; }
 </style>
 
 <div id="clp-adminbar">
@@ -130,6 +176,7 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     <a href="/admin/?tab=vot">❤️ Vot</a>
     <span class="bar-sep"></span>
     <button class="bar-link" id="clp-fonts-btn" onclick="clpToggleFontPanel()">🔤 Fonturi</button>
+    <button class="bar-link" id="clp-navbar-btn" onclick="clpToggleNavbarPanel()">🖊 Navbar</button>
     <button class="bar-link" id="clp-edit-btn" onclick="clpToggleEdit()">✏ Editează live</button>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
@@ -140,7 +187,67 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 <?php
 $_clp_heading_fonts = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
 $_clp_body_fonts    = ['Inter','Roboto','Open Sans','Lato','DM Sans','Nunito','Rubik','Source Sans 3','Mulish','Cabin','Karla','Poppins'];
+$_clp_weight_opts   = [300,400,500,600,700,800,900];
 ?>
+
+<!-- Navbar panel -->
+<div id="clp-navbar-panel">
+    <div class="np-section">Logo & Brand</div>
+    <div class="np-row">
+        <label>Fundal navbar</label>
+        <input type="color" id="clp-np-bg" value="<?= htmlspecialchars($_clp_nav['nav_bg']) ?>" oninput="clpNavApply()">
+    </div>
+    <div class="np-row">
+        <label>Înălțime logo</label>
+        <input type="number" id="clp-np-logo-h" value="<?= htmlspecialchars($_clp_nav['nav_logo_h']) ?>" min="20" max="120" style="width:64px" oninput="clpNavApply()">
+        <span style="color:#555;font-size:11px">px</span>
+    </div>
+    <div class="np-row">
+        <label>Font brand</label>
+        <select id="clp-np-brand-font" onchange="clpNavApply()">
+            <?php foreach ($_clp_heading_fonts as $f): ?>
+            <option value="<?= htmlspecialchars($f) ?>" <?= $_clp_nav['nav_brand_font'] === $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="np-row">
+        <label>Mărime brand</label>
+        <input type="number" id="clp-np-brand-size" value="<?= htmlspecialchars($_clp_nav['nav_brand_size']) ?>" min="10" max="60" style="width:64px" oninput="clpNavApply()">
+        <span style="color:#555;font-size:11px">px</span>
+    </div>
+    <div class="np-row">
+        <label>Greutate brand</label>
+        <select id="clp-np-brand-weight" onchange="clpNavApply()">
+            <?php foreach ($_clp_weight_opts as $w): ?>
+            <option value="<?= $w ?>" <?= $_clp_nav['nav_brand_weight'] == $w ? 'selected' : '' ?>><?= $w ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="np-row">
+        <label>Culoare brand</label>
+        <input type="color" id="clp-np-brand-color" value="<?= htmlspecialchars($_clp_nav['nav_brand_color']) ?>" oninput="clpNavApply()">
+    </div>
+
+    <div class="np-section">Link-uri meniu</div>
+    <div class="np-row">
+        <label>Culoare link-uri</label>
+        <input type="color" id="clp-np-link-color" value="<?= htmlspecialchars($_clp_nav['nav_link_color']) ?>" oninput="clpNavApply()">
+    </div>
+    <div class="np-row">
+        <label>Greutate link-uri</label>
+        <select id="clp-np-link-weight" onchange="clpNavApply()">
+            <?php foreach ($_clp_weight_opts as $w): ?>
+            <option value="<?= $w ?>" <?= $_clp_nav['nav_link_weight'] == $w ? 'selected' : '' ?>><?= $w ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div class="np-actions">
+        <button id="clp-np-save" onclick="clpSaveNavbar()">Salvează</button>
+        <span id="clp-np-ok">✓ Salvat</span>
+    </div>
+</div>
+
 <!-- Global fonts panel -->
 <div id="clp-font-panel">
     <div class="fp-row">
@@ -376,10 +483,92 @@ $_clp_body_fonts    = ['Inter','Roboto','Open Sans','Lato','DM Sans','Nunito','R
             });
     };
 
-    // Close panel when clicking outside
+    // Close font panel when clicking outside
     document.addEventListener('click', function(e) {
         const panel = document.getElementById('clp-font-panel');
         const btn   = document.getElementById('clp-fonts-btn');
+        if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            panel.classList.remove('visible');
+            btn.classList.remove('active');
+        }
+    });
+})();
+
+// ── Navbar panel ─────────────────────────────────────────────────────────────
+(function(){
+    const root = document.documentElement;
+
+    window.clpToggleNavbarPanel = function() {
+        const panel = document.getElementById('clp-navbar-panel');
+        const btn   = document.getElementById('clp-navbar-btn');
+        const open  = panel.classList.toggle('visible');
+        btn.classList.toggle('active', open);
+        // Close other panels
+        if (open) {
+            document.getElementById('clp-font-panel').classList.remove('visible');
+            document.getElementById('clp-fonts-btn').classList.remove('active');
+            document.getElementById('clp-toolbar').classList.remove('visible');
+        }
+    };
+
+    window.clpNavApply = function() {
+        const bg          = document.getElementById('clp-np-bg').value;
+        const logoH       = document.getElementById('clp-np-logo-h').value;
+        const brandFont   = document.getElementById('clp-np-brand-font').value;
+        const brandSize   = document.getElementById('clp-np-brand-size').value;
+        const brandWeight = document.getElementById('clp-np-brand-weight').value;
+        const brandColor  = document.getElementById('clp-np-brand-color').value;
+        const linkColor   = document.getElementById('clp-np-link-color').value;
+        const linkWeight  = document.getElementById('clp-np-link-weight').value;
+
+        root.style.setProperty('--nav-bg',           bg);
+        root.style.setProperty('--nav-logo-h',       logoH + 'px');
+        root.style.setProperty('--nav-brand-font',   "'" + brandFont + "', sans-serif");
+        root.style.setProperty('--nav-brand-size',   brandSize + 'px');
+        root.style.setProperty('--nav-brand-weight', brandWeight);
+        root.style.setProperty('--nav-brand-color',  brandColor);
+        root.style.setProperty('--nav-link-color',   linkColor);
+        root.style.setProperty('--nav-link-weight',  linkWeight);
+
+        // Load font if needed
+        const id = 'clp-gf-' + brandFont.replace(/\s+/g, '-').toLowerCase();
+        if (!document.getElementById(id)) {
+            const l = document.createElement('link');
+            l.id = id; l.rel = 'stylesheet';
+            l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(brandFont) + ':wght@300;400;500;600;700;800;900&display=swap';
+            document.head.appendChild(l);
+        }
+    };
+
+    window.clpSaveNavbar = function() {
+        const btn = document.getElementById('clp-np-save');
+        btn.textContent = '…';
+        const fd = new FormData();
+        fd.append('action', 'save_navbar_live');
+        fd.append('nav_bg',           document.getElementById('clp-np-bg').value);
+        fd.append('nav_logo_h',       document.getElementById('clp-np-logo-h').value);
+        fd.append('nav_brand_font',   document.getElementById('clp-np-brand-font').value);
+        fd.append('nav_brand_size',   document.getElementById('clp-np-brand-size').value);
+        fd.append('nav_brand_weight', document.getElementById('clp-np-brand-weight').value);
+        fd.append('nav_brand_color',  document.getElementById('clp-np-brand-color').value);
+        fd.append('nav_link_color',   document.getElementById('clp-np-link-color').value);
+        fd.append('nav_link_weight',  document.getElementById('clp-np-link-weight').value);
+        fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+            .then(r => r.json())
+            .then(d => {
+                btn.textContent = 'Salvează';
+                if (d.ok) {
+                    const ok = document.getElementById('clp-np-ok');
+                    ok.style.display = 'inline';
+                    setTimeout(() => ok.style.display = 'none', 2000);
+                }
+            });
+    };
+
+    // Close navbar panel when clicking outside
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('clp-navbar-panel');
+        const btn   = document.getElementById('clp-navbar-btn');
         if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
             panel.classList.remove('visible');
             btn.classList.remove('active');

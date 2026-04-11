@@ -162,6 +162,14 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         --font-heading: '<?= htmlspecialchars($font_heading) ?>', sans-serif;
         --btn-hover:    <?= htmlspecialchars($settings['color_btn_hover'] ?? '#b8922e') ?>;
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
+        --nav-bg:           <?= htmlspecialchars($settings['nav_bg']           ?? '#000000') ?>;
+        --nav-brand-color:  <?= htmlspecialchars($settings['nav_brand_color']  ?? '#ffffff') ?>;
+        --nav-brand-size:   <?= htmlspecialchars($settings['nav_brand_size']   ?? '20') ?>px;
+        --nav-brand-weight: <?= htmlspecialchars($settings['nav_brand_weight'] ?? '800') ?>;
+        --nav-brand-font:   '<?= htmlspecialchars($settings['nav_brand_font']  ?? 'Poppins') ?>', sans-serif;
+        --nav-link-color:   <?= htmlspecialchars($settings['nav_link_color']   ?? '#ffffff') ?>;
+        --nav-link-weight:  <?= htmlspecialchars($settings['nav_link_weight']  ?? '700') ?>;
+        --nav-logo-h:       <?= htmlspecialchars($settings['nav_logo_h']       ?? '40') ?>px;
     }
     body { padding-top: 88px; }
     </style>
@@ -174,11 +182,14 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="navbar-inner">
         <a href="/#hero" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
-            <span class="navbar-brand-text"><?php $nb=explode(' ',htmlspecialchars($settings['nav_brand_text']),2); echo '<span>'.$nb[0].'</span><span>'.($nb[1]??'').'</span>'; ?></span>
+            <span class="navbar-brand-text" <?= clp_e('nav_brand_text', $settings) ?>>
+                <?php $nb=explode(' ', $settings['nav_brand_text'], 2); ?>
+                <span><?= htmlspecialchars($nb[0]) ?></span><span><?= htmlspecialchars($nb[1] ?? '') ?></span>
+            </span>
         </a>
         <div class="navbar-links">
-            <?php foreach ($settings['nav_links'] as $nl): ?>
-            <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
+            <?php foreach ($settings['nav_links'] as $nli => $nl): ?>
+            <a href="<?= htmlspecialchars($nl['url']) ?>" data-edit-key="nav_link_<?= $nli ?>_label"><?= htmlspecialchars($nl['label']) ?></a>
             <?php endforeach; ?>
         </div>
         <div class="navbar-right">
