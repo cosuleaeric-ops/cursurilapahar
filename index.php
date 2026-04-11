@@ -306,7 +306,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 ]; ?>
 <section class="section" id="cum-functioneaza">
     <div class="container">
-        <h2 class="section-title">Cum funcționează</h2>
+        <h2 class="section-title" <?= clp_e('steps_title', $settings) ?>><?= htmlspecialchars($settings['steps_title'] ?? 'Cum funcționează') ?></h2>
         <div class="steps-grid">
             <?php foreach ($settings['steps'] as $i => $step): ?>
             <div class="step">
@@ -324,7 +324,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <?php $faq_bg = img_webp($settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg'); ?>
 <section class="section section-dark section-bg-blur" id="faq" style="--section-bg-img:url('<?= htmlspecialchars($faq_bg) ?>')">
     <div class="container container-narrow">
-        <h2 class="section-title">Întrebări frecvente</h2>
+        <h2 class="section-title" <?= clp_e('faq_title', $settings) ?>><?= htmlspecialchars($settings['faq_title'] ?? 'Întrebări frecvente') ?></h2>
         <div class="faq-list">
             <?php foreach ($settings['faq_items'] as $fi => $faq): ?>
             <div class="faq-item">

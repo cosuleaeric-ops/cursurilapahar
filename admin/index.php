@@ -700,7 +700,8 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
     $value = trim($_POST['value'] ?? '');
     $style = trim($_POST['style'] ?? '');
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
-                     'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
+                     'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
+                     'steps_title','faq_title'];
     header('Content-Type: application/json');
     $ok = false;
     if ($key) {
