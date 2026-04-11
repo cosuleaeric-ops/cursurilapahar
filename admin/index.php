@@ -1318,7 +1318,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <p id="heicStatus" style="display:none;color:#2271b1;font-size:13px;margin-top:6px;"></p>
         </form>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script>
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
         const fileInput = document.getElementById('imageFileInput');
@@ -1336,9 +1335,24 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         btn.textContent = 'Se convertește...';
 
         try {
-            const jpeg = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
-            const converted = new File([jpeg], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
+            // Use native browser HEIC decoding (macOS Chrome/Safari support it)
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = () => reject(new Error('Browserul nu poate decoda HEIC. Deschide poza în Preview și salvează ca JPG.'));
+                img.src = url;
+            });
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
 
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+            const converted = new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
+
+            status.textContent = '⏳ Se încarcă...';
             const fd = new FormData();
             fd.append('action', 'upload_image');
             fd.append('image_file', converted);
@@ -1353,7 +1367,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
                 btn.textContent = 'Încarcă';
             }
         } catch (err) {
-            status.textContent = '✗ Eroare la conversia HEIC: ' + err.message;
+            status.style.color = '#d63638';
+            status.textContent = '✗ ' + err.message;
             btn.disabled = false;
             btn.textContent = 'Încarcă';
         }
