@@ -682,6 +682,11 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 file_put_contents($log_file, implode("\n\n", $blocks) . "\n", LOCK_EX);
             }
         }
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => true]);
+            exit;
+        }
         header('Location: /admin/?tab=mesaje&deleted=1');
         exit;
     }
@@ -1662,7 +1667,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-tab .msg-count { display:inline-block; background:rgba(255,255,255,.18); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:5px; }
 .msg-panel { display:none; }
 .msg-panel.active { display:block; }
-.msg-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.msg-cards { display:grid; grid-template-columns:1fr; gap:12px; }
 .msg-card { background:var(--surface, #fff); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:background .15s; }
 .msg-card:hover { background:rgba(0,0,0,.02); }
 .msg-delete-btn { background:transparent; border:1px solid var(--danger, #e74c3c); color:var(--danger, #e74c3c); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:.15s; }
@@ -1751,12 +1756,7 @@ if (file_exists($log_file) && filesize($log_file)) {
             </div>
             <?php endforeach; ?>
             <div class="msg-detail-actions">
-                <form method="post" action="/admin/?tab=mesaje" style="display:inline" onsubmit="return confirm('Sigur vrei să ștergi acest mesaj?')">
-                    <input type="hidden" name="action" value="delete_message">
-                    <input type="hidden" name="msg_type" value="<?= h($key) ?>">
-                    <input type="hidden" name="msg_index" value="<?= $i ?>">
-                    <button type="submit" class="msg-delete-btn">Șterge</button>
-                </form>
+                <button type="button" class="msg-delete-btn" onclick="deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
             </div>
         </div>
     </div>
@@ -1776,6 +1776,17 @@ function showMsgTab(key) {
 function toggleMsg(uid) {
     const el = document.getElementById('msg-' + uid);
     el.classList.toggle('open');
+}
+function deleteMsg(btn, type, idx) {
+    if (!confirm('Sigur vrei să ștergi acest mesaj?')) return;
+    const card = btn.closest('.msg-card');
+    const fd = new FormData();
+    fd.append('action', 'delete_message');
+    fd.append('msg_type', type);
+    fd.append('msg_index', idx);
+    fetch('/admin/?tab=mesaje', { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}, body: fd })
+        .then(r => r.json())
+        .then(d => { if (d.ok) card.remove(); });
 }
 </script>
 
