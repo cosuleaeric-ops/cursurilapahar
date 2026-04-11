@@ -103,8 +103,16 @@ foreach ($courses as $course) {
         continue;
     }
     $api = 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug);
-    $ctx = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true]]);
-    $resp = @file_get_contents($api, false, $ctx);
+    $resp = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($api);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>5,CURLOPT_FOLLOWLOCATION=>1,CURLOPT_HTTPHEADER=>['Accept: application/json']]);
+        $resp = curl_exec($ch);
+        curl_close($ch);
+    } else {
+        $ctx = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true, 'header' => 'Accept: application/json']]);
+        $resp = @file_get_contents($api, false, $ctx);
+    }
     $sold = false;
     if ($resp) {
         $ev = json_decode($resp, true);
