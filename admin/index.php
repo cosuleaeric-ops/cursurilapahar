@@ -1,26 +1,37 @@
 <?php
-// Load secrets from unversioned file (falls back to defaults for local dev)
 if (file_exists(dirname(__DIR__) . '/private/secrets.php')) {
     require dirname(__DIR__) . '/private/secrets.php';
 }
 if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', 'clp2026admin');
-if (!defined('AUTH_SECRET'))    define('AUTH_SECRET',    'clp-auth-xk9p-2026-secret');
 define('COURSES_FILE',      dirname(__DIR__) . '/data/courses.json');
 define('VOTE_COURSES_FILE', dirname(__DIR__) . '/data/vote_courses.json');
-define('SETTINGS_FILE',  dirname(__DIR__) . '/data/settings.json');
-define('UPLOADS_DIR',    dirname(__DIR__) . '/assets/images/uploads');
-define('UPLOADS_URL',    '/assets/images/uploads');
-define('PUBLIC_HTML',    dirname(__DIR__));
+define('SETTINGS_FILE',     dirname(__DIR__) . '/data/settings.json');
+define('UPLOADS_DIR',       dirname(__DIR__) . '/assets/images/uploads');
+define('UPLOADS_URL',       '/assets/images/uploads');
+define('PUBLIC_HTML',       dirname(__DIR__));
+
+// ── Auth secret — stored in settings.json, never in code ─────────────────────
+function get_auth_secret(): string {
+    static $s = null;
+    if ($s === null) {
+        $s = file_exists(SETTINGS_FILE)
+            ? (json_decode(file_get_contents(SETTINGS_FILE), true) ?: [])
+            : [];
+    }
+    return $s['auth_secret'] ?? '';
+}
 
 // ── Cookie-based auth ─────────────────────────────────────────────────────────
 function is_authenticated(): bool {
-    $cookie = $_COOKIE['clp_auth'] ?? '';
+    $secret = get_auth_secret();
+    if (!$secret) return false;
+    $cookie   = $_COOKIE['clp_auth'] ?? '';
     if (!$cookie) return false;
-    $expected = hash_hmac('sha256', 'clp_admin_ok', AUTH_SECRET);
+    $expected = hash_hmac('sha256', 'clp_admin_ok', $secret);
     return hash_equals($expected, $cookie);
 }
 function set_auth_cookie(): void {
-    $token = hash_hmac('sha256', 'clp_admin_ok', AUTH_SECRET);
+    $token = hash_hmac('sha256', 'clp_admin_ok', get_auth_secret());
     setcookie('clp_auth', $token, [
         'expires'  => time() + 86400 * 30,
         'path'     => '/',
@@ -39,6 +50,19 @@ function get_active_password(): string {
     }
     return ADMIN_PASSWORD;
 }
+
+// Ensure auth_secret exists in settings (generate on first run)
+function ensure_auth_secret(): void {
+    if (get_auth_secret()) return;
+    $settings = file_exists(SETTINGS_FILE)
+        ? (json_decode(file_get_contents(SETTINGS_FILE), true) ?: [])
+        : [];
+    $settings['auth_secret'] = bin2hex(random_bytes(32));
+    $dir = dirname(SETTINGS_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+ensure_auth_secret();
 
 if (isset($_POST['login_password'])) {
     if ($_POST['login_password'] === get_active_password()) {
@@ -116,7 +140,7 @@ function default_settings(): array {
             ['q' => 'Cine poate participa?',                'a' => 'Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu.'],
             ['q' => 'Când va avea loc următorul eveniment?', 'a' => 'Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru.'],
         ],
-        'kit_api_key'       => 'kit_3ad1bb636169002be3359bd1048e0204',
+        'kit_api_key'       => '',
         'kit_form_id'       => '',
         'color_bg'          => '#0D0D0D',
         'color_accent'      => '#C9A84C',
@@ -456,6 +480,16 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings['kit_form_id'] = trim($_POST['kit_form_id'] ?? '');
         save_settings($settings);
         header('Location: /admin/?tab=kit&saved=1');
+        exit;
+    }
+
+    // ── Regenerate auth secret (invalidates all sessions)
+    if ($action === 'regenerate_secret') {
+        $settings = load_settings();
+        $settings['auth_secret'] = bin2hex(random_bytes(32));
+        save_settings($settings);
+        clear_auth_cookie();
+        header('Location: /admin/');
         exit;
     }
 
@@ -1608,6 +1642,15 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
         <button type="submit" class="btn btn-primary">Schimbă parola</button>
     </form>
     <p class="form-desc" style="margin-top:12px">Parola este salvată în <code>data/settings.json</code> și nu apare nicăieri în cod sau Git.</p>
+</div>
+
+<div class="card">
+    <div class="card-title">Cheie de sesiune</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Regenerarea cheii invalidează toate sesiunile active (vei fi deconectat și va trebui să te reloghezi).</p>
+    <form method="post" action="/admin/?tab=securitate" onsubmit="return confirm('Ești sigur? Vei fi deconectat.')">
+        <input type="hidden" name="action" value="regenerate_secret">
+        <button type="submit" class="btn btn-danger">Regenerează cheia de sesiune</button>
+    </form>
 </div>
 
 <?php endif; ?>

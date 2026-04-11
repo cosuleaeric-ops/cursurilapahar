@@ -2,10 +2,13 @@
 header('Content-Type: application/json');
 
 // Cookie-based auth check
-define('AUTH_SECRET', 'clp-auth-xk9p-2026-secret');
-$cookie   = $_COOKIE['clp_auth'] ?? '';
-$expected = hash_hmac('sha256', 'clp_admin_ok', AUTH_SECRET);
-if (!$cookie || !hash_equals($expected, $cookie)) {
+$_lt_settings = file_exists(dirname(__DIR__) . '/data/settings.json')
+    ? (json_decode(file_get_contents(dirname(__DIR__) . '/data/settings.json'), true) ?: [])
+    : [];
+$_lt_secret = $_lt_settings['auth_secret'] ?? '';
+$cookie     = $_COOKIE['clp_auth'] ?? '';
+$expected   = $_lt_secret ? hash_hmac('sha256', 'clp_admin_ok', $_lt_secret) : '';
+if (!$cookie || !$expected || !hash_equals($expected, $cookie)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;

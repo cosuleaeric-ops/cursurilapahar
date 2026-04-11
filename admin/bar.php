@@ -3,7 +3,11 @@
 function clp_is_admin(): bool {
     $cookie = $_COOKIE['clp_auth'] ?? '';
     if (!$cookie) return false;
-    $expected = hash_hmac('sha256', 'clp_admin_ok', 'clp-auth-xk9p-2026-secret');
+    $settings_file = dirname(__DIR__) . '/data/settings.json';
+    $s = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
+    $secret = $s['auth_secret'] ?? '';
+    if (!$secret) return false;
+    $expected = hash_hmac('sha256', 'clp_admin_ok', $secret);
     return hash_equals($expected, $cookie);
 }
 if (!clp_is_admin()) return;

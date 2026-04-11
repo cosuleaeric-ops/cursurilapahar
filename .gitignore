@@ -3,6 +3,7 @@ data/messages.log
 
 # Secrets – never commit
 private/secrets.php
+data/settings.json
 
 # Preview & dev files
 preview.html
