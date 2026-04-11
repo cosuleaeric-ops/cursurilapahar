@@ -172,6 +172,14 @@ function default_settings(): array {
                 'description' => 'Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre.',
             ],
         ],
+        'section_bgs' => [
+            'cursuri'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+            'newsletter'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+            'cum-functioneaza' => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+            'faq'              => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+            'colaborare'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+            'contact'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+        ],
     ];
 }
 function load_settings(): array {
@@ -833,6 +841,27 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
         if ($ok) $ok = save_settings($s);
     }
     echo json_encode(['ok' => $ok, 'writable' => is_writable(dirname(SETTINGS_FILE))]);
+    exit;
+}
+
+// ── Section background edit ───────────────────────────────────────────────────
+if (is_authenticated() && ($action === 'save_section_bg')) {
+    $allowed_sections = ['cursuri','newsletter','cum-functioneaza','faq','colaborare','contact'];
+    $section = trim($_POST['section'] ?? '');
+    header('Content-Type: application/json');
+    if (in_array($section, $allowed_sections)) {
+        $s = load_settings();
+        if (!isset($s['section_bgs'])) $s['section_bgs'] = [];
+        $s['section_bgs'][$section] = [
+            'image'   => trim($_POST['image'] ?? ''),
+            'blur'    => max(0, min(30, (int)($_POST['blur'] ?? 6))),
+            'overlay' => max(0, min(1, round((float)($_POST['overlay'] ?? 0.72), 2))),
+        ];
+        $ok = save_settings($s);
+        echo json_encode(['ok' => $ok]);
+    } else {
+        echo json_encode(['ok' => false, 'error' => 'invalid section']);
+    }
     exit;
 }
 

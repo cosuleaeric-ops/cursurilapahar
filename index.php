@@ -66,6 +66,18 @@ function clp_e(string $key, array $settings): string {
     return $out;
 }
 
+function clp_section_bg(string $id, array $settings, string $default_img = ''): string {
+    $bg  = $settings['section_bgs'][$id] ?? [];
+    $img = !empty($bg['image']) ? $bg['image'] : $default_img;
+    $out = 'data-section-bg="' . htmlspecialchars($id) . '"';
+    if ($img) {
+        $blur    = $bg['blur']    ?? 6;
+        $overlay = $bg['overlay'] ?? 0.72;
+        $out .= ' style="--section-bg-img:url(\'' . htmlspecialchars($img, ENT_QUOTES) . '\');--section-blur:' . (int)$blur . 'px;--section-overlay:' . (float)$overlay . '"';
+    }
+    return $out;
+}
+
 // ── Load and filter courses ───────────────────────────────────────────────────
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
@@ -263,7 +275,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </div>
 
 <!-- ── CURSURI ─────────────────────────────── -->
-<section class="section" id="cursuri">
+<?php $cursuri_bg = $settings['section_bgs']['cursuri'] ?? []; $cursuri_has_bg = !empty($cursuri_bg['image']); ?>
+<section class="section<?= $cursuri_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="cursuri" <?= clp_section_bg('cursuri', $settings) ?>>
     <div class="container">
         <h2 class="section-title" <?= clp_e('courses_title',$settings) ?>><?= htmlspecialchars($settings['courses_title']) ?></h2>
 
@@ -322,8 +335,11 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </section>
 
 <!-- ── NEWSLETTER ─────────────────────────── -->
-<?php $nl_bg = img_webp($settings['hero_images'][0] ?? '/assets/images/hero1.jpg'); ?>
-<section class="section section-dark section-bg-blur" id="newsletter" style="--section-bg-img:url('<?= htmlspecialchars($nl_bg) ?>')">
+<?php
+$nl_bg_data = $settings['section_bgs']['newsletter'] ?? [];
+$nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settings['hero_images'][0] ?? '/assets/images/hero1.jpg');
+?>
+<section class="section section-dark section-bg-blur" id="newsletter" <?= clp_section_bg('newsletter', $settings, $nl_img) ?>>
     <div class="container container-narrow">
         <div class="newsletter-icon" aria-hidden="true">✉</div>
         <h2 class="section-title" <?= clp_e('newsletter_title',$settings) ?>><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
@@ -346,7 +362,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>',
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>',
 ]; ?>
-<section class="section" id="cum-functioneaza">
+<?php $cum_bg = $settings['section_bgs']['cum-functioneaza'] ?? []; $cum_has_bg = !empty($cum_bg['image']); ?>
+<section class="section<?= $cum_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="cum-functioneaza" <?= clp_section_bg('cum-functioneaza', $settings) ?>>
     <div class="container">
         <h2 class="section-title" <?= clp_e('steps_title', $settings) ?>><?= htmlspecialchars($settings['steps_title'] ?? 'Cum funcționează') ?></h2>
         <div class="steps-grid">
@@ -363,8 +380,11 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </section>
 
 <!-- ── FAQ ────────────────────────────────── -->
-<?php $faq_bg = img_webp($settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg'); ?>
-<section class="section section-dark section-bg-blur" id="faq" style="--section-bg-img:url('<?= htmlspecialchars($faq_bg) ?>')">
+<?php
+$faq_bg_data = $settings['section_bgs']['faq'] ?? [];
+$faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg');
+?>
+<section class="section section-dark section-bg-blur" id="faq" <?= clp_section_bg('faq', $settings, $faq_img) ?>>
     <div class="container container-narrow">
         <h2 class="section-title" <?= clp_e('faq_title', $settings) ?>><?= htmlspecialchars($settings['faq_title'] ?? 'Întrebări frecvente') ?></h2>
         <div class="faq-list">
@@ -384,7 +404,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </section>
 
 <!-- ── COLABORARE ─────────────────────────── -->
-<section class="section" id="colaborare">
+<?php $col_bg = $settings['section_bgs']['colaborare'] ?? []; $col_has_bg = !empty($col_bg['image']); ?>
+<section class="section<?= $col_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="colaborare" <?= clp_section_bg('colaborare', $settings) ?>>
     <div class="container">
         <h2 class="section-title" <?= clp_e('collab_title',$settings) ?>><?= htmlspecialchars($settings['collab_title']) ?></h2>
         <p class="section-subtitle" <?= clp_e('collab_subtitle',$settings) ?>><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
@@ -418,7 +439,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </section>
 
 <!-- ── CONTACT ────────────────────────────── -->
-<section class="section section-dark" id="contact">
+<?php $contact_bg = $settings['section_bgs']['contact'] ?? []; $contact_has_bg = !empty($contact_bg['image']); ?>
+<section class="section section-dark<?= $contact_has_bg ? ' section-bg-blur' : '' ?>" id="contact" <?= clp_section_bg('contact', $settings) ?>>
     <div class="container container-narrow">
         <h2 class="section-title" <?= clp_e('contact_title',$settings) ?>><?= htmlspecialchars($settings['contact_title']) ?></h2>
         <p class="section-subtitle" <?= clp_e('contact_subtitle',$settings) ?>><?= htmlspecialchars($settings['contact_subtitle']) ?></p>

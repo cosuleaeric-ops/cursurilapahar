@@ -262,6 +262,36 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
     </div>
 </div>
 
+<!-- Section background panel -->
+<div id="clp-sbg-panel">
+    <button id="clp-sbg-close" onclick="document.getElementById('clp-sbg-panel').classList.remove('visible')">✕</button>
+    <div class="sbg-section-title">🖼 Fundal secțiune: <span id="clp-sbg-section-name"></span></div>
+
+    <label class="sbg-label">URL imagine</label>
+    <input type="text" id="clp-sbg-img" placeholder="https://... sau /assets/images/..." oninput="clpSectionBgApply()">
+
+    <label class="sbg-label">Alege din imagini existente</label>
+    <div class="sbg-gallery" id="clp-sbg-gallery"></div>
+    <button class="sbg-clear" onclick="document.getElementById('clp-sbg-img').value='';clpSectionBgApply()">✕ Elimină fundalul</button>
+
+    <label class="sbg-label">Blur</label>
+    <div class="sbg-row">
+        <input type="range" id="clp-sbg-blur" min="0" max="20" value="6" oninput="document.getElementById('clp-sbg-blur-val').textContent=this.value+'px';clpSectionBgApply()">
+        <span class="sbg-val" id="clp-sbg-blur-val">6px</span>
+    </div>
+
+    <label class="sbg-label">Opacitate overlay întunecat</label>
+    <div class="sbg-row">
+        <input type="range" id="clp-sbg-overlay" min="0" max="95" value="72" oninput="document.getElementById('clp-sbg-overlay-val').textContent=this.value+'%';clpSectionBgApply()">
+        <span class="sbg-val" id="clp-sbg-overlay-val">72%</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <button id="clp-sbg-save" onclick="clpSaveSectionBg()">Salvează</button>
+        <span id="clp-sbg-ok">✓ Salvat</span>
+    </div>
+</div>
+
 <?php
 $_clp_fh_w     = $_clp_s['fh_weight']   ?? '';
 $_clp_fh_i     = !empty($_clp_s['fh_italic']);
@@ -432,6 +462,8 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             }
         });
 
+        clpToggleSectionBgButtons(editMode);
+
         if (!editMode) {
             tb.classList.remove('visible');
             selEl = null; selKey = null;
@@ -567,6 +599,135 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
                 errEl.textContent = '✗ ' + err.message;
                 errEl.style.display = 'inline';
             });
+    };
+})();
+
+// ── Section Background Editor ─────────────────────────────────────────────────
+(function(){
+    let selSection = null;
+    // Gallery images passed from PHP
+    const galleryImgs = <?= json_encode(array_values($_clp_s['hero_images'] ?? [])) ?>;
+
+    // Build gallery on init
+    (function buildGallery() {
+        const gallery = document.getElementById('clp-sbg-gallery');
+        if (!gallery || !galleryImgs.length) return;
+        galleryImgs.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = '';
+            img.onclick = () => {
+                document.getElementById('clp-sbg-img').value = url;
+                gallery.querySelectorAll('img').forEach(i => i.classList.remove('selected'));
+                img.classList.add('selected');
+                clpSectionBgApply();
+            };
+            gallery.appendChild(img);
+        });
+    })();
+
+    window.clpOpenSectionBg = function(sectionId) {
+        selSection = sectionId;
+        const section = document.querySelector('[data-section-bg="' + sectionId + '"]');
+        document.getElementById('clp-sbg-section-name').textContent = sectionId;
+
+        // Read current values from inline style
+        const curImg  = (section && section.style.getPropertyValue('--section-bg-img') || '').replace(/^url\(['"]?|['"]?\)$/g,'');
+        const curBlur = parseInt(section && section.style.getPropertyValue('--section-blur')) || 6;
+        const curOvRaw = parseFloat(section && section.style.getPropertyValue('--section-overlay'));
+        const curOv   = isNaN(curOvRaw) ? 72 : Math.round(curOvRaw * 100);
+
+        document.getElementById('clp-sbg-img').value = curImg;
+        document.getElementById('clp-sbg-blur').value = curBlur;
+        document.getElementById('clp-sbg-blur-val').textContent = curBlur + 'px';
+        document.getElementById('clp-sbg-overlay').value = curOv;
+        document.getElementById('clp-sbg-overlay-val').textContent = curOv + '%';
+
+        // Mark selected gallery image
+        document.querySelectorAll('#clp-sbg-gallery img').forEach(img => {
+            img.classList.toggle('selected', img.src === curImg || img.getAttribute('src') === curImg);
+        });
+
+        document.getElementById('clp-sbg-panel').classList.add('visible');
+    };
+
+    window.clpSectionBgApply = function() {
+        if (!selSection) return;
+        const section = document.querySelector('[data-section-bg="' + selSection + '"]');
+        if (!section) return;
+        const img     = document.getElementById('clp-sbg-img').value.trim();
+        const blur    = document.getElementById('clp-sbg-blur').value;
+        const overlay = (document.getElementById('clp-sbg-overlay').value / 100).toFixed(2);
+
+        if (img) {
+            section.style.setProperty('--section-bg-img', "url('" + img + "')");
+            section.style.setProperty('--section-blur', blur + 'px');
+            section.style.setProperty('--section-overlay', overlay);
+            section.classList.add('section-bg-blur', 'section-dark');
+        } else {
+            section.style.removeProperty('--section-bg-img');
+            section.style.removeProperty('--section-blur');
+            section.style.removeProperty('--section-overlay');
+            // Only remove section-dark if the section didn't have it originally
+            const origDark = section.dataset.origDark === '1';
+            if (!origDark) section.classList.remove('section-dark');
+            section.classList.remove('section-bg-blur');
+        }
+    };
+
+    window.clpSaveSectionBg = function() {
+        if (!selSection) return;
+        const img     = document.getElementById('clp-sbg-img').value.trim();
+        const blur    = document.getElementById('clp-sbg-blur').value;
+        const overlay = (document.getElementById('clp-sbg-overlay').value / 100).toFixed(2);
+        const btn     = document.getElementById('clp-sbg-save');
+        const okEl    = document.getElementById('clp-sbg-ok');
+
+        const fd = new FormData();
+        fd.append('action',  'save_section_bg');
+        fd.append('section', selSection);
+        fd.append('image',   img);
+        fd.append('blur',    blur);
+        fd.append('overlay', overlay);
+
+        btn.textContent = '…';
+        fetch('/admin/', { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}, body: fd })
+            .then(r => r.json())
+            .then(d => {
+                btn.textContent = 'Salvează';
+                if (d.ok) { okEl.style.display = 'inline'; setTimeout(() => okEl.style.display = 'none', 2000); }
+            })
+            .catch(() => { btn.textContent = 'Salvează'; });
+    };
+
+    // Add/remove "🖼 Fundal" buttons when edit mode changes
+    // Called from clpToggleEdit
+    window.clpToggleSectionBgButtons = function(enable) {
+        document.querySelectorAll('[data-section-bg]').forEach(section => {
+            // Store original dark state
+            if (section.dataset.origDark === undefined) {
+                section.dataset.origDark = section.classList.contains('section-dark') ? '1' : '0';
+            }
+            let btn = section.querySelector('.clp-sbg-btn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.className = 'clp-sbg-btn';
+                btn.innerHTML = '🖼 Fundal';
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clpOpenSectionBg(section.dataset.sectionBg);
+                });
+                // Make section relative if not already
+                const pos = window.getComputedStyle(section).position;
+                if (pos === 'static') section.style.position = 'relative';
+                section.appendChild(btn);
+            }
+        });
+        // CSS handles show/hide via body.clp-edit-mode .clp-sbg-btn
+        if (!enable) {
+            document.getElementById('clp-sbg-panel').classList.remove('visible');
+        }
     };
 })();
 
