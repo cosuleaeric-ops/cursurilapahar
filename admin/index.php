@@ -179,10 +179,14 @@ function load_settings(): array {
     $data = json_decode(file_get_contents(SETTINGS_FILE), true) ?: [];
     return array_merge(default_settings(), $data);
 }
-function save_settings(array $settings): void {
+function save_settings(array $settings): bool {
     $dir = dirname(SETTINGS_FILE);
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    if (!is_dir($dir)) {
+        if (!mkdir($dir, 0755, true)) return false;
+    }
+    if (file_exists(SETTINGS_FILE) && !is_writable(SETTINGS_FILE)) return false;
+    $result = file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    return $result !== false;
 }
 
 // ── Actions (only when authenticated) ────────────────────────────────────────
@@ -826,9 +830,9 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
             $ok = true;
         }
 
-        if ($ok) save_settings($s);
+        if ($ok) $ok = save_settings($s);
     }
-    echo json_encode(['ok' => $ok]);
+    echo json_encode(['ok' => $ok, 'writable' => is_writable(dirname(SETTINGS_FILE))]);
     exit;
 }
 
