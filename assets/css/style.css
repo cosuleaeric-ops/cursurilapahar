@@ -490,8 +490,8 @@ ul { list-style: none; }
   background-image: var(--section-bg-img);
   background-size: cover;
   background-position: center;
-  filter: blur(14px);
-  transform: scale(1.08);
+  filter: blur(6px);
+  transform: scale(1.04);
   z-index: 0;
 }
 .section-bg-blur::after {
