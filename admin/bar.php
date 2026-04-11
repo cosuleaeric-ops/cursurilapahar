@@ -583,8 +583,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
                 document.head.appendChild(preview);
             }
             const styles = editDevice === 'tablet' ? _tabletStyles : _mobileStyles;
-            const width = _deviceWidths[editDevice];
-            let css = '/* ' + editDevice + ' preview */\n';
+            let css = '/* ' + editDevice + ' preview — only text styles, use Chrome responsive mode for full layout preview */\n';
             if (editDevice === 'mobile') {
                 for (const [key, style] of Object.entries(_tabletStyles)) {
                     css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
@@ -593,8 +592,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             for (const [key, style] of Object.entries(styles)) {
                 css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
             }
-            css += 'body:not(#x) { max-width: ' + width + ' !important; margin-left: auto !important; margin-right: auto !important; }\n';
-            css += '.navbar { max-width: ' + width + ' !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
             preview.textContent = css;
         } else {
             if (preview) preview.remove();
