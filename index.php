@@ -220,7 +220,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         </a>
         <div class="navbar-links">
             <?php foreach ($settings['nav_links'] as $nli => $nl): ?>
-            <a href="<?= htmlspecialchars($nl['url']) ?>" data-edit-key="nav_link_<?= $nli ?>_label"><?= htmlspecialchars($nl['label']) ?></a>
+            <a href="<?= htmlspecialchars($nl['url']) ?>" <?= clp_e('nav_link_' . $nli . '_label', $settings) ?>><?= htmlspecialchars($nl['label']) ?></a>
             <?php endforeach; ?>
         </div>
         <div class="navbar-right">
