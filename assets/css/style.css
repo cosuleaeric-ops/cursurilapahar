@@ -196,7 +196,7 @@ ul { list-style: none; }
   font-size: 1.125rem;
   font-weight: 400;
   color: #fff;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   text-transform: uppercase;
   line-height: 1.1;
 }
