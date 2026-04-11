@@ -1314,7 +1314,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
                 <input type="file" name="image_file" accept="image/*,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
                 <button type="submit" class="btn btn-primary">Încarcă</button>
             </div>
-            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
+            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF, HEIC. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
         </form>
     </div>
 
