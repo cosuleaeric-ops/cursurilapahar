@@ -10,4 +10,5 @@ RewriteRule ^voteaza-cursuri/?$ /voteaza-cursuri.php [L]
 
 # Block access to data directory
 RewriteRule ^data/ - [F,L]
+RewriteRule ^debug-soldout\.php$ - [L]
  
