@@ -260,12 +260,16 @@ shuffle($vote_courses);
             <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
             <?php endforeach; ?>
         </div>
-        <button class="hamburger" id="hamburger" aria-label="Meniu">
-            <span></span><span></span><span></span>
-        </button>
+        <div class="navbar-right">
+            <button class="navbar-hamburger" id="hamburger" aria-label="Meniu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
     </div>
 </nav>
-<div class="nav-drawer" id="navDrawer">
+
+<!-- Mobile drawer -->
+<div class="navbar-drawer" id="navDrawer">
     <?php foreach ($settings['nav_links'] as $nl): ?>
     <a href="<?= htmlspecialchars($nl['url']) ?>"><?= htmlspecialchars($nl['label']) ?></a>
     <?php endforeach; ?>
