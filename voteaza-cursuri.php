@@ -72,7 +72,7 @@ shuffle($vote_courses);
 
     /* ── Vote page layout ── */
     .vote-section {
-        max-width: 500px;
+        max-width: 900px;
         margin: 0 auto;
         padding: 100px 20px 80px;
     }
@@ -101,6 +101,8 @@ shuffle($vote_courses);
         display: flex;
         flex-direction: column;
         gap: 10px;
+        max-width: 500px;
+        margin: 0 auto;
     }
 
     /* ── Card — single row ── */
