@@ -559,11 +559,22 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     const _deviceWidths = { desktop: null, tablet: '768px', mobile: '390px' };
 
     window.clpToggleDevice = function() {
+        // Clear inline styles from all editable elements (set by clpApply preview)
+        document.querySelectorAll('[data-edit-key]').forEach(el => {
+            el.style.fontWeight = '';
+            el.style.fontStyle = '';
+            el.style.fontFamily = '';
+            el.style.fontSize = '';
+        });
+
         const idx = (_devices.indexOf(editDevice) + 1) % 3;
         editDevice = _devices[idx];
         const btn = document.getElementById('clp-tb-device');
         btn.textContent = _deviceIcons[editDevice];
         btn.title = _deviceTitles[editDevice];
+
+        // Re-read computed styles if an element is selected
+        if (selEl) clpOnFocus({ currentTarget: selEl });
 
         let preview = document.getElementById('clp-device-preview');
         if (editDevice !== 'desktop') {
@@ -575,7 +586,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             const styles = editDevice === 'tablet' ? _tabletStyles : _mobileStyles;
             const width = _deviceWidths[editDevice];
             let css = '/* ' + editDevice + ' preview */\n';
-            // Apply tablet styles for both tablet and mobile preview
             if (editDevice === 'mobile') {
                 for (const [key, style] of Object.entries(_tabletStyles)) {
                     css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
@@ -633,6 +643,10 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
                 }
                 if (d.ok) {
                     if (selEl) selEl._clpOrig = value;
+                    // Update local style cache so device preview stays correct
+                    const styleStr = parts.join(';');
+                    if (editDevice === 'tablet') _tabletStyles[selKey] = styleStr;
+                    else if (editDevice === 'mobile') _mobileStyles[selKey] = styleStr;
                     const ok = document.getElementById('clp-tb-ok');
                     ok.style.display = 'inline';
                     setTimeout(() => ok.style.display = 'none', 2000);
