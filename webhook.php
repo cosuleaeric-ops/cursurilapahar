@@ -19,7 +19,7 @@ if (($data['ref'] ?? '') !== 'refs/heads/' . BRANCH) { http_response_code(200); 
 ob_start(); echo 'OK'; $size = ob_get_length();
 header('Connection: close'); header('Content-Encoding: none'); header('Content-Length: ' . $size);
 http_response_code(200); ob_end_flush(); flush();
-ignore_user_abort(true); set_time_limit(60);
+ignore_user_abort(true); set_time_limit(90);
 
 @file_put_contents(LOG_FILE, date('Y-m-d H:i:s') . " Deploy started\n", FILE_APPEND);
 
