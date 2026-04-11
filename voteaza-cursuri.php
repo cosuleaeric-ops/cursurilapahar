@@ -1,6 +1,7 @@
 <?php
 /**
  * Cursuri la Pahar – Votează cursuri
+ * v2
  */
 
 $settings_file = __DIR__ . '/data/settings.json';
