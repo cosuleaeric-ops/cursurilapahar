@@ -67,6 +67,54 @@ if (file_exists($json_file)) {
 // Filter active, sort by date_raw ASC
 $courses = array_filter($courses, fn($c) => !empty($c['active']));
 usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
+
+// ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
+function lt_slug_from_url(string $url): string {
+    $path  = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
+    $parts = explode('/', $path);
+    $idx   = array_search('bilete', $parts);
+    return ($idx !== false && isset($parts[$idx + 1])) ? $parts[$idx + 1] : '';
+}
+function lt_is_sold_out(array $event): bool {
+    if (isset($event['status']) && strtoupper($event['status']) === 'SOLD_OUT') return true;
+    if (!empty($event['soldOut']))    return true;
+    if (!empty($event['is_sold_out'])) return true;
+    if (isset($event['availableTickets']) && $event['availableTickets'] === 0) return true;
+    if (!empty($event['ticketTypes']) && is_array($event['ticketTypes'])) {
+        foreach ($event['ticketTypes'] as $tt) {
+            if (($tt['available'] ?? 1) > 0) return false;
+        }
+        return true;
+    }
+    return false;
+}
+$soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
+$soldout_cache = file_exists($soldout_cache_file)
+    ? (json_decode(file_get_contents($soldout_cache_file), true) ?: []) : [];
+$cache_dirty = false;
+$course_soldout = [];
+foreach ($courses as $course) {
+    $slug = lt_slug_from_url($course['livetickets_url'] ?? '');
+    if (!$slug) { $course_soldout[$course['id'] ?? ''] = false; continue; }
+    $ttl = 900;
+    $now = time();
+    if (isset($soldout_cache[$slug]) && ($now - ($soldout_cache[$slug]['at'] ?? 0)) < $ttl) {
+        $course_soldout[$course['id'] ?? ''] = $soldout_cache[$slug]['sold_out'];
+        continue;
+    }
+    $api = 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug);
+    $ctx = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true]]);
+    $resp = @file_get_contents($api, false, $ctx);
+    $sold = false;
+    if ($resp) {
+        $ev = json_decode($resp, true);
+        if ($ev) $sold = lt_is_sold_out($ev);
+    }
+    $soldout_cache[$slug] = ['sold_out' => $sold, 'at' => $now];
+    $course_soldout[$course['id'] ?? ''] = $sold;
+    $cache_dirty = true;
+}
+if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_cache));
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -172,13 +220,17 @@ usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '')
                 $badge_month = $date_raw ? strtoupper(date('M', strtotime($date_raw))) : '';
                 $card_url = $course['livetickets_url'] ?? '#';
                 $target = ($course['livetickets_url'] ?? '') ? '_blank' : '_self';
+                $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
             ?>
-            <a href="<?= htmlspecialchars($card_url) ?>" target="<?= $target ?>" rel="noopener" class="event-card">
+            <a href="<?= htmlspecialchars($card_url) ?>" target="<?= $target ?>" rel="noopener" class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
                 <div class="event-card-img">
                     <?php if (!empty($course['image_url'])): ?>
                     <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($course['title'] ?? '') ?>" loading="lazy">
                     <?php else: ?>
                     <div class="event-card-img-placeholder"></div>
+                    <?php endif; ?>
+                    <?php if ($is_sold_out): ?>
+                    <div class="sold-out-badge">Sold Out</div>
                     <?php endif; ?>
                     <?php if ($badge_day): ?>
                     <div class="event-card-date-badge">
