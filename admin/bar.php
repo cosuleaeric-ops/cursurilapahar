@@ -558,7 +558,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     const _deviceWidths = { desktop: null, tablet: '768px', mobile: '390px' };
 
     window.clpToggleDevice = function() {
-        // Clear inline styles from all editable elements (set by clpApply preview)
+        // Clear inline styles from all editable elements
         document.querySelectorAll('[data-edit-key]').forEach(el => {
             el.style.fontWeight = '';
             el.style.fontStyle = '';
@@ -572,29 +572,34 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         btn.textContent = _deviceLabels[editDevice];
         btn.title = _deviceTitles[editDevice];
 
-        // Re-read computed styles if an element is selected
         if (selEl) clpOnFocus({ currentTarget: selEl });
 
-        let preview = document.getElementById('clp-device-preview');
+        // Remove existing preview
+        let overlay = document.getElementById('clp-preview-overlay');
+        let styleEl = document.getElementById('clp-device-preview');
+        if (overlay) overlay.remove();
+        if (styleEl) styleEl.remove();
+
         if (editDevice !== 'desktop') {
-            if (!preview) {
-                preview = document.createElement('style');
-                preview.id = 'clp-device-preview';
-                document.head.appendChild(preview);
-            }
-            const styles = editDevice === 'tablet' ? _tabletStyles : _mobileStyles;
-            let css = '/* ' + editDevice + ' preview — only text styles, use Chrome responsive mode for full layout preview */\n';
-            if (editDevice === 'mobile') {
-                for (const [key, style] of Object.entries(_tabletStyles)) {
-                    css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
-                }
-            }
-            for (const [key, style] of Object.entries(styles)) {
-                css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
-            }
-            preview.textContent = css;
-        } else {
-            if (preview) preview.remove();
+            const width = editDevice === 'tablet' ? 768 : 390;
+            const height = editDevice === 'tablet' ? 1024 : 844;
+
+            // Create overlay with iframe
+            overlay = document.createElement('div');
+            overlay.id = 'clp-preview-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
+
+            const label = document.createElement('div');
+            label.style.cssText = 'color:#fff;font-size:13px;font-family:-apple-system,sans-serif;opacity:.7;';
+            label.textContent = _deviceTitles[editDevice] + ' (' + width + '×' + height + ') — Click pe ' + _deviceLabels[editDevice] + ' pentru a ieși';
+
+            const frame = document.createElement('iframe');
+            frame.src = location.href;
+            frame.style.cssText = 'width:' + width + 'px;height:' + height + 'px;border:2px solid rgba(255,255,255,.2);border-radius:16px;background:#000;';
+
+            overlay.appendChild(label);
+            overlay.appendChild(frame);
+            document.body.appendChild(overlay);
         }
     };
 
