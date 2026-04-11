@@ -60,10 +60,7 @@ if (file_exists($settings_file)) {
 
 // ── Inline edit helper ───────────────────────────────────────────────────────
 function clp_e(string $key, array $settings): string {
-    $out = 'data-edit-key="' . htmlspecialchars($key) . '"';
-    $st  = $settings['element_styles'][$key] ?? '';
-    if ($st) $out .= ' style="' . htmlspecialchars($st) . '"';
-    return $out;
+    return 'data-edit-key="' . htmlspecialchars($key) . '"';
 }
 
 function clp_section_bg(string $id, array $settings, string $default_img = ''): string {
@@ -216,6 +213,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     ?>
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
+    <?php include __DIR__ . '/includes/edit-styles.php'; ?>
 </head>
 <body>
 <?php include __DIR__ . '/admin/bar.php'; ?>

@@ -22,10 +22,7 @@ $_loaded = file_exists($settings_file) ? (json_decode(file_get_contents($setting
 $settings = array_merge($_defaults, $_loaded);
 
 function clp_e(string $key, array $settings): string {
-    $out = 'data-edit-key="' . htmlspecialchars($key) . '"';
-    $st  = $settings['element_styles'][$key] ?? '';
-    if ($st) $out .= ' style="' . htmlspecialchars($st) . '"';
-    return $out;
+    return 'data-edit-key="' . htmlspecialchars($key) . '"';
 }
 
 $parteneriat_title   = $settings['parteneriat_title']   ?? 'Propune un parteneriat';
@@ -66,6 +63,7 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
     body { padding-top: 88px; }
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
+    <?php include __DIR__ . '/includes/edit-styles.php'; ?>
 </head>
 <body>
 <?php include __DIR__ . '/admin/bar.php'; ?>

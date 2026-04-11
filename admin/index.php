@@ -785,6 +785,8 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
         ? trim(strip_tags($raw, '<br><em><strong>'))
         : trim(strip_tags($raw));
     $style = trim($_POST['style'] ?? '');
+    $device = trim($_POST['device'] ?? 'desktop');
+    $styles_key = ($device === 'mobile') ? 'element_styles_mobile' : 'element_styles';
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
                      'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
                      'steps_title','faq_title','nav_brand_text',
@@ -796,7 +798,7 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
     $ok = false;
     if ($key) {
         $s = load_settings();
-        if (!isset($s['element_styles'])) $s['element_styles'] = [];
+        if (!isset($s[$styles_key])) $s[$styles_key] = [];
 
         // step_{i}_title or step_{i}_text
         if (preg_match('/^step_(\d+)_(title|text)$/', $key, $m)) {
@@ -811,8 +813,8 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
             if (!isset($s['steps'])) $s['steps'] = $defaults;
             if (isset($s['steps'][$idx])) {
                 $s['steps'][$idx][$prop] = $value;
-                if ($style) $s['element_styles'][$key] = $style;
-                else unset($s['element_styles'][$key]);
+                if ($style) $s[$styles_key][$key] = $style;
+                else unset($s[$styles_key][$key]);
                 $ok = true;
             }
         // faq_{i}_q or faq_{i}_a
@@ -822,8 +824,8 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
             if (!isset($s['faq_items'])) $s['faq_items'] = [];
             if (isset($s['faq_items'][$idx])) {
                 $s['faq_items'][$idx][$prop] = $value;
-                if ($style) $s['element_styles'][$key] = $style;
-                else unset($s['element_styles'][$key]);
+                if ($style) $s[$styles_key][$key] = $style;
+                else unset($s[$styles_key][$key]);
                 $ok = true;
             }
         // nav_link_{i}_label
@@ -832,15 +834,15 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
             if (!isset($s['nav_links'])) $s['nav_links'] = [];
             if (isset($s['nav_links'][$idx])) {
                 $s['nav_links'][$idx]['label'] = $value;
-                if ($style) $s['element_styles'][$key] = $style;
-                else unset($s['element_styles'][$key]);
+                if ($style) $s[$styles_key][$key] = $style;
+                else unset($s[$styles_key][$key]);
                 $ok = true;
             }
         // flat keys
         } elseif (in_array($key, $flat_allowed)) {
             $s[$key] = $value;
-            if ($style) $s['element_styles'][$key] = $style;
-            else unset($s['element_styles'][$key]);
+            if ($style) $s[$styles_key][$key] = $style;
+            else unset($s[$styles_key][$key]);
             $ok = true;
         }
 

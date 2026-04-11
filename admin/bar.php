@@ -407,6 +407,8 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     <label>Mărime</label>
     <input type="number" id="clp-tb-fs" min="10" max="120" step="1" style="width:60px" oninput="clpApply()" placeholder="px">
     <div class="tb-sep"></div>
+    <button id="clp-tb-device" onclick="clpToggleDevice()" title="Desktop / Mobile" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:5px 8px;cursor:pointer;font-size:13px;">&#x1F5A5;&#xFE0F;</button>
+    <div class="tb-sep"></div>
     <button id="clp-tb-save" onclick="clpSave()">Salvează</button>
     <span id="clp-tb-ok">✓</span>
     <span id="clp-tb-err"></span>
@@ -416,6 +418,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
 (function(){
     let editMode = false;
     let selEl = null, selKey = null;
+    let editDevice = 'desktop';
 
     // Keys that store/return HTML (not plain text)
     const htmlKeys = ['hero_title', 'announcement',
@@ -434,6 +437,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         fd.append('key',    key);
         fd.append('value',  value);
         fd.append('style',  style);
+        fd.append('device', editDevice);
         fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
             .then(r => r.json())
             .then(d => { if (d.ok) el._clpOrig = value; });
@@ -546,6 +550,13 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         clpApply();
     };
 
+    window.clpToggleDevice = function() {
+        editDevice = editDevice === 'desktop' ? 'mobile' : 'desktop';
+        const btn = document.getElementById('clp-tb-device');
+        btn.textContent = editDevice === 'desktop' ? '\u{1F5A5}\uFE0F' : '\u{1F4F1}';
+        btn.title = editDevice === 'desktop' ? 'Editezi: Desktop' : 'Editezi: Mobile';
+    };
+
     window.clpSave = function() {
         if (!selEl || !selKey) return;
         const fw = document.getElementById('clp-tb-fw').value;
@@ -566,6 +577,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         fd.append('key',    selKey);
         fd.append('value',  value);
         fd.append('style',  parts.join(';'));
+        fd.append('device', editDevice);
 
         const btn = document.getElementById('clp-tb-save');
         const errEl = document.getElementById('clp-tb-err');
