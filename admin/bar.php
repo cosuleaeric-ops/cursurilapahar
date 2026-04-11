@@ -37,11 +37,13 @@ body { padding-top: 32px !important; }
 <div id="clp-adminbar">
     <a href="/admin/" class="bar-brand">⚙ Admin</a>
     <a href="/admin/?tab=cursuri">📋 Cursuri</a>
-    <a href="/admin/?tab=setari">✏️ Setări</a>
+    <a href="/admin/?tab=setari">✏️ Texte</a>
     <a href="/admin/?tab=aspect">🎨 Aspect</a>
     <a href="/admin/?tab=imagini">🖼 Imagini</a>
+    <a href="/admin/?tab=pagini">📄 Pagini</a>
     <a href="/admin/?tab=mesaje">💬 Mesaje</a>
+    <a href="/admin/?tab=vot">❤️ Vot</a>
     <span class="bar-sep"></span>
-    <a href="/" target="_blank">🌐 Vezi site</a>
+    <a href="/" target="_blank">🌐 Site</a>
     <a href="/admin/?logout=1" class="bar-logout">Ieșire</a>
 </div>

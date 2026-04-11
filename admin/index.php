@@ -351,15 +351,13 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save_aspect') {
         $settings = load_settings();
         $settings['nav_brand_text'] = trim($_POST['nav_brand_text'] ?? 'Cursuri la Pahar');
-        $raw_links = explode("\n", $_POST['nav_links_raw'] ?? '');
-        $nav_links = [];
-        foreach ($raw_links as $line) {
-            $line = trim($line);
-            if (!$line) continue;
-            $parts = explode('|', $line, 2);
-            if (count($parts) === 2) {
-                $nav_links[] = ['label' => trim($parts[0]), 'url' => trim($parts[1])];
-            }
+        $nav_labels = $_POST['nav_label'] ?? [];
+        $nav_urls   = $_POST['nav_url']   ?? [];
+        $nav_links  = [];
+        foreach ($nav_labels as $i => $label) {
+            $label = trim($label);
+            $url   = trim($nav_urls[$i] ?? '');
+            if ($label && $url) $nav_links[] = ['label' => $label, 'url' => $url];
         }
         if ($nav_links) $settings['nav_links'] = $nav_links;
         save_settings($settings);
@@ -838,7 +836,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 
 <header class="wp-header">
     <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
-    <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
+    <div style="display:flex;align-items:center;gap:10px">
+        <a href="/" target="_blank" style="color:rgba(255,255,255,.7);font-size:12px;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,.2);border-radius:3px;transition:background .1s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background=''">🌐 Vezi site</a>
+        <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
+    </div>
 </header>
 
 <div class="wp-layout">
@@ -1224,15 +1225,62 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <input type="text" name="nav_brand_text" value="<?= h($settings['nav_brand_text'] ?? 'Cursuri la Pahar') ?>">
         </div>
         <div class="form-group">
-            <label>Linkuri meniu</label>
-            <p class="form-desc" style="margin-bottom:8px">Un link per rând, format: <code>Nume|/url</code></p>
-            <textarea name="nav_links_raw" rows="6" style="font-family:monospace"><?php
-                foreach ($settings['nav_links'] ?? [] as $nl) {
-                    echo h(($nl['label'] ?? '') . '|' . ($nl['url'] ?? '')) . "\n";
-                }
-            ?></textarea>
+            <label>Linkuri meniu <span style="font-weight:400;color:var(--text-muted)">(trage pentru reordonare)</span></label>
+            <div id="navLinksList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+                <?php foreach ($settings['nav_links'] ?? [] as $i => $nl): ?>
+                <div class="nav-link-row" draggable="true" style="display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid var(--border);border-radius:4px;padding:6px 10px;cursor:grab">
+                    <span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>
+                    <input type="text" name="nav_label[]" value="<?= h($nl['label'] ?? '') ?>" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff">
+                    <input type="text" name="nav_url[]"   value="<?= h($nl['url'] ?? '') ?>"   placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff;font-family:monospace">
+                    <button type="button" onclick="this.closest('.nav-link-row').remove()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addNavLink()">+ Adaugă link</button>
         </div>
         <button type="submit" class="btn btn-primary">Salvează navbar</button>
+<script>
+// Drag-and-drop reorder
+(function(){
+    const list = document.getElementById('navLinksList');
+    if (!list) return;
+    let dragged = null;
+    list.addEventListener('dragstart', e => {
+        dragged = e.target.closest('.nav-link-row');
+        setTimeout(() => dragged && dragged.classList.add('dragging'), 0);
+    });
+    list.addEventListener('dragend', () => {
+        if (dragged) dragged.classList.remove('dragging');
+        dragged = null;
+    });
+    list.addEventListener('dragover', e => {
+        e.preventDefault();
+        const row = e.target.closest('.nav-link-row');
+        if (row && row !== dragged) {
+            const rect = row.getBoundingClientRect();
+            const after = e.clientY > rect.top + rect.height / 2;
+            list.insertBefore(dragged, after ? row.nextSibling : row);
+        }
+    });
+    const style = document.createElement('style');
+    style.textContent = '.nav-link-row.dragging { opacity:.4; }';
+    document.head.appendChild(style);
+})();
+
+function addNavLink() {
+    const list = document.getElementById('navLinksList');
+    const row = document.createElement('div');
+    row.className = 'nav-link-row';
+    row.draggable = true;
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid #c3c4c7;border-radius:4px;padding:6px 10px;cursor:grab';
+    row.innerHTML = '<span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>'
+        + '<input type="text" name="nav_label[]" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff">'
+        + '<input type="text" name="nav_url[]" placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff;font-family:monospace">'
+        + '<button type="button" onclick="this.closest(\'.nav-link-row\').remove()" style="background:none;border:none;color:#d63638;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>';
+    list.appendChild(row);
+    row.querySelector('input').focus();
+}
+</script>
     </div>
 </form>
 
