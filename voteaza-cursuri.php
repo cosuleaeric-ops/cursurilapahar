@@ -58,7 +58,7 @@ shuffle($vote_courses);
         --btn-hover:    <?= htmlspecialchars($settings['color_btn_hover'] ?? '#b8922e') ?>;
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
     }
-    body { padding-top: 72px; }
+    body { padding-top: 88px; }
 
     /* ── Vote page layout ── */
     .vote-section {
