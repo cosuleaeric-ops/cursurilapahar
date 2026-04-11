@@ -38,7 +38,8 @@ $base_url   = 'https://raw.githubusercontent.com/' . REPO . '/' . $commit_sha . 
 
 $deploy_prefixes = [
     'index.php', 'api/', 'admin/', 'assets/', '.htaccess',
-    'sustine-un-curs.php', 'gazduieste-un-curs.php', 'propune-un-parteneriat.php'
+    'sustine-un-curs.php', 'gazduieste-un-curs.php', 'propune-un-parteneriat.php',
+    'voteaza-cursuri.php',
 ];
 
 foreach ($changed as $file) {
@@ -87,6 +88,12 @@ foreach ($removed as $file) {
 if (!is_dir(PUBLIC_HTML . '/data')) {
     @mkdir(PUBLIC_HTML . '/data', 0755, true);
     @file_put_contents(PUBLIC_HTML . '/data/courses.json', '[]');
+}
+// Seed vote_courses.json only if it doesn't exist yet (to preserve votes)
+if (!file_exists(PUBLIC_HTML . '/data/vote_courses.json')) {
+    $ctx = stream_context_create(['http' => ['User-Agent' => 'CLP-Deploy']]);
+    $seed = @file_get_contents($base_url . 'data/vote_courses.json', false, $ctx);
+    if ($seed) @file_put_contents(PUBLIC_HTML . '/data/vote_courses.json', $seed);
 }
 
 $log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)";
