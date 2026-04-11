@@ -503,6 +503,14 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Clear sold-out cache
+    if ($action === 'clear_soldout_cache') {
+        $cache_file = dirname(SETTINGS_FILE) . '/soldout_cache.json';
+        if (file_exists($cache_file)) unlink($cache_file);
+        header('Location: /admin/?tab=cursuri&soldout_cleared=1');
+        exit;
+    }
+
     // ── Export all data as download
     if ($action === 'export_settings') {
         $data_dir = dirname(SETTINGS_FILE);
@@ -963,6 +971,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 <?php if ($tab === 'cursuri'): ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
+
+    <?php if (isset($_GET['soldout_cleared'])): ?>
+    <div class="notice notice-success">Cache sold-out șters. Reîncarcă site-ul pentru a vedea statusul actualizat.</div>
+    <?php endif; ?>
+
+    <form method="post" action="/admin/?tab=cursuri" style="margin-bottom:16px">
+        <input type="hidden" name="action" value="clear_soldout_cache">
+        <button type="submit" class="btn btn-secondary">🔄 Resetează cache sold-out</button>
+    </form>
 
     <!-- Import section -->
     <div class="card">
