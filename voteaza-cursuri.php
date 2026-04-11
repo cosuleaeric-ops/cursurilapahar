@@ -159,8 +159,10 @@ shuffle($vote_courses);
         100% { transform: scale(1); }
     }
     .vote-toggle-icon {
-        font-size: 1rem;
+        font-size: 1.4rem;
         color: var(--text-muted);
+        cursor: pointer;
+        padding: 4px;
         transition: transform .25s;
         flex-shrink: 0;
         line-height: 1;
