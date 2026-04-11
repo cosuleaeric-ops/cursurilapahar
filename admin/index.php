@@ -527,7 +527,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 $source_domain = rtrim(trim($_POST['source_domain'] ?? 'https://robotache.ro'), '/');
                 $image_paths = [];
                 array_walk_recursive($imported, function($val) use (&$image_paths) {
-                    if (is_string($val) && preg_match('#^(/wp-content/|/assets/uploads/)#', $val)) {
+                    if (is_string($val) && preg_match('#^(/assets/images/|/assets/uploads/|/wp-content/)#', $val)) {
                         $image_paths[] = $val;
                     }
                 });
