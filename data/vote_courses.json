@@ -1,0 +1,23 @@
+[
+    {
+        "id": "vc_educatie_montana",
+        "name": "Educație montană",
+        "emoji": "🏔️",
+        "description": "Mulți oameni urcă pe munte conduși de entuziasm, nu de pregătire, și consecințele pot fi grave. Cursul acoperă practic ce contează: cum alegi traseul potrivit nivelului tău, ce trebuie să ai în rucsac și cum iei decizii bune când condițiile se schimbă. Educație montană reală, nu după reels.",
+        "likes": 0
+    },
+    {
+        "id": "vc_iubim_oameni_care_ne_ranesc",
+        "name": "De ce iubim oameni care ne rănesc",
+        "emoji": "💔",
+        "description": "De ce ajungem să iubim oameni care ne fac rău, chiar și când mintea știe că ceva e greșit? Cursul explorează mecanismele din spatele atașamentului dureros, de la traumă relațională la semnalele pe care le trimite corpul, și explică de ce înțelegerea singură nu e suficientă pentru schimbare.",
+        "likes": 0
+    },
+    {
+        "id": "vc_numerologie",
+        "name": "Numerologie",
+        "emoji": "🔮",
+        "description": "Un curs introductiv care explică de la zero cum funcționează numerologia și ce poți afla despre tine pornind de la câteva cifre simple. Participanții învață să-și calculeze și interpreteze propria hartă numerologică, cu aplicații concrete în autocunoaștere, relații și decizii de zi cu zi.",
+        "likes": 0
+    }
+]

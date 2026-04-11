@@ -1,7 +1,8 @@
 <?php
 define('ADMIN_PASSWORD', 'clp2026admin');
 define('AUTH_SECRET',    'clp-auth-xk9p-2026-secret');
-define('COURSES_FILE',   dirname(__DIR__) . '/data/courses.json');
+define('COURSES_FILE',      dirname(__DIR__) . '/data/courses.json');
+define('VOTE_COURSES_FILE', dirname(__DIR__) . '/data/vote_courses.json');
 define('SETTINGS_FILE',  dirname(__DIR__) . '/data/settings.json');
 define('UPLOADS_DIR',    dirname(__DIR__) . '/assets/images/uploads');
 define('UPLOADS_URL',    '/assets/images/uploads');
@@ -53,6 +54,16 @@ function save_courses(array $courses): void {
     $dir = dirname(COURSES_FILE);
     if (!is_dir($dir)) mkdir($dir, 0755, true);
     file_put_contents(COURSES_FILE, json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
+function load_vote_courses(): array {
+    if (!file_exists(VOTE_COURSES_FILE)) return [];
+    return json_decode(file_get_contents(VOTE_COURSES_FILE), true) ?: [];
+}
+function save_vote_courses(array $courses): void {
+    $dir = dirname(VOTE_COURSES_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(VOTE_COURSES_FILE, json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 function default_settings(): array {
@@ -453,6 +464,48 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Save vote course
+    if ($action === 'save_vote_course') {
+        $id      = trim($_POST['vote_course_id'] ?? '');
+        $courses = load_vote_courses();
+        $entry   = [
+            'id'          => $id ?: uniqid('vc', true),
+            'name'        => trim($_POST['vc_name']        ?? ''),
+            'emoji'       => trim($_POST['vc_emoji']       ?? '📚'),
+            'description' => trim($_POST['vc_description'] ?? ''),
+            'likes'       => 0,
+        ];
+        if ($id) {
+            $found = false;
+            foreach ($courses as &$c) {
+                if (($c['id'] ?? '') === $id) {
+                    // Preserve existing likes when editing
+                    $entry['likes'] = $c['likes'] ?? 0;
+                    $c = $entry;
+                    $found = true;
+                    break;
+                }
+            }
+            unset($c);
+            if (!$found) $courses[] = $entry;
+        } else {
+            $courses[] = $entry;
+        }
+        save_vote_courses($courses);
+        header('Location: /admin/?tab=vot&saved=1');
+        exit;
+    }
+
+    // ── Delete vote course
+    if ($action === 'delete_vote_course') {
+        $id      = $_POST['id'] ?? '';
+        $courses = load_vote_courses();
+        $courses = array_filter($courses, fn($c) => ($c['id'] ?? '') !== $id);
+        save_vote_courses($courses);
+        header('Location: /admin/?tab=vot');
+        exit;
+    }
+
     // ── Delete message
     if ($action === 'delete_message') {
         $idx  = (int)($_POST['msg_index'] ?? -1);
@@ -488,7 +541,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'cursuri';
-if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje'])) $tab = 'cursuri';
+if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot'])) $tab = 'cursuri';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -740,6 +793,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </a>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
                 <span class="nav-icon">💬</span> Mesaje
+            </a>
+            <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
+                <span class="nav-icon">❤️</span> Vot cursuri
             </a>
         </nav>
     </aside>
@@ -1384,6 +1440,116 @@ function toggleMsg(uid) {
     el.classList.toggle('open');
 }
 </script>
+
+<?php /* ======================================================= TAB: VOT CURSURI */ ?>
+<?php elseif ($tab === 'vot'): ?>
+
+<?php
+$vote_courses   = load_vote_courses();
+$edit_vc        = null;
+$edit_vc_id     = $_GET['edit'] ?? '';
+if ($edit_vc_id) {
+    foreach ($vote_courses as $vc) {
+        if (($vc['id'] ?? '') === $edit_vc_id) { $edit_vc = $vc; break; }
+    }
+}
+// Sort by likes descending for admin view
+usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
+?>
+
+<style>
+.vc-table .likes-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #fce8e8; color: #8c1415;
+    padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+</style>
+
+<h1 class="wp-page-title">Vot cursuri</h1>
+
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Cursul a fost salvat.</div>
+<?php endif; ?>
+
+<!-- Add / Edit form -->
+<div class="card">
+    <div class="card-title"><?= $edit_vc ? 'Editează cursul' : 'Adaugă idee de curs' ?></div>
+    <form method="post" action="/admin/?tab=vot">
+        <input type="hidden" name="action" value="save_vote_course">
+        <input type="hidden" name="vote_course_id" value="<?= h($edit_vc['id'] ?? '') ?>">
+
+        <div style="display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:start">
+            <div class="form-group" style="margin-bottom:0">
+                <label for="vc_emoji">Emoji</label>
+                <input type="text" id="vc_emoji" name="vc_emoji" value="<?= h($edit_vc['emoji'] ?? '📚') ?>" maxlength="4" style="text-align:center;font-size:1.5rem;padding:6px 4px">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label for="vc_name">Nume curs <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="vc_name" name="vc_name" value="<?= h($edit_vc['name'] ?? '') ?>" required placeholder="ex: Educație montană">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+            <label for="vc_description">Descriere</label>
+            <textarea id="vc_description" name="vc_description" rows="4" placeholder="Descrierea cursului, vizibilă la toggle pe pagina publică."><?= h($edit_vc['description'] ?? '') ?></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center">
+            <button type="submit" class="btn btn-primary"><?= $edit_vc ? 'Salvează modificările' : 'Adaugă cursul' ?></button>
+            <?php if ($edit_vc): ?>
+            <a href="/admin/?tab=vot" class="btn btn-secondary">Anulează</a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
+<!-- Courses table -->
+<div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Idei de cursuri (<?= count($vote_courses) ?>)</span>
+        <a href="/voteaza-cursuri" target="_blank" class="btn btn-sm btn-secondary">Vezi pagina ↗</a>
+    </div>
+    <?php if (empty($vote_courses)): ?>
+    <p style="color:var(--text-muted)">Nu există idei de cursuri adăugate încă.</p>
+    <?php else: ?>
+    <table class="wp-table vc-table">
+        <thead>
+            <tr>
+                <th style="width:48px">Emoji</th>
+                <th>Nume</th>
+                <th style="width:90px">Voturi</th>
+                <th style="width:160px">Acțiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($vote_courses as $vc): ?>
+            <tr>
+                <td style="font-size:1.4rem;text-align:center"><?= h($vc['emoji'] ?? '📚') ?></td>
+                <td style="font-weight:600">
+                    <?= h($vc['name'] ?? '') ?>
+                    <?php if (!empty($vc['description'])): ?>
+                    <div style="font-size:12px;color:var(--text-muted);font-weight:400;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px"><?= h(mb_substr($vc['description'], 0, 80)) ?>…</div>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <span class="likes-badge">❤️ <?= (int)($vc['likes'] ?? 0) ?></span>
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="/admin/?tab=vot&edit=<?= h($vc['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
+                        <form method="post" action="/admin/?tab=vot" onsubmit="return confirm('Ștergi această idee de curs?')" style="display:inline">
+                            <input type="hidden" name="action" value="delete_vote_course">
+                            <input type="hidden" name="id" value="<?= h($vc['id'] ?? '') ?>">
+                            <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>
 
 <?php endif; ?>
 
