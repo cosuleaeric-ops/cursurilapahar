@@ -1,6 +1,10 @@
 <?php
-define('ADMIN_PASSWORD', 'clp2026admin');
-define('AUTH_SECRET',    'clp-auth-xk9p-2026-secret');
+// Load secrets from unversioned file (falls back to defaults for local dev)
+if (file_exists(dirname(__DIR__) . '/private/secrets.php')) {
+    require dirname(__DIR__) . '/private/secrets.php';
+}
+if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', 'clp2026admin');
+if (!defined('AUTH_SECRET'))    define('AUTH_SECRET',    'clp-auth-xk9p-2026-secret');
 define('COURSES_FILE',      dirname(__DIR__) . '/data/courses.json');
 define('VOTE_COURSES_FILE', dirname(__DIR__) . '/data/vote_courses.json');
 define('SETTINGS_FILE',  dirname(__DIR__) . '/data/settings.json');
@@ -440,8 +444,9 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Save Kit settings
     if ($action === 'save_kit') {
         $settings = load_settings();
-        $settings['kit_api_key'] = trim($_POST['kit_api_key'] ?? '');
-        $settings['kit_form_id'] = trim($_POST['kit_form_id'] ?? '');
+        $settings['kit_api_key']    = trim($_POST['kit_api_key'] ?? '');
+        $settings['kit_form_id']    = trim($_POST['kit_form_id'] ?? '');
+        $settings['github_token']   = trim($_POST['github_token'] ?? '');
         save_settings($settings);
         header('Location: /admin/?tab=kit&saved=1');
         exit;

@@ -1,6 +1,9 @@
 # Logs & user data
 data/messages.log
 
+# Secrets – never commit
+private/secrets.php
+
 # Preview & dev files
 preview.html
 server.py
