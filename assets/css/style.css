@@ -21,8 +21,9 @@
   --shadow:      0 4px 24px rgba(0,0,0,.5);
   --transition:  .25s ease;
 
-  --font-serif:  'Nunito', sans-serif;
-  --font-sans:   'Inter', system-ui, sans-serif;
+  --font-heading: 'Nunito', sans-serif;
+  --font-serif:   var(--font-heading);
+  --font-sans:    'Inter', system-ui, sans-serif;
 }
 
 /* ── Reset ──────────────────────────────── */
@@ -32,7 +33,7 @@
 #faq .section-title,
 #colaborare .section-title,
 #contact .section-title {
-  font-family: 'Anton', sans-serif;
+  font-family: var(--font-heading);
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -81,7 +82,7 @@ ul { list-style: none; }
   text-align: center;
 }
 #cursuri > .container > .section-title {
-  font-family: 'Anton', var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 60px;
   font-weight: 400;
   letter-spacing: -0.025em;
