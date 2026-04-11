@@ -74,22 +74,22 @@ shuffle($vote_courses);
     .vote-section {
         max-width: 900px;
         margin: 0 auto;
-        padding: 100px 20px 80px;
+        padding: 40px 20px 80px;
     }
     .vote-header {
         text-align: left;
-        margin-bottom: 48px;
+        margin-bottom: 32px;
         max-width: 650px;
         margin-left: auto;
         margin-right: auto;
     }
     .vote-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(2rem, 5vw, 3rem);
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
         font-weight: 800;
         color: var(--text);
-        margin-bottom: 14px;
-        line-height: 1.15;
+        margin-bottom: 10px;
+        line-height: 1.2;
     }
     .vote-header p {
         color: var(--text-muted);
