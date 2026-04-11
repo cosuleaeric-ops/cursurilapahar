@@ -99,7 +99,7 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     display: none; position: fixed; top: 32px; right: 0; z-index: 999998;
     background: #1d2327; border-radius: 0 0 0 10px;
     box-shadow: -4px 4px 24px rgba(0,0,0,.6);
-    padding: 16px 18px; width: 360px; max-height: calc(100vh - 40px); overflow-y: auto;
+    padding: 16px 18px; width: 420px; max-height: calc(100vh - 40px); overflow-y: auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 12px; color: #a7aaad;
 }
@@ -120,8 +120,8 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 #clp-font-panel .fp-row input[type=number] { max-width: 64px; flex: none; }
 #clp-font-panel .fp-row .fp-unit { color: #555; font-size: 11px; }
 #clp-font-panel .fp-row-sizes { display: flex; align-items: center; gap: 6px; flex: 1; }
-#clp-font-panel .fp-row-sizes input { width: 52px; text-align: center; }
-#clp-font-panel .fp-row-sizes span { color: #555; font-size: 10px; }
+#clp-font-panel .fp-row-sizes input { width: 46px; text-align: center; }
+#clp-font-panel .fp-row-sizes span { color: #555; font-size: 10px; white-space: nowrap; }
 #clp-font-panel .fp-italic-btn {
     background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.15);
     border-radius: 5px; width: 32px; height: 28px; cursor: pointer; font-style: italic;
