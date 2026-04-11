@@ -786,7 +786,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .wp-layout { display: flex; min-height: calc(100vh - 46px); margin-top: 46px; }
 
 /* ── Sidebar ── */
-.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; position: sticky; top: 46px; height: calc(100vh - 46px); overflow-y: auto; }
+.wp-sidebar { width: 200px; background: var(--sidebar-bg); flex-shrink: 0; padding-top: 8px; position: fixed; top: 46px; left: 0; height: calc(100vh - 46px); overflow-y: auto; z-index: 99; }
 .wp-sidebar nav a {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 14px 8px 14px; color: var(--sidebar-text);
@@ -800,7 +800,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .nav-new-badge { margin-left: auto; background: #e74c3c; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; white-space: nowrap; }
 
 /* ── Main content ── */
-.wp-main { flex: 1; padding: 20px 24px; min-width: 0; }
+.wp-main { flex: 1; padding: 20px 24px; min-width: 0; margin-left: 200px; }
 .wp-page-title { font-size: 22px; font-weight: 400; color: var(--text); margin-bottom: 20px; line-height: 1.3; }
 
 /* ── Cards ── */
