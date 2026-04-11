@@ -192,9 +192,9 @@ ul { list-style: none; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: 'Anton', var(--font-heading), sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 20px;
-  font-weight: 400;
+  font-weight: 900;
   color: #fff;
   letter-spacing: 0;
   text-transform: uppercase;
