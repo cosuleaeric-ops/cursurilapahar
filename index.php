@@ -18,7 +18,7 @@ function clp_default_settings(): array {
         'hero_btn'         => 'Vezi următoarele cursuri',
         'courses_title'    => 'Următoarele cursuri',
         'newsletter_title' => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
-        'newsletter_desc'  => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar, cu 2 săptămâni înainte ca acestea să aibă loc.',
+        'newsletter_desc'  => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar.',
         'collab_title'     => 'Colaborare',
         'collab_subtitle'  => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
         'contact_title'    => 'Contact',

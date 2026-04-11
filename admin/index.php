@@ -112,7 +112,7 @@ function default_settings(): array {
         'hero_btn'          => 'Vezi următoarele cursuri',
         'courses_title'     => 'Următoarele cursuri',
         'newsletter_title'  => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
-        'newsletter_desc'   => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar, cu 2 săptămâni înainte ca acestea să aibă loc.',
+        'newsletter_desc'   => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar.',
         'collab_title'      => 'Colaborare',
         'collab_subtitle'   => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
         'contact_title'     => 'Contact',
@@ -503,14 +503,6 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Clear sold-out cache
-    if ($action === 'clear_soldout_cache') {
-        $cache_file = dirname(SETTINGS_FILE) . '/soldout_cache.json';
-        if (file_exists($cache_file)) unlink($cache_file);
-        header('Location: /admin/?tab=cursuri&soldout_cleared=1');
-        exit;
-    }
-
     // ── Export all data as download
     if ($action === 'export_settings') {
         $data_dir = dirname(SETTINGS_FILE);
@@ -706,6 +698,23 @@ if (is_authenticated()) {
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 }
 
+// ── Unread messages badge ─────────────────────────────────────────────────────
+$_msg_last_read_file = dirname(SETTINGS_FILE) . '/messages_last_read.txt';
+$_msg_log_file       = dirname(SETTINGS_FILE) . '/messages.log';
+$_msg_unread_count   = 0;
+
+if ($tab === 'mesaje' && is_authenticated()) {
+    // Mark all current messages as read
+    file_put_contents($_msg_last_read_file, date('Y-m-d H:i:s'), LOCK_EX);
+} elseif (is_authenticated() && file_exists($_msg_log_file)) {
+    $last_read = file_exists($_msg_last_read_file) ? trim(file_get_contents($_msg_last_read_file)) : '1970-01-01 00:00:00';
+    $raw_log   = file_get_contents($_msg_log_file);
+    preg_match_all('/^=== (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \|/m', $raw_log, $ts_matches);
+    foreach ($ts_matches[1] as $ts) {
+        if ($ts > $last_read) $_msg_unread_count++;
+    }
+}
+
 // Collect images for imagini tab
 function get_all_images(): array {
     $imgs = [];
@@ -788,6 +797,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 .wp-sidebar nav a.active { color: var(--sidebar-active); background: var(--sidebar-active-bg); border-left-color: rgba(255,255,255,.3); }
 .wp-sidebar nav a .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
 .sidebar-section { padding: 14px 14px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #50575e; font-weight: 700; }
+.nav-new-badge { margin-left: auto; background: #e74c3c; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; white-space: nowrap; }
 
 /* ── Main content ── */
 .wp-main { flex: 1; padding: 20px 24px; min-width: 0; }
@@ -953,7 +963,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
                 <span class="nav-icon">📧</span> Kit (Email)
             </a>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
-                <span class="nav-icon">💬</span> Mesaje
+                <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
             </a>
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
@@ -971,15 +981,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
 <?php if ($tab === 'cursuri'): ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
-
-    <?php if (isset($_GET['soldout_cleared'])): ?>
-    <div class="notice notice-success">Cache sold-out șters. Reîncarcă site-ul pentru a vedea statusul actualizat.</div>
-    <?php endif; ?>
-
-    <form method="post" action="/admin/?tab=cursuri" style="margin-bottom:16px">
-        <input type="hidden" name="action" value="clear_soldout_cache">
-        <button type="submit" class="btn btn-secondary">🔄 Resetează cache sold-out</button>
-    </form>
 
     <!-- Import section -->
     <div class="card">

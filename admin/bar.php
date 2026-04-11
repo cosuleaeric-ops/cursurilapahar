@@ -44,6 +44,8 @@ body { padding-top: 32px !important; }
     <a href="/admin/?tab=mesaje">💬 Mesaje</a>
     <a href="/admin/?tab=vot">❤️ Vot</a>
     <span class="bar-sep"></span>
-    <a href="/" target="_blank">🌐 Site</a>
+    <?php if (str_starts_with($current, '/admin')): ?>
+    <a href="/">🌐 Site</a>
+    <?php endif; ?>
     <a href="/admin/?logout=1" class="bar-logout">Ieșire</a>
 </div>
