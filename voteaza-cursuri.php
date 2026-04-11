@@ -243,6 +243,9 @@ shuffle($vote_courses);
         font-size: 1rem;
     }
     </style>
+    <?php if (!empty($settings['head_scripts'])): ?>
+    <?= $settings['head_scripts'] ?>
+    <?php endif; ?>
 </head>
 <body>
 <?php include __DIR__ . '/admin/bar.php'; ?>

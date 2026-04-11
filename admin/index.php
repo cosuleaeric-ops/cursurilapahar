@@ -154,6 +154,7 @@ function default_settings(): array {
         'color_banner'      => '#FFB000',
         'font_heading'      => 'Nunito',
         'font_body'         => 'Inter',
+        'head_scripts'      => '',
         'pages'             => [
             'sustine' => [
                 'title'       => 'Susține un curs',
@@ -319,7 +320,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Save settings
     if ($action === 'save_settings') {
         $settings = load_settings();
-        $fields = ['announcement','hero_title','hero_btn','courses_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
+        $fields = ['announcement','hero_title','hero_btn','courses_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle','head_scripts'];
         foreach ($fields as $f) {
             $settings[$f] = $_POST[$f] ?? $settings[$f];
         }
@@ -1491,6 +1492,26 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </div>
             <div style="padding:0 8px 12px">
                 <button type="button" onclick="addFaqItem()" class="btn btn-secondary" style="font-size:13px">+ Adaugă întrebare</button>
+            </div>
+        </div>
+
+        <!-- Analytics & head scripts -->
+        <div class="tf-card" style="margin-top:8px">
+            <div class="tf-card-title">📊 Analytics &amp; Tracking</div>
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Cod head (scripts)</span>
+                    <span class="tf-preview"><?= $settings['head_scripts'] ? '✓ Configurat' : 'Necompletat' ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <p class="form-desc" style="margin-bottom:10px">
+                        Lipește aici codul de tracking pentru <strong>Umami</strong>, <strong>Google Analytics</strong> sau orice alt script.
+                        Va fi inserat automat în <code>&lt;head&gt;</code> pe toate paginile site-ului.
+                    </p>
+                    <textarea name="head_scripts" rows="7" style="width:100%;font-family:monospace;font-size:12px;line-height:1.6"><?= htmlspecialchars($settings['head_scripts'] ?? '') ?></textarea>
+                    <p class="form-desc" style="margin-top:8px;color:#d63638">⚠ Codul este inserat fără filtrare — adaugă doar scripturi de încredere.</p>
+                </div>
             </div>
         </div>
 

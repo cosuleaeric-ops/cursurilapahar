@@ -203,6 +203,9 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     if ($fbSm) echo '@media(max-width:768px){body{font-size:'  . (int)$fbSm . 'px!important;}}';
     ?>
     </style>
+    <?php if (!empty($settings['head_scripts'])): ?>
+    <?= $settings['head_scripts'] ?>
+    <?php endif; ?>
 </head>
 <body>
 <?php include __DIR__ . '/admin/bar.php'; ?>
