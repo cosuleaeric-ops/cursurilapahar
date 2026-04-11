@@ -49,7 +49,7 @@ $_clp_nav = [
 #clp-adminbar .bar-logout { border-right: none; border-left: 1px solid rgba(255,255,255,.07); }
 #clp-edit-btn { color: #f0c040 !important; font-weight: 600 !important; }
 #clp-edit-btn.active { background: #2271b1 !important; color: #fff !important; }
-body { padding-top: 32px !important; }
+body { padding-top: 120px !important; } /* 32px admin bar + 88px navbar */
 .navbar { top: 32px !important; }
 
 /* Editable elements */
