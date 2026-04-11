@@ -749,14 +749,21 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
     $key   = trim($_POST['key']   ?? '');
     $raw   = $_POST['value'] ?? '';
     // Fields that may contain HTML tags — allow only safe subset
-    $html_keys = ['hero_title', 'announcement'];
+    $html_keys = ['hero_title', 'announcement',
+                  'sustine_intro_1', 'sustine_intro_2',
+                  'gazduieste_intro_1', 'gazduieste_intro_2',
+                  'parteneriat_intro_1', 'parteneriat_intro_2'];
     $value = in_array($key, $html_keys)
         ? trim(strip_tags($raw, '<br><em><strong>'))
         : trim(strip_tags($raw));
     $style = trim($_POST['style'] ?? '');
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
                      'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
-                     'steps_title','faq_title','nav_brand_text'];
+                     'steps_title','faq_title','nav_brand_text',
+                     'vote_title','vote_subtitle',
+                     'sustine_title','sustine_intro_1','sustine_intro_2',
+                     'gazduieste_title','gazduieste_intro_1','gazduieste_intro_2',
+                     'parteneriat_title','parteneriat_intro_1','parteneriat_intro_2'];
     header('Content-Type: application/json');
     $ok = false;
     if ($key) {

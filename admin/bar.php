@@ -194,7 +194,7 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
     <?php endif; ?>
-    <a href="/admin/?logout=1" class="bar-logout">Ieșire</a>
+    <a href="/admin/?logout=1" class="bar-logout">Logout</a>
 </div>
 
 <?php
@@ -478,7 +478,10 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         if (fs)  parts.push('font-size:' + fs + 'px');
 
         // Use innerHTML for fields that contain HTML (em, br tags); innerText for the rest
-        const htmlKeys = ['hero_title', 'announcement'];
+        const htmlKeys = ['hero_title', 'announcement',
+            'sustine_intro_1', 'sustine_intro_2',
+            'gazduieste_intro_1', 'gazduieste_intro_2',
+            'parteneriat_intro_1', 'parteneriat_intro_2'];
         const value = htmlKeys.includes(selKey) ? selEl.innerHTML : selEl.innerText.trim();
 
         const fd = new FormData();

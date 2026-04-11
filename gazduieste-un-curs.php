@@ -20,11 +20,17 @@ $_defaults = [
 ];
 $_loaded = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
 $settings = array_merge($_defaults, $_loaded);
-$page = $settings['pages']['gazduieste'] ?? [
-    'title'       => 'Găzduiește un curs',
-    'subtitle'    => 'Transformă-ți locația în spațiul unde se nasc conexiunile.',
-    'description' => 'Ai o locație cu atmosferă? Bar, café, spațiu cultural sau altceva? Hai să aducem un curs la tine și să umpleam locul de oameni curioși.',
-];
+
+function clp_e(string $key, array $settings): string {
+    $out = 'data-edit-key="' . htmlspecialchars($key) . '"';
+    $st  = $settings['element_styles'][$key] ?? '';
+    if ($st) $out .= ' style="' . htmlspecialchars($st) . '"';
+    return $out;
+}
+
+$gazduieste_title   = $settings['gazduieste_title']   ?? 'Găzduiește un curs';
+$gazduieste_intro_1 = $settings['gazduieste_intro_1'] ?? 'Ai o locație cu vibe fain și vrei să o transformi într-un loc de întâlnire al participanților Cursuri la Pahar? Well, noi căutăm parteneri care să devină „acasă" pentru evenimentele noastre!';
+$gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong>Cursuri la Pahar</strong> la tine. Punem preț pe locurile care inspiră creativitate și care oferă cadrul perfect pentru networking și învățare relaxată.';
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -66,7 +72,7 @@ $page = $settings['pages']['gazduieste'] ?? [
 <!-- ── NAVBAR ─────────────────────────────── -->
 <nav class="navbar">
     <div class="navbar-inner">
-        <a href="/#hero" class="navbar-logo">
+        <a href="/" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
             <span class="navbar-brand-text"><?php $nb=explode(' ',htmlspecialchars($settings['nav_brand_text']),2); echo '<span>'.$nb[0].'</span><span>'.($nb[1]??'').'</span>'; ?></span>
         </a>
@@ -96,17 +102,17 @@ $page = $settings['pages']['gazduieste'] ?? [
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             Înapoi
         </a>
-        <h1 style="font-family:var(--font-heading);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin-bottom:12px;"><?= htmlspecialchars($page['title']) ?></h1>
+        <h1 <?= clp_e('gazduieste_title', $settings) ?>><?= htmlspecialchars($gazduieste_title) ?></h1>
         <div style="color:var(--text-muted);line-height:1.8;margin-bottom:28px;">
-            <p>Ai o locație cu vibe fain și vrei să o transformi într-un loc de întâlnire al participanților Cursuri la Pahar? Well, noi căutăm parteneri care să devină „acasă" pentru evenimentele noastre!</p>
-            <p style="margin-top:16px;">Ai un <strong style="color:var(--text)">bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong style="color:var(--text)">Cursuri la Pahar</strong> la tine. Punem preț pe locurile care inspiră creativitate și care oferă cadrul perfect pentru networking și învățare relaxată.</p>
-            <p style="margin-top:16px;"><strong style="color:var(--text)">De ce să devii locație parteneră?</strong></p>
+            <p <?= clp_e('gazduieste_intro_1', $settings) ?>><?= $gazduieste_intro_1 ?></p>
+            <p <?= clp_e('gazduieste_intro_2', $settings) ?> style="margin-top:16px;"><?= $gazduieste_intro_2 ?></p>
+            <p style="margin-top:16px;"><strong>De ce să devii locație parteneră?</strong></p>
             <ul style="margin-top:8px;padding-left:20px;">
-                <li><strong style="color:var(--text)">Vizibilitate:</strong> Atragi un public nou, dornic de experiențe de calitate.</li>
-                <li><strong style="color:var(--text)">Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
-                <li><strong style="color:var(--text)">Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
+                <li><strong>Vizibilitate:</strong> Atragi un public nou, dornic de experiențe de calitate.</li>
+                <li><strong>Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
+                <li><strong>Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
             </ul>
-            <p style="margin-top:16px;">Dacă crezi că spațiul tău se potrivește cu conceptul nostru și vrei să fim parteneri în organizarea următoarelor ediții, abia așteptăm să te cunoaștem! <strong style="color:var(--text)">Completează formularul de mai jos și hai să punem ceva frumos la cale!</strong></p>
+            <p style="margin-top:16px;">Dacă crezi că spațiul tău se potrivește cu conceptul nostru și vrei să fim parteneri în organizarea următoarelor ediții, abia așteptăm să te cunoaștem! <strong>Completează formularul de mai jos și hai să punem ceva frumos la cale!</strong></p>
         </div>
 
         <div class="inner-form">

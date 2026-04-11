@@ -20,11 +20,17 @@ $_defaults = [
 ];
 $_loaded = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
 $settings = array_merge($_defaults, $_loaded);
-$page = $settings['pages']['parteneriat'] ?? [
-    'title'       => 'Propune un parteneriat',
-    'subtitle'    => 'Construim ceva frumos împreună.',
-    'description' => 'Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre.',
-];
+
+function clp_e(string $key, array $settings): string {
+    $out = 'data-edit-key="' . htmlspecialchars($key) . '"';
+    $st  = $settings['element_styles'][$key] ?? '';
+    if ($st) $out .= ' style="' . htmlspecialchars($st) . '"';
+    return $out;
+}
+
+$parteneriat_title   = $settings['parteneriat_title']   ?? 'Propune un parteneriat';
+$parteneriat_intro_1 = $settings['parteneriat_intro_1'] ?? 'Credem în <strong>puterea colaborării</strong> și în ideea că <strong>proiectele faine cresc prin conexiuni valoroase</strong>. Dacă reprezinți un brand, o platformă media sau un proiect care rezonează cu misiunea noastră de a aduce educația într-un format relaxat, ne-ar plăcea să explorăm cum putem construi împreună.';
+$parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri care <strong>pun preț pe calitate</strong> și care vor să se implice activ în experiența pe care o oferim comunității noastre. Deci, dacă te regăsești în această descriere, completează formularul de mai jos.';
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -66,7 +72,7 @@ $page = $settings['pages']['parteneriat'] ?? [
 <!-- ── NAVBAR ─────────────────────────────── -->
 <nav class="navbar">
     <div class="navbar-inner">
-        <a href="/#hero" class="navbar-logo">
+        <a href="/" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
             <span class="navbar-brand-text"><?php $nb=explode(' ',htmlspecialchars($settings['nav_brand_text']),2); echo '<span>'.$nb[0].'</span><span>'.($nb[1]??'').'</span>'; ?></span>
         </a>
@@ -96,10 +102,10 @@ $page = $settings['pages']['parteneriat'] ?? [
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             Înapoi
         </a>
-        <h1 style="font-family:var(--font-heading);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin-bottom:12px;"><?= htmlspecialchars($page['title']) ?></h1>
+        <h1 <?= clp_e('parteneriat_title', $settings) ?>><?= htmlspecialchars($parteneriat_title) ?></h1>
         <div style="color:var(--text-muted);line-height:1.8;margin-bottom:32px;">
-            <p>Credem în <strong style="color:var(--text)">puterea colaborării</strong> și în ideea că <strong style="color:var(--text)">proiectele faine cresc prin conexiuni valoroase</strong>. Dacă reprezinți un brand, o platformă media sau un proiect care rezonează cu misiunea noastră de a aduce educația într-un format relaxat, ne-ar plăcea să explorăm cum putem construi împreună.</p>
-            <p style="margin-top:16px;">Căutăm parteneri care <strong style="color:var(--text)">pun preț pe calitate</strong> și care vor să se implice activ în experiența pe care o oferim comunității noastre. Deci, dacă te regăsești în această descriere, completează formularul de mai jos.</p>
+            <p <?= clp_e('parteneriat_intro_1', $settings) ?>><?= $parteneriat_intro_1 ?></p>
+            <p <?= clp_e('parteneriat_intro_2', $settings) ?> style="margin-top:16px;"><?= $parteneriat_intro_2 ?></p>
         </div>
 
         <div class="inner-form">

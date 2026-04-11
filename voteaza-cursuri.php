@@ -20,6 +20,16 @@ $_defaults = [
 $_loaded  = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
 $settings = array_merge($_defaults, $_loaded);
 
+function clp_e(string $key, array $settings): string {
+    $out = 'data-edit-key="' . htmlspecialchars($key) . '"';
+    $st  = $settings['element_styles'][$key] ?? '';
+    if ($st) $out .= ' style="' . htmlspecialchars($st) . '"';
+    return $out;
+}
+
+$vote_title    = $settings['vote_title']    ?? 'Votează cursurile';
+$vote_subtitle = $settings['vote_subtitle'] ?? 'Apasă ❤️ pe temele care te interesează. Cele mai apreciate au șanse mai mari să devină cursuri viitoare.';
+
 // Load vote courses and shuffle
 $vote_courses_file = __DIR__ . '/data/vote_courses.json';
 $vote_courses = file_exists($vote_courses_file)
@@ -240,7 +250,7 @@ shuffle($vote_courses);
 <!-- ── NAVBAR ─────────────────────────────── -->
 <nav class="navbar">
     <div class="navbar-inner">
-        <a href="/#hero" class="navbar-logo">
+        <a href="/" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
             <span class="navbar-brand-text"><?php $nb=explode(' ',htmlspecialchars($settings['nav_brand_text']),2); echo '<span>'.$nb[0].'</span><span>'.($nb[1]??'').'</span>'; ?></span>
         </a>
@@ -263,8 +273,8 @@ shuffle($vote_courses);
 <!-- ── PAGE CONTENT ─────────────────────── -->
 <section class="vote-section">
     <div class="vote-header">
-        <h1>Votează cursurile</h1>
-        <p>Apasă ❤️ pe temele care te interesează. Cele mai apreciate au șanse mai mari să devină cursuri viitoare.</p>
+        <h1 <?= clp_e('vote_title', $settings) ?>><?= htmlspecialchars($vote_title) ?></h1>
+        <p <?= clp_e('vote_subtitle', $settings) ?>><?= htmlspecialchars($vote_subtitle) ?></p>
     </div>
 
     <?php if (empty($vote_courses)): ?>
