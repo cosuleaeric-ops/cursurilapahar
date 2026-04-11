@@ -348,6 +348,15 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Save head scripts (analytics/tracking)
+    if ($action === 'save_head_scripts') {
+        $settings = load_settings();
+        $settings['head_scripts'] = $_POST['head_scripts'] ?? '';
+        save_settings($settings);
+        header('Location: /admin/?tab=config&saved=1');
+        exit;
+    }
+
     // ── Save navbar (mutat la tab Texte)
     if ($action === 'save_navbar') {
         $settings = load_settings();
@@ -693,15 +702,6 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: /admin/?tab=mesaje&deleted=1');
         exit;
     }
-}
-
-// ── Save head scripts (analytics/tracking) ───────────────────────────────────
-if (is_authenticated() && $action === 'save_head_scripts') {
-    $s = load_settings();
-    $s['head_scripts'] = $_POST['head_scripts'] ?? '';
-    save_settings($s);
-    header('Location: /admin/?tab=config&saved=1');
-    exit;
 }
 
 // ── Navbar live (from live site editor) ──────────────────────────────────────
