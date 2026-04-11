@@ -2,6 +2,19 @@
    Cursuri la Pahar – main.js
 ═══════════════════════════════════════════ */
 
+// ── Restore scroll position on back navigation ──
+if (history.scrollRestoration) history.scrollRestoration = 'manual';
+(function() {
+  var key = 'clp_scroll_' + location.pathname;
+  var saved = sessionStorage.getItem(key);
+  if (saved && performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+    window.scrollTo(0, parseInt(saved));
+  }
+  window.addEventListener('beforeunload', function() {
+    sessionStorage.setItem(key, window.scrollY);
+  });
+})();
+
 // ── Hero slideshow ───────────────────────
 (function initSlideshow() {
   const slides = document.querySelectorAll('.hero-slide');
