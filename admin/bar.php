@@ -614,12 +614,17 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         ];
         foreach ($_sbg_dirs as [$dir, $prefix]) {
             if (!is_dir($dir)) continue;
-            foreach (scandir($dir) as $f) {
+            $files = scandir($dir);
+            $names = array_map('strtolower', $files);
+            foreach ($files as $f) {
                 if ($f[0] === '.' || !is_file("$dir/$f")) continue;
                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                if (in_array($ext, ['jpg','jpeg','png','webp','gif'])) {
-                    $_sbg_imgs[] = $prefix . $f;
+                if (!in_array($ext, ['jpg','jpeg','png','webp','gif'])) continue;
+                if ($ext === 'webp') {
+                    $base = strtolower(pathinfo($f, PATHINFO_FILENAME));
+                    if (in_array($base.'.jpg',$names)||in_array($base.'.jpeg',$names)||in_array($base.'.png',$names)) continue;
                 }
+                $_sbg_imgs[] = $prefix . $f;
             }
         }
         echo json_encode(array_values(array_unique($_sbg_imgs)));
