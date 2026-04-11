@@ -1,4 +1,6 @@
 <?php
+@ini_set('memory_limit', '256M');
+@ini_set('max_execution_time', '120');
 if (file_exists(dirname(__DIR__) . '/private/secrets.php')) {
     require dirname(__DIR__) . '/private/secrets.php';
 }
@@ -259,11 +261,16 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Upload image
     if ($action === 'upload_image') {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
         if (!is_dir(UPLOADS_DIR)) mkdir(UPLOADS_DIR, 0755, true);
         $file = $_FILES['image_file'] ?? null;
         $upload_error = '';
         $upload_ok    = '';
-        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+        if ($file && $file['error'] !== UPLOAD_ERR_OK) {
+            $err_codes = [1=>'Fișier prea mare (limită PHP)',2=>'Fișier prea mare (limită form)',3=>'Upload parțial',4=>'Niciun fișier',6=>'Lipsește folder temp',7=>'Eroare scriere disc'];
+            $upload_error = $err_codes[$file['error']] ?? ('Eroare upload cod ' . $file['error']);
+        } elseif ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             $allowed = ['jpg','jpeg','png','webp','gif','avif'];
             if (in_array($ext, $allowed)) {
