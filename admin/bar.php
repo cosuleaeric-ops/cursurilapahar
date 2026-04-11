@@ -192,6 +192,7 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     <button class="bar-link" id="clp-fonts-btn" onclick="clpToggleFontPanel()">🔤 Fonturi</button>
     <button class="bar-link" id="clp-navbar-btn" onclick="clpToggleNavbarPanel()">🖊 Navbar</button>
     <button class="bar-link" id="clp-edit-btn" onclick="clpToggleEdit()">✏ Editează live</button>
+    <button class="bar-link" id="clp-tb-device" onclick="clpToggleDevice()" style="color:#f0c040 !important;font-weight:600 !important;">🖥️</button>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
     <?php endif; ?>
@@ -406,8 +407,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     <div class="tb-sep"></div>
     <label>Mărime</label>
     <input type="number" id="clp-tb-fs" min="10" max="120" step="1" style="width:60px" oninput="clpApply()" placeholder="px">
-    <div class="tb-sep"></div>
-    <button id="clp-tb-device" onclick="clpToggleDevice()" title="Desktop / Mobile" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:5px 8px;cursor:pointer;font-size:13px;">&#x1F5A5;&#xFE0F;</button>
     <div class="tb-sep"></div>
     <button id="clp-tb-save" onclick="clpSave()">Salvează</button>
     <span id="clp-tb-ok">✓</span>
