@@ -211,7 +211,7 @@ ul { list-style: none; }
 }
 .navbar-links a {
   font-size: .9rem;
-  font-weight: 500;
+  font-weight: 700;
   color: #fff;
   transition: color var(--transition);
   white-space: nowrap;
