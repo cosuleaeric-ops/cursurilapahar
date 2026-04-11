@@ -194,6 +194,7 @@ $page = $settings['pages']['parteneriat'] ?? [
 </footer>
 
 <script src="/assets/js/main.js?v=<?php echo filemtime(__DIR__.'/assets/js/main.js'); ?>"></script>
+<script>history.scrollRestoration = 'manual';</script>
 </body>
 </html>
  

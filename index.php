@@ -76,16 +76,16 @@ function lt_slug_from_url(string $url): string {
     return ($idx !== false && isset($parts[$idx + 1])) ? $parts[$idx + 1] : '';
 }
 function lt_is_sold_out(array $event): bool {
-    if (isset($event['status']) && strtoupper($event['status']) === 'SOLD_OUT') return true;
-    if (!empty($event['soldOut']))    return true;
-    if (!empty($event['is_sold_out'])) return true;
-    if (isset($event['availableTickets']) && $event['availableTickets'] === 0) return true;
-    if (!empty($event['ticketTypes']) && is_array($event['ticketTypes'])) {
-        foreach ($event['ticketTypes'] as $tt) {
-            if (($tt['available'] ?? 1) > 0) return false;
+    // Primary: check items[] - all must have soldout=true
+    if (!empty($event['items']) && is_array($event['items'])) {
+        foreach ($event['items'] as $item) {
+            if (empty($item['soldout'])) return false;
         }
         return true;
     }
+    // Fallback: remaining_count at event level
+    if (isset($event['remaining_count']) && $event['remaining_count'] === 0
+        && isset($event['ticket_count'])) return true;
     return false;
 }
 $soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
