@@ -91,10 +91,12 @@ shuffle($vote_courses);
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
+        align-items: start;
     }
     @media (min-width: 900px) {
         .vote-grid {
             grid-template-columns: 1fr 1fr;
+            align-items: start;
         }
     }
 
@@ -106,6 +108,7 @@ shuffle($vote_courses);
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        align-self: start;
         transition: border-color .2s, box-shadow .2s;
     }
     .vote-card:hover {
