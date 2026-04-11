@@ -371,11 +371,13 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             if (in_array($ext, ['jpg','jpeg','png','webp','svg'])) {
-                $new_name = 'logo.' . $ext;
-                $dest = PUBLIC_HTML . '/assets/images/' . $new_name;
+                $uploads_dir = PUBLIC_HTML . '/assets/images/uploads';
+                if (!is_dir($uploads_dir)) @mkdir($uploads_dir, 0755, true);
+                $new_name = 'logo-' . time() . '.' . $ext;
+                $dest = $uploads_dir . '/' . $new_name;
                 if (move_uploaded_file($file['tmp_name'], $dest)) {
                     $settings = load_settings();
-                    $settings['logo_path'] = '/assets/images/' . $new_name;
+                    $settings['logo_path'] = '/assets/images/uploads/' . $new_name;
                     save_settings($settings);
                 }
             }
