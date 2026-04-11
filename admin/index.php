@@ -1168,11 +1168,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     .tf-body .form-desc { margin-top: 6px; }
 
     .tf-step { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
-    .tf-step-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; user-select: none; background: var(--sidebar-bg); transition: background .12s; }
-    .tf-step-header:hover { background: rgba(255,255,255,.04); }
+    .tf-step-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; user-select: none; background: var(--surface); transition: background .12s; }
+    .tf-step-header:hover { background: #f8f8f8; }
     .tf-step-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); flex: 1; }
     .tf-step-preview { font-size: 12px; color: var(--text-muted); flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tf-step-body { display: none; padding: 14px 16px; background: var(--sidebar-bg); border-top: 1px solid var(--border); }
+    .tf-step-body { display: none; padding: 14px 16px; background: var(--surface); border-top: 1px solid var(--border); }
     .tf-step.open .tf-step-body { display: block; }
     .tf-step.open .tf-arrow { transform: rotate(180deg); }
 
@@ -1333,7 +1333,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <div class="tf-card-title">FAQ – Întrebări frecvente</div>
             <div id="faq-editor" style="padding:8px 8px 4px">
                 <?php foreach ($settings['faq_items'] as $i => $item): ?>
-                <div class="faq-edit-item" style="background:var(--sidebar-bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative">
+                <div class="faq-edit-item" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative">
                     <div class="faq-item-header" onclick="this.closest('.faq-edit-item').classList.toggle('open')">
                         <span style="font-size:13px;font-weight:600;color:var(--text);flex-shrink:0">Q</span>
                         <span class="faq-item-preview"><?= h($item['q']) ?></span>
@@ -1368,7 +1368,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         const editor = document.getElementById('faq-editor');
         const div = document.createElement('div');
         div.className = 'faq-edit-item open';
-        div.style.cssText = 'background:var(--sidebar-bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative';
+        div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative';
         div.innerHTML = '<div class="faq-item-header" onclick="this.closest(\'.faq-edit-item\').classList.toggle(\'open\')">'
             + '<span style="font-size:13px;font-weight:600;color:var(--text);flex-shrink:0">Q</span>'
             + '<span class="faq-item-preview">Întrebare nouă</span>'
