@@ -85,7 +85,7 @@ shuffle($vote_courses);
     }
     .vote-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(1.5rem, 4vw, 2.2rem);
+        font-size: clamp(1.3rem, 3vw, 1.6rem);
         font-weight: 800;
         color: var(--text);
         margin-bottom: 10px;
