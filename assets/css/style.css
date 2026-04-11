@@ -214,6 +214,7 @@ ul { list-style: none; }
   font-size: var(--nav-link-size, .9rem);
   font-weight: var(--nav-link-weight, 700);
   color: var(--nav-link-color, #fff);
+  letter-spacing: var(--nav-link-spacing, 0.08em);
   transition: color var(--transition);
   white-space: nowrap;
 }

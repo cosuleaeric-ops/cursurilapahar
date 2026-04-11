@@ -477,10 +477,14 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         if (ff)  parts.push('font-family:' + ff);
         if (fs)  parts.push('font-size:' + fs + 'px');
 
+        // Use innerHTML for fields that contain HTML (em, br tags); innerText for the rest
+        const htmlKeys = ['hero_title', 'announcement'];
+        const value = htmlKeys.includes(selKey) ? selEl.innerHTML : selEl.innerText.trim();
+
         const fd = new FormData();
         fd.append('action', 'save_inline_edit');
         fd.append('key',    selKey);
-        fd.append('value',  selEl.innerText.trim());
+        fd.append('value',  value);
         fd.append('style',  parts.join(';'));
 
         const btn = document.getElementById('clp-tb-save');

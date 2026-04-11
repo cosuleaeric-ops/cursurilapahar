@@ -747,7 +747,12 @@ if (is_authenticated() && ($action === 'save_global_fonts')) {
 // ── Inline edit (from live site editor) ──────────────────────────────────────
 if (is_authenticated() && ($action === 'save_inline_edit')) {
     $key   = trim($_POST['key']   ?? '');
-    $value = trim($_POST['value'] ?? '');
+    $raw   = $_POST['value'] ?? '';
+    // Fields that may contain HTML tags — allow only safe subset
+    $html_keys = ['hero_title', 'announcement'];
+    $value = in_array($key, $html_keys)
+        ? trim(strip_tags($raw, '<br><em><strong>'))
+        : trim(strip_tags($raw));
     $style = trim($_POST['style'] ?? '');
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
                      'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
