@@ -58,6 +58,14 @@ if (file_exists($settings_file)) {
     $settings = array_merge($settings, $loaded);
 }
 
+// ── Inline edit helper ───────────────────────────────────────────────────────
+function clp_e(string $key, array $settings): string {
+    $out = 'data-edit-key="' . htmlspecialchars($key) . '"';
+    $st  = $settings['element_styles'][$key] ?? '';
+    if ($st) $out .= ' style="' . htmlspecialchars($st) . '"';
+    return $out;
+}
+
 // ── Load and filter courses ───────────────────────────────────────────────────
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
@@ -199,7 +207,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
-        <h1 class="hero-title"><?= $settings['hero_title'] ?></h1>
+        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $settings['hero_title'] ?></h1>
     </div>
 
     <div class="hero-scroll-hint" aria-hidden="true">
@@ -208,14 +216,14 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </section>
 
 <!-- ── ANNOUNCEMENT BANNER ────────────────── -->
-<div class="announcement-banner">
+<div class="announcement-banner" <?= clp_e('announcement',$settings) ?>>
     <?= htmlspecialchars($settings['announcement']) ?>
 </div>
 
 <!-- ── CURSURI ─────────────────────────────── -->
 <section class="section" id="cursuri">
     <div class="container">
-        <h2 class="section-title"><?= htmlspecialchars($settings['courses_title']) ?></h2>
+        <h2 class="section-title" <?= clp_e('courses_title',$settings) ?>><?= htmlspecialchars($settings['courses_title']) ?></h2>
 
         <?php if (empty($courses)): ?>
         <p class="no-events">Nu există cursuri programate momentan.<br>
@@ -276,8 +284,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <section class="section section-dark section-bg-blur" id="newsletter" style="--section-bg-img:url('<?= htmlspecialchars($nl_bg) ?>')">
     <div class="container container-narrow">
         <div class="newsletter-icon" aria-hidden="true">✉</div>
-        <h2 class="section-title"><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
-        <p class="newsletter-desc"><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
+        <h2 class="section-title" <?= clp_e('newsletter_title',$settings) ?>><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
+        <p class="newsletter-desc" <?= clp_e('newsletter_desc',$settings) ?>><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
         <form class="newsletter-form" id="newsletterForm" novalidate>
             <div class="newsletter-fields">
                 <input type="email" name="email" id="nlEmail" placeholder="Adresa ta de email" required autocomplete="email">
@@ -336,8 +344,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <!-- ── COLABORARE ─────────────────────────── -->
 <section class="section" id="colaborare">
     <div class="container">
-        <h2 class="section-title"><?= htmlspecialchars($settings['collab_title']) ?></h2>
-        <p class="section-subtitle"><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
+        <h2 class="section-title" <?= clp_e('collab_title',$settings) ?>><?= htmlspecialchars($settings['collab_title']) ?></h2>
+        <p class="section-subtitle" <?= clp_e('collab_subtitle',$settings) ?>><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
         <div class="collab-grid">
             <a href="/sustine-un-curs" class="collab-card">
                 <div class="collab-icon">
@@ -370,8 +378,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <!-- ── CONTACT ────────────────────────────── -->
 <section class="section section-dark" id="contact">
     <div class="container container-narrow">
-        <h2 class="section-title"><?= htmlspecialchars($settings['contact_title']) ?></h2>
-        <p class="section-subtitle"><?= htmlspecialchars($settings['contact_subtitle']) ?></p>
+        <h2 class="section-title" <?= clp_e('contact_title',$settings) ?>><?= htmlspecialchars($settings['contact_title']) ?></h2>
+        <p class="section-subtitle" <?= clp_e('contact_subtitle',$settings) ?>><?= htmlspecialchars($settings['contact_subtitle']) ?></p>
         <form class="contact-form" id="contactForm" novalidate>
             <div class="form-row">
                 <div class="form-group">

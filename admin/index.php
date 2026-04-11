@@ -694,6 +694,28 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// ── Inline edit (from live site editor) ──────────────────────────────────────
+if (is_authenticated() && ($action === 'save_inline_edit')) {
+    $key   = trim($_POST['key']   ?? '');
+    $value = trim($_POST['value'] ?? '');
+    $style = trim($_POST['style'] ?? '');
+    $allowed = ['hero_title','announcement','courses_title','newsletter_title',
+                'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
+    header('Content-Type: application/json');
+    if ($key && in_array($key, $allowed)) {
+        $s = load_settings();
+        $s[$key] = $value;
+        if (!isset($s['element_styles'])) $s['element_styles'] = [];
+        if ($style) $s['element_styles'][$key] = $style;
+        else unset($s['element_styles'][$key]);
+        save_settings($s);
+        echo json_encode(['ok' => true]);
+    } else {
+        echo json_encode(['ok' => false]);
+    }
+    exit;
+}
+
 // ── Load data for display ─────────────────────────────────────────────────────
 $courses  = [];
 $settings = load_settings();
