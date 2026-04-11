@@ -292,6 +292,9 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
     <label>Font</label>
     <select id="clp-tb-ff" onchange="clpApply()">
         <option value="">— moștenit —</option>
+        <option value="var(--font-heading)">↑ Font titluri</option>
+        <option value="var(--font-sans)">↑ Font text</option>
+        <option disabled>──────────</option>
         <option value="Poppins, sans-serif">Poppins</option>
         <option value="Inter, sans-serif">Inter</option>
         <option value="Nunito, sans-serif">Nunito</option>
@@ -372,7 +375,8 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
         const fs = document.getElementById('clp-tb-fs').value;
 
         // Anton only has one weight — auto-switch to Poppins when weight is changed
-        if (fw && !ff) {
+        // (skip if a CSS variable is already selected)
+        if (fw && !ff && !ff.startsWith('var(')) {
             const currentFont = window.getComputedStyle(selEl).fontFamily.toLowerCase();
             if (currentFont.includes('anton')) {
                 ff = 'Poppins, sans-serif';
