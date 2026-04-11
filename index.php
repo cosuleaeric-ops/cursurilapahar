@@ -411,28 +411,25 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
         <p class="section-subtitle" <?= clp_e('collab_subtitle',$settings) ?>><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
         <div class="collab-grid">
             <a href="/sustine-un-curs" class="collab-card">
-                <div class="collab-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                <div class="collab-card-img">
+                    <img src="/assets/images/uploads/sustine.webp" alt="Susține un curs" loading="lazy">
                 </div>
                 <h3>Susține un curs</h3>
                 <p>Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre.</p>
-                <span class="collab-link">Află mai mult →</span>
             </a>
             <a href="/gazduieste-un-curs" class="collab-card">
-                <div class="collab-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+                <div class="collab-card-img">
+                    <img src="/assets/images/uploads/gazduieste.webp" alt="Găzduiește un curs" loading="lazy">
                 </div>
                 <h3>Găzduiește un curs</h3>
                 <p>Ai o locație cu vibe fain? Transformă-o în spațiul unde se nasc conexiunile și ideile noi.</p>
-                <span class="collab-link">Află mai mult →</span>
             </a>
             <a href="/propune-un-parteneriat" class="collab-card">
-                <div class="collab-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                <div class="collab-card-img">
+                    <img src="/assets/images/uploads/parteneriat.webp" alt="Propune un parteneriat" loading="lazy">
                 </div>
                 <h3>Propune un parteneriat</h3>
                 <p>Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună.</p>
-                <span class="collab-link">Află mai mult →</span>
             </a>
         </div>
     </div>
