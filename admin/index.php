@@ -503,6 +503,57 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Export settings as download
+    if ($action === 'export_settings') {
+        $data = file_exists(SETTINGS_FILE) ? file_get_contents(SETTINGS_FILE) : '{}';
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename="settings.json"');
+        echo $data;
+        exit;
+    }
+
+    // ── Import settings from uploaded file + download images
+    if ($action === 'import_settings') {
+        if (!empty($_FILES['settings_file']['tmp_name'])) {
+            $json = file_get_contents($_FILES['settings_file']['tmp_name']);
+            $imported = json_decode($json, true);
+            if ($imported) {
+                // Preserve local secrets and password
+                $local = load_settings();
+                foreach (['admin_password','auth_secret','webhook_secret'] as $k) {
+                    if (!empty($local[$k])) $imported[$k] = $local[$k];
+                }
+                // Download images from source domain
+                $source_domain = rtrim(trim($_POST['source_domain'] ?? 'https://robotache.ro'), '/');
+                $image_paths = [];
+                array_walk_recursive($imported, function($val) use (&$image_paths) {
+                    if (is_string($val) && preg_match('#^(/wp-content/|/assets/uploads/)#', $val)) {
+                        $image_paths[] = $val;
+                    }
+                });
+                $downloaded = 0;
+                foreach (array_unique($image_paths) as $path) {
+                    $local_path = dirname(__DIR__) . $path;
+                    if (file_exists($local_path)) { $downloaded++; continue; }
+                    $dir = dirname($local_path);
+                    if (!is_dir($dir)) mkdir($dir, 0755, true);
+                    $img = @file_get_contents($source_domain . $path);
+                    if (!$img) {
+                        $ch = curl_init($source_domain . $path);
+                        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>1,CURLOPT_FOLLOWLOCATION=>1,CURLOPT_TIMEOUT=>10]);
+                        $img = curl_exec($ch); curl_close($ch);
+                    }
+                    if ($img) { file_put_contents($local_path, $img); $downloaded++; }
+                }
+                save_settings($imported);
+                header('Location: /admin/?tab=securitate&imported=' . $downloaded);
+                exit;
+            }
+        }
+        header('Location: /admin/?tab=securitate&import_error=1');
+        exit;
+    }
+
     // ── Change admin password
     if ($action === 'change_password') {
         $new     = trim($_POST['new_password']     ?? '');
@@ -1686,6 +1737,33 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
 <?php if (isset($_GET['error'])): ?>
 <div class="notice notice-error">Parolele nu coincid sau sunt prea scurte (minim 6 caractere).</div>
 <?php endif; ?>
+<?php if (isset($_GET['imported'])): ?>
+<div class="notice notice-success">Import reușit! <?= (int)$_GET['imported'] ?> imagini descărcate.</div>
+<?php endif; ?>
+<?php if (isset($_GET['import_error'])): ?>
+<div class="notice notice-error">Eroare la import. Verifică fișierul.</div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-title">Export / Import setări</div>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Folosește Export pe serverul vechi și Import pe cel nou pentru a transfera toate setările și imaginile.</p>
+    <form method="post" action="/admin/?tab=securitate" style="margin-bottom:16px">
+        <input type="hidden" name="action" value="export_settings">
+        <button type="submit" class="btn btn-primary">⬇ Export settings.json</button>
+    </form>
+    <form method="post" action="/admin/?tab=securitate" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="import_settings">
+        <div class="form-group">
+            <label>Fișier settings.json exportat</label>
+            <input type="file" name="settings_file" accept=".json" required>
+        </div>
+        <div class="form-group">
+            <label>Domeniu sursă (de unde se descarcă imaginile)</label>
+            <input type="text" name="source_domain" value="https://robotache.ro" placeholder="https://robotache.ro">
+        </div>
+        <button type="submit" class="btn btn-primary">⬆ Importă setări + imagini</button>
+    </form>
+</div>
 
 <div class="card">
     <div class="card-title">Schimbă parola de admin</div>
