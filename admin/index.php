@@ -700,7 +700,7 @@ if (is_authenticated() && $action === 'save_head_scripts') {
     $s = load_settings();
     $s['head_scripts'] = $_POST['head_scripts'] ?? '';
     save_settings($s);
-    header('Location: /admin/?tab=aspect&saved=1');
+    header('Location: /admin/?tab=config&saved=1');
     exit;
 }
 
@@ -836,7 +836,7 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'cursuri';
-if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','securitate'])) $tab = 'cursuri';
+if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','securitate','config'])) $tab = 'cursuri';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -1116,6 +1116,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </a>
             <a href="/admin/?tab=securitate" class="<?= $tab === 'securitate' ? 'active' : '' ?>">
                 <span class="nav-icon">🔒</span> Securitate
+            </a>
+            <a href="/admin/?tab=config" class="<?= $tab === 'config' ? 'active' : '' ?>">
+                <span class="nav-icon">⚙️</span> Setări
             </a>
         </nav>
     </aside>
@@ -1699,25 +1702,6 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 });
 </script>
 
-<!-- Analytics & Tracking -->
-<form method="post" action="/admin/?tab=aspect">
-    <input type="hidden" name="action" value="save_head_scripts">
-    <div class="card" style="margin-top:20px">
-        <div class="card-title">📊 Analytics &amp; Tracking</div>
-        <div class="form-group">
-            <label>Cod <code>&lt;head&gt;</code> (scripts analytics)</label>
-            <textarea name="head_scripts" rows="8" style="font-family:monospace;font-size:12px;line-height:1.6" placeholder="<!-- Umami -->
-<script defer src=&quot;https://cloud.umami.is/script.js&quot; data-website-id=&quot;...&quot;></script>
-
-<!-- Google Analytics (GA4) -->
-<script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX&quot;></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');</script>"><?= htmlspecialchars($settings['head_scripts'] ?? '') ?></textarea>
-            <p class="form-desc">Codul este inserat în <code>&lt;head&gt;</code> pe <strong>toate paginile</strong> site-ului. Adaugă scripturi de tracking, Umami, Google Analytics etc. <span style="color:#d63638">⚠ Nu filtrăm codul — adaugă doar surse de încredere.</span></p>
-        </div>
-        <button type="submit" class="btn btn-primary">Salvează</button>
-    </div>
-</form>
-
 <?php /* ======================================================= TAB: PAGINI */ ?>
 <?php elseif ($tab === 'pagini'): ?>
 <h1 class="wp-page-title">Pagini</h1>
@@ -2137,6 +2121,31 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
         <button type="submit" class="btn btn-danger">Regenerează webhook secret</button>
     </form>
 </div>
+
+<?php /* ======================================================= TAB: CONFIG */ ?>
+<?php elseif ($tab === 'config'): ?>
+<h1 class="wp-page-title">Setări</h1>
+
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Setările au fost salvate.</div>
+<?php endif; ?>
+
+<form method="post" action="/admin/?tab=config">
+    <input type="hidden" name="action" value="save_head_scripts">
+    <div class="card">
+        <div class="card-title">📊 Analytics &amp; Tracking</div>
+        <div class="form-group">
+            <label>Cod <code>&lt;head&gt;</code></label>
+            <textarea name="head_scripts" rows="10" style="font-family:monospace;font-size:12px;line-height:1.7"><?= htmlspecialchars($settings['head_scripts'] ?? '') ?></textarea>
+            <p class="form-desc">
+                Lipește aici codul de tracking pentru <strong>Umami</strong>, <strong>Google Analytics (GA4)</strong> sau orice alt script.
+                Va fi inserat automat în <code>&lt;head&gt;</code> pe <strong>toate paginile</strong> site-ului.<br>
+                <span style="color:#d63638">⚠ Codul este inserat fără filtrare — adaugă doar scripturi de încredere.</span>
+            </p>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează</button>
+    </div>
+</form>
 
 <?php endif; ?>
 
