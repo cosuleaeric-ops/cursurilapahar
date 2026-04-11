@@ -90,7 +90,8 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 #clp-tb-italic.on { background: #2271b1; }
 #clp-tb-save { background: #2271b1; color: #fff; }
 #clp-tb-save:hover { background: #135e96; }
-#clp-tb-ok { color: #00a32a; display: none; font-size: 16px; }
+#clp-tb-ok  { color: #00a32a; display: none; font-size: 16px; }
+#clp-tb-err { color: #d63638; display: none; font-size: 12px; max-width: 260px; }
 #clp-tb-el { color: #fff; font-weight: 600; font-size: 11px;
     background: rgba(255,255,255,.08); padding: 3px 8px; border-radius: 4px; }
 
@@ -378,6 +379,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     <div class="tb-sep"></div>
     <button id="clp-tb-save" onclick="clpSave()">Salvează</button>
     <span id="clp-tb-ok">✓</span>
+    <span id="clp-tb-err"></span>
 </div>
 
 <script>
@@ -534,17 +536,36 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         fd.append('style',  parts.join(';'));
 
         const btn = document.getElementById('clp-tb-save');
+        const errEl = document.getElementById('clp-tb-err');
         btn.textContent = '…';
+        errEl.style.display = 'none';
         fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-            .then(r => r.json())
-            .then(d => {
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(text => {
                 btn.textContent = 'Salvează';
+                let d;
+                try { d = JSON.parse(text); } catch(e) {
+                    errEl.textContent = 'Răspuns invalid: ' + text.substring(0, 120);
+                    errEl.style.display = 'inline';
+                    return;
+                }
                 if (d.ok) {
-                    if (selEl) selEl._clpOrig = value; // Mark as saved
+                    if (selEl) selEl._clpOrig = value;
                     const ok = document.getElementById('clp-tb-ok');
                     ok.style.display = 'inline';
                     setTimeout(() => ok.style.display = 'none', 2000);
+                } else {
+                    errEl.textContent = '✗ Eroare: ok=false, key=' + selKey;
+                    errEl.style.display = 'inline';
                 }
+            })
+            .catch(err => {
+                btn.textContent = 'Salvează';
+                errEl.textContent = '✗ ' + err.message;
+                errEl.style.display = 'inline';
             });
     };
 })();
