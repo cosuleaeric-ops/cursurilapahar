@@ -265,63 +265,42 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $upload_ok    = '';
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','webp','gif','avif','heic','heif'];
+            $allowed = ['jpg','jpeg','png','webp','gif','avif'];
             if (in_array($ext, $allowed)) {
                 $base = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($file['name'], PATHINFO_FILENAME));
-                $new_name = $base . '-' . time() . '.webp';
+                $new_name = $base . '.webp';
                 $dest = UPLOADS_DIR . '/' . $new_name;
-                // HEIC/HEIF: requires Imagick (GD doesn't support it)
-                if (in_array($ext, ['heic','heif'])) {
-                    if (class_exists('Imagick')) {
-                        try {
-                            $imagick = new Imagick($file['tmp_name']);
-                            $imagick->setImageFormat('webp');
-                            $imagick->setImageCompressionQuality(82);
-                            if ($imagick->getImageWidth() > 1920) {
-                                $imagick->resizeImage(1920, 0, Imagick::FILTER_LANCZOS, 1);
-                            }
-                            $imagick->writeImage($dest);
-                            $imagick->clear();
-                            $upload_ok = 'Imaginea HEIC a fost convertită în WebP: ' . h($new_name);
-                        } catch (Exception $e) {
-                            $upload_error = 'Eroare la conversia HEIC: ' . h($e->getMessage());
-                        }
+                $img = match($ext) {
+                    'jpg','jpeg' => @imagecreatefromjpeg($file['tmp_name']),
+                    'png'        => @imagecreatefrompng($file['tmp_name']),
+                    'webp'       => @imagecreatefromwebp($file['tmp_name']),
+                    'gif'        => @imagecreatefromgif($file['tmp_name']),
+                    default      => false,
+                };
+                if ($img) {
+                    // Resize to max 1920px wide
+                    $w = imagesx($img); $h = imagesy($img);
+                    if ($w > 1920) {
+                        $img2 = imagescale($img, 1920, (int)($h * 1920 / $w), IMG_BICUBIC);
+                        imagedestroy($img); $img = $img2;
+                    }
+                    if (imagewebp($img, $dest, 82)) {
+                        imagedestroy($img);
+                        $upload_ok = 'Imaginea a fost încărcată și convertită în WebP: ' . h($new_name);
                     } else {
-                        $upload_error = 'Serverul nu suportă HEIC (lipsește extensia Imagick). Convertește în JPG/PNG înainte de upload.';
+                        imagedestroy($img);
+                        $upload_error = 'Eroare la salvarea WebP.';
                     }
                 } else {
-                    $img = match($ext) {
-                        'jpg','jpeg' => @imagecreatefromjpeg($file['tmp_name']),
-                        'png'        => @imagecreatefrompng($file['tmp_name']),
-                        'webp'       => @imagecreatefromwebp($file['tmp_name']),
-                        'gif'        => @imagecreatefromgif($file['tmp_name']),
-                        default      => false,
-                    };
-                    if ($img) {
-                        // Resize to max 1920px wide
-                        $w = imagesx($img); $h = imagesy($img);
-                        if ($w > 1920) {
-                            $img2 = imagescale($img, 1920, (int)($h * 1920 / $w), IMG_BICUBIC);
-                            imagedestroy($img); $img = $img2;
-                        }
-                        if (imagewebp($img, $dest, 82)) {
-                            imagedestroy($img);
-                            $upload_ok = 'Imaginea a fost încărcată și convertită în WebP: ' . h($new_name);
-                        } else {
-                            imagedestroy($img);
-                            $upload_error = 'Eroare la salvarea WebP.';
-                        }
+                    // GD can't read it (e.g. avif) — save as-is
+                    if (move_uploaded_file($file['tmp_name'], UPLOADS_DIR . '/' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name'])))) {
+                        $upload_ok = 'Imaginea a fost încărcată: ' . h(basename($file['name']));
                     } else {
-                        // GD can't read it (e.g. avif) — save as-is
-                        if (move_uploaded_file($file['tmp_name'], UPLOADS_DIR . '/' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file['name'])))) {
-                            $upload_ok = 'Imaginea a fost încărcată: ' . h(basename($file['name']));
-                        } else {
-                            $upload_error = 'Eroare la salvarea fișierului.';
-                        }
+                        $upload_error = 'Eroare la salvarea fișierului.';
                     }
                 }
             } else {
-                $upload_error = 'Format neacceptat. Folosește JPG, PNG, WEBP, GIF sau HEIC.';
+                $upload_error = 'Format neacceptat. Folosește JPG, PNG, WEBP sau GIF.';
             }
         } else {
             $upload_error = 'Niciun fișier selectat sau eroare la upload.';
@@ -413,26 +392,12 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $file = $_FILES['logo_file'] ?? null;
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg','jpeg','png','webp','svg','heic','heif'])) {
+            if (in_array($ext, ['jpg','jpeg','png','webp','svg'])) {
                 $uploads_dir = PUBLIC_HTML . '/assets/images/uploads';
                 if (!is_dir($uploads_dir)) @mkdir($uploads_dir, 0755, true);
-                $out_ext  = in_array($ext, ['heic','heif']) ? 'webp' : $ext;
-                $new_name = 'logo-' . time() . '.' . $out_ext;
+                $new_name = 'logo-' . time() . '.' . $ext;
                 $dest = $uploads_dir . '/' . $new_name;
-                $saved = false;
-                if (in_array($ext, ['heic','heif']) && class_exists('Imagick')) {
-                    try {
-                        $im = new Imagick($file['tmp_name']);
-                        $im->setImageFormat('webp');
-                        $im->setImageCompressionQuality(90);
-                        $im->writeImage($dest);
-                        $im->clear();
-                        $saved = true;
-                    } catch (Exception $e) { $saved = false; }
-                } else {
-                    $saved = move_uploaded_file($file['tmp_name'], $dest);
-                }
-                if ($saved) {
+                if (move_uploaded_file($file['tmp_name'], $dest)) {
                     $settings = load_settings();
                     $settings['logo_path'] = '/assets/images/uploads/' . $new_name;
                     save_settings($settings);
@@ -1308,72 +1273,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- Upload -->
     <div class="card">
         <div class="card-title">Încarcă imagine nouă</div>
-        <form method="post" action="/admin/?tab=imagini" enctype="multipart/form-data" id="uploadForm">
+        <form method="post" action="/admin/?tab=imagini" enctype="multipart/form-data">
             <input type="hidden" name="action" value="upload_image">
             <div style="display:flex;gap:8px;align-items:center">
-                <input type="file" name="image_file" id="imageFileInput" accept="image/*,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
-                <button type="submit" class="btn btn-primary" id="uploadBtn">Încarcă</button>
+                <input type="file" name="image_file" accept="image/*" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+                <button type="submit" class="btn btn-primary">Încarcă</button>
             </div>
-            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF, HEIC. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
-            <p id="heicStatus" style="display:none;color:#2271b1;font-size:13px;margin-top:6px;"></p>
+            <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
         </form>
     </div>
-    <script>
-    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-        const fileInput = document.getElementById('imageFileInput');
-        const file = fileInput.files[0];
-        if (!file) return;
-        const name = file.name.toLowerCase();
-        if (!name.endsWith('.heic') && !name.endsWith('.heif')) return;
-
-        e.preventDefault();
-        const status = document.getElementById('heicStatus');
-        const btn = document.getElementById('uploadBtn');
-        status.style.display = 'block';
-        status.textContent = '⏳ Se convertește HEIC → JPEG în browser...';
-        btn.disabled = true;
-        btn.textContent = 'Se convertește...';
-
-        try {
-            // Use native browser HEIC decoding (macOS Chrome/Safari support it)
-            const url = URL.createObjectURL(file);
-            const img = new Image();
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = () => reject(new Error('Browserul nu poate decoda HEIC. Deschide poza în Preview și salvează ca JPG.'));
-                img.src = url;
-            });
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            canvas.getContext('2d').drawImage(img, 0, 0);
-            URL.revokeObjectURL(url);
-
-            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
-            const converted = new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
-
-            status.textContent = '⏳ Se încarcă...';
-            const fd = new FormData();
-            fd.append('action', 'upload_image');
-            fd.append('image_file', converted);
-
-            const resp = await fetch('/admin/?tab=imagini', { method: 'POST', body: fd });
-            if (resp.ok) {
-                status.textContent = '✓ Convertit și încărcat!';
-                setTimeout(() => window.location.reload(), 800);
-            } else {
-                status.textContent = '✗ Eroare la upload (HTTP ' + resp.status + ')';
-                btn.disabled = false;
-                btn.textContent = 'Încarcă';
-            }
-        } catch (err) {
-            status.style.color = '#d63638';
-            status.textContent = '✗ ' + err.message;
-            btn.disabled = false;
-            btn.textContent = 'Încarcă';
-        }
-    });
-    </script>
 
     <!-- Images grid with hero selection -->
     <?php $all_images = get_all_images(); ?>
@@ -1743,7 +1651,7 @@ function addNavLink() {
     <form method="post" action="/admin/?tab=aspect" enctype="multipart/form-data">
         <input type="hidden" name="action" value="upload_logo">
         <div style="display:flex;gap:8px;align-items:center">
-            <input type="file" name="logo_file" accept=".jpg,.jpeg,.png,.webp,.svg,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+            <input type="file" name="logo_file" accept=".jpg,.jpeg,.png,.webp,.svg" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
             <button type="submit" class="btn btn-primary">Încarcă logo</button>
         </div>
         <p class="form-desc">Formate: JPG, PNG, WEBP, SVG.</p>
