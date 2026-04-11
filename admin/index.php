@@ -1159,6 +1159,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
             </a>
+            <a href="/admin/statistici/">
+                <span class="nav-icon">📊</span> Statistici
+            </a>
             <a href="/admin/?tab=securitate" class="<?= $tab === 'securitate' ? 'active' : '' ?>">
                 <span class="nav-icon">🔒</span> Securitate
             </a>
