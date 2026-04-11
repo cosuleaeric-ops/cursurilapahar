@@ -155,7 +155,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         --btn-hover:    <?= htmlspecialchars($settings['color_btn_hover'] ?? '#b8922e') ?>;
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
     }
-    body { padding-top: 64px; }
+    body { padding-top: 72px; }
     </style>
 </head>
 <body>
@@ -166,7 +166,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="navbar-inner">
         <a href="/#hero" class="navbar-logo">
             <img src="<?= htmlspecialchars($settings['logo_path']) ?>" alt="<?= htmlspecialchars($settings['nav_brand_text']) ?>">
-            <span class="navbar-brand-text"><?= htmlspecialchars($settings['nav_brand_text']) ?></span>
+            <span class="navbar-brand-text"><?= implode("\n", explode(' ', htmlspecialchars($settings['nav_brand_text']), 2)) ?></span>
         </a>
         <div class="navbar-links">
             <?php foreach ($settings['nav_links'] as $nl): ?>
