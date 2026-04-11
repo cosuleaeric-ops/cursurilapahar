@@ -347,8 +347,8 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Save aspect (navbar brand + links)
-    if ($action === 'save_aspect') {
+    // ── Save navbar (mutat la tab Texte)
+    if ($action === 'save_navbar') {
         $settings = load_settings();
         $settings['nav_brand_text'] = trim($_POST['nav_brand_text'] ?? 'Cursuri la Pahar');
         $nav_labels = $_POST['nav_label'] ?? [];
@@ -361,7 +361,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($nav_links) $settings['nav_links'] = $nav_links;
         save_settings($settings);
-        header('Location: /admin/?tab=aspect&saved=1');
+        header('Location: /admin/?tab=setari&saved=1');
         exit;
     }
 
@@ -1393,6 +1393,73 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     function removeFaqItem(btn) { btn.closest('.faq-edit-item').remove(); }
     </script>
 
+<!-- Brand text + Nav links -->
+<form method="post" action="/admin/?tab=setari">
+    <input type="hidden" name="action" value="save_navbar">
+    <div class="card">
+        <div class="card-title">Navbar</div>
+        <div class="form-group">
+            <label>Text brand (lângă logo)</label>
+            <input type="text" name="nav_brand_text" value="<?= h($settings['nav_brand_text'] ?? 'Cursuri la Pahar') ?>">
+        </div>
+        <div class="form-group">
+            <label>Linkuri meniu <span style="font-weight:400;color:var(--text-muted)">(trage pentru reordonare)</span></label>
+            <div id="navLinksList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+                <?php foreach ($settings['nav_links'] ?? [] as $i => $nl): ?>
+                <div class="nav-link-row" draggable="true" style="display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid var(--border);border-radius:4px;padding:6px 10px;cursor:grab">
+                    <span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>
+                    <input type="text" name="nav_label[]" value="<?= h($nl['label'] ?? '') ?>" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff">
+                    <input type="text" name="nav_url[]"   value="<?= h($nl['url'] ?? '') ?>"   placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff;font-family:monospace">
+                    <button type="button" onclick="this.closest('.nav-link-row').remove()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addNavLink()">+ Adaugă link</button>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează navbar</button>
+<script>
+(function(){
+    const list = document.getElementById('navLinksList');
+    if (!list) return;
+    let dragged = null;
+    list.addEventListener('dragstart', e => {
+        dragged = e.target.closest('.nav-link-row');
+        setTimeout(() => dragged && dragged.classList.add('dragging'), 0);
+    });
+    list.addEventListener('dragend', () => {
+        if (dragged) dragged.classList.remove('dragging');
+        dragged = null;
+    });
+    list.addEventListener('dragover', e => {
+        e.preventDefault();
+        const row = e.target.closest('.nav-link-row');
+        if (row && row !== dragged) {
+            const rect = row.getBoundingClientRect();
+            const after = e.clientY > rect.top + rect.height / 2;
+            list.insertBefore(dragged, after ? row.nextSibling : row);
+        }
+    });
+    const style = document.createElement('style');
+    style.textContent = '.nav-link-row.dragging { opacity:.4; }';
+    document.head.appendChild(style);
+})();
+function addNavLink() {
+    const list = document.getElementById('navLinksList');
+    const row = document.createElement('div');
+    row.className = 'nav-link-row';
+    row.draggable = true;
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid #c3c4c7;border-radius:4px;padding:6px 10px;cursor:grab';
+    row.innerHTML = '<span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>'
+        + '<input type="text" name="nav_label[]" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff">'
+        + '<input type="text" name="nav_url[]" placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff;font-family:monospace">'
+        + '<button type="button" onclick="this.closest(\'.nav-link-row\').remove()" style="background:none;border:none;color:#d63638;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>';
+    list.appendChild(row);
+    row.querySelector('input').focus();
+}
+</script>
+    </div>
+</form>
+
 <?php /* ======================================================= TAB: ASPECT */ ?>
 <?php elseif ($tab === 'aspect'): ?>
 <h1 class="wp-page-title">Aspect</h1>
@@ -1435,75 +1502,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
         <p class="form-desc">Formate: ICO, PNG, JPG, WEBP. Fișierul va fi salvat în rădăcina site-ului.</p>
     </form>
 </div>
-
-<!-- Brand text + Nav links -->
-<form method="post" action="/admin/?tab=aspect">
-    <input type="hidden" name="action" value="save_aspect">
-    <div class="card">
-        <div class="card-title">Navbar</div>
-        <div class="form-group">
-            <label>Text brand (lângă logo)</label>
-            <input type="text" name="nav_brand_text" value="<?= h($settings['nav_brand_text'] ?? 'Cursuri la Pahar') ?>">
-        </div>
-        <div class="form-group">
-            <label>Linkuri meniu <span style="font-weight:400;color:var(--text-muted)">(trage pentru reordonare)</span></label>
-            <div id="navLinksList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-                <?php foreach ($settings['nav_links'] ?? [] as $i => $nl): ?>
-                <div class="nav-link-row" draggable="true" style="display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid var(--border);border-radius:4px;padding:6px 10px;cursor:grab">
-                    <span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>
-                    <input type="text" name="nav_label[]" value="<?= h($nl['label'] ?? '') ?>" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff">
-                    <input type="text" name="nav_url[]"   value="<?= h($nl['url'] ?? '') ?>"   placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff;font-family:monospace">
-                    <button type="button" onclick="this.closest('.nav-link-row').remove()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="addNavLink()">+ Adaugă link</button>
-        </div>
-        <button type="submit" class="btn btn-primary">Salvează navbar</button>
-<script>
-// Drag-and-drop reorder
-(function(){
-    const list = document.getElementById('navLinksList');
-    if (!list) return;
-    let dragged = null;
-    list.addEventListener('dragstart', e => {
-        dragged = e.target.closest('.nav-link-row');
-        setTimeout(() => dragged && dragged.classList.add('dragging'), 0);
-    });
-    list.addEventListener('dragend', () => {
-        if (dragged) dragged.classList.remove('dragging');
-        dragged = null;
-    });
-    list.addEventListener('dragover', e => {
-        e.preventDefault();
-        const row = e.target.closest('.nav-link-row');
-        if (row && row !== dragged) {
-            const rect = row.getBoundingClientRect();
-            const after = e.clientY > rect.top + rect.height / 2;
-            list.insertBefore(dragged, after ? row.nextSibling : row);
-        }
-    });
-    const style = document.createElement('style');
-    style.textContent = '.nav-link-row.dragging { opacity:.4; }';
-    document.head.appendChild(style);
-})();
-
-function addNavLink() {
-    const list = document.getElementById('navLinksList');
-    const row = document.createElement('div');
-    row.className = 'nav-link-row';
-    row.draggable = true;
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid #c3c4c7;border-radius:4px;padding:6px 10px;cursor:grab';
-    row.innerHTML = '<span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>'
-        + '<input type="text" name="nav_label[]" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff">'
-        + '<input type="text" name="nav_url[]" placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff;font-family:monospace">'
-        + '<button type="button" onclick="this.closest(\'.nav-link-row\').remove()" style="background:none;border:none;color:#d63638;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>';
-    list.appendChild(row);
-    row.querySelector('input').focus();
-}
-</script>
-    </div>
-</form>
 
 <!-- Culori & Fonturi -->
 <form method="post" action="/admin/?tab=aspect">
