@@ -1590,7 +1590,7 @@ function addNavLink() {
             <div class="form-group" style="margin:0">
                 <label>Font titluri</label>
                 <select name="font_heading" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff">
-                    <?php foreach (['Nunito','Playfair Display','Montserrat','Raleway','Oswald','Lora','Poppins','DM Serif Display','Bebas Neue','Cormorant Garamond'] as $f): ?>
+                    <?php foreach (['Nunito','Playfair Display','Montserrat','Raleway','Oswald','Lora','Poppins','Rubik','DM Serif Display','Bebas Neue','Cormorant Garamond'] as $f): ?>
                     <option value="<?= h($f) ?>" <?= ($settings['font_heading'] ?? 'Nunito') === $f ? 'selected' : '' ?>><?= h($f) ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -1599,7 +1599,7 @@ function addNavLink() {
             <div class="form-group" style="margin:0">
                 <label>Font text</label>
                 <select name="font_body" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff">
-                    <?php foreach (['Inter','Roboto','Open Sans','Lato','Source Sans 3','DM Sans','Nunito','Mulish','Cabin','Karla'] as $f): ?>
+                    <?php foreach (['Inter','Roboto','Open Sans','Lato','Source Sans 3','DM Sans','Nunito','Rubik','Mulish','Cabin','Karla'] as $f): ?>
                     <option value="<?= h($f) ?>" <?= ($settings['font_body'] ?? 'Inter') === $f ? 'selected' : '' ?>><?= h($f) ?></option>
                     <?php endforeach; ?>
                 </select>
