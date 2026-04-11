@@ -503,34 +503,62 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Export settings as download
+    // ── Export all data as download
     if ($action === 'export_settings') {
-        $data = file_exists(SETTINGS_FILE) ? file_get_contents(SETTINGS_FILE) : '{}';
+        $data_dir = dirname(SETTINGS_FILE);
+        $bundle = [
+            'settings'     => file_exists(SETTINGS_FILE)     ? json_decode(file_get_contents(SETTINGS_FILE), true)     : [],
+            'courses'      => file_exists(COURSES_FILE)      ? json_decode(file_get_contents(COURSES_FILE), true)      : [],
+            'vote_courses' => file_exists(VOTE_COURSES_FILE) ? json_decode(file_get_contents(VOTE_COURSES_FILE), true) : [],
+            'messages_log' => file_exists($data_dir . '/messages.log') ? file_get_contents($data_dir . '/messages.log') : '',
+        ];
         header('Content-Type: application/json');
-        header('Content-Disposition: attachment; filename="settings.json"');
-        echo $data;
+        header('Content-Disposition: attachment; filename="clp-backup.json"');
+        echo json_encode($bundle, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    // ── Import settings from uploaded file + download images
+    // ── Import all data from bundle file + download images
     if ($action === 'import_settings') {
         if (!empty($_FILES['settings_file']['tmp_name'])) {
-            $json = file_get_contents($_FILES['settings_file']['tmp_name']);
-            $imported = json_decode($json, true);
-            if ($imported) {
+            $json   = file_get_contents($_FILES['settings_file']['tmp_name']);
+            $bundle = json_decode($json, true);
+            if ($bundle) {
+                $data_dir = dirname(SETTINGS_FILE);
+                // Support both old format (plain settings) and new bundle format
+                $imported = $bundle['settings'] ?? $bundle;
+
                 // Preserve local secrets and password
                 $local = load_settings();
                 foreach (['admin_password','auth_secret','webhook_secret'] as $k) {
                     if (!empty($local[$k])) $imported[$k] = $local[$k];
                 }
-                // Download images from source domain
+                save_settings($imported);
+
+                // Restore courses
+                if (!empty($bundle['courses'])) {
+                    file_put_contents(COURSES_FILE, json_encode(array_values($bundle['courses']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                }
+                // Restore vote_courses
+                if (!empty($bundle['vote_courses'])) {
+                    file_put_contents(VOTE_COURSES_FILE, json_encode(array_values($bundle['vote_courses']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                }
+                // Restore messages log
+                if (!empty($bundle['messages_log'])) {
+                    file_put_contents($data_dir . '/messages.log', $bundle['messages_log']);
+                }
+
+                // Download images from source domain (scan settings + courses + vote_courses)
                 $source_domain = rtrim(trim($_POST['source_domain'] ?? 'https://robotache.ro'), '/');
                 $image_paths = [];
-                array_walk_recursive($imported, function($val) use (&$image_paths) {
+                $scan_for_images = function($val) use (&$image_paths) {
                     if (is_string($val) && preg_match('#^(/assets/images/|/assets/uploads/|/wp-content/)#', $val)) {
                         $image_paths[] = $val;
                     }
-                });
+                };
+                array_walk_recursive($imported, $scan_for_images);
+                if (!empty($bundle['courses']))      array_walk_recursive($bundle['courses'], $scan_for_images);
+                if (!empty($bundle['vote_courses'])) array_walk_recursive($bundle['vote_courses'], $scan_for_images);
                 $downloaded = 0;
                 foreach (array_unique($image_paths) as $path) {
                     $local_path = dirname(__DIR__) . $path;
@@ -545,7 +573,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     if ($img) { file_put_contents($local_path, $img); $downloaded++; }
                 }
-                save_settings($imported);
+
                 header('Location: /admin/?tab=securitate&imported=' . $downloaded);
                 exit;
             }
