@@ -79,7 +79,7 @@ shuffle($vote_courses);
     .vote-header {
         text-align: left;
         margin-bottom: 48px;
-        max-width: 800px;
+        max-width: 650px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -102,7 +102,7 @@ shuffle($vote_courses);
         display: flex;
         flex-direction: column;
         gap: 10px;
-        max-width: 500px;
+        max-width: 650px;
         margin: 0 auto;
     }
 
