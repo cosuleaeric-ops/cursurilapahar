@@ -1308,15 +1308,57 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- Upload -->
     <div class="card">
         <div class="card-title">Încarcă imagine nouă</div>
-        <form method="post" action="/admin/?tab=imagini" enctype="multipart/form-data">
+        <form method="post" action="/admin/?tab=imagini" enctype="multipart/form-data" id="uploadForm">
             <input type="hidden" name="action" value="upload_image">
             <div style="display:flex;gap:8px;align-items:center">
-                <input type="file" name="image_file" accept="image/*,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
-                <button type="submit" class="btn btn-primary">Încarcă</button>
+                <input type="file" name="image_file" id="imageFileInput" accept="image/*,.heic,.heif" style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
+                <button type="submit" class="btn btn-primary" id="uploadBtn">Încarcă</button>
             </div>
             <p class="form-desc">Formate acceptate: JPG, PNG, WEBP, GIF, HEIC. Imaginile sunt convertite automat în WebP și redimensionate la max 1920px.</p>
+            <p id="heicStatus" style="display:none;color:#2271b1;font-size:13px;margin-top:6px;"></p>
         </form>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        const fileInput = document.getElementById('imageFileInput');
+        const file = fileInput.files[0];
+        if (!file) return;
+        const name = file.name.toLowerCase();
+        if (!name.endsWith('.heic') && !name.endsWith('.heif')) return;
+
+        e.preventDefault();
+        const status = document.getElementById('heicStatus');
+        const btn = document.getElementById('uploadBtn');
+        status.style.display = 'block';
+        status.textContent = '⏳ Se convertește HEIC → JPEG în browser...';
+        btn.disabled = true;
+        btn.textContent = 'Se convertește...';
+
+        try {
+            const jpeg = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+            const converted = new File([jpeg], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
+
+            const fd = new FormData();
+            fd.append('action', 'upload_image');
+            fd.append('image_file', converted);
+
+            const resp = await fetch('/admin/?tab=imagini', { method: 'POST', body: fd });
+            if (resp.ok) {
+                status.textContent = '✓ Convertit și încărcat!';
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                status.textContent = '✗ Eroare la upload (HTTP ' + resp.status + ')';
+                btn.disabled = false;
+                btn.textContent = 'Încarcă';
+            }
+        } catch (err) {
+            status.textContent = '✗ Eroare la conversia HEIC: ' + err.message;
+            btn.disabled = false;
+            btn.textContent = 'Încarcă';
+        }
+    });
+    </script>
 
     <!-- Images grid with hero selection -->
     <?php $all_images = get_all_images(); ?>
