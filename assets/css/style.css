@@ -311,9 +311,9 @@ ul { list-style: none; }
 ══════════════════════════════════════════ */
 .hero {
   position: relative;
-  height: 70svh;
-  min-height: 400px;
-  max-height: 600px;
+  height: 80svh;
+  min-height: 450px;
+  max-height: 750px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
