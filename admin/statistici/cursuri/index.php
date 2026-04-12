@@ -76,82 +76,74 @@ function fmt(float $v): string { return number_format($v, 2, ',', '.'); }
 
 $tab = $_GET['tab'] ?? 'cursuri';
 ?>
-<!doctype html>
-<html lang="ro">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cursuri — CLP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/admin/statistici/style.css" />
-  <style>
-    .page-wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
-    .back-link { font-size: 13px; color: var(--muted); text-decoration: none; display: inline-block; margin-bottom: 12px; }
-    .back-link:hover { color: var(--text); }
-    .page-title { font-family: 'Crimson Pro', Georgia, serif; font-size: 28px; font-weight: 600; margin-bottom: 20px; }
-
+<?php
+$__page_title = 'Cursuri';
+include __DIR__ . '/../layout_header.php';
+?>
+<link rel="stylesheet" href="/admin/statistici/style.css">
+<style>
     /* Tabs */
     .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
-    .tab { padding: 10px 20px; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .tab { padding: 10px 20px; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
     .tab:hover { color: var(--text); }
-    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     /* Filters */
     .filters { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-    .filters select { appearance: none; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 28px 6px 10px; font-size: 14px; color: var(--text); cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+    .filters select { appearance: none; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 6px 28px 6px 10px; font-size: 14px; color: var(--text); cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
 
     /* Course list */
-    .course-row { display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; text-decoration: none; color: var(--text); transition: all 0.12s; }
-    .course-row:hover { border-color: var(--green); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .course-date { font-size: 13px; color: var(--muted); min-width: 100px; }
+    .course-row { display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; text-decoration: none; color: var(--text); transition: all 0.12s; }
+    .course-row:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .course-date { font-size: 13px; color: var(--text-muted); min-width: 100px; }
     .course-name { flex: 1; font-weight: 600; font-size: 15px; }
     .course-meta { display: flex; gap: 12px; align-items: center; }
     .course-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .badge-tickets { background: var(--green-light); color: var(--green); }
+    .badge-tickets { background: #d4edda; color: #155724; }
     .badge-viza { background: #EDE9FE; color: #7C3AED; }
-    .badge-report { background: var(--gold-light); color: var(--gold); }
-    .badge-none { background: #F0EDE6; color: var(--muted); }
+    .badge-report { background: #fff3cd; color: #856404; }
+    .badge-none { background: #f0f0f1; color: var(--text-muted); }
 
     /* DITL */
     .ditl-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .month-group { margin-bottom: 28px; }
-    .month-group h3 { font-family: 'Crimson Pro', Georgia, serif; font-size: 18px; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-    .ditl-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 10px; box-shadow: var(--shadow); }
+    .month-group h3 { font-size: 18px; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .ditl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
     .ditl-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .ditl-name { font-weight: 600; font-size: 15px; }
-    .ditl-date { font-size: 13px; color: var(--muted); }
-    .ditl-stats { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .ditl-date { font-size: 13px; color: var(--text-muted); }
+    .ditl-stats { display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
     .ditl-stats strong { color: var(--text); }
-    .viza-toggle { font-size: 12px; color: var(--green); cursor: pointer; border: none; background: none; font-weight: 600; padding: 0; }
+    .viza-toggle { font-size: 12px; color: var(--accent); cursor: pointer; border: none; background: none; font-weight: 600; padding: 0; }
     .viza-toggle:hover { text-decoration: underline; }
     .viza-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
     .viza-details.open { display: block; }
     .viza-table { width: 100%; font-size: 13px; border-collapse: collapse; }
-    .viza-table th { text-align: left; padding: 4px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .viza-table th { text-align: left; padding: 4px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
     .viza-table td { padding: 4px 8px; }
     .viza-table .right { text-align: right; }
-    .sold-match { color: var(--green); font-weight: 600; }
-    .sold-mismatch { color: var(--red); font-weight: 600; }
+    .sold-match { color: var(--success); font-weight: 600; }
+    .sold-mismatch { color: var(--danger); font-weight: 600; }
 
-    .empty { text-align: center; padding: 48px; color: var(--muted); }
+    .empty { text-align: center; padding: 48px; color: var(--text-muted); }
+
+    .btn-green { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background .15s; }
+    .btn-green:hover { background: var(--accent-hover); }
 
     @media (max-width: 640px) {
       .course-row { flex-wrap: wrap; gap: 8px; }
       .course-date { min-width: auto; }
       .course-meta { width: 100%; }
     }
-  </style>
+</style>
 </head>
-<body>
-  <div class="page-wrap">
-    <a class="back-link" href="/admin/statistici/">&larr; Statistici</a>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <h1 class="page-title" style="margin-bottom:0">Cursuri</h1>
-      <a href="/admin/statistici/cursuri/add.php" class="btn btn-green">+ Adauga curs</a>
+<?php include __DIR__ . '/../layout_nav.php'; ?>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h1 class="wp-page-title" style="margin-bottom:0">Cursuri</h1>
+      <a href="/admin/statistici/cursuri/add.php" class="btn-green">+ Adauga curs</a>
     </div>
 
     <!-- Filters -->
@@ -287,7 +279,6 @@ $tab = $_GET['tab'] ?? 'cursuri';
         <?php endforeach; ?>
       <?php endif; ?>
     </div>
-  </div>
 
   <script>
     function switchTab(tab) {
@@ -312,5 +303,7 @@ $tab = $_GET['tab'] ?? 'cursuri';
       }
     }
   </script>
+    </main>
+</div>
 </body>
 </html>

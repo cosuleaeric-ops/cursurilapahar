@@ -28,38 +28,24 @@ $totalUnique  = count($participants);
 $returners    = count(array_filter($participants, fn($p) => $p['num_courses'] > 1));
 $totalTickets = array_sum(array_column($participants, 'total_tickets'));
 ?>
-<!doctype html>
-<html lang="ro">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Participanți — CLP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/admin/statistici/style.css" />
-  <style>
+<?php
+$__page_title = 'Participanti';
+include __DIR__ . '/../layout_header.php';
+?>
+<link rel="stylesheet" href="/admin/statistici/style.css">
+<style>
     .search-wrap { margin-bottom:16px; }
     .search-wrap input { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--card); }
     .search-wrap input:focus { outline:none; border-color:var(--green); }
     .badge-return { background:#EAF5EF; color:var(--green); padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
     .course-tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .course-tag { background:var(--bg); border:1px solid var(--border); border-radius:4px; font-size:11px; color:var(--muted); padding:2px 6px; }
-  </style>
-</head>
-<body>
-<header class="app-header">
-  <h1>Participanți</h1>
-  <div class="header-controls">
-
-  </div>
-</header>
-<main class="container">
-  <a href="#" onclick="history.back();return false;" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:20px">← Înapoi</a>
+</style>
+<?php include __DIR__ . '/../layout_nav.php'; ?>
 
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
     <div class="stat-card accent-blue">
-      <div class="label">Participanți unici</div>
+      <div class="label">Participanti unici</div>
       <div class="value"><?php echo $totalUnique; ?></div>
     </div>
     <div class="stat-card accent-green">
@@ -67,18 +53,18 @@ $totalTickets = array_sum(array_column($participants, 'total_tickets'));
       <div class="value green"><?php echo $returners; ?></div>
     </div>
     <div class="stat-card accent-gold">
-      <div class="label">Total bilete vândute</div>
+      <div class="label">Total bilete vandute</div>
       <div class="value"><?php echo $totalTickets; ?></div>
     </div>
   </div>
 
   <?php if (empty($participants)): ?>
     <div style="text-align:center;padding:60px;color:var(--muted)">
-      Niciun participant înregistrat încă. Adaugă un curs cu participanți.
+      Niciun participant inregistrat inca. Adauga un curs cu participanti.
     </div>
   <?php else: ?>
     <div class="search-wrap">
-      <input type="text" id="searchInput" placeholder="Caută participant..." oninput="filterTable()">
+      <input type="text" id="searchInput" placeholder="Cauta participant..." oninput="filterTable()">
     </div>
     <div class="table-card">
       <div class="table-scroll">
@@ -126,7 +112,7 @@ $totalTickets = array_sum(array_column($participants, 'total_tickets'));
       </div>
     </div>
   <?php endif; ?>
-</main>
+
 <script>
 function filterTable() {
     const q = document.getElementById('searchInput').value.toLowerCase();
@@ -136,5 +122,7 @@ function filterTable() {
     });
 }
 </script>
+    </main>
+</div>
 </body>
 </html>

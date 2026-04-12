@@ -77,20 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!doctype html>
-<html lang="ro">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Curs nou — CLP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/admin/statistici/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
+<?php
+$__page_title = 'Curs nou';
+include __DIR__ . '/../layout_header.php';
+?>
+<link rel="stylesheet" href="/admin/statistici/style.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
     .add-wrap { max-width: 600px; margin: 40px auto; }
-    .add-wrap h2 { font-family:'Crimson Pro',Georgia,serif; font-size:22px; font-weight:600; margin-bottom:4px; }
+    .add-wrap h2 { font-size:22px; font-weight:600; margin-bottom:4px; }
     .add-wrap .lead { color:var(--muted); font-size:14px; margin-bottom:32px; }
     .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); }
     .drop-zone { border:2px dashed var(--border); border-radius:var(--radius); background:var(--bg); padding:40px 24px; text-align:center; cursor:pointer; transition:all .18s; position:relative; }
@@ -103,20 +98,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .col-picker label { display:block; font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
     .col-picker select { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--bg); cursor:pointer; }
     .preview-card { display:none; margin-top:16px; background:var(--green-light); border:1px solid #b2d9c0; border-radius:var(--radius); padding:20px 22px; }
-    .preview-total { font-family:'Crimson Pro',Georgia,serif; font-size:24px; font-weight:600; margin-bottom:4px; }
+    .preview-total { font-size:24px; font-weight:600; margin-bottom:4px; }
     .preview-sub { font-size:13px; color:var(--muted); margin-bottom:14px; }
     .preview-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
     .preview-list li { display:flex; align-items:center; gap:10px; font-size:14px; }
     .preview-bullet { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; }
     .divider { border:none; border-top:1px solid var(--border); margin:24px 0; }
-  </style>
-</head>
-<body>
-<header class="app-header">
-  <h1>Curs nou</h1>
-  <div class="header-controls"></div>
-</header>
-<main class="container">
+</style>
+<?php include __DIR__ . '/../layout_nav.php'; ?>
+
   <div class="add-wrap">
     <a href="#" onclick="history.back();return false;" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:20px">&larr; Inapoi</a>
     <?php if ($error): ?>
@@ -172,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </form>
   </div>
-</main>
+
 <script>
 let parsedRows = [];
 let allHeaders = [];
@@ -295,5 +285,7 @@ document.getElementById('courseDate').addEventListener('input', function() {
     }
 });
 </script>
+    </main>
+</div>
 </body>
 </html>

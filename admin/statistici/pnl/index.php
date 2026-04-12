@@ -5,40 +5,27 @@ if (!is_authenticated()) { header('Location: /admin/'); exit; }
 $csrf = csrf_token();
 header('X-Robots-Tag: noindex, nofollow');
 ?>
-<!doctype html>
-<html lang="ro">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>P&amp;L — Cursuri la Pahar</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/admin/statistici/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script>
+<?php
+$__page_title = 'P&L — Cursuri la Pahar';
+include __DIR__ . '/../layout_header.php';
+?>
+<link rel="stylesheet" href="/admin/statistici/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
     window.PNL = {
       csrf: <?php echo json_encode($csrf); ?>,
       api:  '/admin/statistici/pnl/api.php'
     };
-  </script>
-</head>
-<body>
+</script>
+<?php include __DIR__ . '/../layout_nav.php'; ?>
 
-<header class="app-header">
-  <h1>P&amp;L — Cursuri la Pahar</h1>
-  <div class="header-controls">
-    <select class="year-select" id="yearSelect"></select>
-    <a href="/admin/?logout=1" class="logout-link">Ie&#x219;i</a>
-  </div>
-</header>
-
-<main class="container">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <a href="#" onclick="history.back();return false;"
-       style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px">&#8592; &#206;napoi</a>
-    <span class="last-entry-badge" id="lastEntryBadge"></span>
-  </div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <h1 class="wp-page-title" style="margin-bottom:0">P&amp;L Cursuri</h1>
+    <div style="display:flex;align-items:center;gap:12px">
+        <span class="last-entry-badge" id="lastEntryBadge"></span>
+        <select class="year-select" id="yearSelect"></select>
+    </div>
+</div>
 
   <!-- Quick Add Bar -->
   <div class="quick-add-bar">
@@ -131,8 +118,6 @@ header('X-Robots-Tag: noindex, nofollow');
     </div>
   </div>
   </div><!-- /tx-section -->
-
-</main>
 
 <!-- Modal: Adaug&#x103; / Editeaz&#x103; Venit -->
 <div class="modal-overlay" id="modalVenit">
@@ -734,5 +719,8 @@ document.getElementById('topBtnVenit').addEventListener('click', () => {
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();
 </script>
+
+    </main>
+</div>
 </body>
 </html>

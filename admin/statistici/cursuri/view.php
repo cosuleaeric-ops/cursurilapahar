@@ -256,19 +256,14 @@ $retRes = $db->query("
 $returningParticipants = [];
 while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
 ?>
-<!doctype html>
-<html lang="ro">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><?php echo h($course['name']); ?> — CLP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/admin/statistici/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <style>
+<?php
+$__page_title = h($course['name']);
+include __DIR__ . '/../layout_header.php';
+?>
+<link rel="stylesheet" href="/admin/statistici/style.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
     .course-wrap { max-width: 800px; margin: 0 auto; }
     .course-hero { margin-bottom: 28px; }
     .course-hero h2 { font-family:'Crimson Pro',Georgia,serif; font-size:28px; font-weight:600; letter-spacing:-.3px; }
@@ -333,16 +328,9 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
     .raport-preview { display:none; margin-top:12px; background:var(--green-light); border:1px solid #b2d9c0; border-radius:var(--radius-sm); padding:12px 16px; font-size:14px; }
     .raport-submit { display:none; margin-top:10px; }
     @media(max-width:600px) { .raport-grid { grid-template-columns:1fr; } }
-  </style>
-</head>
-<body>
-<header class="app-header">
-  <h1><?php echo h($course['name']); ?></h1>
-  <div class="header-controls">
+</style>
+<?php include __DIR__ . '/../layout_nav.php'; ?>
 
-  </div>
-</header>
-<main class="container">
   <div class="course-wrap">
 
     <?php if ($error): ?>
@@ -350,9 +338,9 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
     <?php endif; ?>
 
     <div class="course-hero">
-      <a href="/admin/statistici/cursuri/" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px">← Înapoi</a>
+      <a href="/admin/statistici/cursuri/" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px">&larr; Inapoi</a>
       <h2><?php echo h($course['name']); ?></h2>
-      <div class="meta">📅 <?php echo h(ro_date($course['date'])); ?></div>
+      <div class="meta"><?php echo h(ro_date($course['date'])); ?></div>
     </div>
 
     <?php if ($report): ?>
@@ -361,7 +349,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
       <h3>Raport eveniment</h3>
       <div class="raport-grid">
         <div class="raport-stat">
-          <div class="label">Total încasări</div>
+          <div class="label">Total incasari</div>
           <div class="value"><?php echo number_format((float)$report['total_incasari'], 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
         </div>
         <div class="raport-stat">
@@ -369,41 +357,41 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
           <div class="value"><?php echo number_format((float)$report['total_bilete'], 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
         </div>
         <div class="raport-stat">
-          <div class="label">Taxă DITL (2%)</div>
+          <div class="label">Taxa DITL (2%)</div>
           <div class="value ditl"><?php echo number_format((float)$report['total_bilete'] * 0.02, 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
         </div>
       </div>
       <div class="raport-meta">
-        <?php if ($report['original_name']): ?>📎 <?php echo h($report['original_name']); ?> · <?php endif; ?>
+        <?php if ($report['original_name']): ?><?php echo h($report['original_name']); ?> &middot; <?php endif; ?>
         Actualizat <?php echo h(substr($report['uploaded_at'], 0, 10)); ?>
       </div>
       <details style="margin-bottom:16px">
-        <summary style="font-size:13px;color:var(--muted);cursor:pointer">Actualizează raportul</summary>
+        <summary style="font-size:13px;color:var(--muted);cursor:pointer">Actualizeaza raportul</summary>
         <div style="margin-top:12px">
           <?php include __DIR__ . '/../raport_upload_form.inc.php'; ?>
         </div>
       </details>
-      <form method="post" onsubmit="return confirm('Ștergi raportul financiar?');" style="margin-top:4px">
+      <form method="post" onsubmit="return confirm('Stergi raportul financiar?');" style="margin-top:4px">
         <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
         <input type="hidden" name="action" value="delete_raport">
-        <button type="submit" class="btn btn-ghost" style="font-size:12px;padding:4px 12px;color:var(--muted)">Șterge raportul</button>
+        <button type="submit" class="btn btn-ghost" style="font-size:12px;padding:4px 12px;color:var(--muted)">Sterge raportul</button>
       </form>
     </div>
     <?php endif; ?>
 
     <!-- Distribuție bilete -->
     <div class="section-card">
-      <h3>Distribuție bilete</h3>
+      <h3>Distributie bilete</h3>
       <?php if ($dist['total_tickets'] === 0): ?>
-        <p style="color:var(--muted);font-size:14px">Niciun bilet înregistrat.</p>
+        <p style="color:var(--muted);font-size:14px">Niciun bilet inregistrat.</p>
       <?php else: ?>
         <div class="dist-total"><?php echo $dist['total_tickets']; ?> <?php echo $dist['total_tickets'] === 1 ? 'bilet' : 'bilete'; ?></div>
-        <div class="dist-sub"><?php echo $dist['total_orders']; ?> <?php echo $dist['total_orders'] === 1 ? 'comandă' : 'comenzi'; ?></div>
+        <div class="dist-sub"><?php echo $dist['total_orders']; ?> <?php echo $dist['total_orders'] === 1 ? 'comanda' : 'comenzi'; ?></div>
         <ul class="dist-list">
           <?php foreach ($dist['groups'] as $n => $orders): ?>
             <li>
               <span class="dist-bullet"></span>
-              <strong><?php echo $orders; ?></strong>&nbsp;<?php echo $orders === 1 ? 'comandă' : 'comenzi'; ?>
+              <strong><?php echo $orders; ?></strong>&nbsp;<?php echo $orders === 1 ? 'comanda' : 'comenzi'; ?>
               &times;
               <strong><?php echo $n; ?> <?php echo $n === 1 ? 'bilet' : 'bilete'; ?></strong>
             </li>
@@ -415,7 +403,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
     <!-- Participanți fideli -->
     <?php if (!empty($returningParticipants)): ?>
     <div class="section-card">
-      <h3>Participanți fideli (<?php echo count($returningParticipants); ?>)</h3>
+      <h3>Participanti fideli (<?php echo count($returningParticipants); ?>)</h3>
       <ul class="returning-list">
         <?php foreach ($returningParticipants as $rp): ?>
           <?php
@@ -426,7 +414,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
             }, array_unique(explode('|', $rp['other_list'])));
           ?>
           <li>
-            <span class="returning-badge">×<?php echo $rp['num_other']; ?></span>
+            <span class="returning-badge">&times;<?php echo $rp['num_other']; ?></span>
             <strong><?php echo h($rp['participant_name']); ?></strong>
             <span class="returning-courses"><?php echo implode(', ', $courses); ?></span>
           </li>
@@ -439,7 +427,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
     <!-- Raport eveniment (jos — doar dacă nu există încă) -->
     <div class="section-card">
       <h3>Raport eveniment</h3>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Încarcă fișierul XLSX primit după eveniment pentru a vedea încasările și taxa DITL.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Incarca fisierul XLSX primit dupa eveniment pentru a vedea incasarile si taxa DITL.</p>
       <?php include __DIR__ . '/../raport_upload_form.inc.php'; ?>
     </div>
     <?php endif; ?>
@@ -447,7 +435,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
     <!-- Lista participanți -->
     <?php if (!empty($dist['name_counts'])): ?>
     <div class="section-card">
-      <h3>Participanți (<?php echo count($dist['name_counts']); ?> comenzi)</h3>
+      <h3>Participanti (<?php echo count($dist['name_counts']); ?> comenzi)</h3>
       <ul class="participants-list">
         <?php
           $sorted = $dist['name_counts'];
@@ -456,7 +444,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
         ?>
           <li>
             <?php echo h($name); ?>
-            <?php if ($cnt > 1): ?><span>×<?php echo $cnt; ?></span><?php endif; ?>
+            <?php if ($cnt > 1): ?><span>&times;<?php echo $cnt; ?></span><?php endif; ?>
           </li>
         <?php endforeach; ?>
       </ul>
@@ -465,39 +453,39 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
 
     <!-- Actualizează participanți -->
     <div class="section-card">
-      <h3>Actualizează participanți</h3>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Încarcă un nou XLSX pentru a actualiza lista. Participanții existenți vor fi înlocuiți cu noua listă — dacă unii se repetă, nu vor fi duplicați.</p>
+      <h3>Actualizeaza participanti</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Incarca un nou XLSX pentru a actualiza lista. Participantii existenti vor fi inlocuiti cu noua lista — daca unii se repeta, nu vor fi duplicati.</p>
       <form method="post" id="updateForm">
         <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
         <input type="hidden" name="action" value="update_participants">
         <input type="hidden" name="participants_json" id="updateParticipantsJson">
         <div class="update-drop" id="updateDrop">
           <input type="file" id="updateFileInput" accept=".xlsx,.xls,.csv">
-          <p>📊 Trage sau apasă pentru a încărca XLSX / CSV</p>
+          <p>Trage sau apasa pentru a incarca XLSX / CSV</p>
         </div>
         <div class="update-col-picker" id="updateColPicker">
-          <label>Selectează coloana cu nume participanți</label>
+          <label>Selecteaza coloana cu nume participanti</label>
           <select id="updateColSelect"></select>
-          <button type="button" class="btn btn-ghost" id="btnUpdateApplyCol" style="margin-top:8px;width:100%;justify-content:center">Aplică</button>
+          <button type="button" class="btn btn-ghost" id="btnUpdateApplyCol" style="margin-top:8px;width:100%;justify-content:center">Aplica</button>
         </div>
         <div class="update-preview" id="updatePreview"></div>
         <div class="update-submit" id="updateSubmit">
-          <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px">Înlocuiește lista de participanți</button>
+          <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px">Inlocuieste lista de participanti</button>
         </div>
       </form>
     </div>
 
     <!-- Viza bilete -->
     <div class="section-card">
-      <h3>Viză bilete</h3>
+      <h3>Viza bilete</h3>
 
       <?php if (!empty($vizaFiles)): $vf = $vizaFiles[0]; ?>
         <div class="viza-file" style="margin-bottom:12px">
           <div>
             <a class="viza-name" href="/admin/statistici/uploads/<?php echo h($vf['filename']); ?>" target="_blank" rel="noopener">
-              📄 <?php echo h($vf['original_name']); ?>
+              <?php echo h($vf['original_name']); ?>
             </a>
-            <div class="viza-date">Încărcat <?php echo h(substr($vf['uploaded_at'], 0, 10)); ?></div>
+            <div class="viza-date">Incarcat <?php echo h(substr($vf['uploaded_at'], 0, 10)); ?></div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <?php if (empty($vizaSubtips)): ?>
@@ -507,14 +495,14 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
                 <input type="hidden" name="viza_text" id="reprocessVizaText">
                 <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
                   data-pdf-url="/admin/statistici/uploads/<?php echo h($vf['filename']); ?>"
-                  title="Extrage date din PDF">↻ Extrage date</button>
+                  title="Extrage date din PDF">&#8635; Extrage date</button>
               </form>
             <?php endif; ?>
-            <form method="post" onsubmit="return confirm('Ștergi viza?');" style="margin:0">
+            <form method="post" onsubmit="return confirm('Stergi viza?');" style="margin:0">
               <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
               <input type="hidden" name="action" value="delete_viza">
               <input type="hidden" name="file_id" value="<?php echo (int)$vf['id']; ?>">
-              <button type="submit" class="icon-btn danger" title="Șterge">✕</button>
+              <button type="submit" class="icon-btn danger" title="Sterge">&times;</button>
             </form>
           </div>
         </div>
@@ -527,8 +515,8 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
                 <th>Tarif</th>
                 <th>Nr. bilete</th>
                 <th>De la</th>
-                <th>Până la</th>
-                <?php if (!empty($reportByPrice)): ?><th>Vândute</th><?php endif; ?>
+                <th>Pana la</th>
+                <?php if (!empty($reportByPrice)): ?><th>Vandute</th><?php endif; ?>
               </tr>
             </thead>
             <tbody>
@@ -544,7 +532,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
                 <td class="num"><?php echo h($sub['pana_la']); ?></td>
                 <?php if (!empty($reportByPrice)): ?>
                 <td class="num <?php echo $match ? 'sold-match' : 'no-match'; ?>">
-                  <?php echo $match ? (int)$match['vandute'] . ' vândute' : '—'; ?>
+                  <?php echo $match ? (int)$match['vandute'] . ' vandute' : '—'; ?>
                 </td>
                 <?php endif; ?>
               </tr>
@@ -552,7 +540,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
             </tbody>
           </table>
         <?php elseif (!empty($vizaFiles)): ?>
-          <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasă „Extrage date" sau re-încarcă PDF-ul.</p>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasa „Extrage date" sau re-incarca PDF-ul.</p>
         <?php endif; ?>
 
       <?php endif; ?>
@@ -563,7 +551,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
         <input type="hidden" name="viza_text" id="vizaTextInput">
         <div class="upload-zone" id="vizaUploadZone">
           <input type="file" name="viza" accept=".pdf" onchange="handleVizaUpload(this)">
-          <p id="vizaUploadLabel">📎 <?php echo empty($vizaFiles) ? 'Trage sau apasă pentru a încărca Viză PDF' : 'Înlocuiește viza'; ?></p>
+          <p id="vizaUploadLabel"><?php echo empty($vizaFiles) ? 'Trage sau apasa pentru a incarca Viza PDF' : 'Inlocuieste viza'; ?></p>
         </div>
       </form>
     </div>
@@ -571,16 +559,16 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
     <!-- Danger zone -->
     <div class="section-card" style="border-color:#f5c6c7">
       <div class="danger-zone">
-        <form method="post" onsubmit="return confirm('Ștergi cursul «<?php echo h(addslashes($course['name'])); ?>»? Această acțiune este ireversibilă.');">
+        <form method="post" onsubmit="return confirm('Stergi cursul «<?php echo h(addslashes($course['name'])); ?>»? Aceasta actiune este ireversibila.');">
           <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
           <input type="hidden" name="action" value="delete_course">
-          <button type="submit" class="btn btn-red" style="font-size:12px;padding:5px 14px">Șterge cursul</button>
+          <button type="submit" class="btn btn-red" style="font-size:12px;padding:5px 14px">Sterge cursul</button>
         </form>
       </div>
     </div>
 
   </div>
-</main>
+
 <script>
 (function() {
     let parsedRows = [], allHeaders = [];
@@ -762,5 +750,7 @@ async function extractPdfText(file) {
     }
 })();
 </script>
+    </main>
+</div>
 </body>
 </html>
