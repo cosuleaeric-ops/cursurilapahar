@@ -404,7 +404,7 @@ function renderCharts(s) {
       scales: {
         y: {
           beginAtZero: true,
-          grid: { color: '#F0EDE6' },
+          grid: { color: '#e0e0e0' },
           ticks: { callback: v => fmt(v) + ' lei', font: { size: 11 } },
         },
         x: { grid: { display: false }, ticks: { font: { size: 12 } } },
@@ -463,7 +463,7 @@ function renderCharts(s) {
       },
       scales: {
         y: {
-          grid: { color: '#F0EDE6' },
+          grid: { color: '#e0e0e0' },
           ticks: { callback: v => fmt(v) + ' lei', font: { size: 11 } },
         },
         x: { grid: { display: false }, ticks: { font: { size: 12 } } },
