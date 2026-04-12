@@ -44,6 +44,7 @@ include __DIR__ . '/../layout_header.php';
 <?php include __DIR__ . '/../layout_nav.php'; ?>
 
   <div style="max-width:1000px;margin:0 auto">
+  <a href="/admin/statistici/" style="font-size:12px;color:var(--text-muted);text-decoration:none;display:inline-block;margin-bottom:12px">&larr; Statistici</a>
   <h1 class="wp-page-title">Participanti</h1>
 
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">

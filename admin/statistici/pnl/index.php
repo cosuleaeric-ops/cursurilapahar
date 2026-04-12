@@ -21,6 +21,8 @@ include __DIR__ . '/../layout_header.php';
 
 <div style="max-width:1200px;margin:0 auto">
 
+<a href="/admin/statistici/" style="font-size:12px;color:var(--text-muted);text-decoration:none;display:inline-block;margin-bottom:12px">&larr; Statistici</a>
+
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <h1 class="wp-page-title" style="margin-bottom:0">P&amp;L Cursuri</h1>
     <div style="display:flex;align-items:center;gap:12px">
