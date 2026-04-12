@@ -12,7 +12,7 @@ if (!is_authenticated()) { header('Location: /admin/'); exit; }
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/admin/statistici/style.css" />
+  <link rel="stylesheet" href="/admin/statistici/style.css?v=2" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     .bilete-wrap {

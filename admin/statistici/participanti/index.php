@@ -32,7 +32,7 @@ $totalTickets = array_sum(array_column($participants, 'total_tickets'));
 $__page_title = 'Participanti';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=2">
 <style>
     .search-wrap { margin-bottom:16px; }
     .search-wrap input { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--card); }

@@ -80,7 +80,7 @@ $tab = $_GET['tab'] ?? 'cursuri';
 $__page_title = 'Cursuri';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css" />
+<link rel="stylesheet" href="/admin/statistici/style.css?v=2" />
 <style>
     .tabs { display:flex; gap:4px; margin-bottom:24px; background:var(--surface,#fff); border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
     .tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }

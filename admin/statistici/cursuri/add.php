@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $__page_title = 'Curs nou';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
     .add-wrap { max-width: 600px; margin: 40px auto; }

@@ -9,7 +9,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {

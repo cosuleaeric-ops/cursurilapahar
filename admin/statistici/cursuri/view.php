@@ -260,7 +260,7 @@ while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
 $__page_title = h($course['name']);
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
