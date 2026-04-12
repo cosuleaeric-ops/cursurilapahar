@@ -1,51 +1,49 @@
 <?php
-// Restaureaza settings.json cu setarile corecte + parola + Voteaza in meniu
 $dir = __DIR__ . '/data';
 if (!is_dir($dir)) mkdir($dir, 0755, true);
 
-$settings = [
+// Exact settings from git history + Voteaza in meniu + parola
+$s = [
     'admin_password'    => 'clp2026admin',
     'auth_secret'       => bin2hex(random_bytes(32)),
     'webhook_secret'    => bin2hex(random_bytes(32)),
-    'announcement'      => '🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?',
-    'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
-    'hero_btn'          => 'Vezi următoarele cursuri',
-    'courses_title'     => 'Următoarele cursuri',
-    'newsletter_title'  => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
-    'newsletter_desc'   => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar.',
+    'announcement'      => "\xF0\x9F\x8E\x89 Peste 1.000 de participan\xC8\x9Bi au descoperit c\xC4\x83 educa\xC8\x9Bia are un gust mai bun la un pahar. Tu e\xC8\x99ti urm\xC4\x83torul?",
+    'hero_title'        => "Cursuri \xC8\x9Binute de exper\xC8\x9Bi<br><em>la un pahar \xC3\xAEn ora\xC8\x99.</em>",
+    'hero_btn'          => "Vezi urm\xC4\x83toarele cursuri",
+    'courses_title'     => "Urm\xC4\x83toarele cursuri",
+    'newsletter_title'  => "Fii primul care afl\xC4\x83 c\xC3\xA2nd au loc evenimentele Cursuri la Pahar",
+    'newsletter_desc'   => "Vei primi \xC3\xAEn exclusivitate data \xC8\x99i tema viitoarelor evenimente Cursuri la Pahar, cu 2 s\xC4\x83pt\xC4\x83m\xC3\xA2ni \xC3\xAEnainte ca acestea s\xC4\x83 aib\xC4\x83 loc.",
     'collab_title'      => 'Colaborare',
-    'collab_subtitle'   => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
+    'collab_subtitle'   => "Vrei s\xC4\x83 faci parte din comunitatea Cursuri la Pahar? Hai s\xC4\x83 construim ceva frumos \xC3\xAEmpreun\xC4\x83.",
     'contact_title'     => 'Contact',
-    'contact_subtitle'  => 'Ai o întrebare sau o idee? Scrie-ne.',
-    'hero_images'       => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
+    'contact_subtitle'  => "Ai o \xC3\xAEntrebare sau o idee? Scrie-ne.",
+    'hero_images'       => ['/assets/images/hero1.jpg','/assets/images/hero2.jpg','/assets/images/hero3.jpg','/assets/images/hero4.jpg','/assets/images/hero5.jpg'],
     'logo_path'         => '/assets/images/logo.webp',
     'favicon_path'      => '',
     'nav_brand_text'    => 'Cursuri la Pahar',
     'nav_links'         => [
-        ['label' => 'Cursuri',            'url' => '/#cursuri'],
-        ['label' => 'Cum funcționează',   'url' => '/#cum-functioneaza'],
-        ['label' => 'FAQ',                'url' => '/#faq'],
-        ['label' => 'Colaborare',         'url' => '/#colaborare'],
-        ['label' => 'Contact',            'url' => '/#contact'],
-        ['label' => 'Votează',            'url' => '/voteaza-cursuri'],
+        ['label'=>'Cursuri','url'=>'/#cursuri'],
+        ['label'=>"Cum func\xC8\x9Bioneaz\xC4\x83",'url'=>'/#cum-functioneaza'],
+        ['label'=>'FAQ','url'=>'/#faq'],
+        ['label'=>'Colaborare','url'=>'/#colaborare'],
+        ['label'=>'Contact','url'=>'/#contact'],
+        ['label'=>"Voteaz\xC4\x83",'url'=>'/voteaza-cursuri'],
     ],
     'steps' => [
-        ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
-        ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
-        ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
-        ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
+        ['title'=>'Verifici calendarul','text'=>"R\xC4\x83sfoi\xC8\x99ti cursurile disponibile \xC8\x99i g\xC4\x83se\xC8\x99ti tema care te st\xC3\xA2rne\xC8\x99te curiozitatea."],
+        ['title'=>'Cumperi biletul','text'=>"Achizi\xC8\x9Bionezi biletul online prin LiveTickets, simplu \xC8\x99i rapid, de pe orice dispozitiv."],
+        ['title'=>'Vii la eveniment','text'=>"Te prezin\xC8\x9Bi la loca\xC8\x9Bie, \xC3\xAE\xC8\x9Bi iei o b\xC4\x83utur\xC4\x83 preferat\xC4\x83 \xC8\x99i ocupi un loc confortabil."],
+        ['title'=>"\xC3\x8Enve\xC8\x9Bi & socializezi",'text'=>"Ascul\xC8\x9Bi expertul, pui orice \xC3\xAEntrebare la Q&A \xC8\x99i cuno\xC8\x99ti oameni faini cu acelea\xC8\x99i interese."],
     ],
     'faq_items' => [
-        ['q' => 'Ce este Cursuri la Pahar?',           'a' => 'Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul.'],
-        ['q' => 'Cât durează un eveniment?',            'a' => 'Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&A, unde poți pune orice fel de întrebări.'],
-        ['q' => 'Cât costă un bilet?',                  'a' => 'Biletul standard costă 50 de lei, iar biletul pentru studenți costă 30 de lei.'],
-        ['q' => 'Despre ce sunt cursurile?',            'a' => 'Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie.'],
-        ['q' => 'Unde au loc evenimentele?',            'a' => 'Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan).'],
-        ['q' => 'Cine poate participa?',                'a' => 'Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu.'],
-        ['q' => 'Când va avea loc următorul eveniment?', 'a' => 'Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru.'],
+        ['q'=>"Ce este Cursuri la Pahar?",'a'=>"Cursuri la Pahar este un eveniment care scoate educa\xC8\x9Bia din amfiteatre \xC8\x99i o aduce \xC3\xAEn baruri. Exper\xC8\x9Bi \xC8\x99i profesori vin s\xC4\x83 discute teme complexe \xC3\xAEntr-un cadru relaxat, la un pahar cu publicul."],
+        ['q'=>"C\xC3\xA2t dureaz\xC4\x83 un eveniment?",'a'=>"Rezerv\xC4\x83m cam 2 ore pentru \xC3\xAEntreaga experien\xC8\x9B\xC4\x83. Primele 60\xE2\x80\x9390 de minute sunt dedicate prezent\xC4\x83rii, iar restul timpului \xC3\xAEl petrecem la un Q&A, unde po\xC8\x9Bi pune orice fel de \xC3\xAEntreb\xC4\x83ri."],
+        ['q'=>"C\xC3\xA2t cost\xC4\x83 un bilet?",'a'=>"Biletul standard cost\xC4\x83 50 de lei, iar biletul pentru studen\xC8\x9Bi cost\xC4\x83 30 de lei."],
+        ['q'=>'Despre ce sunt cursurile?','a'=>"Alegem teme care st\xC3\xA2rnesc curiozitatea oric\xC3\xA2nui: de la psihologie \xC8\x99i misterele istoriei, p\xC3\xA2n\xC4\x83 la univers \xC8\x99i tehnologie. Practic, \xC3\xAEncerc\xC4\x83m s\xC4\x83 transform\xC4\x83m subiectele \xE2\x80\x9Egrele\xE2\x80\x9D \xC3\xAEn pove\xC8\x99ti numai bune de ascultat la un pahar."],
+        ['q'=>'Unde au loc evenimentele?','a'=>"Ne vedem \xC3\xAEn baruri, pub-uri \xC8\x99i alte spa\xC8\x9Bii relaxate din Bucure\xC8\x99ti (momentan). Alegem loca\xC8\x9Bii unde atmosfera este cald\xC4\x83 \xC8\x99i unde po\xC8\x9Bi savura o b\xC4\x83utur\xC4\x83 \xC3\xAEn timp ce ascul\xC8\x9Bi ceva interesant."],
+        ['q'=>'Cine poate participa?','a'=>"Oricine este curios \xC8\x99i are peste 16 ani. Nu ai nevoie de preg\xC4\x83tire special\xC4\x83 sau studii \xC3\xAEn domeniu; evenimentul este creat pentru to\xC8\x9Bi cei care vor s\xC4\x83 \xC3\xAEmbine socializarea cu o doz\xC4\x83 de cunoa\xC8\x99tere."],
+        ['q'=>"C\xC3\xA2nd va avea loc urm\xC4\x83torul eveniment?",'a'=>"Dac\xC4\x83 vrei s\xC4\x83 te anun\xC8\x9B\xC4\x83m direct pe email c\xC3\xA2nd punem biletele la v\xC3\xA2nzare, aboneaz\xC4\x83-te la newsletter-ul nostru. Pe l\xC3\xA2ng\xC4\x83 asta, po\xC8\x9Bi vedea calendarul \xC8\x99i pe pagina noastr\xC4\x83 de Instagram."],
     ],
-    'kit_api_key'       => '',
-    'kit_form_id'       => '',
     'color_bg'          => '#0D0D0D',
     'color_accent'      => '#C9A84C',
     'color_text'        => '#E8E4DC',
@@ -53,50 +51,53 @@ $settings = [
     'color_surface'     => '#161616',
     'color_btn_hover'   => '#b8922e',
     'color_banner'      => '#FFB000',
-    'font_heading'      => 'Nunito',
+    'font_heading'      => 'Rubik',
     'font_body'         => 'Inter',
+    'kit_api_key'       => 'kit_3ad1bb636169002be3359bd1048e0204',
+    'kit_form_id'       => '',
     'head_scripts'      => '',
-    'pages'             => [
+    'pages' => [
         'sustine' => [
-            'title'       => 'Susține un curs',
-            'subtitle'    => 'Împărtășește-ți expertiza cu comunitatea noastră.',
-            'description' => 'Ești expert într-un domeniu care te pasionează? Vino să susții un curs în fața unei comunități curioase, într-un cadru relaxat, la un pahar.',
+            'title' => "Sus\xC8\x9Bine un curs",
+            'subtitle' => "\xC3\x8Emp\xC4\x83rt\xC4\x83\xC8\x99e\xC8\x99te-\xC8\x9Bi expertiza cu comunitatea noastr\xC4\x83.",
+            'description' => "E\xC8\x99ti expert \xC3\xAEntr-un domeniu care te pasioneaz\xC4\x83? Vino s\xC4\x83 sus\xC8\x9Bii un curs \xC3\xAEn fa\xC8\x9Ba unei comunit\xC4\x83\xC8\x9Bi curioase, \xC3\xAEntr-un cadru relaxat, la un pahar.",
         ],
         'gazduieste' => [
-            'title'       => 'Găzduiește un curs',
-            'subtitle'    => 'Transformă-ți locația în spațiul unde se nasc conexiunile.',
-            'description' => 'Ai o locație cu atmosferă? Bar, café, spațiu cultural sau altceva? Hai să aducem un curs la tine și să umpleam locul de oameni curioși.',
+            'title' => "G\xC4\x83zduie\xC8\x99te un curs",
+            'subtitle' => "Transform\xC4\x83-\xC8\x9Bi loca\xC8\x9Bia \xC3\xAEn spa\xC8\x9Biul unde se nasc conexiunile.",
+            'description' => "Ai o loca\xC8\x9Bie cu atmosfer\xC4\x83? Bar, caf\xC3\xA9, spa\xC8\x9Biu cultural sau altceva? Hai s\xC4\x83 aducem un curs la tine \xC8\x99i s\xC4\x83 umpleam locul de oameni curio\xC8\x99i.",
         ],
         'parteneriat' => [
-            'title'       => 'Propune un parteneriat',
-            'subtitle'    => 'Construim ceva frumos împreună.',
-            'description' => 'Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre.',
+            'title' => 'Propune un parteneriat',
+            'subtitle' => "Construim ceva frumos \xC3\xAEmpreun\xC4\x83.",
+            'description' => "Reprezin\xC8\x9Bi un brand, o platform\xC4\x83 media sau o organiza\xC8\x9Bie? Explor\xC4\x83m \xC3\xAEmpreun\xC4\x83 oportunit\xC4\x83\xC8\x9Bi de colaborare care aduc valoare comunit\xC4\x83\xC8\x9Bii noastre.",
         ],
     ],
     'section_bgs' => [
-        'cursuri'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-        'newsletter'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-        'cum-functioneaza' => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-        'faq'              => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-        'colaborare'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-        'contact'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+        'cursuri'          => ['image'=>'','blur'=>6,'overlay'=>0.72],
+        'newsletter'       => ['image'=>'','blur'=>6,'overlay'=>0.72],
+        'cum-functioneaza' => ['image'=>'','blur'=>6,'overlay'=>0.72],
+        'faq'              => ['image'=>'','blur'=>6,'overlay'=>0.72],
+        'colaborare'       => ['image'=>'','blur'=>6,'overlay'=>0.72],
+        'contact'          => ['image'=>'','blur'=>6,'overlay'=>0.72],
     ],
 ];
 
-// Restaureaza si vote_courses.json
-$votes = [
-    ['id' => 'vc_educatie_montana', 'name' => 'Educație montană', 'emoji' => '🏔️', 'description' => 'Cum să te pregătești pentru munte, echipament, trasee și siguranță.', 'likes' => 0],
-    ['id' => 'vc_psihologie_relatii', 'name' => 'Psihologia relațiilor', 'emoji' => '💑', 'description' => 'Ce ne spune știința despre atașament, comunicare și relații sănătoase.', 'likes' => 0],
-    ['id' => 'vc_arta_negocierii', 'name' => 'Arta negocierii', 'emoji' => '🤝', 'description' => 'Tehnici practice de negociere aplicabile în viața de zi cu zi.', 'likes' => 0],
-];
+file_put_contents($dir . '/settings.json', json_encode($s, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
-file_put_contents($dir . '/settings.json', json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+// Vote courses
+$votes = [
+    ['id'=>'vc_educatie_montana','name'=>"Educa\xC8\x9Bie montan\xC4\x83",'emoji'=>"\xF0\x9F\x8F\x94\xEF\xB8\x8F",'description'=>"Cum s\xC4\x83 te preg\xC4\x83te\xC8\x99ti pentru munte, echipament, trasee \xC8\x99i siguran\xC8\x9B\xC4\x83.",'likes'=>0],
+    ['id'=>'vc_psihologie_relatii','name'=>"Psihologia rela\xC8\x9Biilor",'emoji'=>"\xF0\x9F\x91\x91",'description'=>"Ce ne spune \xC8\x99tiin\xC8\x9Ba despre ata\xC8\x99ament, comunicare \xC8\x99i rela\xC8\x9Bii s\xC4\x83n\xC4\x83toase.",'likes'=>0],
+    ['id'=>'vc_arta_negocierii','name'=>'Arta negocierii','emoji'=>"\xF0\x9F\xA4\x9D",'description'=>"Tehnici practice de negociere aplicabile \xC3\xAEn via\xC8\x9Ba de zi cu zi.",'likes'=>0],
+];
 file_put_contents($dir . '/vote_courses.json', json_encode($votes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 if (!file_exists($dir . '/courses.json')) file_put_contents($dir . '/courses.json', '[]', LOCK_EX);
 
-echo "OK. Settings restaurate. Parola: clp2026admin. Meniu cu Voteaza.\n";
-echo "Sterg restore_settings.php...\n";
-unlink(__FILE__);
-// Sterg si set_password.php daca mai exista
-@unlink(__DIR__ . '/set_password.php');
-echo "Done. Mergi la cursurilapahar.ro";
+header('Content-Type: text/plain');
+echo "DONE. Setari restaurate din git history (versiunea originala + Voteaza in meniu).\n";
+echo "Parola: clp2026admin\n";
+echo "Kit API key restaurat.\n";
+echo "Sterg fisierul...\n";
+@unlink(__FILE__);
+echo "Mergi la cursurilapahar.ro\n";
