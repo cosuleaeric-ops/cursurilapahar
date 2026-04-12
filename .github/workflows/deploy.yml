@@ -18,7 +18,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           protocol: ftps
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
           exclude: |
             **/.git*
             **/.git*/**
