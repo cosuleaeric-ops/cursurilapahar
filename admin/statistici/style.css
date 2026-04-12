@@ -1,10 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #ffffff;
   --card: #FFFFFF;
-  --border: #c3c4c7;
-  --text: #1C1C1A;
   --muted: #888880;
   --green: #2A7D4F;
   --green-light: #EAF5EF;
@@ -15,15 +12,6 @@
   --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
   --radius: 12px;
   --radius-sm: 8px;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.5;
 }
 
 /* ── Quick Add Bar ── */
@@ -119,7 +107,7 @@ td.suma-red   { color: var(--red);   font-weight: 600; font-variant-numeric: tab
 .modal-close:hover { color: var(--text); }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-.form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: var(--bg); transition: border-color 0.15s; }
+.form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: #fff; transition: border-color 0.15s; }
 .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green); background: #fff; }
 .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
 .modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
