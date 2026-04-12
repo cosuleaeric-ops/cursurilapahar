@@ -1135,9 +1135,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- ── SIDEBAR ── -->
     <aside class="wp-sidebar">
         <nav>
-            <a href="/admin/?tab=pagini&page=cursuri" class="<?= $tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri') ? 'active' : '' ?>">
-                <span class="nav-icon">📋</span> Cursuri
-            </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
@@ -1147,7 +1144,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
                 <span class="nav-icon">🎨</span> Aspect
             </a>
-            <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' && !in_array($_GET['page'] ?? '', ['cursuri']) ? 'active' : '' ?>">
+            <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' || $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📄</span> Pagini
             </a>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
@@ -1794,22 +1791,16 @@ if ($editing_page && isset($page_meta[$editing_page])):
 <div class="card">
     <div class="card-title">Pagini disponibile</div>
     <table class="wp-table">
-        <thead><tr><th>Pagină</th><th>URL</th><th>Acțiuni</th></tr></thead>
+        <thead><tr><th>Pagină</th><th>URL</th></tr></thead>
         <tbody>
             <tr>
-                <td style="font-weight:600">Cursuri</td>
-                <td><a href="/#cursuri" target="_blank" style="color:var(--accent)">/#cursuri</a></td>
-                <td>
-                    <a href="/admin/?tab=pagini&page=cursuri" class="btn btn-sm btn-secondary">Editează</a>
-                </td>
+                <td><a href="/admin/?tab=pagini&page=cursuri" style="font-weight:600;color:var(--accent);text-decoration:none">Cursuri</a></td>
+                <td><a href="/#cursuri" target="_blank" style="color:var(--text-muted);font-size:12px">/#cursuri ↗</a></td>
             </tr>
             <?php foreach ($page_meta as $key => $pm): ?>
             <tr>
-                <td style="font-weight:600"><?= h($pm['title']) ?></td>
-                <td><a href="<?= h($pm['url']) ?>" target="_blank" style="color:var(--accent)"><?= h($pm['url']) ?></a></td>
-                <td>
-                    <a href="/admin/?tab=pagini&page=<?= h($key) ?>" class="btn btn-sm btn-secondary">Editează</a>
-                </td>
+                <td><a href="/admin/?tab=pagini&page=<?= h($key) ?>" style="font-weight:600;color:var(--accent);text-decoration:none"><?= h($pm['title']) ?></a></td>
+                <td><a href="<?= h($pm['url']) ?>" target="_blank" style="color:var(--text-muted);font-size:12px"><?= h($pm['url']) ?> ↗</a></td>
             </tr>
             <?php endforeach; ?>
         </tbody>
