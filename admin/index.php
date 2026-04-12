@@ -1219,37 +1219,73 @@ $_dash_votes = load_vote_courses();
 usort($_dash_votes, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
 $_dash_votes = array_slice($_dash_votes, 0, 5);
 
-// Recent messages
-$_dash_messages = [];
-if (file_exists($_msg_log_file)) {
-    $_raw = file_get_contents($_msg_log_file);
-    $_blocks = preg_split('/(?=^=== )/m', $_raw);
-    $_blocks = array_filter($_blocks, fn($b) => trim($b) !== '');
-    $_blocks = array_reverse($_blocks);
-    foreach (array_slice($_blocks, 0, 5) as $_b) {
-        preg_match('/^===\s*([\d-]+ [\d:]+)\s*\|\s*(\S+)\s*===/m', $_b, $_bm);
-        $_lines = explode("\n", trim($_b));
-        $_name = '';
-        $_email = '';
-        foreach ($_lines as $_l) {
-            if (preg_match('/^Nume:\s*(.+)/i', $_l, $_nm)) $_name = trim($_nm[1]);
-            if (preg_match('/^Email:\s*(.+)/i', $_l, $_em)) $_email = trim($_em[1]);
+// P&L monthly data for chart (current year)
+$_dash_pnl_monthly = [];
+if (file_exists($_dash_pnl_db_path)) {
+    try {
+        $_pdb2 = new SQLite3($_dash_pnl_db_path);
+        $_pdb2->exec('PRAGMA journal_mode=WAL');
+        $_mv = []; $_mc = [];
+        $r = $_pdb2->query("SELECT strftime('%m',data) as m, COALESCE(SUM(suma),0) as s FROM venituri WHERE strftime('%Y',data)='{$_dash_pnl_year}' GROUP BY m ORDER BY m");
+        while ($row = $r->fetchArray(SQLITE3_ASSOC)) $_mv[$row['m']] = (float)$row['s'];
+        $r = $_pdb2->query("SELECT strftime('%m',data) as m, COALESCE(SUM(suma),0) as s FROM cheltuieli WHERE strftime('%Y',data)='{$_dash_pnl_year}' GROUP BY m ORDER BY m");
+        while ($row = $r->fetchArray(SQLITE3_ASSOC)) $_mc[$row['m']] = (float)$row['s'];
+        for ($i = 1; $i <= (int)date('n'); $i++) {
+            $k = str_pad((string)$i, 2, '0', STR_PAD_LEFT);
+            $_dash_pnl_monthly[] = ['v' => $_mv[$k] ?? 0, 'c' => $_mc[$k] ?? 0];
         }
-        $_dash_messages[] = [
-            'date' => $_bm[1] ?? '',
-            'type' => $_bm[2] ?? 'contact',
-            'name' => $_name,
-            'email' => $_email,
-        ];
-    }
+        $_pdb2->close();
+    } catch (Exception $e) {}
 }
 
-$_ro_months_dash = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
-$_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
+// Participant evolution (last 3 months)
+$_dash_participant_months = [];
+if (file_exists($_dash_clp_db_path)) {
+    try {
+        $_cdb2 = new SQLite3($_dash_clp_db_path);
+        $_cdb2->exec('PRAGMA journal_mode=WAL');
+        $r = $_cdb2->query("SELECT strftime('%Y-%m', c.date) as m, COUNT(DISTINCT LOWER(TRIM(t.participant_name))) as unici, COUNT(*) as bilete
+            FROM tickets t JOIN courses c ON c.id = t.course_id
+            GROUP BY m ORDER BY m DESC LIMIT 6");
+        while ($row = $r->fetchArray(SQLITE3_ASSOC)) $_dash_participant_months[] = $row;
+        $_dash_participant_months = array_reverse($_dash_participant_months);
+        $_cdb2->close();
+    } catch (Exception $e) {}
+}
+
+// Top returning participants
+$_dash_top_fideli = [];
+if (file_exists($_dash_clp_db_path)) {
+    try {
+        $_cdb3 = new SQLite3($_dash_clp_db_path);
+        $_cdb3->exec('PRAGMA journal_mode=WAL');
+        $r = $_cdb3->query("SELECT participant_name, COUNT(DISTINCT course_id) as nr_cursuri, COUNT(*) as nr_bilete
+            FROM tickets GROUP BY LOWER(TRIM(participant_name)) HAVING nr_cursuri > 1
+            ORDER BY nr_cursuri DESC, nr_bilete DESC LIMIT 5");
+        while ($row = $r->fetchArray(SQLITE3_ASSOC)) $_dash_top_fideli[] = $row;
+        $_cdb3->close();
+    } catch (Exception $e) {}
+}
+
+// DITL current year
+$_dash_ditl_year = 0;
+if (file_exists($_dash_clp_db_path)) {
+    try {
+        $_cdb4 = new SQLite3($_dash_clp_db_path);
+        $_cdb4->exec('PRAGMA journal_mode=WAL');
+        $_dash_ditl_year = (float)$_cdb4->querySingle("SELECT COALESCE(SUM(total_incasari),0) FROM course_reports r JOIN courses c ON c.id=r.course_id WHERE strftime('%Y',c.date)='{$_dash_pnl_year}'") * 0.02;
+        $_cdb4->close();
+    } catch (Exception $e) {}
+}
+
+$_ro_months_dash = ['','ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
+$_ro_months_full = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+$_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 ?>
 
 <h1 class="wp-page-title">Dashboard</h1>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
 .dash-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
@@ -1263,19 +1299,16 @@ $_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
 .dash-value.positive { color: var(--success); }
 .dash-value.negative { color: var(--danger); }
 .dash-section { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 20px; }
-.dash-section-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.dash-section-title a { color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 400; margin-left: 8px; }
+.dash-section-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.dash-section-title a { color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 400; }
 .dash-section-title a:hover { text-decoration: underline; }
 .dash-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dash-table td { padding: 8px 0; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
 .dash-table tr:last-child td { border-bottom: none; }
 .dash-table .muted { color: var(--text-muted); }
 .dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.msg-type { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-.msg-contact { background: #e8f4fd; color: #2271b1; }
-.msg-sustine { background: #edfaef; color: #00a32a; }
-.msg-gazduieste { background: #fef3e0; color: #B8860B; }
-.msg-parteneriat { background: #f3e8fd; color: #7C3AED; }
+.dash-chart-wrap { position: relative; height: 200px; }
+.fidel-badge { background: #e8f4fd; color: #2271b1; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr 1fr; } .dash-cols { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr; } }
 </style>
@@ -1297,10 +1330,18 @@ $_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
         <div class="dash-value <?= $_dash_pnl_profit >= 0 ? 'positive' : 'negative' ?>"><?= $_dash_pnl_profit >= 0 ? '+' : '' ?><?= number_format($_dash_pnl_profit, 0, ',', '.') ?> lei</div>
         <div class="dash-sub"><?= number_format($_dash_pnl_venituri, 0, ',', '.') ?> venituri / <?= number_format($_dash_pnl_cheltuieli, 0, ',', '.') ?> cheltuieli</div>
     </div>
-    <div class="dash-card <?= $_msg_unread_count > 0 ? 'accent-red' : '' ?>">
-        <div class="dash-label">Mesaje necitite</div>
-        <div class="dash-value"><?= $_msg_unread_count ?></div>
-        <div class="dash-sub"><a href="/admin/?tab=mesaje" style="color:var(--accent);text-decoration:none">Vezi mesaje &rarr;</a></div>
+    <div class="dash-card accent-red">
+        <div class="dash-label">Taxa DITL <?= date('Y') ?></div>
+        <div class="dash-value" style="color:var(--danger)"><?= number_format($_dash_ditl_year, 0, ',', '.') ?> lei</div>
+        <div class="dash-sub"><a href="/admin/statistici/cursuri/?tab=ditl" style="color:var(--accent);text-decoration:none">Rapoarte DITL &rarr;</a></div>
+    </div>
+</div>
+
+<!-- P&L chart full width -->
+<div class="dash-section">
+    <div class="dash-section-title"><span>Venituri vs Cheltuieli <?= date('Y') ?></span> <a href="/admin/statistici/pnl/">P&L complet &rarr;</a></div>
+    <div class="dash-chart-wrap">
+        <canvas id="dashPnlChart"></canvas>
     </div>
 </div>
 
@@ -1309,7 +1350,7 @@ $_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
     <div>
         <!-- Upcoming courses -->
         <div class="dash-section">
-            <div class="dash-section-title">Urmatoarele cursuri <a href="/admin/?tab=pagini&page=cursuri">Toate &rarr;</a></div>
+            <div class="dash-section-title"><span>Urmatoarele cursuri</span> <a href="/admin/?tab=pagini&page=cursuri">Toate &rarr;</a></div>
             <?php if (empty($_dash_upcoming)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Niciun curs programat.</p>
             <?php else: ?>
@@ -1324,9 +1365,35 @@ $_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
             <?php endif; ?>
         </div>
 
+        <!-- Participant evolution -->
+        <div class="dash-section">
+            <div class="dash-section-title"><span>Evolutie participanti</span> <a href="/admin/statistici/participanti/">Toti &rarr;</a></div>
+            <?php if (empty($_dash_participant_months)): ?>
+                <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
+            <?php else: ?>
+                <table class="dash-table">
+                    <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
+                        <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
+                    </tr>
+                <?php foreach ($_dash_participant_months as $_pm):
+                    $pmIdx = (int)substr($_pm['m'], 5, 2);
+                ?>
+                    <tr>
+                        <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
+                        <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
+                        <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
         <!-- Vote courses -->
         <div class="dash-section">
-            <div class="dash-section-title">Vot cursuri <a href="/admin/?tab=vot">Gestioneaza &rarr;</a></div>
+            <div class="dash-section-title"><span>Vot cursuri</span> <a href="/admin/?tab=vot">Gestioneaza &rarr;</a></div>
             <?php if (empty($_dash_votes)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Nicio propunere de curs.</p>
             <?php else: ?>
@@ -1340,46 +1407,52 @@ $_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
                 </table>
             <?php endif; ?>
         </div>
-    </div>
 
-    <!-- Right column -->
-    <div>
-        <!-- Recent messages -->
+        <!-- Top fideli -->
         <div class="dash-section">
-            <div class="dash-section-title">Ultimele mesaje <a href="/admin/?tab=mesaje">Toate &rarr;</a></div>
-            <?php if (empty($_dash_messages)): ?>
-                <p style="color:var(--text-muted);font-size:13px">Niciun mesaj primit.</p>
+            <div class="dash-section-title"><span>Participanti fideli</span> <a href="/admin/statistici/participanti/">Toti &rarr;</a></div>
+            <?php if (empty($_dash_top_fideli)): ?>
+                <p style="color:var(--text-muted);font-size:13px">Niciun participant recurent.</p>
             <?php else: ?>
                 <table class="dash-table">
-                <?php foreach ($_dash_messages as $_dm): ?>
+                <?php foreach ($_dash_top_fideli as $_tf): ?>
                     <tr>
-                        <td>
-                            <div style="font-weight:600;margin-bottom:2px"><?= h($_dm['name'] ?: '(anonim)') ?></div>
-                            <div style="font-size:11px;color:var(--text-muted)"><?= h($_dm['email']) ?></div>
-                        </td>
-                        <td style="text-align:right;white-space:nowrap;vertical-align:top">
-                            <span class="msg-type msg-<?= h($_dm['type']) ?>"><?= h($_dm['type']) ?></span>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:3px"><?= h(substr($_dm['date'], 0, 10)) ?></div>
-                        </td>
+                        <td style="font-weight:600"><?= h($_tf['participant_name']) ?></td>
+                        <td style="text-align:right"><span class="fidel-badge"><?= $_tf['nr_cursuri'] ?> cursuri</span></td>
                     </tr>
                 <?php endforeach; ?>
                 </table>
             <?php endif; ?>
         </div>
-
-        <!-- Quick links -->
-        <div class="dash-section">
-            <div class="dash-section-title">Acces rapid</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px">
-                <a href="/admin/statistici/" class="btn btn-secondary">📊 Statistici</a>
-                <a href="/admin/statistici/pnl/" class="btn btn-secondary">📈 P&L</a>
-                <a href="/admin/statistici/participanti/" class="btn btn-secondary">👥 Participanti</a>
-                <a href="/admin/?tab=setari" class="btn btn-secondary">⚙️ Texte</a>
-                <a href="/" target="_blank" class="btn btn-secondary">🌐 Vezi site</a>
-            </div>
-        </div>
     </div>
 </div>
+
+<script>
+(function() {
+    const data = <?= json_encode($_dash_pnl_monthly) ?>;
+    const labels = <?= json_encode(array_map(fn($i) => $_ro_months_dash[$i], range(1, count($_dash_pnl_monthly)))) ?>;
+    if (!data.length) return;
+    new Chart(document.getElementById('dashPnlChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Venituri', data: data.map(d => d.v), backgroundColor: 'rgba(0,163,42,0.75)', borderRadius: 4, borderSkipped: false },
+                { label: 'Cheltuieli', data: data.map(d => d.c), backgroundColor: 'rgba(214,54,56,0.65)', borderRadius: 4, borderSkipped: false }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } },
+                tooltip: { callbacks: { label: ctx => ' ' + new Intl.NumberFormat('ro-RO',{minimumFractionDigits:0}).format(ctx.parsed.y) + ' lei' } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#e0e0e0' }, ticks: { callback: v => new Intl.NumberFormat('ro-RO',{notation:'compact'}).format(v), font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+            }
+        }
+    });
+})();
+</script>
 
 <?php /* ======================================================= TAB: CURSURI (acum sub Pagini) */ ?>
 <?php elseif ($tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri')): ?>
