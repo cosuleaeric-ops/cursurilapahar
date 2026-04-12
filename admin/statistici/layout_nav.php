@@ -9,6 +9,7 @@
 <div class="wp-layout">
     <aside class="wp-sidebar">
         <nav>
+            <a href="/admin/"><span class="nav-icon">🏠</span> Dashboard</a>
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
             <a href="/admin/?tab=setari"><span class="nav-icon">⚙️</span> Texte</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>

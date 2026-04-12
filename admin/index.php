@@ -880,8 +880,8 @@ if (is_authenticated() && ($action === 'save_section_bg')) {
 // ── Load data for display ─────────────────────────────────────────────────────
 $courses  = [];
 $settings = load_settings();
-$tab      = $_GET['tab'] ?? 'cursuri';
-if (!in_array($tab, ['cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','securitate','config'])) $tab = 'cursuri';
+$tab      = $_GET['tab'] ?? 'dashboard';
+if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','securitate','config'])) $tab = 'dashboard';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -1135,6 +1135,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- ── SIDEBAR ── -->
     <aside class="wp-sidebar">
         <nav>
+            <a href="/admin/" class="<?= $tab === 'dashboard' ? 'active' : '' ?>">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
@@ -1165,8 +1168,221 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- ── MAIN ── -->
     <main class="wp-main">
 
+<?php /* ======================================================= TAB: DASHBOARD */ ?>
+<?php if ($tab === 'dashboard'): ?>
+
+<?php
+// ── Dashboard data ───────────────────────────────────────────────────────────
+$_dash_courses = load_courses();
+$_dash_active  = count(array_filter($_dash_courses, fn($c) => !empty($c['active'])));
+
+// Upcoming courses (future, sorted by date)
+$_dash_today = date('Y-m-d');
+$_dash_upcoming = array_filter($_dash_courses, fn($c) => !empty($c['active']) && ($c['date_raw'] ?? '') >= $_dash_today);
+usort($_dash_upcoming, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
+$_dash_upcoming = array_slice($_dash_upcoming, 0, 5);
+
+// P&L stats (current month)
+$_dash_pnl_profit = 0;
+$_dash_pnl_venituri = 0;
+$_dash_pnl_cheltuieli = 0;
+$_dash_pnl_year  = date('Y');
+$_dash_pnl_month = str_pad(date('n'), 2, '0', STR_PAD_LEFT);
+$_dash_pnl_db_path = __DIR__ . '/statistici/data/pnl.sqlite';
+if (file_exists($_dash_pnl_db_path)) {
+    try {
+        $_pdb = new SQLite3($_dash_pnl_db_path);
+        $_pdb->exec('PRAGMA journal_mode=WAL');
+        $_dash_pnl_venituri = (float)$_pdb->querySingle("SELECT COALESCE(SUM(suma),0) FROM venituri WHERE strftime('%Y',data)='{$_dash_pnl_year}' AND strftime('%m',data)='{$_dash_pnl_month}'");
+        $_dash_pnl_cheltuieli = (float)$_pdb->querySingle("SELECT COALESCE(SUM(suma),0) FROM cheltuieli WHERE strftime('%Y',data)='{$_dash_pnl_year}' AND strftime('%m',data)='{$_dash_pnl_month}'");
+        $_dash_pnl_profit = $_dash_pnl_venituri - $_dash_pnl_cheltuieli;
+        $_pdb->close();
+    } catch (Exception $e) {}
+}
+
+// Participants stats
+$_dash_participants = 0;
+$_dash_total_tickets = 0;
+$_dash_clp_db_path = __DIR__ . '/statistici/data/clp.sqlite';
+if (file_exists($_dash_clp_db_path)) {
+    try {
+        $_cdb = new SQLite3($_dash_clp_db_path);
+        $_cdb->exec('PRAGMA journal_mode=WAL');
+        $_dash_participants = (int)$_cdb->querySingle("SELECT COUNT(DISTINCT LOWER(TRIM(participant_name))) FROM tickets");
+        $_dash_total_tickets = (int)$_cdb->querySingle("SELECT COUNT(*) FROM tickets");
+        $_cdb->close();
+    } catch (Exception $e) {}
+}
+
+// Vote courses (top voted)
+$_dash_votes = load_vote_courses();
+usort($_dash_votes, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
+$_dash_votes = array_slice($_dash_votes, 0, 5);
+
+// Recent messages
+$_dash_messages = [];
+if (file_exists($_msg_log_file)) {
+    $_raw = file_get_contents($_msg_log_file);
+    $_blocks = preg_split('/(?=^=== )/m', $_raw);
+    $_blocks = array_filter($_blocks, fn($b) => trim($b) !== '');
+    $_blocks = array_reverse($_blocks);
+    foreach (array_slice($_blocks, 0, 5) as $_b) {
+        preg_match('/^===\s*([\d-]+ [\d:]+)\s*\|\s*(\S+)\s*===/m', $_b, $_bm);
+        $_lines = explode("\n", trim($_b));
+        $_name = '';
+        $_email = '';
+        foreach ($_lines as $_l) {
+            if (preg_match('/^Nume:\s*(.+)/i', $_l, $_nm)) $_name = trim($_nm[1]);
+            if (preg_match('/^Email:\s*(.+)/i', $_l, $_em)) $_email = trim($_em[1]);
+        }
+        $_dash_messages[] = [
+            'date' => $_bm[1] ?? '',
+            'type' => $_bm[2] ?? 'contact',
+            'name' => $_name,
+            'email' => $_email,
+        ];
+    }
+}
+
+$_ro_months_dash = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+$_dash_month_label = $_ro_months_dash[(int)date('n')] . ' ' . date('Y');
+?>
+
+<h1 class="wp-page-title">Dashboard</h1>
+
+<style>
+.dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.dash-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
+.dash-card .dash-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.dash-card .dash-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+.dash-card .dash-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.dash-card.accent-green { border-top: 3px solid var(--success); }
+.dash-card.accent-blue { border-top: 3px solid #2271b1; }
+.dash-card.accent-gold { border-top: 3px solid #B8860B; }
+.dash-card.accent-red { border-top: 3px solid var(--danger); }
+.dash-value.positive { color: var(--success); }
+.dash-value.negative { color: var(--danger); }
+.dash-section { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+.dash-section-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.dash-section-title a { color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 400; margin-left: 8px; }
+.dash-section-title a:hover { text-decoration: underline; }
+.dash-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dash-table td { padding: 8px 0; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
+.dash-table tr:last-child td { border-bottom: none; }
+.dash-table .muted { color: var(--text-muted); }
+.dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.msg-type { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.msg-contact { background: #e8f4fd; color: #2271b1; }
+.msg-sustine { background: #edfaef; color: #00a32a; }
+.msg-gazduieste { background: #fef3e0; color: #B8860B; }
+.msg-parteneriat { background: #f3e8fd; color: #7C3AED; }
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr 1fr; } .dash-cols { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr; } }
+</style>
+
+<!-- Stats cards -->
+<div class="dash-grid">
+    <div class="dash-card accent-blue">
+        <div class="dash-label">Cursuri active</div>
+        <div class="dash-value"><?= $_dash_active ?></div>
+        <div class="dash-sub">din <?= count($_dash_courses) ?> total</div>
+    </div>
+    <div class="dash-card accent-green">
+        <div class="dash-label">Participanti unici</div>
+        <div class="dash-value"><?= number_format($_dash_participants, 0, ',', '.') ?></div>
+        <div class="dash-sub"><?= number_format($_dash_total_tickets, 0, ',', '.') ?> bilete total</div>
+    </div>
+    <div class="dash-card accent-gold">
+        <div class="dash-label">Profit net <?= h($_dash_month_label) ?></div>
+        <div class="dash-value <?= $_dash_pnl_profit >= 0 ? 'positive' : 'negative' ?>"><?= $_dash_pnl_profit >= 0 ? '+' : '' ?><?= number_format($_dash_pnl_profit, 0, ',', '.') ?> lei</div>
+        <div class="dash-sub"><?= number_format($_dash_pnl_venituri, 0, ',', '.') ?> venituri / <?= number_format($_dash_pnl_cheltuieli, 0, ',', '.') ?> cheltuieli</div>
+    </div>
+    <div class="dash-card <?= $_msg_unread_count > 0 ? 'accent-red' : '' ?>">
+        <div class="dash-label">Mesaje necitite</div>
+        <div class="dash-value"><?= $_msg_unread_count ?></div>
+        <div class="dash-sub"><a href="/admin/?tab=mesaje" style="color:var(--accent);text-decoration:none">Vezi mesaje &rarr;</a></div>
+    </div>
+</div>
+
+<div class="dash-cols">
+    <!-- Left column -->
+    <div>
+        <!-- Upcoming courses -->
+        <div class="dash-section">
+            <div class="dash-section-title">Urmatoarele cursuri <a href="/admin/?tab=pagini&page=cursuri">Toate &rarr;</a></div>
+            <?php if (empty($_dash_upcoming)): ?>
+                <p style="color:var(--text-muted);font-size:13px">Niciun curs programat.</p>
+            <?php else: ?>
+                <table class="dash-table">
+                <?php foreach ($_dash_upcoming as $_uc): ?>
+                    <tr>
+                        <td style="font-weight:600"><?= h($_uc['title'] ?? '') ?></td>
+                        <td class="muted" style="white-space:nowrap;text-align:right"><?= h($_uc['date_display'] ?? $_uc['date_raw'] ?? '') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <!-- Vote courses -->
+        <div class="dash-section">
+            <div class="dash-section-title">Vot cursuri <a href="/admin/?tab=vot">Gestioneaza &rarr;</a></div>
+            <?php if (empty($_dash_votes)): ?>
+                <p style="color:var(--text-muted);font-size:13px">Nicio propunere de curs.</p>
+            <?php else: ?>
+                <table class="dash-table">
+                <?php foreach ($_dash_votes as $_vc): ?>
+                    <tr>
+                        <td><?= $_vc['emoji'] ?? '' ?> <?= h($_vc['name'] ?? '') ?></td>
+                        <td class="muted" style="text-align:right;white-space:nowrap"><?= (int)($_vc['likes'] ?? 0) ?> voturi</td>
+                    </tr>
+                <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
+        <!-- Recent messages -->
+        <div class="dash-section">
+            <div class="dash-section-title">Ultimele mesaje <a href="/admin/?tab=mesaje">Toate &rarr;</a></div>
+            <?php if (empty($_dash_messages)): ?>
+                <p style="color:var(--text-muted);font-size:13px">Niciun mesaj primit.</p>
+            <?php else: ?>
+                <table class="dash-table">
+                <?php foreach ($_dash_messages as $_dm): ?>
+                    <tr>
+                        <td>
+                            <div style="font-weight:600;margin-bottom:2px"><?= h($_dm['name'] ?: '(anonim)') ?></div>
+                            <div style="font-size:11px;color:var(--text-muted)"><?= h($_dm['email']) ?></div>
+                        </td>
+                        <td style="text-align:right;white-space:nowrap;vertical-align:top">
+                            <span class="msg-type msg-<?= h($_dm['type']) ?>"><?= h($_dm['type']) ?></span>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:3px"><?= h(substr($_dm['date'], 0, 10)) ?></div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <!-- Quick links -->
+        <div class="dash-section">
+            <div class="dash-section-title">Acces rapid</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <a href="/admin/statistici/" class="btn btn-secondary">📊 Statistici</a>
+                <a href="/admin/statistici/pnl/" class="btn btn-secondary">📈 P&L</a>
+                <a href="/admin/statistici/participanti/" class="btn btn-secondary">👥 Participanti</a>
+                <a href="/admin/?tab=setari" class="btn btn-secondary">⚙️ Texte</a>
+                <a href="/" target="_blank" class="btn btn-secondary">🌐 Vezi site</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php /* ======================================================= TAB: CURSURI (acum sub Pagini) */ ?>
-<?php if ($tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri')): ?>
+<?php elseif ($tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri')): ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
 
