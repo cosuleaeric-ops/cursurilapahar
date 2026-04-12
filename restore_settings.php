@@ -85,11 +85,29 @@ $s = [
 
 file_put_contents($dir . '/settings.json', json_encode($s, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
-// Vote courses
+// Vote courses - EXACT din git history
 $votes = [
-    ['id'=>'vc_educatie_montana','name'=>"Educa\xC8\x9Bie montan\xC4\x83",'emoji'=>"\xF0\x9F\x8F\x94\xEF\xB8\x8F",'description'=>"Cum s\xC4\x83 te preg\xC4\x83te\xC8\x99ti pentru munte, echipament, trasee \xC8\x99i siguran\xC8\x9B\xC4\x83.",'likes'=>0],
-    ['id'=>'vc_psihologie_relatii','name'=>"Psihologia rela\xC8\x9Biilor",'emoji'=>"\xF0\x9F\x91\x91",'description'=>"Ce ne spune \xC8\x99tiin\xC8\x9Ba despre ata\xC8\x99ament, comunicare \xC8\x99i rela\xC8\x9Bii s\xC4\x83n\xC4\x83toase.",'likes'=>0],
-    ['id'=>'vc_arta_negocierii','name'=>'Arta negocierii','emoji'=>"\xF0\x9F\xA4\x9D",'description'=>"Tehnici practice de negociere aplicabile \xC3\xAEn via\xC8\x9Ba de zi cu zi.",'likes'=>0],
+    [
+        'id' => 'vc_educatie_montana',
+        'name' => 'Educație montană',
+        'emoji' => '🏔️',
+        'description' => 'Mulți oameni urcă pe munte conduși de entuziasm, nu de pregătire, și consecințele pot fi grave. Cursul acoperă practic ce contează: cum alegi traseul potrivit nivelului tău, ce trebuie să ai în rucsac și cum iei decizii bune când condițiile se schimbă. Educație montană reală, nu după reels.',
+        'likes' => 0,
+    ],
+    [
+        'id' => 'vc_iubim_oameni_care_ne_ranesc',
+        'name' => 'De ce iubim oameni care ne rănesc',
+        'emoji' => '💔',
+        'description' => 'De ce ajungem să iubim oameni care ne fac rău, chiar și când mintea știe că ceva e greșit? Cursul explorează mecanismele din spatele atașamentului dureros, de la traumă relațională la semnalele pe care le trimite corpul, și explică de ce înțelegerea singură nu e suficientă pentru schimbare.',
+        'likes' => 0,
+    ],
+    [
+        'id' => 'vc_numerologie',
+        'name' => 'Numerologie',
+        'emoji' => '🔮',
+        'description' => 'Un curs introductiv care explică de la zero cum funcționează numerologia și ce poți afla despre tine pornind de la câteva cifre simple. Participanții învață să-și calculeze și interpreteze propria hartă numerologică, cu aplicații concrete în autocunoaștere, relații și decizii de zi cu zi.',
+        'likes' => 0,
+    ],
 ];
 file_put_contents($dir . '/vote_courses.json', json_encode($votes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 if (!file_exists($dir . '/courses.json')) file_put_contents($dir . '/courses.json', '[]', LOCK_EX);
