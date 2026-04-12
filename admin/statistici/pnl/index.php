@@ -19,6 +19,8 @@ include __DIR__ . '/../layout_header.php';
 </script>
 <?php include __DIR__ . '/../layout_nav.php'; ?>
 
+<div style="max-width:1200px;margin:0 auto">
+
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <h1 class="wp-page-title" style="margin-bottom:0">P&amp;L Cursuri</h1>
     <div style="display:flex;align-items:center;gap:12px">
@@ -215,7 +217,7 @@ const monthLabel = s => {
 
 // ── State ────────────────────────────────────────────────────────────────────
 let currentYear  = new Date().getFullYear();
-let currentMonth = null; // null = tot anul
+let currentMonth = new Date().getMonth() + 1; // luna curenta
 let currentTab   = 'toate';
 let allVenituri = [];
 let allCheltuieli = [];
@@ -309,8 +311,9 @@ async function init() {
     sel.appendChild(opt);
   });
 
-  // Default to current year
-  sel.value = String(currentYear);
+  // Default to current year-month
+  sel.value = currentYear + '-' + currentMonth;
+  if (!sel.value) sel.value = String(currentYear);
   if (!sel.value && periods.length) sel.value = periods[0].value;
 
   sel.addEventListener('change', () => {
@@ -720,6 +723,7 @@ document.getElementById('topBtnVenit').addEventListener('click', () => {
 init();
 </script>
 
+    </div><!-- /max-width -->
     </main>
 </div>
 </body>

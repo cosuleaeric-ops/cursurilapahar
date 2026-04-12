@@ -43,6 +43,9 @@ include __DIR__ . '/../layout_header.php';
 </style>
 <?php include __DIR__ . '/../layout_nav.php'; ?>
 
+  <div style="max-width:1000px;margin:0 auto">
+  <h1 class="wp-page-title">Participanti</h1>
+
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
     <div class="stat-card accent-blue">
       <div class="label">Participanti unici</div>
@@ -122,6 +125,7 @@ function filterTable() {
     });
 }
 </script>
+    </div><!-- /max-width -->
     </main>
 </div>
 </body>

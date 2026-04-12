@@ -122,12 +122,12 @@ include __DIR__ . '/../layout_header.php';
 </style>
 <?php include __DIR__ . '/../layout_nav.php'; ?>
 
+  <div style="max-width:800px;margin:0 auto">
+
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <h1 class="wp-page-title" style="margin-bottom:0">Cursuri</h1>
     <a href="/admin/statistici/cursuri/add.php" class="btn-green" style="font-size:12px;padding:5px 14px">+ Curs nou</a>
   </div>
-
-  <div style="max-width:800px">
 
   <!-- Selector an + tab toggle -->
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
