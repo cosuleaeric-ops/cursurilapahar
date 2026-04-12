@@ -510,7 +510,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings['kit_api_key'] = trim($_POST['kit_api_key'] ?? '');
         $settings['kit_form_id'] = trim($_POST['kit_form_id'] ?? '');
         save_settings($settings);
-        header('Location: /admin/?tab=kit&saved=1');
+        header('Location: /admin/?tab=config&saved=1');
         exit;
     }
 
@@ -529,7 +529,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings = load_settings();
         $settings['webhook_secret'] = bin2hex(random_bytes(32));
         save_settings($settings);
-        header('Location: /admin/?tab=securitate&webhook_saved=1');
+        header('Location: /admin/?tab=config&webhook_saved=1');
         exit;
     }
 
@@ -604,11 +604,11 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($img) { file_put_contents($local_path, $img); $downloaded++; }
                 }
 
-                header('Location: /admin/?tab=securitate&imported=' . $downloaded);
+                header('Location: /admin/?tab=config&imported=' . $downloaded);
                 exit;
             }
         }
-        header('Location: /admin/?tab=securitate&import_error=1');
+        header('Location: /admin/?tab=config&import_error=1');
         exit;
     }
 
@@ -620,9 +620,9 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $settings = load_settings();
             $settings['admin_password'] = $new;
             save_settings($settings);
-            header('Location: /admin/?tab=securitate&saved=1');
+            header('Location: /admin/?tab=config&saved=1');
         } else {
-            header('Location: /admin/?tab=securitate&error=1');
+            header('Location: /admin/?tab=config&error=1');
         }
         exit;
     }
@@ -1135,7 +1135,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- ── SIDEBAR ── -->
     <aside class="wp-sidebar">
         <nav>
-            <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
+            <a href="/admin/?tab=pagini&page=cursuri" class="<?= $tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri') ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
             </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
@@ -1147,11 +1147,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
                 <span class="nav-icon">🎨</span> Aspect
             </a>
-            <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' ? 'active' : '' ?>">
+            <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' && !in_array($_GET['page'] ?? '', ['cursuri']) ? 'active' : '' ?>">
                 <span class="nav-icon">📄</span> Pagini
-            </a>
-            <a href="/admin/?tab=kit" class="<?= $tab === 'kit' ? 'active' : '' ?>">
-                <span class="nav-icon">📧</span> Kit (Email)
             </a>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
                 <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
@@ -1162,10 +1159,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             <a href="/admin/statistici/">
                 <span class="nav-icon">📊</span> Statistici
             </a>
-            <a href="/admin/?tab=securitate" class="<?= $tab === 'securitate' ? 'active' : '' ?>">
-                <span class="nav-icon">🔒</span> Securitate
-            </a>
-            <a href="/admin/?tab=config" class="<?= $tab === 'config' ? 'active' : '' ?>">
+            <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">
                 <span class="nav-icon">⚙️</span> Setări
             </a>
         </nav>
@@ -1174,8 +1168,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
     <!-- ── MAIN ── -->
     <main class="wp-main">
 
-<?php /* ======================================================= TAB: CURSURI */ ?>
-<?php if ($tab === 'cursuri'): ?>
+<?php /* ======================================================= TAB: CURSURI (acum sub Pagini) */ ?>
+<?php if ($tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri')): ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
 
@@ -1802,6 +1796,13 @@ if ($editing_page && isset($page_meta[$editing_page])):
     <table class="wp-table">
         <thead><tr><th>Pagină</th><th>URL</th><th>Acțiuni</th></tr></thead>
         <tbody>
+            <tr>
+                <td style="font-weight:600">Cursuri</td>
+                <td><a href="/#cursuri" target="_blank" style="color:var(--accent)">/#cursuri</a></td>
+                <td>
+                    <a href="/admin/?tab=pagini&page=cursuri" class="btn btn-sm btn-secondary">Editează</a>
+                </td>
+            </tr>
             <?php foreach ($page_meta as $key => $pm): ?>
             <tr>
                 <td style="font-weight:600"><?= h($pm['title']) ?></td>
@@ -1817,30 +1818,9 @@ if ($editing_page && isset($page_meta[$editing_page])):
 
 <?php endif; ?>
 
-<?php /* ======================================================= TAB: KIT */ ?>
+<?php /* KIT tab redirects to config */ ?>
 <?php elseif ($tab === 'kit'): ?>
-<h1 class="wp-page-title">Kit (Email Marketing)</h1>
-<?php if (isset($_GET['saved'])): ?>
-<div class="notice notice-success">Setările Kit au fost salvate.</div>
-<?php endif; ?>
-
-<form method="post" action="/admin/?tab=kit">
-    <input type="hidden" name="action" value="save_kit">
-    <div class="card">
-        <div class="card-title">Conexiune Kit.com</div>
-        <div class="form-group">
-            <label>API Key</label>
-            <input type="text" name="kit_api_key" value="<?= h($settings['kit_api_key'] ?? '') ?>" placeholder="kit_...">
-            <p class="form-desc">Găsești API Key-ul în <a href="https://app.kit.com/account_settings/developer_settings" target="_blank" style="color:var(--accent)">Kit → Settings → Developer</a>.</p>
-        </div>
-        <div class="form-group">
-            <label>Form ID (opțional)</label>
-            <input type="text" name="kit_form_id" value="<?= h($settings['kit_form_id'] ?? '') ?>" placeholder="ex: 1234567">
-            <p class="form-desc">Dacă vrei să adaugi abonații la un form specific. Lasă gol pentru a adăuga direct ca subscriber.</p>
-        </div>
-        <button type="submit" class="btn btn-primary">Salvează</button>
-    </div>
-</form>
+<?php header('Location: /admin/?tab=config'); exit; ?>
 
 <?php /* ======================================================= TAB: MESAJE */ ?>
 <?php elseif ($tab === 'mesaje'): ?>
@@ -2089,13 +2069,16 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
     <?php endif; ?>
 </div>
 
-<?php /* ======================================================= TAB: SECURITATE */ ?>
+<?php /* Securitate tab redirects to config */ ?>
 <?php elseif ($tab === 'securitate'): ?>
+<?php header('Location: /admin/?tab=config'); exit; ?>
 
-<h1 class="wp-page-title">Securitate</h1>
+<?php /* ======================================================= TAB: CONFIG (Setări) */ ?>
+<?php elseif ($tab === 'config'): ?>
+<h1 class="wp-page-title">Setări</h1>
 
 <?php if (isset($_GET['saved'])): ?>
-<div class="notice notice-success">Parola a fost schimbată cu succes.</div>
+<div class="notice notice-success">Setările au fost salvate.</div>
 <?php endif; ?>
 <?php if (isset($_GET['error'])): ?>
 <div class="notice notice-error">Parolele nu coincid sau sunt prea scurte (minim 6 caractere).</div>
@@ -2106,78 +2089,30 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
 <?php if (isset($_GET['import_error'])): ?>
 <div class="notice notice-error">Eroare la import. Verifică fișierul.</div>
 <?php endif; ?>
-
-<div class="card">
-    <div class="card-title">Export / Import setări</div>
-    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Folosește Export pe serverul vechi și Import pe cel nou pentru a transfera toate setările și imaginile.</p>
-    <form method="post" action="/admin/?tab=securitate" style="margin-bottom:16px">
-        <input type="hidden" name="action" value="export_settings">
-        <button type="submit" class="btn btn-primary">⬇ Export settings.json</button>
-    </form>
-    <form method="post" action="/admin/?tab=securitate" enctype="multipart/form-data">
-        <input type="hidden" name="action" value="import_settings">
-        <div class="form-group">
-            <label>Fișier settings.json exportat</label>
-            <input type="file" name="settings_file" accept=".json" required>
-        </div>
-        <div class="form-group">
-            <label>Domeniu sursă (de unde se descarcă imaginile)</label>
-            <input type="text" name="source_domain" value="https://robotache.ro" placeholder="https://robotache.ro">
-        </div>
-        <button type="submit" class="btn btn-primary">⬆ Importă setări + imagini</button>
-    </form>
-</div>
-
-<div class="card">
-    <div class="card-title">Schimbă parola de admin</div>
-    <form method="post" action="/admin/?tab=securitate" style="max-width:400px">
-        <input type="hidden" name="action" value="change_password">
-        <div class="form-group">
-            <label for="new_password">Parolă nouă</label>
-            <input type="password" id="new_password" name="new_password" placeholder="Minim 6 caractere" autocomplete="new-password">
-        </div>
-        <div class="form-group">
-            <label for="confirm_password">Confirmă parola</label>
-            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repetă parola" autocomplete="new-password">
-        </div>
-        <button type="submit" class="btn btn-primary">Schimbă parola</button>
-    </form>
-    <p class="form-desc" style="margin-top:12px">Parola este salvată în <code>data/settings.json</code> și nu apare nicăieri în cod sau Git.</p>
-</div>
-
-<div class="card">
-    <div class="card-title">Cheie de sesiune</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Regenerarea cheii invalidează toate sesiunile active (vei fi deconectat și va trebui să te reloghezi).</p>
-    <form method="post" action="/admin/?tab=securitate" onsubmit="return confirm('Ești sigur? Vei fi deconectat.')">
-        <input type="hidden" name="action" value="regenerate_secret">
-        <button type="submit" class="btn btn-danger">Regenerează cheia de sesiune</button>
-    </form>
-</div>
-
-<div class="card">
-    <div class="card-title">Webhook secret (GitHub)</div>
-    <?php if (isset($_GET['webhook_saved'])): ?>
-    <div class="notice notice-success" style="margin-bottom:12px">Secret regenerat. Actualizează-l și în setările webhook-ului de pe GitHub.</div>
-    <?php endif; ?>
-    <?php $wh_secret = load_settings()['webhook_secret'] ?? ''; ?>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">
-        Secretul curent (copiază-l în GitHub → repo → Settings → Webhooks):
-    </p>
-    <code style="display:block;background:#f6f7f7;border:1px solid var(--border);padding:10px 12px;border-radius:4px;font-size:13px;word-break:break-all;margin-bottom:14px;user-select:all"><?= h($wh_secret) ?></code>
-    <form method="post" action="/admin/?tab=securitate" onsubmit="return confirm('Vei trebui să actualizezi și webhook-ul pe GitHub cu noul secret.')">
-        <input type="hidden" name="action" value="regenerate_webhook_secret">
-        <button type="submit" class="btn btn-danger">Regenerează webhook secret</button>
-    </form>
-</div>
-
-<?php /* ======================================================= TAB: CONFIG */ ?>
-<?php elseif ($tab === 'config'): ?>
-<h1 class="wp-page-title">Setări</h1>
-
-<?php if (isset($_GET['saved'])): ?>
-<div class="notice notice-success">Setările au fost salvate.</div>
+<?php if (isset($_GET['webhook_saved'])): ?>
+<div class="notice notice-success">Webhook secret regenerat. Actualizează-l și în setările webhook-ului de pe GitHub.</div>
 <?php endif; ?>
 
+<!-- Kit (Email) -->
+<form method="post" action="/admin/?tab=config">
+    <input type="hidden" name="action" value="save_kit">
+    <div class="card">
+        <div class="card-title">📧 Kit (Email Marketing)</div>
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="text" name="kit_api_key" value="<?= h($settings['kit_api_key'] ?? '') ?>" placeholder="kit_...">
+            <p class="form-desc">Găsești API Key-ul în <a href="https://app.kit.com/account_settings/developer_settings" target="_blank" style="color:var(--accent)">Kit → Settings → Developer</a>.</p>
+        </div>
+        <div class="form-group">
+            <label>Form ID (opțional)</label>
+            <input type="text" name="kit_form_id" value="<?= h($settings['kit_form_id'] ?? '') ?>" placeholder="ex: 1234567">
+            <p class="form-desc">Dacă vrei să adaugi abonații la un form specific. Lasă gol pentru a adăuga direct ca subscriber.</p>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează</button>
+    </div>
+</form>
+
+<!-- Analytics -->
 <form method="post" action="/admin/?tab=config">
     <input type="hidden" name="action" value="save_head_scripts">
     <div class="card">
@@ -2194,6 +2129,70 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
         <button type="submit" class="btn btn-primary">Salvează</button>
     </div>
 </form>
+
+<!-- Schimba parola -->
+<div class="card">
+    <div class="card-title">🔒 Schimbă parola de admin</div>
+    <form method="post" action="/admin/?tab=config" style="max-width:400px">
+        <input type="hidden" name="action" value="change_password">
+        <div class="form-group">
+            <label for="new_password">Parolă nouă</label>
+            <input type="password" id="new_password" name="new_password" placeholder="Minim 6 caractere" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirmă parola</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repetă parola" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary">Schimbă parola</button>
+    </form>
+    <p class="form-desc" style="margin-top:12px">Parola este salvată în <code>data/settings.json</code> și nu apare nicăieri în cod sau Git.</p>
+</div>
+
+<!-- Cheie sesiune -->
+<div class="card">
+    <div class="card-title">🔑 Cheie de sesiune</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Regenerarea cheii invalidează toate sesiunile active (vei fi deconectat și va trebui să te reloghezi).</p>
+    <form method="post" action="/admin/?tab=config" onsubmit="return confirm('Ești sigur? Vei fi deconectat.')">
+        <input type="hidden" name="action" value="regenerate_secret">
+        <button type="submit" class="btn btn-danger">Regenerează cheia de sesiune</button>
+    </form>
+</div>
+
+<!-- Export / Import -->
+<div class="card">
+    <div class="card-title">📦 Export / Import setări</div>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Folosește Export pe serverul vechi și Import pe cel nou pentru a transfera toate setările și imaginile.</p>
+    <form method="post" action="/admin/?tab=config" style="margin-bottom:16px">
+        <input type="hidden" name="action" value="export_settings">
+        <button type="submit" class="btn btn-primary">⬇ Export settings.json</button>
+    </form>
+    <form method="post" action="/admin/?tab=config" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="import_settings">
+        <div class="form-group">
+            <label>Fișier settings.json exportat</label>
+            <input type="file" name="settings_file" accept=".json" required>
+        </div>
+        <div class="form-group">
+            <label>Domeniu sursă (de unde se descarcă imaginile)</label>
+            <input type="text" name="source_domain" value="https://robotache.ro" placeholder="https://robotache.ro">
+        </div>
+        <button type="submit" class="btn btn-primary">⬆ Importă setări + imagini</button>
+    </form>
+</div>
+
+<!-- Webhook -->
+<div class="card">
+    <div class="card-title">🔗 Webhook secret (GitHub)</div>
+    <?php $wh_secret = load_settings()['webhook_secret'] ?? ''; ?>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">
+        Secretul curent (copiază-l în GitHub → repo → Settings → Webhooks):
+    </p>
+    <code style="display:block;background:#f6f7f7;border:1px solid var(--border);padding:10px 12px;border-radius:4px;font-size:13px;word-break:break-all;margin-bottom:14px;user-select:all"><?= h($wh_secret) ?></code>
+    <form method="post" action="/admin/?tab=config" onsubmit="return confirm('Vei trebui să actualizezi și webhook-ul pe GitHub cu noul secret.')">
+        <input type="hidden" name="action" value="regenerate_webhook_secret">
+        <button type="submit" class="btn btn-danger">Regenerează webhook secret</button>
+    </form>
+</div>
 
 <?php endif; ?>
 
