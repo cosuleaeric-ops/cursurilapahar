@@ -21,10 +21,31 @@
         "likes": 0
     },
     {
-        "id": "vc_metacognitia_aplicata",
-        "name": "Metacogniția aplicată — De ce gândesc așa?",
-        "emoji": "🧠",
-        "description": "Un curs despre cum funcționează gândirea ta și de ce iei deciziile pe care le iei. Metacogniția aplicată te ajută să înțelegi tiparele mentale care te ghidează fără să-ți dai seama, și cum poți să le observi și să le schimbi conștient.",
+        "id": "vc69da9c312e44b7.20321173",
+        "name": "Branding personal",
+        "emoji": "🌟",
+        "description": "Un curs practic despre cum te poziționezi autentic în mintea celorlalți, fie că ești antreprenor, freelancer sau angajat care vrea să iasă în evidență. Înveți să-ți identifici valorile, vocea și mesajul, și să le comunici coerent oriunde contează.",
+        "likes": 0
+    },
+    {
+        "id": "vc69da9c6d943812.26171605",
+        "name": "Ce se ascunde în spatele cafelei de specialitate",
+        "emoji": "☕",
+        "description": "Un curs pentru cei curioși să înțeleagă ce se ascunde în ceașca lor, de la diferența dintre cafeaua de specialitate și cea comercială, până la metodele de procesare și preparare. Pleci acasă știind cum să faci o cafea cu adevărat bună, fără să ai nevoie de o cafenea.",
+        "likes": 0
+    },
+    {
+        "id": "vc69da9cb1836179.42928517",
+        "name": "Sindromul impostorului",
+        "emoji": "🎭",
+        "description": "Un curs practic despre sindromul impostorului: ce este, de ce apare și cum ne sabotează fără să ne dăm seama. Prin exerciții individuale și interacțiune, participanții învață să recunoască tiparul și să facă primii pași concreți spre a-l depăși.",
+        "likes": 0
+    },
+    {
+        "id": "vc69da9d2d9d65b1.20100186",
+        "name": "Cum funcționează comedia",
+        "emoji": "😂",
+        "description": "Un curs care disecă mecanismele din spatele comediei: de ce râdem, cum e construită o glumă bună și ce face diferența dintre umor care prinde și umor care pică. Teorie, exemple și exerciții practice pentru cei curioși să înțeleagă arta de a face oamenii să râdă.",
         "likes": 0
     }
 ]

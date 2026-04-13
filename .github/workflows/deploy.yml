@@ -24,9 +24,6 @@ jobs:
             **/.git*/**
             **/.claude/**
             .claude/
-            data/messages.log
-            data/settings.json
-            data/vote_courses.json
-            data/courses.json
-            admin/statistici/data/*.sqlite
+            data/**
+            admin/statistici/data/**
             admin/statistici/uploads/**
