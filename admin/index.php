@@ -70,7 +70,18 @@ function ensure_secrets(): void {
 ensure_secrets();
 
 if (isset($_POST['login_password'])) {
-    if ($_POST['login_password'] === get_active_password()) {
+    $stored = get_active_password();
+    // Support both legacy plaintext and bcrypt hashed passwords
+    $ok = (str_starts_with($stored, '$2y$') || str_starts_with($stored, '$2b$'))
+        ? password_verify($_POST['login_password'], $stored)
+        : ($_POST['login_password'] === $stored);
+    // Auto-upgrade plaintext to hash on successful login
+    if ($ok && !str_starts_with($stored, '$2y$') && !str_starts_with($stored, '$2b$')) {
+        $settings = load_settings();
+        $settings['admin_password'] = password_hash($_POST['login_password'], PASSWORD_DEFAULT);
+        save_settings($settings);
+    }
+    if ($ok) {
         set_auth_cookie();
         header('Location: /admin/');
         exit;
@@ -536,8 +547,13 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Export all data as download
     if ($action === 'export_settings') {
         $data_dir = dirname(SETTINGS_FILE);
+        $export_settings = file_exists(SETTINGS_FILE) ? json_decode(file_get_contents(SETTINGS_FILE), true) : [];
+        // Strip secrets from export
+        foreach (['admin_password','auth_secret','webhook_secret'] as $k) {
+            unset($export_settings[$k]);
+        }
         $bundle = [
-            'settings'     => file_exists(SETTINGS_FILE)     ? json_decode(file_get_contents(SETTINGS_FILE), true)     : [],
+            'settings'     => $export_settings,
             'courses'      => file_exists(COURSES_FILE)      ? json_decode(file_get_contents(COURSES_FILE), true)      : [],
             'vote_courses' => file_exists(VOTE_COURSES_FILE) ? json_decode(file_get_contents(VOTE_COURSES_FILE), true) : [],
             'messages_log' => file_exists($data_dir . '/messages.log') ? file_get_contents($data_dir . '/messages.log') : '',
@@ -618,7 +634,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $confirm = trim($_POST['confirm_password'] ?? '');
         if ($new && $new === $confirm && strlen($new) >= 6) {
             $settings = load_settings();
-            $settings['admin_password'] = $new;
+            $settings['admin_password'] = password_hash($new, PASSWORD_DEFAULT);
             save_settings($settings);
             header('Location: /admin/?tab=config&saved=1');
         } else {
