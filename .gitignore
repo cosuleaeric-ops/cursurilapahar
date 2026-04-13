@@ -5,8 +5,10 @@ data/messages.log
 private/secrets.php
 data/settings.json
 
-# Financial data
+# Financial data & uploads
 admin/statistici/data/pnl.sqlite
+admin/statistici/data/clp.sqlite
+admin/statistici/uploads/
 
 # Preview & dev files
 preview.html
