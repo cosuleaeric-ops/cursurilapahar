@@ -26,5 +26,7 @@ jobs:
             .claude/
             data/messages.log
             data/settings.json
+            data/vote_courses.json
+            data/courses.json
             admin/statistici/data/*.sqlite
             admin/statistici/uploads/**

@@ -19,5 +19,12 @@
         "emoji": "🔮",
         "description": "Un curs introductiv care explică de la zero cum funcționează numerologia și ce poți afla despre tine pornind de la câteva cifre simple. Participanții învață să-și calculeze și interpreteze propria hartă numerologică, cu aplicații concrete în autocunoaștere, relații și decizii de zi cu zi.",
         "likes": 0
+    },
+    {
+        "id": "vc_metacognitia_aplicata",
+        "name": "Metacogniția aplicată — De ce gândesc așa?",
+        "emoji": "🧠",
+        "description": "Un curs despre cum funcționează gândirea ta și de ce iei deciziile pe care le iei. Metacogniția aplicată te ajută să înțelegi tiparele mentale care te ghidează fără să-ți dai seama, și cum poți să le observi și să le schimbi conștient.",
+        "likes": 0
     }
 ]
