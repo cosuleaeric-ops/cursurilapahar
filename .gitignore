@@ -5,6 +5,9 @@ data/messages.log
 private/secrets.php
 data/settings.json
 
+# Financial data
+admin/statistici/data/pnl.sqlite
+
 # Preview & dev files
 preview.html
 server.py
