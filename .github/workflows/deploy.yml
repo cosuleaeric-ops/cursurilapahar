@@ -23,6 +23,8 @@ jobs:
             **/.git*
             **/.git*/**
             **/.claude/**
-            **/data/**
             .claude/
-            data/
+            data/messages.log
+            data/settings.json
+            admin/statistici/data/*.sqlite
+            admin/statistici/uploads/**
