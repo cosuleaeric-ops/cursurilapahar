@@ -402,6 +402,43 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
     </div>
 </section>
 
+<!-- ── GALERIE ────────────────────────────── -->
+<?php
+$gallery_dir = __DIR__ . '/assets/images/gallery';
+$gallery_images = [];
+if (is_dir($gallery_dir)) {
+    foreach (glob($gallery_dir . '/*.{webp,jpg,jpeg,png}', GLOB_BRACE) as $img) {
+        $gallery_images[] = '/assets/images/gallery/' . basename($img);
+    }
+    sort($gallery_images);
+}
+$gal_bg = $settings['section_bgs']['galerie'] ?? []; $gal_has_bg = !empty($gal_bg['image']);
+?>
+<?php if (!empty($gallery_images)): ?>
+<section class="section<?= $gal_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="galerie" <?= clp_section_bg('galerie', $settings) ?>>
+    <div class="container">
+        <h2 class="section-title"><?= htmlspecialchars($settings['gallery_title'] ?? 'Galerie') ?></h2>
+        <div class="gallery-grid">
+            <?php foreach ($gallery_images as $gi => $gimg): ?>
+            <div class="gallery-item" data-index="<?= $gi ?>">
+                <img src="<?= htmlspecialchars($gimg) ?>" alt="Cursuri la Pahar" loading="lazy">
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- Lightbox -->
+<div class="gallery-lightbox" id="galleryLightbox">
+    <button class="lightbox-close" aria-label="Închide">&times;</button>
+    <button class="lightbox-prev" aria-label="Anteriorul">&#8249;</button>
+    <button class="lightbox-next" aria-label="Următorul">&#8250;</button>
+    <div class="lightbox-img-wrap">
+        <img src="" alt="" id="lightboxImg">
+    </div>
+</div>
+
 <!-- ── COLABORARE ─────────────────────────── -->
 <?php $col_bg = $settings['section_bgs']['colaborare'] ?? []; $col_has_bg = !empty($col_bg['image']); ?>
 <section class="section<?= $col_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="colaborare" <?= clp_section_bg('colaborare', $settings) ?>>

@@ -233,6 +233,42 @@ if (contactForm) {
   });
 }
 
+// ── Gallery lightbox ────────────────────
+const galleryLightbox = document.getElementById('galleryLightbox');
+if (galleryLightbox) {
+  const lbImg  = document.getElementById('lightboxImg');
+  const items  = document.querySelectorAll('.gallery-item');
+  const srcs   = Array.from(items).map(el => el.querySelector('img').src);
+  let cur = 0;
+
+  function lbOpen(i) {
+    cur = i;
+    lbImg.src = srcs[cur];
+    galleryLightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function lbClose() {
+    galleryLightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function lbNav(dir) {
+    cur = (cur + dir + srcs.length) % srcs.length;
+    lbImg.src = srcs[cur];
+  }
+
+  items.forEach((el, i) => el.addEventListener('click', () => lbOpen(i)));
+  galleryLightbox.querySelector('.lightbox-close').addEventListener('click', lbClose);
+  galleryLightbox.querySelector('.lightbox-prev').addEventListener('click', () => lbNav(-1));
+  galleryLightbox.querySelector('.lightbox-next').addEventListener('click', () => lbNav(1));
+  galleryLightbox.addEventListener('click', e => { if (e.target === galleryLightbox) lbClose(); });
+  document.addEventListener('keydown', e => {
+    if (!galleryLightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') lbClose();
+    if (e.key === 'ArrowLeft') lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
+  });
+}
+
 // ── Collaboration / inner page forms ─────
 const innerForms = document.querySelectorAll('.inner-page-form');
 innerForms.forEach(form => {
