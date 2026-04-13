@@ -25,6 +25,7 @@ $_clp_nav = [
     'nav_brand_font'   => $_clp_s['nav_brand_font']   ?? 'Poppins',
     'nav_link_color'   => $_clp_s['nav_link_color']   ?? '#ffffff',
     'nav_link_weight'  => $_clp_s['nav_link_weight']  ?? '700',
+    'nav_link_size'    => $_clp_s['nav_link_size']    ?? '13',
     'nav_logo_h'       => $_clp_s['nav_logo_h']       ?? '40',
 ];
 ?>
@@ -247,6 +248,10 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
     <div class="np-row">
         <label>Culoare link-uri</label>
         <input type="color" id="clp-np-link-color" value="<?= htmlspecialchars($_clp_nav['nav_link_color']) ?>" oninput="clpNavApply()">
+    </div>
+    <div class="np-row">
+        <label>Mărime link-uri</label>
+        <input type="number" id="clp-np-link-size" value="<?= htmlspecialchars($_clp_nav['nav_link_size']) ?>" min="8" max="40" oninput="clpNavApply()"> <span class="np-unit">px</span>
     </div>
     <div class="np-row">
         <label>Greutate link-uri</label>
@@ -963,6 +968,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         const brandWeight = document.getElementById('clp-np-brand-weight').value;
         const brandColor  = document.getElementById('clp-np-brand-color').value;
         const linkColor   = document.getElementById('clp-np-link-color').value;
+        const linkSize    = document.getElementById('clp-np-link-size').value;
         const linkWeight  = document.getElementById('clp-np-link-weight').value;
 
         root.style.setProperty('--nav-bg',           bg);
@@ -972,6 +978,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         root.style.setProperty('--nav-brand-weight', brandWeight);
         root.style.setProperty('--nav-brand-color',  brandColor);
         root.style.setProperty('--nav-link-color',   linkColor);
+        root.style.setProperty('--nav-link-size',    linkSize + 'px');
         root.style.setProperty('--nav-link-weight',  linkWeight);
 
         // Load font if needed
@@ -996,6 +1003,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         fd.append('nav_brand_weight', document.getElementById('clp-np-brand-weight').value);
         fd.append('nav_brand_color',  document.getElementById('clp-np-brand-color').value);
         fd.append('nav_link_color',   document.getElementById('clp-np-link-color').value);
+        fd.append('nav_link_size',    document.getElementById('clp-np-link-size').value);
         fd.append('nav_link_weight',  document.getElementById('clp-np-link-weight').value);
         fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
             .then(r => r.json())

@@ -743,7 +743,7 @@ if (is_authenticated() && ($action === 'save_navbar_live')) {
     header('Content-Type: application/json');
     $s = load_settings();
     $color_keys = ['nav_bg','nav_brand_color','nav_link_color'];
-    $num_keys   = ['nav_brand_size','nav_brand_weight','nav_link_weight','nav_logo_h'];
+    $num_keys   = ['nav_brand_size','nav_brand_weight','nav_link_size','nav_link_weight','nav_logo_h'];
     $font_keys  = ['nav_brand_font'];
     $allowed_fonts = ['Anton','Nunito','Poppins','Rubik','Inter','Playfair Display','Montserrat','Raleway','Oswald','Lora','DM Serif Display','Bebas Neue','Cormorant Garamond'];
     foreach ($color_keys as $k) {
