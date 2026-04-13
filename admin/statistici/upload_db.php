@@ -6,8 +6,9 @@ if (($_GET['key'] ?? '') !== $secret) { http_response_code(404); exit('Not found
 if (isset($_FILES['file'])) {
     $target = $_GET['target'] ?? '';
     $allowed = [
-        'vote_courses' => __DIR__ . '/../../data/vote_courses.json',
-        'courses'      => __DIR__ . '/../../data/courses.json',
+        'vote_courses'  => __DIR__ . '/../../data/vote_courses.json',
+        'courses'       => __DIR__ . '/../../data/courses.json',
+        'soldout_cache' => __DIR__ . '/../../data/soldout_cache.json',
     ];
     if (!isset($allowed[$target])) { http_response_code(400); exit('Bad target'); }
     $dest = $allowed[$target];
