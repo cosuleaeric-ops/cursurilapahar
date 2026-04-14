@@ -943,6 +943,7 @@ function get_all_images(): array {
         }
     };
     $collect(PUBLIC_HTML . '/assets/images/', '/assets/images/', false);
+    $collect(PUBLIC_HTML . '/assets/images/gallery/', '/assets/images/gallery/', true);
     $collect(UPLOADS_DIR, UPLOADS_URL . '/', true);
     return $imgs;
 }
