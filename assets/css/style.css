@@ -371,7 +371,7 @@ ul { list-style: none; }
 .hero-title em {
   font-style: normal;
   color: #fff;
-  font-weight: 700;
+  font-weight: inherit;
 }
 
 /* Scroll hint */
