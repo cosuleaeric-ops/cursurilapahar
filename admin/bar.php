@@ -604,6 +604,8 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             // Constrain page width to simulate device
             css += 'body:not(#x) { max-width: ' + width + 'px !important; margin-left: auto !important; margin-right: auto !important; }\n';
             css += '.navbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
+            css += '.navbar-links { display: none !important; }\n';
+            css += '.navbar-hamburger { display: flex !important; }\n';
             css += '#clp-adminbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
 
             styleEl.textContent = css;
