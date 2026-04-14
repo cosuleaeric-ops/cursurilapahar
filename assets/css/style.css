@@ -356,7 +356,7 @@ ul { list-style: none; }
   align-items: center;
   justify-content: flex-end;
   text-align: center;
-  padding: 24px 24px 48px;
+  padding: 24px 24px 78px;
   gap: 32px;
 }
 .hero-title {
