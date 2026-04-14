@@ -606,6 +606,8 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             css += '.navbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
             css += '.navbar-links { display: none !important; }\n';
             css += '.navbar-hamburger { display: flex !important; }\n';
+            css += '.navbar-drawer { max-width: ' + width + 'px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) !important; }\n';
+            css += '.navbar-drawer.open { transform: translateX(-50%) !important; }\n';
             css += '#clp-adminbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
 
             styleEl.textContent = css;
