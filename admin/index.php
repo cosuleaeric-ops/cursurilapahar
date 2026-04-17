@@ -1623,11 +1623,8 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
                                 Galerie
                             </label>
                             <?php if ($img['deletable']): ?>
-                            <form method="post" action="/admin/?tab=imagini" onsubmit="return confirm('Ștergi imaginea?')" style="display:inline">
-                                <input type="hidden" name="action" value="delete_image">
-                                <input type="hidden" name="filename" value="<?= h($img['name']) ?>">
-                                <button type="submit" class="btn btn-sm btn-danger" style="padding:1px 7px">✕</button>
-                            </form>
+                            <button type="button" class="btn btn-sm btn-danger" style="padding:1px 7px"
+                                onclick="deleteImage(<?= json_encode($img['name']) ?>)">✕</button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -1641,6 +1638,16 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
         </form>
         <?php endif; ?>
     </div>
+    <script>
+    function deleteImage(filename) {
+        if (!confirm('Ștergi imaginea?')) return;
+        const fd = new FormData();
+        fd.append('action', 'delete_image');
+        fd.append('filename', filename);
+        fetch('/admin/?tab=imagini', { method: 'POST', body: fd })
+            .then(() => location.reload());
+    }
+    </script>
 
 <?php /* ======================================================= TAB: SETARI */ ?>
 <?php elseif ($tab === 'setari'): ?>
