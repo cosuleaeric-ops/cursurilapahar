@@ -404,26 +404,23 @@ $faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($set
 
 <!-- ── GALERIE ────────────────────────────── -->
 <?php
-$gallery_dir = __DIR__ . '/assets/images/gallery';
-$gallery_images = [];
-if (is_dir($gallery_dir)) {
-    foreach (glob($gallery_dir . '/*.{webp,jpg,jpeg,png}', GLOB_BRACE) as $img) {
-        $gallery_images[] = '/assets/images/gallery/' . basename($img);
-    }
-    sort($gallery_images);
-}
+$gallery_images = $settings['gallery_featured'] ?? [];
 $gal_bg = $settings['section_bgs']['galerie'] ?? []; $gal_has_bg = !empty($gal_bg['image']);
 ?>
 <?php if (!empty($gallery_images)): ?>
 <section class="section<?= $gal_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="galerie" <?= clp_section_bg('galerie', $settings) ?>>
     <div class="container">
         <h2 class="section-title"><?= htmlspecialchars($settings['gallery_title'] ?? 'Galerie') ?></h2>
-        <div class="gallery-grid">
-            <?php foreach ($gallery_images as $gi => $gimg): ?>
-            <div class="gallery-item" data-index="<?= $gi ?>">
-                <img src="<?= htmlspecialchars($gimg) ?>" alt="Cursuri la Pahar" loading="lazy">
+        <div class="gallery-slider-wrap">
+            <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
+            <div class="gallery-slider">
+                <?php foreach ($gallery_images as $gi => $gimg): ?>
+                <div class="gallery-item" data-index="<?= $gi ?>">
+                    <img src="<?= htmlspecialchars($gimg) ?>" alt="Cursuri la Pahar" loading="lazy">
+                </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
+            <button class="gslider-btn gslider-next" aria-label="Următor">&#8250;</button>
         </div>
     </div>
 </section>

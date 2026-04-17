@@ -336,11 +336,11 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Save hero images
+    // ── Save hero images + gallery featured
     if ($action === 'save_hero_images') {
         $settings = load_settings();
-        $selected = $_POST['hero_images'] ?? [];
-        $settings['hero_images'] = array_values(array_filter(array_map('trim', $selected)));
+        $settings['hero_images']      = array_values(array_filter(array_map('trim', $_POST['hero_images'] ?? [])));
+        $settings['gallery_featured'] = array_values(array_filter(array_map('trim', $_POST['gallery_featured'] ?? [])));
         save_settings($settings);
         header('Location: /admin/?tab=imagini&saved=1');
         exit;
@@ -1572,7 +1572,7 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
     <h1 class="wp-page-title">Imagini</h1>
 
     <?php if (isset($_GET['saved'])): ?>
-    <div class="notice notice-success">Setările imaginilor hero au fost salvate.</div>
+    <div class="notice notice-success">Setările imaginilor au fost salvate.</div>
     <?php endif; ?>
 
     <?php if (!empty($upload_ok ?? '')): ?>
@@ -1606,7 +1606,8 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
             <input type="hidden" name="action" value="save_hero_images">
             <div class="images-grid">
                 <?php foreach ($all_images as $img):
-                    $is_hero = in_array($img['url'], $settings['hero_images'] ?? []);
+                    $is_hero    = in_array($img['url'], $settings['hero_images'] ?? []);
+                    $is_gallery = in_array($img['url'], $settings['gallery_featured'] ?? []);
                 ?>
                 <div class="image-item">
                     <img src="<?= h($img['url']) ?>" alt="<?= h($img['name']) ?>">
@@ -1616,6 +1617,10 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
                             <label class="hero-check">
                                 <input type="checkbox" name="hero_images[]" value="<?= h($img['url']) ?>" <?= $is_hero ? 'checked' : '' ?>>
                                 Hero
+                            </label>
+                            <label class="hero-check" style="color:#C9A84C">
+                                <input type="checkbox" name="gallery_featured[]" value="<?= h($img['url']) ?>" <?= $is_gallery ? 'checked' : '' ?>>
+                                Galerie
                             </label>
                             <?php if ($img['deletable']): ?>
                             <form method="post" action="/admin/?tab=imagini" onsubmit="return confirm('Ștergi imaginea?')" style="display:inline">
@@ -1630,8 +1635,8 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
                 <?php endforeach; ?>
             </div>
             <div style="margin-top:16px">
-                <button type="submit" class="btn btn-primary">Salvează imaginile hero</button>
-                <span style="font-size:12px;color:var(--text-muted);margin-left:10px">Bifează imaginile care apar în slideshow-ul hero.</span>
+                <button type="submit" class="btn btn-primary">Salvează</button>
+                <span style="font-size:12px;color:var(--text-muted);margin-left:10px">Hero = slideshow pagină principală &nbsp;·&nbsp; Galerie = slider secțiunea Galerie.</span>
             </div>
         </form>
         <?php endif; ?>

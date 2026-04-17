@@ -233,6 +233,18 @@ if (contactForm) {
   });
 }
 
+// ── Gallery slider arrows ────────────────
+const gallerySlider = document.querySelector('.gallery-slider');
+if (gallerySlider) {
+  const scrollBy = () => gallerySlider.clientWidth * 0.75;
+  document.querySelector('.gslider-prev')?.addEventListener('click', () => {
+    gallerySlider.scrollBy({ left: -scrollBy(), behavior: 'smooth' });
+  });
+  document.querySelector('.gslider-next')?.addEventListener('click', () => {
+    gallerySlider.scrollBy({ left: scrollBy(), behavior: 'smooth' });
+  });
+}
+
 // ── Gallery lightbox ────────────────────
 const galleryLightbox = document.getElementById('galleryLightbox');
 if (galleryLightbox) {
