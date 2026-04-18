@@ -25,9 +25,14 @@ include __DIR__ . '/../layout_header.php';
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <h1 class="wp-page-title" style="margin-bottom:0">P&amp;L Cursuri</h1>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-hide" id="btnHide" title="Ascunde valorile">&#128065;</button>
         <span class="last-entry-badge" id="lastEntryBadge"></span>
-        <select class="year-select" id="yearSelect"></select>
+        <div style="display:flex;align-items:center;gap:6px">
+            <button class="nav-arrow" id="btnPrevMonth">&#8249;</button>
+            <select class="year-select" id="yearSelect"></select>
+            <button class="nav-arrow" id="btnNextMonth">&#8250;</button>
+        </div>
     </div>
 </div>
 
@@ -91,6 +96,14 @@ include __DIR__ . '/../layout_header.php';
     </div>
   </div>
 
+  <!-- Top Categories -->
+  <div class="chart-card" id="topCatCard" style="display:none;margin-bottom:28px">
+    <h3>Top categorii</h3>
+    <div id="topCatWrap" style="position:relative">
+      <canvas id="chartTopCat"></canvas>
+    </div>
+  </div>
+
   <!-- Transactions -->
   <div class="tx-section">
   <div class="section-header">
@@ -134,6 +147,10 @@ include __DIR__ . '/../layout_header.php';
       <div class="form-group">
         <label>Data</label>
         <input type="date" name="data" id="venitData" required />
+        <div class="date-nav">
+          <button type="button" class="nav-arrow" id="venitDataPrev">&#8249;</button>
+          <button type="button" class="nav-arrow" id="venitDataNext">&#8250;</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Categorie</label>
@@ -164,6 +181,10 @@ include __DIR__ . '/../layout_header.php';
       <div class="form-group">
         <label>Data</label>
         <input type="date" name="data" id="cheltuialaData" required />
+        <div class="date-nav">
+          <button type="button" class="nav-arrow" id="cheltuialaDataPrev">&#8249;</button>
+          <button type="button" class="nav-arrow" id="cheltuialaDataNext">&#8250;</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Categorie</label>
@@ -223,7 +244,9 @@ let currentMonth = new Date().getMonth() + 1; // luna curenta
 let currentTab   = 'toate';
 let allVenituri = [];
 let allCheltuieli = [];
-let chartMonthly, chartDonut, chartCumulative;
+let chartMonthly, chartDonut, chartCumulative, chartTopCat;
+let lastStats = null;
+let amountsHidden = false;
 const rowStore = new Map(); // 'venit-id' / 'cheltuiala-id' → row object
 const lastDateKey = 'pnl_last_date';
 const getLastDate = () => localStorage.getItem(lastDateKey) || todayStr();
@@ -347,18 +370,20 @@ async function refresh() {
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 function renderStats(s) {
+  lastStats = s;
+  const mask = '• • •';
   const profitColor = s.profit_net >= 0 ? 'green' : 'red';
   const marjaColor  = s.marja >= 0 ? 'green' : 'red';
 
-  document.getElementById('statVenituri').textContent   = fmt(s.total_venituri) + ' lei';
-  document.getElementById('statCheltuieli').textContent = fmt(s.total_cheltuieli) + ' lei';
+  document.getElementById('statVenituri').textContent   = amountsHidden ? mask : fmt(s.total_venituri) + ' lei';
+  document.getElementById('statCheltuieli').textContent = amountsHidden ? mask : fmt(s.total_cheltuieli) + ' lei';
 
   const profitEl = document.getElementById('statProfit');
-  profitEl.textContent = (s.profit_net >= 0 ? '+' : '') + fmt(s.profit_net) + ' lei';
+  profitEl.textContent = amountsHidden ? mask : (s.profit_net >= 0 ? '+' : '') + fmt(s.profit_net) + ' lei';
   profitEl.className = 'value ' + profitColor;
 
   const marjaEl = document.getElementById('statMarja');
-  marjaEl.textContent = (s.marja >= 0 ? '+' : '') + s.marja + '%';
+  marjaEl.textContent = amountsHidden ? mask : (s.marja >= 0 ? '+' : '') + s.marja + '%';
   marjaEl.className = 'value ' + marjaColor;
 
   document.getElementById('statVenituriSub').textContent =
@@ -442,6 +467,37 @@ function renderCharts(s) {
     });
   }
 
+  if (chartTopCat) chartTopCat.destroy();
+  const topCatCard = document.getElementById('topCatCard');
+  if (s.categorii_cheltuieli.length) {
+    topCatCard.style.display = '';
+    const topData = s.categorii_cheltuieli.slice(0, 10);
+    const topCatWrap = document.getElementById('topCatWrap');
+    topCatWrap.style.height = (topData.length * 40 + 40) + 'px';
+    chartTopCat = new Chart(document.getElementById('chartTopCat'), {
+      type: 'bar',
+      data: {
+        labels: topData.map(c => c.categorie),
+        datasets: [{ data: topData.map(c => c.suma), backgroundColor: CAT_COLORS.slice(0, topData.length) }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed.x)} lei` } },
+        },
+        scales: {
+          x: { beginAtZero: true, grid: { color: '#e0e0e0' }, ticks: { callback: v => fmt(v) + ' lei', font: { size: 11 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 12 } } },
+        },
+      },
+    });
+  } else {
+    topCatCard.style.display = 'none';
+  }
+
   if (chartCumulative) chartCumulative.destroy();
   chartCumulative = new Chart(document.getElementById('chartCumulative'), {
     type: 'line',
@@ -481,6 +537,7 @@ function renderCharts(s) {
 function renderTable() {
   const body = document.getElementById('txBody');
   body.innerHTML = '';
+  body.closest('table').classList.toggle('amounts-hidden', amountsHidden);
 
   let rows = [];
   if (currentTab === 'toate') {
@@ -665,8 +722,13 @@ document.getElementById('formVenit').addEventListener('submit', async e => {
   const res = await post(id ? 'edit_venit' : 'add_venit', body);
 
   if (res.success || res.id) {
-    if (!id) setLastDate(body.data);
-    closeModal('modalVenit');
+    if (id) {
+      closeModal('modalVenit');
+    } else {
+      setLastDate(body.data);
+      document.getElementById('venitSuma').value = '';
+      document.getElementById('venitSuma').focus();
+    }
     refresh();
   } else {
     errEl.textContent = res.error || 'Eroare';
@@ -698,14 +760,18 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
   const res = await post(id ? 'edit_cheltuiala' : 'add_cheltuiala', body);
 
   if (res.success || res.id) {
-    if (!id) {
+    if (id) {
+      closeModal('modalCheltuiala');
+    } else {
       setLastDate(body.data);
       const fee = parseFloat(document.getElementById('cheltuialaServiceFee').value);
       if (fee > 0) {
         await post('add_cheltuiala', { data: body.data, categorie: 'Service fee', suma: fee });
       }
+      document.getElementById('cheltuialaSuma').value = '';
+      document.getElementById('cheltuialaServiceFee').value = '';
+      document.getElementById('cheltuialaSuma').focus();
     }
-    closeModal('modalCheltuiala');
     refresh();
   } else {
     errEl.textContent = res.error || 'Eroare';
@@ -720,6 +786,49 @@ document.getElementById('topBtnCheltuiala').addEventListener('click', () => {
 document.getElementById('topBtnVenit').addEventListener('click', () => {
   document.getElementById('btnAddVenit').click();
 });
+
+// ── Keyboard shortcuts (C = cheltuiala, V = venit) ───────────────────────────
+document.addEventListener('keydown', e => {
+  if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (document.querySelector('.modal-overlay.open')) return;
+  if (e.key === 'c' || e.key === 'C') document.getElementById('btnAddCheltuiala').click();
+  if (e.key === 'v' || e.key === 'V') document.getElementById('btnAddVenit').click();
+});
+
+// ── Hide amounts toggle ───────────────────────────────────────────────────────
+document.getElementById('btnHide').addEventListener('click', () => {
+  amountsHidden = !amountsHidden;
+  document.getElementById('btnHide').textContent = amountsHidden ? '🙈' : '👁';
+  if (lastStats) renderStats(lastStats);
+  renderTable();
+});
+
+// ── Month navigation arrows ───────────────────────────────────────────────────
+function navigateMonth(delta) {
+  let m = currentMonth || 1;
+  let y = currentYear;
+  m += delta;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1;  y++; }
+  const val = `${y}-${m}`;
+  const sel = document.getElementById('yearSelect');
+  const opt = Array.from(sel.options).find(o => o.value === val);
+  if (opt) { sel.value = val; sel.dispatchEvent(new Event('change')); }
+}
+document.getElementById('btnPrevMonth').addEventListener('click', () => navigateMonth(-1));
+document.getElementById('btnNextMonth').addEventListener('click', () => navigateMonth(+1));
+
+// ── Date navigation arrows in modals ─────────────────────────────────────────
+function shiftDate(inputId, delta) {
+  const inp = document.getElementById(inputId);
+  const d = new Date(inp.value || todayStr());
+  d.setDate(d.getDate() + delta);
+  inp.value = d.toISOString().split('T')[0];
+}
+document.getElementById('cheltuialaDataPrev').addEventListener('click', () => shiftDate('cheltuialaData', -1));
+document.getElementById('cheltuialaDataNext').addEventListener('click', () => shiftDate('cheltuialaData', +1));
+document.getElementById('venitDataPrev').addEventListener('click', () => shiftDate('venitData', -1));
+document.getElementById('venitDataNext').addEventListener('click', () => shiftDate('venitData', +1));
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();

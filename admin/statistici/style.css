@@ -120,3 +120,13 @@ td.suma-red   { color: var(--red);   font-weight: 600; font-variant-numeric: tab
 /* ── Last entry badge ── */
 .last-entry-badge { font-size: 12px; color: var(--muted); }
 .last-entry-badge.stale { color: var(--red); font-weight: 500; }
+
+/* ── Nav arrows (month nav + date nav in modals) ── */
+.nav-arrow { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 11px; font-size: 16px; color: var(--muted); cursor: pointer; line-height: 1; transition: all 0.12s; }
+.nav-arrow:hover { background: var(--card); color: var(--text); border-color: #aaa; }
+.date-nav { display: flex; gap: 8px; margin-top: 6px; }
+
+/* ── Hide amounts button ── */
+.btn-hide { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 10px; cursor: pointer; font-size: 15px; color: var(--muted); transition: all 0.12s; }
+.btn-hide:hover { background: var(--bg); color: var(--text); }
+.amounts-hidden .suma-green, .amounts-hidden .suma-red { filter: blur(6px); user-select: none; }
