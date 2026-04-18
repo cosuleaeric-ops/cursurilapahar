@@ -73,26 +73,10 @@ include __DIR__ . '/../layout_header.php';
   </div>
 
   <!-- Charts row -->
-  <div class="charts-row">
-    <div class="chart-card">
-      <h3>Venituri vs Cheltuieli</h3>
-      <div class="chart-wrap">
-        <canvas id="chartMonthly"></canvas>
-      </div>
-    </div>
-    <div class="chart-card">
-      <h3>Structura cheltuielilor</h3>
-      <div class="chart-wrap-donut">
-        <canvas id="chartDonut"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cumulative chart -->
-  <div class="chart-card cumulative-card">
-    <h3>Profit cumulativ</h3>
-    <div class="cumulative-wrap">
-      <canvas id="chartCumulative"></canvas>
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>Venituri vs Cheltuieli</h3>
+    <div class="chart-wrap">
+      <canvas id="chartMonthly"></canvas>
     </div>
   </div>
 
@@ -244,7 +228,7 @@ let currentMonth = new Date().getMonth() + 1; // luna curenta
 let currentTab   = 'toate';
 let allVenituri = [];
 let allCheltuieli = [];
-let chartMonthly, chartDonut, chartCumulative, chartTopCat;
+let chartMonthly, chartTopCat;
 let lastStats = null;
 let amountsHidden = false;
 const rowStore = new Map(); // 'venit-id' / 'cheltuiala-id' → row object
@@ -442,31 +426,6 @@ function renderCharts(s) {
     },
   });
 
-  if (chartDonut) chartDonut.destroy();
-  if (s.categorii_cheltuieli.length) {
-    chartDonut = new Chart(document.getElementById('chartDonut'), {
-      type: 'doughnut',
-      data: {
-        labels: s.categorii_cheltuieli.map(c => c.categorie),
-        datasets: [{
-          data: s.categorii_cheltuieli.map(c => c.suma),
-          backgroundColor: CAT_COLORS.slice(0, s.categorii_cheltuieli.length),
-          borderWidth: 2,
-          borderColor: '#fff',
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '62%',
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 8 } },
-          tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed)} lei` } },
-        },
-      },
-    });
-  }
-
   if (chartTopCat) chartTopCat.destroy();
   const topCatCard = document.getElementById('topCatCard');
   if (s.categorii_cheltuieli.length) {
@@ -498,39 +457,6 @@ function renderCharts(s) {
     topCatCard.style.display = 'none';
   }
 
-  if (chartCumulative) chartCumulative.destroy();
-  chartCumulative = new Chart(document.getElementById('chartCumulative'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Profit cumulativ',
-        data: s.monthly.map(m => m.cumulative),
-        borderColor: '#4A90D9',
-        backgroundColor: 'rgba(74,144,217,0.1)',
-        borderWidth: 2.5,
-        fill: true,
-        tension: 0.35,
-        pointBackgroundColor: s.monthly.map(m => m.cumulative >= 0 ? '#2A7D4F' : '#C1444A'),
-        pointRadius: 5,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed.y)} lei` } },
-      },
-      scales: {
-        y: {
-          grid: { color: '#e0e0e0' },
-          ticks: { callback: v => fmt(v) + ' lei', font: { size: 11 } },
-        },
-        x: { grid: { display: false }, ticks: { font: { size: 12 } } },
-      },
-    },
-  });
 }
 
 // ── Table ────────────────────────────────────────────────────────────────────
