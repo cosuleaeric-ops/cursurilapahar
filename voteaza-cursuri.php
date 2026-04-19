@@ -23,6 +23,9 @@ $settings = array_merge($_defaults, $_loaded);
 function clp_e(string $key, array $settings): string {
     return 'data-edit-key="' . htmlspecialchars($key) . '"';
 }
+function likes_label(int $n): string {
+    return $n . ' ' . ($n === 1 ? 'apreciere' : 'aprecieri');
+}
 
 $vote_title    = $settings['vote_title']    ?? 'Votează cursurile';
 $vote_subtitle = $settings['vote_subtitle'] ?? 'Apasă ❤️ pe temele care te interesează. Cele mai apreciate au șanse mai mari să devină cursuri viitoare.';
@@ -160,14 +163,13 @@ usort($vote_courses, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
     .vote-btn:hover { color: #e05565; transform: scale(1.15); }
     .vote-btn.voted { color: #e05565; }
     .vote-btn.voted .heart { animation: heartPop .25s ease; }
-    .vote-count {
-        font-size: .85rem;
+    .vote-likes-label {
+        display: block;
+        font-weight: 700;
+        font-size: .9rem;
         color: var(--text-muted);
-        min-width: 18px;
-        text-align: right;
-        flex-shrink: 0;
+        margin-bottom: 10px;
     }
-    .vote-btn.voted ~ .vote-count { color: #e05565; }
     @keyframes heartPop {
         0%   { transform: scale(1); }
         50%  { transform: scale(1.4); }
@@ -279,18 +281,16 @@ usort($vote_courses, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
                 <button class="vote-btn" data-id="<?= $vid ?>" onclick="event.stopPropagation();toggleVote(this)">
                     <span class="heart">♡</span>
                 </button>
-                <span class="vote-count" id="vc-count-<?= $vid ?>"><?= $likes > 0 ? $likes : '' ?></span>
-                <?php if ($desc): ?>
                 <span class="vote-toggle-icon">▾</span>
-                <?php endif; ?>
             </div>
-            <?php if ($desc): ?>
             <div class="vote-desc-wrap">
                 <div class="vote-desc-inner">
-                    <div class="vote-desc"><?= $desc ?></div>
+                    <div class="vote-desc">
+                        <strong class="vote-likes-label" id="vc-count-<?= $vid ?>"><?= likes_label($likes) ?></strong>
+                        <?= $desc ?>
+                    </div>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
         <?php endforeach; ?>
     </div>
@@ -339,13 +339,12 @@ async function toggleVote(btn) {
     const countEl = document.getElementById('vc-count-' + id);
     const delta = isVoted ? -1 : 1;
 
+    function likesLabel(n) { return n + ' ' + (n === 1 ? 'apreciere' : 'aprecieri'); }
+    function currentCount() { return parseInt(countEl?.textContent) || 0; }
+
     // Optimistic UI
     applyVoted(btn, !isVoted);
-    if (countEl) {
-        const cur = parseInt(countEl.textContent) || 0;
-        const next = cur + delta;
-        countEl.textContent = next > 0 ? next : '';
-    }
+    if (countEl) countEl.textContent = likesLabel(currentCount() + delta);
     if (!isVoted) {
         setVoted([...voted, id]);
     } else {
@@ -361,10 +360,7 @@ async function toggleVote(btn) {
     } catch {
         // Revert on failure
         applyVoted(btn, isVoted);
-        if (countEl) {
-            const cur = parseInt(countEl.textContent) || 0;
-            countEl.textContent = (cur - delta) > 0 ? (cur - delta) : '';
-        }
+        if (countEl) countEl.textContent = likesLabel(currentCount() - delta);
         if (!isVoted) {
             setVoted(voted);
         } else {
