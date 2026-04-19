@@ -27,12 +27,12 @@ function clp_e(string $key, array $settings): string {
 $vote_title    = $settings['vote_title']    ?? 'Votează cursurile';
 $vote_subtitle = $settings['vote_subtitle'] ?? 'Apasă ❤️ pe temele care te interesează. Cele mai apreciate au șanse mai mari să devină cursuri viitoare.';
 
-// Load vote courses and shuffle
+// Load vote courses and sort by likes descending
 $vote_courses_file = __DIR__ . '/data/vote_courses.json';
 $vote_courses = file_exists($vote_courses_file)
     ? (json_decode(file_get_contents($vote_courses_file), true) ?: [])
     : [];
-shuffle($vote_courses);
+usort($vote_courses, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -160,6 +160,14 @@ shuffle($vote_courses);
     .vote-btn:hover { color: #e05565; transform: scale(1.15); }
     .vote-btn.voted { color: #e05565; }
     .vote-btn.voted .heart { animation: heartPop .25s ease; }
+    .vote-count {
+        font-size: .85rem;
+        color: var(--text-muted);
+        min-width: 18px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .vote-btn.voted ~ .vote-count { color: #e05565; }
     @keyframes heartPop {
         0%   { transform: scale(1); }
         50%  { transform: scale(1.4); }
@@ -258,10 +266,11 @@ shuffle($vote_courses);
     <?php else: ?>
     <div class="vote-grid">
         <?php foreach ($vote_courses as $vc):
-            $vid  = htmlspecialchars($vc['id'] ?? '');
-            $name = htmlspecialchars($vc['name'] ?? '');
+            $vid   = htmlspecialchars($vc['id'] ?? '');
+            $name  = htmlspecialchars($vc['name'] ?? '');
             $emoji = htmlspecialchars($vc['emoji'] ?? '📚');
-            $desc = htmlspecialchars($vc['description'] ?? '');
+            $desc  = htmlspecialchars($vc['description'] ?? '');
+            $likes = (int)($vc['likes'] ?? 0);
         ?>
         <div class="vote-card" id="vc-<?= $vid ?>">
             <div class="vote-card-header" onclick="toggleVoteDesc('<?= $vid ?>')">
@@ -270,6 +279,7 @@ shuffle($vote_courses);
                 <button class="vote-btn" data-id="<?= $vid ?>" onclick="event.stopPropagation();toggleVote(this)">
                     <span class="heart">♡</span>
                 </button>
+                <span class="vote-count" id="vc-count-<?= $vid ?>"><?= $likes > 0 ? $likes : '' ?></span>
                 <?php if ($desc): ?>
                 <span class="vote-toggle-icon">▾</span>
                 <?php endif; ?>
@@ -326,11 +336,18 @@ async function toggleVote(btn) {
     const isVoted = voted.includes(id);
     const action  = isVoted ? 'remove' : 'add';
 
+    const countEl = document.getElementById('vc-count-' + id);
+    const delta = isVoted ? -1 : 1;
+
     // Optimistic UI
     applyVoted(btn, !isVoted);
+    if (countEl) {
+        const cur = parseInt(countEl.textContent) || 0;
+        const next = cur + delta;
+        countEl.textContent = next > 0 ? next : '';
+    }
     if (!isVoted) {
-        const newVoted = [...voted, id];
-        setVoted(newVoted);
+        setVoted([...voted, id]);
     } else {
         setVoted(voted.filter(v => v !== id));
     }
@@ -344,6 +361,10 @@ async function toggleVote(btn) {
     } catch {
         // Revert on failure
         applyVoted(btn, isVoted);
+        if (countEl) {
+            const cur = parseInt(countEl.textContent) || 0;
+            countEl.textContent = (cur - delta) > 0 ? (cur - delta) : '';
+        }
         if (!isVoted) {
             setVoted(voted);
         } else {
