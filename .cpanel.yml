@@ -3,3 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/lsjcloab/public_html
     - /bin/cp $DIRECTORY/index.php $DEPLOYPATH/index.php
+    - /bin/cp $DIRECTORY/voteaza-cursuri.php $DEPLOYPATH/voteaza-cursuri.php
