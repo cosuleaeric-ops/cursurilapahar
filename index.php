@@ -113,7 +113,8 @@ $course_soldout = [];
 foreach ($courses as $course) {
     $slug = lt_slug_from_url($course['livetickets_url'] ?? '');
     if (!$slug) { $course_soldout[$course['id'] ?? ''] = false; continue; }
-    $ttl = 900;
+    $cached_sold = $soldout_cache[$slug]['sold_out'] ?? false;
+    $ttl = $cached_sold ? 60 : 900;
     $now = time();
     if (isset($soldout_cache[$slug]) && ($now - ($soldout_cache[$slug]['at'] ?? 0)) < $ttl) {
         $course_soldout[$course['id'] ?? ''] = $soldout_cache[$slug]['sold_out'];
