@@ -214,6 +214,13 @@ function save_settings(array $settings): bool {
 if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    // ── Clear sold out cache
+    if ($action === 'clear_soldout_cache') {
+        file_put_contents(__DIR__ . '/../data/soldout_cache.json', '{}');
+        header('Location: /admin/?tab=cursuri');
+        exit;
+    }
+
     // ── Delete course
     if ($action === 'delete_course') {
         $id = $_POST['id'] ?? '';
@@ -1512,7 +1519,15 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 
     <!-- Courses table -->
     <div class="card">
-        <div class="card-title">Cursuri (<?= count($courses) ?>)</div>
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Cursuri (<?= count($courses) ?>)</span>
+            <form method="post" action="/admin/?tab=cursuri" style="margin:0">
+                <input type="hidden" name="action" value="clear_soldout_cache">
+                <button class="btn btn-secondary" type="submit" title="Șterge cache-ul de sold out — util dacă s-au adăugat bilete înapoi">
+                    &#8635; Resetează sold out cache
+                </button>
+            </form>
+        </div>
         <?php if (empty($courses)): ?>
         <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
         <?php else: ?>
