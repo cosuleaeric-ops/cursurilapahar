@@ -2238,7 +2238,7 @@ if (file_exists($log_file) && filesize($log_file)) {
         $name    = $msg['fields']['Nume'] ?? $msg['fields']['nume'] ?? $msg['fields']['Name'] ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—';
         $email   = $msg['fields']['Email'] ?? $msg['fields']['email'] ?? '';
         $preview = '';
-        foreach ($msg['fields'] as $k => $v) { if (strtolower($k) !== 'email' && strtolower($k) !== 'nume') { $preview = $v; break; } }
+        foreach ($msg['fields'] as $k => $v) { if (!in_array(strtolower($k), ['email','nume','name'])) { $preview = $v; break; } }
         $uid = $key . '_' . $i;
     ?>
     <div class="msg-card" onclick="toggleMsg('<?= $uid ?>')">
