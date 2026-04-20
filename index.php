@@ -411,7 +411,7 @@ $gal_bg = $settings['section_bgs']['galerie'] ?? []; $gal_has_bg = !empty($gal_b
 <?php if (!empty($gallery_images)): ?>
 <section class="section<?= $gal_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="galerie" <?= clp_section_bg('galerie', $settings) ?>>
     <div class="container">
-        <h2 class="section-title"><?= htmlspecialchars($settings['gallery_title'] ?? 'Galerie') ?></h2>
+        <h2 class="section-title" <?= clp_e('gallery_title', $settings) ?>><?= htmlspecialchars($settings['gallery_title'] ?? 'Galerie') ?></h2>
         <div class="gallery-slider-wrap">
             <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
             <div class="gallery-slider">
