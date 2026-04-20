@@ -124,6 +124,7 @@ function default_settings(): array {
         'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
         'hero_btn'          => 'Vezi următoarele cursuri',
         'courses_title'     => 'Următoarele cursuri',
+        'gallery_title'     => 'Galerie',
         'newsletter_title'  => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
         'newsletter_desc'   => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar.',
         'collab_title'      => 'Colaborare',
@@ -356,7 +357,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Save settings
     if ($action === 'save_settings') {
         $settings = load_settings();
-        $fields = ['announcement','hero_title','hero_btn','courses_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
+        $fields = ['announcement','hero_title','hero_btn','courses_title','gallery_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
         foreach ($fields as $f) {
             $settings[$f] = $_POST[$f] ?? $settings[$f];
         }
@@ -816,7 +817,7 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
     };
     $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
                      'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
-                     'steps_title','faq_title','nav_brand_text',
+                     'gallery_title','steps_title','faq_title','nav_brand_text',
                      'vote_title','vote_subtitle',
                      'sustine_title','sustine_intro_1','sustine_intro_2',
                      'gazduieste_title','gazduieste_intro_1','gazduieste_intro_2',
@@ -1757,6 +1758,17 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
                 </div>
                 <div class="tf-body">
                     <input type="text" id="s_courses_title" name="courses_title" value="<?= h($settings['courses_title']) ?>" style="width:100%">
+                </div>
+            </div>
+
+            <div class="tf-row">
+                <div class="tf-header" onclick="toggleTf(this)">
+                    <span class="tf-label">Titlu Galerie</span>
+                    <span class="tf-preview"><?= h($settings['gallery_title'] ?? 'Galerie') ?></span>
+                    <span class="tf-arrow">▼</span>
+                </div>
+                <div class="tf-body">
+                    <input type="text" id="s_gallery_title" name="gallery_title" value="<?= h($settings['gallery_title'] ?? 'Galerie') ?>" style="width:100%">
                 </div>
             </div>
 

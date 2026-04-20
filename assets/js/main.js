@@ -233,22 +233,47 @@ if (contactForm) {
   });
 }
 
-// ── Gallery slider arrows (circular) ─────
+// ── Gallery slider arrows (infinite/circular, smooth) ─────
 const gallerySlider = document.querySelector('.gallery-slider');
 if (gallerySlider) {
+  // Clone items for seamless infinite scroll: [clones][originals][clones]
+  const originals = Array.from(gallerySlider.children);
+  originals.forEach(el => {
+    const c = el.cloneNode(true);
+    c.classList.add('gallery-clone');
+    c.setAttribute('aria-hidden', 'true');
+    gallerySlider.appendChild(c);
+  });
+  originals.forEach(el => {
+    const c = el.cloneNode(true);
+    c.classList.add('gallery-clone');
+    c.setAttribute('aria-hidden', 'true');
+    gallerySlider.prepend(c);
+  });
+
+  // Start at the original section (middle third)
+  const origWidth = () => gallerySlider.scrollWidth / 3;
+  gallerySlider.scrollLeft = origWidth();
+
   const step = () => gallerySlider.clientWidth * 0.75;
+  let busy = false;
+
+  function afterScroll() {
+    const ow = origWidth();
+    if (gallerySlider.scrollLeft >= ow * 2) gallerySlider.scrollLeft -= ow;
+    else if (gallerySlider.scrollLeft < ow)  gallerySlider.scrollLeft += ow;
+    busy = false;
+  }
+
   document.querySelector('.gslider-prev')?.addEventListener('click', () => {
-    if (gallerySlider.scrollLeft <= 0) {
-      gallerySlider.scrollLeft = gallerySlider.scrollWidth;
-    }
+    if (busy) return; busy = true;
     gallerySlider.scrollBy({ left: -step(), behavior: 'smooth' });
+    setTimeout(afterScroll, 420);
   });
   document.querySelector('.gslider-next')?.addEventListener('click', () => {
-    const maxScroll = gallerySlider.scrollWidth - gallerySlider.clientWidth;
-    if (gallerySlider.scrollLeft >= maxScroll - 1) {
-      gallerySlider.scrollLeft = 0;
-    }
+    if (busy) return; busy = true;
     gallerySlider.scrollBy({ left: step(), behavior: 'smooth' });
+    setTimeout(afterScroll, 420);
   });
 }
 
@@ -256,7 +281,7 @@ if (gallerySlider) {
 const galleryLightbox = document.getElementById('galleryLightbox');
 if (galleryLightbox) {
   const lbImg  = document.getElementById('lightboxImg');
-  const items  = document.querySelectorAll('.gallery-item');
+  const items  = document.querySelectorAll('.gallery-item:not(.gallery-clone)');
   const srcs   = Array.from(items).map(el => el.querySelector('img').src);
   let cur = 0;
 
