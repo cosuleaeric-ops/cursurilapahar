@@ -2372,7 +2372,7 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
             </tr>
         </thead>
         <tbody>
-            <?php foreach (array_reverse($vote_courses) as $vc): ?>
+            <?php foreach ($vote_courses as $vc): ?>
             <tr>
                 <td style="font-size:1.4rem;text-align:center"><?= h($vc['emoji'] ?? '📚') ?></td>
                 <td style="font-weight:600">
