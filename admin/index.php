@@ -2246,7 +2246,6 @@ if (file_exists($log_file) && filesize($log_file)) {
             <span class="msg-card-name"><?= h($name) ?></span>
             <span class="msg-card-date"><?= h($msg['date']) ?></span>
         </div>
-        <?php if ($preview): ?><div class="msg-card-preview"><?= h($preview) ?></div><?php endif; ?>
         <div class="msg-detail" id="msg-<?= $uid ?>">
             <?php foreach ($msg['fields'] as $lbl => $val):
                 $lbl_lc = strtolower($lbl);
