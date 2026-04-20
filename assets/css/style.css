@@ -1196,38 +1196,32 @@ body.clp-edit-mode .clp-sbg-btn { display: inline-flex; }
 /* ── Gallery slider ──────────────────────── */
 .gallery-slider-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  overflow: hidden;
 }
 .gallery-slider {
   display: flex;
   gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  flex: 1;
+  will-change: transform;
 }
-.gallery-slider::-webkit-scrollbar { display: none; }
 .gallery-item {
   flex-shrink: 0;
+  width: 480px;
   height: 320px;
-  width: auto;
   overflow: hidden;
   border-radius: 8px;
   cursor: pointer;
-  scroll-snap-align: start;
 }
 .gallery-item img {
-  height: 100%; width: auto;
+  width: 100%; height: 100%;
   object-fit: cover;
   transition: transform .4s ease;
   display: block;
 }
 .gallery-item:hover img { transform: scale(1.05); }
 .gslider-btn {
-  flex-shrink: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   background: rgba(255,255,255,.12);
   border: none;
   color: #fff;
@@ -1240,6 +1234,8 @@ body.clp-edit-mode .clp-sbg-btn { display: inline-flex; }
   transition: background .2s;
   z-index: 2;
 }
+.gslider-prev { left: 8px; }
+.gslider-next { right: 8px; }
 .gslider-btn:hover { background: rgba(255,255,255,.28); }
 
 /* Lightbox */
@@ -1275,7 +1271,7 @@ body.clp-edit-mode .clp-sbg-btn { display: inline-flex; }
 .lightbox-next { right: 16px; }
 
 @media (max-width: 768px) {
-  .gallery-item { height: 200px; }
+  .gallery-item { width: 280px; height: 200px; }
   .gslider-btn { width: 36px; height: 36px; font-size: 28px; }
   .lightbox-prev, .lightbox-next { font-size: 32px; padding: 6px 12px; }
 }

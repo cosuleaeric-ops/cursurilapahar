@@ -233,54 +233,53 @@ if (contactForm) {
   });
 }
 
-// ── Gallery slider arrows (infinite/circular, smooth) ─────
+// ── Gallery slider (transform-based, circular, one item at a time) ────
 const gallerySlider = document.querySelector('.gallery-slider');
 if (gallerySlider) {
   const originals = Array.from(gallerySlider.children);
-  originals.forEach(el => {
-    const c = el.cloneNode(true);
+  const n = originals.length;
+
+  // Clone only last → prepend, first → append
+  // Layout: [cloneLast, orig0, orig1, ..., origN-1, cloneFirst]
+  const cloneLast  = originals[n - 1].cloneNode(true);
+  const cloneFirst = originals[0].cloneNode(true);
+  [cloneLast, cloneFirst].forEach(c => {
     c.classList.add('gallery-clone');
     c.setAttribute('aria-hidden', 'true');
-    gallerySlider.appendChild(c);
   });
-  originals.forEach(el => {
-    const c = el.cloneNode(true);
-    c.classList.add('gallery-clone');
-    c.setAttribute('aria-hidden', 'true');
-    gallerySlider.prepend(c);
-  });
+  gallerySlider.prepend(cloneLast);
+  gallerySlider.appendChild(cloneFirst);
 
-  // Cache ow once after DOM is built — reading scrollWidth every frame causes reflow
-  const ow = gallerySlider.scrollWidth / 3;
-  gallerySlider.scrollLeft = ow;
-
+  let idx = 1; // 1 = first real item
   let busy = false;
 
-  function resetIfNeeded() {
-    if (gallerySlider.scrollLeft >= ow * 2) gallerySlider.scrollLeft -= ow;
-    else if (gallerySlider.scrollLeft < ow)  gallerySlider.scrollLeft += ow;
+  const itemW = () => gallerySlider.querySelector('.gallery-item').offsetWidth + 10;
+
+  function jumpTo(i) {
+    gallerySlider.style.transition = 'none';
+    gallerySlider.style.transform = `translateX(${-i * itemW()}px)`;
+  }
+  function slideTo(i) {
+    gallerySlider.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1)';
+    gallerySlider.style.transform = `translateX(${-i * itemW()}px)`;
+  }
+
+  // After transition: if on a clone, silently jump to the real counterpart
+  gallerySlider.addEventListener('transitionend', () => {
+    if (idx === n + 1) { idx = 1; jumpTo(1); }
+    else if (idx === 0) { idx = n; jumpTo(n); }
     busy = false;
-  }
+  });
 
-  // scrollend fires when browser smooth scroll finishes — no polling needed
-  gallerySlider.addEventListener('scrollend', resetIfNeeded);
-  // Fallback for browsers without scrollend
-  if (!('onscrollend' in gallerySlider)) {
-    gallerySlider.addEventListener('scroll', () => {
-      clearTimeout(gallerySlider._scrollT);
-      gallerySlider._scrollT = setTimeout(resetIfNeeded, 120);
-    });
-  }
-
-  const step = () => gallerySlider.clientWidth * 0.75;
+  requestAnimationFrame(() => jumpTo(1));
 
   document.querySelector('.gslider-prev')?.addEventListener('click', () => {
     if (busy) return; busy = true;
-    gallerySlider.scrollBy({ left: -step(), behavior: 'smooth' });
+    slideTo(--idx);
   });
   document.querySelector('.gslider-next')?.addEventListener('click', () => {
     if (busy) return; busy = true;
-    gallerySlider.scrollBy({ left: step(), behavior: 'smooth' });
+    slideTo(++idx);
   });
 }
 
