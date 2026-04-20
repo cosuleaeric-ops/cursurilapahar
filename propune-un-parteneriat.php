@@ -11,7 +11,6 @@ $_defaults = [
     'nav_brand_text' => 'Cursuri la Pahar',
     'nav_links'      => [
         ['label' => 'Cursuri',          'url' => '/#cursuri'],
-        ['label' => 'Cum funcționează', 'url' => '/#cum-functioneaza'],
         ['label' => 'FAQ',              'url' => '/#faq'],
         ['label' => 'Colaborare',       'url' => '/#colaborare'],
         ['label' => 'Contact',          'url' => '/#contact'],
@@ -184,7 +183,6 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
             </div>
             <div class="footer-links">
                 <a href="/#cursuri">Cursuri</a>
-                <a href="/#cum-functioneaza">Cum funcționează</a>
                 <a href="/#faq">FAQ</a>
                 <a href="/#colaborare">Colaborare</a>
                 <a href="/#contact">Contact</a>

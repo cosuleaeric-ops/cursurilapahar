@@ -11,7 +11,6 @@ $_defaults = [
     'nav_brand_text' => 'Cursuri la Pahar',
     'nav_links'      => [
         ['label' => 'Cursuri',          'url' => '/#cursuri'],
-        ['label' => 'Cum funcționează', 'url' => '/#cum-functioneaza'],
         ['label' => 'FAQ',              'url' => '/#faq'],
         ['label' => 'Colaborare',       'url' => '/#colaborare'],
         ['label' => 'Contact',          'url' => '/#contact'],

@@ -29,7 +29,6 @@ function clp_default_settings(): array {
         'nav_brand_text'   => 'Cursuri la Pahar',
         'nav_links'        => [
             ['label' => 'Cursuri',            'url' => '/#cursuri'],
-            ['label' => 'Cum funcționează',   'url' => '/#cum-functioneaza'],
             ['label' => 'FAQ',                'url' => '/#faq'],
             ['label' => 'Colaborare',         'url' => '/#colaborare'],
             ['label' => 'Contact',            'url' => '/#contact'],
@@ -355,26 +354,37 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
     </div>
 </section>
 
-<!-- ── CUM FUNCȚIONEAZĂ ────────────────────── -->
-<?php $step_icons = [
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>',
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>',
-]; ?>
-<?php $cum_bg = $settings['section_bgs']['cum-functioneaza'] ?? []; $cum_has_bg = !empty($cum_bg['image']); ?>
-<section class="section<?= $cum_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="cum-functioneaza" <?= clp_section_bg('cum-functioneaza', $settings) ?>>
+<!-- ── COLABORARE ─────────────────────────── -->
+<?php $col_bg = $settings['section_bgs']['colaborare'] ?? []; $col_has_bg = !empty($col_bg['image']); ?>
+<section class="section<?= $col_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="colaborare" <?= clp_section_bg('colaborare', $settings) ?>>
     <div class="container">
-        <h2 class="section-title" <?= clp_e('steps_title', $settings) ?>><?= htmlspecialchars($settings['steps_title'] ?? 'Cum funcționează') ?></h2>
-        <div class="steps-grid">
-            <?php foreach ($settings['steps'] as $i => $step): ?>
-            <div class="step">
-                <div class="step-number"><?= str_pad($i + 1, 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="step-icon"><?= $step_icons[$i] ?? $step_icons[0] ?></div>
-                <h3 <?= clp_e('step_'.$i.'_title', $settings) ?>><?= htmlspecialchars($step['title']) ?></h3>
-                <p <?= clp_e('step_'.$i.'_text', $settings) ?>><?= htmlspecialchars($step['text']) ?></p>
-            </div>
-            <?php endforeach; ?>
+        <h2 class="section-title" <?= clp_e('collab_title',$settings) ?>><?= htmlspecialchars($settings['collab_title']) ?></h2>
+        <p class="section-subtitle" <?= clp_e('collab_subtitle',$settings) ?>><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
+        <div class="collab-grid">
+            <a href="/sustine-un-curs" class="collab-card">
+                <div class="collab-card-img">
+                    <img src="/assets/images/uploads/sustine.webp" alt="Susține un curs" loading="lazy">
+                </div>
+                <h3>Susține un curs</h3>
+                <p>Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre.</p>
+                <span class="collab-link">Află mai multe →</span>
+            </a>
+            <a href="/gazduieste-un-curs" class="collab-card">
+                <div class="collab-card-img">
+                    <img src="/assets/images/uploads/gazduieste.webp" alt="Găzduiește un curs" loading="lazy">
+                </div>
+                <h3>Găzduiește un curs</h3>
+                <p>Ai o locație cu vibe fain? Transformă-o în spațiul unde se nasc conexiunile și ideile noi.</p>
+                <span class="collab-link">Află mai multe →</span>
+            </a>
+            <a href="/propune-un-parteneriat" class="collab-card">
+                <div class="collab-card-img">
+                    <img src="/assets/images/uploads/parteneriat.webp" alt="Propune un parteneriat" loading="lazy">
+                </div>
+                <h3>Propune un parteneriat</h3>
+                <p>Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună.</p>
+                <span class="collab-link">Află mai multe →</span>
+            </a>
         </div>
     </div>
 </section>
@@ -436,41 +446,6 @@ $gal_bg = $settings['section_bgs']['galerie'] ?? []; $gal_has_bg = !empty($gal_b
         <img src="" alt="" id="lightboxImg">
     </div>
 </div>
-
-<!-- ── COLABORARE ─────────────────────────── -->
-<?php $col_bg = $settings['section_bgs']['colaborare'] ?? []; $col_has_bg = !empty($col_bg['image']); ?>
-<section class="section<?= $col_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="colaborare" <?= clp_section_bg('colaborare', $settings) ?>>
-    <div class="container">
-        <h2 class="section-title" <?= clp_e('collab_title',$settings) ?>><?= htmlspecialchars($settings['collab_title']) ?></h2>
-        <p class="section-subtitle" <?= clp_e('collab_subtitle',$settings) ?>><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
-        <div class="collab-grid">
-            <a href="/sustine-un-curs" class="collab-card">
-                <div class="collab-card-img">
-                    <img src="/assets/images/uploads/sustine.webp" alt="Susține un curs" loading="lazy">
-                </div>
-                <h3>Susține un curs</h3>
-                <p>Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre.</p>
-                <span class="collab-link">Află mai multe →</span>
-            </a>
-            <a href="/gazduieste-un-curs" class="collab-card">
-                <div class="collab-card-img">
-                    <img src="/assets/images/uploads/gazduieste.webp" alt="Găzduiește un curs" loading="lazy">
-                </div>
-                <h3>Găzduiește un curs</h3>
-                <p>Ai o locație cu vibe fain? Transformă-o în spațiul unde se nasc conexiunile și ideile noi.</p>
-                <span class="collab-link">Află mai multe →</span>
-            </a>
-            <a href="/propune-un-parteneriat" class="collab-card">
-                <div class="collab-card-img">
-                    <img src="/assets/images/uploads/parteneriat.webp" alt="Propune un parteneriat" loading="lazy">
-                </div>
-                <h3>Propune un parteneriat</h3>
-                <p>Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună.</p>
-                <span class="collab-link">Află mai multe →</span>
-            </a>
-        </div>
-    </div>
-</section>
 
 <!-- ── CONTACT ────────────────────────────── -->
 <?php $contact_bg = $settings['section_bgs']['contact'] ?? []; $contact_has_bg = !empty($contact_bg['image']); ?>

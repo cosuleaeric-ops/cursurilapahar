@@ -137,7 +137,6 @@ function default_settings(): array {
         'nav_brand_text'    => 'Cursuri la Pahar',
         'nav_links'         => [
             ['label' => 'Cursuri',            'url' => '/#cursuri'],
-            ['label' => 'Cum funcționează',   'url' => '/#cum-functioneaza'],
             ['label' => 'FAQ',                'url' => '/#faq'],
             ['label' => 'Colaborare',         'url' => '/#colaborare'],
             ['label' => 'Contact',            'url' => '/#contact'],
@@ -189,7 +188,6 @@ function default_settings(): array {
         'section_bgs' => [
             'cursuri'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
             'newsletter'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-            'cum-functioneaza' => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
             'faq'              => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
             'colaborare'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
             'contact'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
@@ -882,7 +880,7 @@ if (is_authenticated() && ($action === 'save_inline_edit')) {
 
 // ── Section background edit ───────────────────────────────────────────────────
 if (is_authenticated() && ($action === 'save_section_bg')) {
-    $allowed_sections = ['cursuri','newsletter','cum-functioneaza','faq','colaborare','contact'];
+    $allowed_sections = ['cursuri','newsletter','faq','colaborare','contact'];
     $section = trim($_POST['section'] ?? '');
     header('Content-Type: application/json');
     if (in_array($section, $allowed_sections)) {
@@ -1837,29 +1835,6 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
                     <textarea id="s_contact_subtitle" name="contact_subtitle" rows="2" style="width:100%"><?= h($settings['contact_subtitle']) ?></textarea>
                 </div>
             </div>
-        </div>
-
-        <div class="tf-card">
-            <div class="tf-card-title">Cum funcționează – Pași</div>
-            <?php foreach ($settings['steps'] as $i => $step): $n = $i + 1; ?>
-            <div class="tf-step <?= $n === 1 ? '' : '' ?>">
-                <div class="tf-step-header" onclick="this.closest('.tf-step').classList.toggle('open')">
-                    <span class="tf-step-label">Pasul <?= $n ?></span>
-                    <span class="tf-step-preview"><?= h($step['title']) ?></span>
-                    <span class="tf-arrow" style="color:var(--text-muted);font-size:11px;transition:transform .2s">▼</span>
-                </div>
-                <div class="tf-step-body">
-                    <div class="form-group">
-                        <label>Titlu</label>
-                        <input type="text" name="step_title[]" value="<?= h($step['title']) ?>">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                        <label>Text</label>
-                        <textarea name="step_text[]" rows="2"><?= h($step['text']) ?></textarea>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
         </div>
 
         <div class="tf-card">

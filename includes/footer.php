@@ -8,7 +8,6 @@
             </div>
             <div class="footer-links">
                 <a href="/#cursuri">Cursuri</a>
-                <a href="/#cum-functioneaza">Cum funcționează</a>
                 <a href="/#faq">FAQ</a>
                 <a href="/#colaborare">Colaborare</a>
                 <a href="/#contact">Contact</a>

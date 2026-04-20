@@ -23,7 +23,6 @@ $s = [
     'nav_brand_text'    => 'Cursuri la Pahar',
     'nav_links'         => [
         ['label'=>'Cursuri','url'=>'/#cursuri'],
-        ['label'=>"Cum func\xC8\x9Bioneaz\xC4\x83",'url'=>'/#cum-functioneaza'],
         ['label'=>'FAQ','url'=>'/#faq'],
         ['label'=>'Colaborare','url'=>'/#colaborare'],
         ['label'=>'Contact','url'=>'/#contact'],
@@ -76,7 +75,6 @@ $s = [
     'section_bgs' => [
         'cursuri'          => ['image'=>'','blur'=>6,'overlay'=>0.72],
         'newsletter'       => ['image'=>'','blur'=>6,'overlay'=>0.72],
-        'cum-functioneaza' => ['image'=>'','blur'=>6,'overlay'=>0.72],
         'faq'              => ['image'=>'','blur'=>6,'overlay'=>0.72],
         'colaborare'       => ['image'=>'','blur'=>6,'overlay'=>0.72],
         'contact'          => ['image'=>'','blur'=>6,'overlay'=>0.72],
