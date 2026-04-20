@@ -43,7 +43,7 @@ foreach ($body as $key => $value) {
     $label = ucfirst(str_replace('_', ' ', $key));
     $value = is_array($value)
         ? implode(', ', array_map('strip_tags', $value))
-        : strip_tags((string)$value);
+        : strip_tags(str_replace(["\r\n", "\r", "\n"], ' ', (string)$value));
     $lines[] = "$label: $value";
 }
 $body_text = implode("\n", $lines) . "\n\n---\nData: " . date('Y-m-d H:i:s');

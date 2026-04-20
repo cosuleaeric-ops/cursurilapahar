@@ -2174,7 +2174,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-detail-row { display:flex; gap:10px; font-size:13px; line-height:1.6; }
 .msg-detail-row + .msg-detail-row { margin-top:4px; }
 .msg-detail-lbl { color:var(--text-muted); min-width:110px; flex-shrink:0; }
-.msg-detail-val { color:var(--text); }
+.msg-detail-val { color:var(--text); flex:1; min-width:0; overflow-wrap:break-word; }
 .msg-detail-actions { margin-top:12px; }
 .msg-empty { color:var(--text-muted); font-size:13px; padding:12px 0; }
 </style>
@@ -2202,9 +2202,18 @@ if (file_exists($log_file) && filesize($log_file)) {
         $body = trim(preg_replace('/^===.*===\n?/m', '', $block));
         $lines = array_values(array_filter(array_map('trim', explode("\n", $body))));
         $fields = [];
+        $last_key = null;
         foreach ($lines as $l) {
+            if ($l === '---') break;
             $sep = strpos($l, ':');
-            if ($sep !== false) $fields[trim(substr($l,0,$sep))] = trim(substr($l,$sep+1));
+            // Only treat as a new field if the key part is short (≤40 chars = real label, not sentence text)
+            if ($sep !== false && $sep <= 40) {
+                $key = trim(substr($l, 0, $sep));
+                $fields[$key] = trim(substr($l, $sep + 1));
+                $last_key = $key;
+            } elseif ($last_key !== null && $l !== '') {
+                $fields[$last_key] .= ' ' . $l;
+            }
         }
         $grouped[$type][] = ['date' => $date, 'fields' => $fields];
     }
