@@ -89,6 +89,9 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 }
 #clp-tb-italic { background: rgba(255,255,255,.08); color: #fff; font-style: italic; width: 32px; padding: 5px; }
 #clp-tb-italic.on { background: #2271b1; }
+.tb-dev-group { display: flex; gap: 2px; }
+.tb-dev { background: rgba(255,255,255,.08); color: #fff; padding: 4px 7px; font-size: 13px; }
+.tb-dev.active { background: #2271b1; }
 #clp-tb-save { background: #2271b1; color: #fff; }
 #clp-tb-save:hover { background: #135e96; }
 #clp-tb-ok  { color: #00a32a; display: none; font-size: 16px; }
@@ -193,7 +196,6 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
     <button class="bar-link" id="clp-fonts-btn" onclick="clpToggleFontPanel()">🔤 Fonturi</button>
     <button class="bar-link" id="clp-navbar-btn" onclick="clpToggleNavbarPanel()">🖊 Navbar</button>
     <button class="bar-link" id="clp-edit-btn" onclick="clpToggleEdit()">✏ Editează live</button>
-    <button class="bar-link" id="clp-tb-device" onclick="clpToggleDevice()" style="color:#f0c040 !important;font-weight:600 !important;">🖥️ Desktop</button>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
     <?php endif; ?>
@@ -386,6 +388,12 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
 <div id="clp-toolbar">
     <span id="clp-tb-el">—</span>
     <div class="tb-sep"></div>
+    <div class="tb-dev-group">
+        <button class="tb-dev active" data-dev="desktop" onclick="clpSetDevice('desktop')" title="Desktop">🖥</button>
+        <button class="tb-dev" data-dev="tablet" onclick="clpSetDevice('tablet')" title="Tabletă">💻</button>
+        <button class="tb-dev" data-dev="mobile" onclick="clpSetDevice('mobile')" title="Telefon">📱</button>
+    </div>
+    <div class="tb-sep"></div>
     <label>Greutate</label>
     <select id="clp-tb-fw" onchange="clpApply()">
         <option value="">—</option>
@@ -487,16 +495,8 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         // Store original content for change detection
         selEl._clpOrig = clpGetValue(selEl, selKey);
 
-        // Read current computed styles
-        const cs = window.getComputedStyle(selEl);
-        const fw = Math.round(parseInt(cs.fontWeight)/100)*100;
-        const fwSel = document.getElementById('clp-tb-fw');
-        fwSel.value = fw || '';
-
-        document.getElementById('clp-tb-italic').classList.toggle('on', cs.fontStyle === 'italic');
-        document.getElementById('clp-tb-fs').value = Math.round(parseFloat(cs.fontSize)) || '';
-        document.getElementById('clp-tb-ff').value = '';
         document.getElementById('clp-tb-el').textContent = selKey;
+        loadToolbarStyles();
         document.getElementById('clp-toolbar').classList.add('visible');
         document.getElementById('clp-tb-ok').style.display = 'none';
     }
@@ -554,66 +554,39 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         clpApply();
     };
 
-    // Device styles from PHP for preview injection
+    // Per-device saved styles (for tablet/mobile overrides)
     const _tabletStyles = <?= json_encode($_clp_s['element_styles_tablet'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
     const _mobileStyles = <?= json_encode($_clp_s['element_styles_mobile'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
-    const _devices = ['desktop', 'tablet', 'mobile'];
-    const _deviceLabels = { desktop: '\u{1F5A5}\uFE0F Desktop', tablet: '\u{1F4BB} Tabletă', mobile: '\u{1F4F1} Telefon' };
-    const _deviceTitles = { desktop: 'Editezi: Desktop', tablet: 'Editezi: Tabletă', mobile: 'Editezi: Telefon' };
-    const _deviceWidths = { desktop: null, tablet: '768px', mobile: '390px' };
 
-    window.clpToggleDevice = function() {
-        // Clear inline styles from all editable elements
-        document.querySelectorAll('[data-edit-key]').forEach(el => {
-            el.style.fontWeight = '';
-            el.style.fontStyle = '';
-            el.style.fontFamily = '';
-            el.style.fontSize = '';
-        });
-
-        const idx = (_devices.indexOf(editDevice) + 1) % 3;
-        editDevice = _devices[idx];
-        const btn = document.getElementById('clp-tb-device');
-        btn.textContent = _deviceLabels[editDevice];
-        btn.title = _deviceTitles[editDevice];
-
-        if (selEl) clpOnFocus({ currentTarget: selEl });
-
-        // Remove existing preview styles
-        let styleEl = document.getElementById('clp-device-preview');
-        if (styleEl) styleEl.remove();
-
-        if (editDevice !== 'desktop') {
-            const width = editDevice === 'tablet' ? 768 : 390;
-
-            // Inject device styles + resize window
-            styleEl = document.createElement('style');
-            styleEl.id = 'clp-device-preview';
-            let css = '/* ' + editDevice + ' preview */\n';
-
-            // Apply saved device styles
-            const styles = editDevice === 'tablet' ? _tabletStyles : _mobileStyles;
-            if (editDevice === 'mobile') {
-                for (const [key, style] of Object.entries(_tabletStyles)) {
-                    css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
-                }
-            }
-            for (const [key, style] of Object.entries(styles)) {
-                css += '[data-edit-key="' + key + '"] { ' + style + ' !important; }\n';
-            }
-            // Constrain page width to simulate device
-            css += 'body:not(#x) { max-width: ' + width + 'px !important; margin-left: auto !important; margin-right: auto !important; }\n';
-            css += '.navbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
-            css += '.navbar-links { display: none !important; }\n';
-            css += '.navbar-hamburger { display: flex !important; }\n';
-            css += '.navbar-drawer { max-width: ' + width + 'px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) !important; }\n';
-            css += '.navbar-drawer.open { transform: translateX(-50%) !important; }\n';
-            css += '#clp-adminbar { max-width: ' + width + 'px !important; left: 50% !important; transform: translateX(-50%) !important; }\n';
-
-            styleEl.textContent = css;
-            document.head.appendChild(styleEl);
-
+    function loadToolbarStyles() {
+        if (!selEl || !selKey) return;
+        let fw = '', it = false, ff = '', fs = '';
+        const store = editDevice === 'tablet' ? _tabletStyles : editDevice === 'mobile' ? _mobileStyles : null;
+        if (store && store[selKey]) {
+            store[selKey].split(';').filter(Boolean).forEach(p => {
+                const [k, ...rest] = p.split(':');
+                const v = rest.join(':').trim();
+                if (k.trim() === 'font-weight') fw = v;
+                else if (k.trim() === 'font-style') it = v === 'italic';
+                else if (k.trim() === 'font-family') ff = v;
+                else if (k.trim() === 'font-size') fs = parseInt(v) || '';
+            });
+        } else if (editDevice === 'desktop') {
+            const cs = window.getComputedStyle(selEl);
+            fw = Math.round(parseInt(cs.fontWeight) / 100) * 100 || '';
+            it = cs.fontStyle === 'italic';
+            fs = Math.round(parseFloat(cs.fontSize)) || '';
         }
+        document.getElementById('clp-tb-fw').value = fw;
+        document.getElementById('clp-tb-italic').classList.toggle('on', it);
+        document.getElementById('clp-tb-ff').value = ff;
+        document.getElementById('clp-tb-fs').value = fs;
+    }
+
+    window.clpSetDevice = function(dev) {
+        editDevice = dev;
+        document.querySelectorAll('.tb-dev').forEach(b => b.classList.toggle('active', b.dataset.dev === dev));
+        loadToolbarStyles();
     };
 
     window.clpSave = function() {
