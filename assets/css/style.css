@@ -1274,4 +1274,6 @@ body.clp-edit-mode .clp-sbg-btn { display: inline-flex; }
   .gallery-item { width: 280px; height: 200px; }
   .gslider-btn { width: 36px; height: 36px; font-size: 28px; }
   .lightbox-prev, .lightbox-next { font-size: 32px; padding: 6px 12px; }
+  .newsletter-fields { justify-content: center; }
+  .newsletter-fields button { width: 100%; }
 }
