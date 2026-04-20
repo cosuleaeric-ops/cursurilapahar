@@ -233,15 +233,22 @@ if (contactForm) {
   });
 }
 
-// ── Gallery slider arrows ────────────────
+// ── Gallery slider arrows (circular) ─────
 const gallerySlider = document.querySelector('.gallery-slider');
 if (gallerySlider) {
-  const scrollBy = () => gallerySlider.clientWidth * 0.75;
+  const step = () => gallerySlider.clientWidth * 0.75;
   document.querySelector('.gslider-prev')?.addEventListener('click', () => {
-    gallerySlider.scrollBy({ left: -scrollBy(), behavior: 'smooth' });
+    if (gallerySlider.scrollLeft <= 0) {
+      gallerySlider.scrollLeft = gallerySlider.scrollWidth;
+    }
+    gallerySlider.scrollBy({ left: -step(), behavior: 'smooth' });
   });
   document.querySelector('.gslider-next')?.addEventListener('click', () => {
-    gallerySlider.scrollBy({ left: scrollBy(), behavior: 'smooth' });
+    const maxScroll = gallerySlider.scrollWidth - gallerySlider.clientWidth;
+    if (gallerySlider.scrollLeft >= maxScroll - 1) {
+      gallerySlider.scrollLeft = 0;
+    }
+    gallerySlider.scrollBy({ left: step(), behavior: 'smooth' });
   });
 }
 
