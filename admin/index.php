@@ -2235,7 +2235,7 @@ if (file_exists($log_file) && filesize($log_file)) {
 <?php else: ?>
     <div class="msg-cards">
     <?php foreach ($grouped[$key] as $i => $msg):
-        $name    = $msg['fields']['Nume'] ?? $msg['fields']['nume'] ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—';
+        $name    = $msg['fields']['Nume'] ?? $msg['fields']['nume'] ?? $msg['fields']['Name'] ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—';
         $email   = $msg['fields']['Email'] ?? $msg['fields']['email'] ?? '';
         $preview = '';
         foreach ($msg['fields'] as $k => $v) { if (strtolower($k) !== 'email' && strtolower($k) !== 'nume') { $preview = $v; break; } }
