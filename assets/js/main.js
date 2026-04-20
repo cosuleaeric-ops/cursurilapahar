@@ -236,7 +236,6 @@ if (contactForm) {
 // ── Gallery slider arrows (infinite/circular, smooth) ─────
 const gallerySlider = document.querySelector('.gallery-slider');
 if (gallerySlider) {
-  // Clone items: [clones_end][originals][clones_start] for seamless wrap
   const originals = Array.from(gallerySlider.children);
   originals.forEach(el => {
     const c = el.cloneNode(true);
@@ -251,43 +250,38 @@ if (gallerySlider) {
     gallerySlider.prepend(c);
   });
 
-  // Disable browser smooth scroll so rAF animation has full control
-  gallerySlider.style.scrollBehavior = 'auto';
+  // Cache ow once after DOM is built — reading scrollWidth every frame causes reflow
+  const ow = gallerySlider.scrollWidth / 3;
+  gallerySlider.scrollLeft = ow;
 
-  // Start at the original section (middle third)
-  const origWidth = () => gallerySlider.scrollWidth / 3;
-  gallerySlider.scrollLeft = origWidth();
-
-  const step = () => gallerySlider.clientWidth * 0.75;
   let busy = false;
 
-  function ease(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
-
-  function animateScroll(delta) {
-    if (busy) return;
-    busy = true;
-    const start = gallerySlider.scrollLeft;
-    const duration = 380;
-    const t0 = performance.now();
-
-    function frame(now) {
-      const t = Math.min((now - t0) / duration, 1);
-      gallerySlider.scrollLeft = start + delta * ease(t);
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        // Silent reset: jump back to equivalent position in originals
-        const ow = origWidth();
-        if (gallerySlider.scrollLeft >= ow * 2) gallerySlider.scrollLeft -= ow;
-        else if (gallerySlider.scrollLeft < ow)  gallerySlider.scrollLeft += ow;
-        busy = false;
-      }
-    }
-    requestAnimationFrame(frame);
+  function resetIfNeeded() {
+    if (gallerySlider.scrollLeft >= ow * 2) gallerySlider.scrollLeft -= ow;
+    else if (gallerySlider.scrollLeft < ow)  gallerySlider.scrollLeft += ow;
+    busy = false;
   }
 
-  document.querySelector('.gslider-prev')?.addEventListener('click', () => animateScroll(-step()));
-  document.querySelector('.gslider-next')?.addEventListener('click', () => animateScroll(step()));
+  // scrollend fires when browser smooth scroll finishes — no polling needed
+  gallerySlider.addEventListener('scrollend', resetIfNeeded);
+  // Fallback for browsers without scrollend
+  if (!('onscrollend' in gallerySlider)) {
+    gallerySlider.addEventListener('scroll', () => {
+      clearTimeout(gallerySlider._scrollT);
+      gallerySlider._scrollT = setTimeout(resetIfNeeded, 120);
+    });
+  }
+
+  const step = () => gallerySlider.clientWidth * 0.75;
+
+  document.querySelector('.gslider-prev')?.addEventListener('click', () => {
+    if (busy) return; busy = true;
+    gallerySlider.scrollBy({ left: -step(), behavior: 'smooth' });
+  });
+  document.querySelector('.gslider-next')?.addEventListener('click', () => {
+    if (busy) return; busy = true;
+    gallerySlider.scrollBy({ left: step(), behavior: 'smooth' });
+  });
 }
 
 // ── Gallery lightbox ────────────────────
