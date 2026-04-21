@@ -35,6 +35,7 @@ $data = json_decode(stream_get_contents($fp), true) ?: [];
 $found = false;
 foreach ($data as &$course) {
     if (($course['id'] ?? '') === $id) {
+        if (!($course['active'] ?? true)) break;
         if ($action === 'remove') {
             $course['likes'] = max(0, ($course['likes'] ?? 0) - 1);
         } else {

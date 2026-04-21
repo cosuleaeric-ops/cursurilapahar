@@ -34,6 +34,7 @@ $vote_courses_file = __DIR__ . '/data/vote_courses.json';
 $vote_courses = file_exists($vote_courses_file)
     ? (json_decode(file_get_contents($vote_courses_file), true) ?: [])
     : [];
+$vote_courses = array_values(array_filter($vote_courses, fn($c) => $c['active'] ?? true));
 usort($vote_courses, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
 ?>
 <!DOCTYPE html>

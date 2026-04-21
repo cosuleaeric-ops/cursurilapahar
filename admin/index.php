@@ -681,8 +681,9 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $found = false;
             foreach ($courses as &$c) {
                 if (($c['id'] ?? '') === $id) {
-                    // Preserve existing likes when editing
-                    $entry['likes'] = $c['likes'] ?? 0;
+                    // Preserve existing likes and active state when editing
+                    $entry['likes']  = $c['likes']  ?? 0;
+                    $entry['active'] = $c['active']  ?? true;
                     $c = $entry;
                     $found = true;
                     break;
@@ -703,6 +704,22 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $id      = $_POST['id'] ?? '';
         $courses = load_vote_courses();
         $courses = array_filter($courses, fn($c) => ($c['id'] ?? '') !== $id);
+        save_vote_courses($courses);
+        header('Location: /admin/?tab=vot');
+        exit;
+    }
+
+    // ── Toggle vote course active/inactive
+    if ($action === 'toggle_vote_course') {
+        $id      = $_POST['id'] ?? '';
+        $courses = load_vote_courses();
+        foreach ($courses as &$c) {
+            if (($c['id'] ?? '') === $id) {
+                $c['active'] = !($c['active'] ?? true);
+                break;
+            }
+        }
+        unset($c);
         save_vote_courses($courses);
         header('Location: /admin/?tab=vot');
         exit;
@@ -2355,15 +2372,19 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
                 <th style="width:48px">Emoji</th>
                 <th>Nume</th>
                 <th style="width:90px">Voturi</th>
-                <th style="width:160px">Acțiuni</th>
+                <th style="width:210px">Acțiuni</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($vote_courses as $vc): ?>
-            <tr>
+            <?php $is_active = $vc['active'] ?? true; ?>
+            <tr style="<?= $is_active ? '' : 'opacity:0.45' ?>">
                 <td style="font-size:1.4rem;text-align:center"><?= h($vc['emoji'] ?? '📚') ?></td>
                 <td style="font-weight:600">
                     <?= h($vc['name'] ?? '') ?>
+                    <?php if (!$is_active): ?>
+                    <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:6px">(dezactivat)</span>
+                    <?php endif; ?>
                     <?php if (!empty($vc['description'])): ?>
                     <div style="font-size:12px;color:var(--text-muted);font-weight:400;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px"><?= h(mb_substr($vc['description'], 0, 80)) ?>…</div>
                     <?php endif; ?>
@@ -2374,6 +2395,11 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
                 <td>
                     <div class="row-actions">
                         <a href="/admin/?tab=vot&edit=<?= h($vc['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
+                        <form method="post" action="/admin/?tab=vot" style="display:inline">
+                            <input type="hidden" name="action" value="toggle_vote_course">
+                            <input type="hidden" name="id" value="<?= h($vc['id'] ?? '') ?>">
+                            <button type="submit" class="btn btn-sm <?= $is_active ? 'btn-secondary' : 'btn-primary' ?>"><?= $is_active ? 'Dezactivează' : 'Activează' ?></button>
+                        </form>
                         <form method="post" action="/admin/?tab=vot" onsubmit="return confirm('Ștergi această idee de curs?')" style="display:inline">
                             <input type="hidden" name="action" value="delete_vote_course">
                             <input type="hidden" name="id" value="<?= h($vc['id'] ?? '') ?>">
