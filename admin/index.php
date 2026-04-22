@@ -2689,7 +2689,7 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
 <div class="card">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>Speakeri (<?= count($speakers) ?>)</span>
-        <button type="button" onclick="document.getElementById('sp-form').style.display=document.getElementById('sp-form').style.display==='none'?'block':'none'" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
+        <button type="button" onclick="document.getElementById('sp-modal').style.display='flex'" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
     </div>
     <?php if (empty($speakers)): ?>
     <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
@@ -2747,8 +2747,9 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
     <?php endif; ?>
 </div>
 
-<div id="sp-form" style="<?= $edit_sp ? '' : 'display:none' ?>">
-<div class="card crm-form">
+<div id="sp-modal" style="display:<?= $edit_sp ? 'flex' : 'none' ?>;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
+<div class="card crm-form" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
+    <button type="button" onclick="document.getElementById('sp-modal').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1">×</button>
     <div class="card-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
     <form method="post" action="/admin/?tab=speakeri">
         <input type="hidden" name="action" value="save_speaker">
