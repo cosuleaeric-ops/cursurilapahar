@@ -226,6 +226,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
     }
 
+    if ($action === 'dedup_viza_subtips') {
+        $db->exec("DELETE FROM viza_subtips WHERE course_id={$id} AND id NOT IN (
+            SELECT MIN(id) FROM viza_subtips WHERE course_id={$id} GROUP BY seria, de_la, pana_la
+        )");
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
     if ($action === 'add_viza_subtip') {
         $seria    = trim($_POST['seria']      ?? '');
         $tarif    = (float)str_replace(',', '.', $_POST['tarif']    ?? '0');
@@ -550,7 +557,23 @@ include __DIR__ . '/../layout_header.php';
           </div>
         </div>
 
-        <?php if (!empty($vizaSubtips)): ?>
+        <?php if (!empty($vizaSubtips)):
+          // Check for duplicates (same seria+de_la+pana_la)
+          $seen_keys = [];
+          $has_dupes = false;
+          foreach ($vizaSubtips as $s) {
+              $k = $s['seria'].'_'.$s['de_la'].'_'.$s['pana_la'];
+              if (isset($seen_keys[$k])) { $has_dupes = true; break; }
+              $seen_keys[$k] = true;
+          }
+        ?>
+          <?php if ($has_dupes): ?>
+          <form method="post" style="margin-bottom:8px">
+            <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+            <input type="hidden" name="action" value="dedup_viza_subtips">
+            <button type="submit" style="font-size:12px;color:#c0392b;background:none;border:1px solid #c0392b;border-radius:6px;padding:3px 10px;cursor:pointer">Sterge duplicate</button>
+          </form>
+          <?php endif; ?>
           <table class="subtip-table">
             <thead>
               <tr>
