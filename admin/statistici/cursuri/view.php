@@ -24,6 +24,16 @@ if (($_GET['action'] ?? '') === 'read_debug') {
     exit;
 }
 
+if (($_GET['action'] ?? '') === 'serve_viza') {
+    $row = $db->querySingle("SELECT filename FROM course_files WHERE course_id={$id} AND file_type='viza' LIMIT 1", true);
+    if ($row && file_exists($uploadDir . $row['filename'])) {
+        header('Content-Type: application/pdf');
+        header('Content-Length: ' . filesize($uploadDir . $row['filename']));
+        readfile($uploadDir . $row['filename']);
+    }
+    exit;
+}
+
 // ── Handle POST ───────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf_token'] ?? '')) { http_response_code(400); exit('CSRF invalid'); }
@@ -502,7 +512,7 @@ include __DIR__ . '/../layout_header.php';
                 <input type="hidden" name="action" value="reprocess_viza">
                 <input type="hidden" name="viza_text" id="reprocessVizaText">
                 <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
-                  data-pdf-url="/admin/statistici/uploads/<?php echo h($vf['filename']); ?>"
+                  data-pdf-url="/admin/statistici/cursuri/view.php?id=<?php echo $id; ?>&action=serve_viza"
                   title="Extrage date din PDF">&#8635; Extrage date</button>
               </form>
             <?php endif; ?>
@@ -672,8 +682,10 @@ async function handleVizaUpload(input) {
     label.textContent = '⏳ Extrag date din PDF…';
     try {
         const text = await extractPdfText(file);
+        if (!text.trim()) throw new Error('Textul extras este gol');
         document.getElementById('vizaTextInput').value = text;
     } catch(e) {
+        alert('Eroare extragere PDF: ' + e.message);
         document.getElementById('vizaTextInput').value = '';
     }
     document.getElementById('vizaUploadForm').submit();
