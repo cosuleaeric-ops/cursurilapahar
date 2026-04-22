@@ -381,6 +381,13 @@ include __DIR__ . '/../layout_header.php';
     .raport-preview { display:none; margin-top:12px; background:var(--green-light); border:1px solid #b2d9c0; border-radius:var(--radius-sm); padding:12px 16px; font-size:14px; }
     .raport-submit { display:none; margin-top:10px; }
     @media(max-width:600px) { .raport-grid { grid-template-columns:1fr; } }
+    .actions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+    .actions-grid .section-card { margin-bottom:0; display:flex; flex-direction:column; }
+    .actions-grid .section-card > form,
+    .actions-grid .section-card .raport-form { flex:1; display:flex; flex-direction:column; }
+    .actions-grid .raport-drop,
+    .actions-grid .update-drop,
+    .actions-grid .upload-zone { flex:1; }
 </style>
 <?php include __DIR__ . '/../layout_nav.php'; ?>
 
@@ -490,7 +497,7 @@ include __DIR__ . '/../layout_header.php';
     <?php endif; ?>
 
     <!-- Actiuni: Raport / Participanti / Viza -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+    <div class="actions-grid">
 
       <!-- Raport eveniment -->
       <div class="section-card" style="margin-bottom:0">
