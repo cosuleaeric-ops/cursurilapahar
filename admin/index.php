@@ -2559,6 +2559,7 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
 <style>
 .crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
 .crm-table td { vertical-align:top; }
+.crm-form { max-width:580px !important; }
 .crm-form .form-group { margin-bottom:8px !important; }
 .crm-form .form-group label { margin-bottom:3px !important; }
 .crm-form input[type="text"],.crm-form input[type="email"],.crm-form input[type="url"],.crm-form select { padding:5px 9px !important; font-size:12px !important; }
