@@ -1298,11 +1298,12 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/" class="<?= $tab === 'dashboard' ? 'active' : '' ?>">
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
+            <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
             <a href="/admin/?tab=setari" class="<?= $tab === 'setari' ? 'active' : '' ?>">
-                <span class="nav-icon">⚙️</span> Texte
+                <span class="nav-icon">✏️</span> Texte
             </a>
             <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
                 <span class="nav-icon">🎨</span> Aspect
@@ -1310,6 +1311,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' || $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📄</span> Pagini
             </a>
+            <div class="sidebar-section">Comunitate</div>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
                 <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
             </a>
@@ -1326,9 +1328,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
+            <div class="sidebar-section">Date</div>
             <a href="/admin/statistici/">
                 <span class="nav-icon">📊</span> Statistici
             </a>
+            <div class="sidebar-section">Sistem</div>
             <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">
                 <span class="nav-icon">⚙️</span> Setări
             </a>
