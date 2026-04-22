@@ -29,13 +29,13 @@ function likes_label(int $n): string {
 $vote_title    = $settings['vote_title']    ?? 'Votează cursurile';
 $vote_subtitle = $settings['vote_subtitle'] ?? 'Apasă ❤️ pe temele care te interesează. Cele mai apreciate au șanse mai mari să devină cursuri viitoare.';
 
-// Load vote courses and sort by likes descending
+// Load vote courses and shuffle order
 $vote_courses_file = __DIR__ . '/data/vote_courses.json';
 $vote_courses = file_exists($vote_courses_file)
     ? (json_decode(file_get_contents($vote_courses_file), true) ?: [])
     : [];
 $vote_courses = array_values(array_filter($vote_courses, fn($c) => $c['active'] ?? true));
-usort($vote_courses, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
+shuffle($vote_courses);
 ?>
 <!DOCTYPE html>
 <html lang="ro">
