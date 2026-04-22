@@ -1207,8 +1207,8 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .login-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 40px; width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,.08); }
 .login-box h1 { font-size: 20px; font-weight: 700; margin-bottom: 24px; text-align: center; color: #111827; }
-.login-box input[type="password"] { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 12px; background: #fff; color: #1f2937; transition: border-color .15s, box-shadow .15s; }
-.login-box input[type="password"]:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
+.login-box input[type="password"], .login-box input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 12px; background: #fff; color: #1f2937; transition: border-color .15s, box-shadow .15s; box-sizing: border-box; }
+.login-box input[type="password"]:focus, .login-box input[type="text"]:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
 .login-error { color: #dc2626; font-size: 13px; margin-bottom: 10px; }
 
 /* ── Top bar ── */
