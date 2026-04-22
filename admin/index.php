@@ -1540,13 +1540,20 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 <?php
 $_ql = $settings['quick_links'] ?? [];
 if (!empty($_ql)): ?>
-<div class="ql-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px">
-<?php foreach ($_ql as $_ql_item): ?>
-    <a href="<?= h($_ql_item['url'] ?? '#') ?>" target="_blank" rel="noopener" class="ql-btn" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.background='#1e1e1e'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-        <span style="font-size:17px"><?= h($_ql_item['icon'] ?? '🔗') ?></span>
-        <?= h($_ql_item['label'] ?? '') ?>
-    </a>
-<?php endforeach; ?>
+<style>
+.ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s; }
+.ql-btn:hover { border-color:var(--accent);background:#1e1e1e; }
+</style>
+<div class="dash-section" style="margin-bottom:24px">
+    <div class="dash-section-title"><span>Linkuri utile</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+    <?php foreach ($_ql as $_ql_item): ?>
+        <a href="<?= h($_ql_item['url'] ?? '#') ?>" target="_blank" rel="noopener" class="ql-btn">
+            <span style="font-size:17px"><?= h($_ql_item['icon'] ?? '🔗') ?></span>
+            <?= h($_ql_item['label'] ?? '') ?>
+        </a>
+    <?php endforeach; ?>
+    </div>
 </div>
 <?php endif; ?>
 
