@@ -767,7 +767,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'name'    => trim($_POST['sp_name']    ?? ''),
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
-            'courses' => trim($_POST['sp_courses'] ?? ''),
+            'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
             'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
@@ -2619,7 +2619,29 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Cursuri susținute</label>
-                <input type="text" name="sp_courses" value="<?= h($edit_sp['courses'] ?? '') ?>">
+                <?php
+                $sp_courses_arr = $edit_sp['courses'] ?? [];
+                if (is_string($sp_courses_arr)) $sp_courses_arr = $sp_courses_arr ? [$sp_courses_arr] : [];
+                if (empty($sp_courses_arr)) $sp_courses_arr = [''];
+                ?>
+                <div id="sp-courses-list" style="display:flex;flex-direction:column;gap:6px">
+                <?php foreach ($sp_courses_arr as $sc_val): ?>
+                    <div style="display:flex;gap:6px;align-items:center">
+                        <input type="text" name="sp_courses[]" value="<?= h($sc_val) ?>" style="flex:1">
+                        <button type="button" onclick="this.closest('div').remove()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:0 8px;height:34px;cursor:pointer;color:#666;font-size:16px;line-height:1">×</button>
+                    </div>
+                <?php endforeach; ?>
+                </div>
+                <button type="button" onclick="spAddCourse()" style="margin-top:6px;background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;color:#444">+ Adaugă curs</button>
+                <script>
+                function spAddCourse() {
+                    var wrap = document.createElement('div');
+                    wrap.style.cssText = 'display:flex;gap:6px;align-items:center';
+                    wrap.innerHTML = '<input type="text" name="sp_courses[]" style="flex:1"><button type="button" onclick="this.closest(\'div\').remove()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:0 8px;height:34px;cursor:pointer;color:#666;font-size:16px;line-height:1">×</button>';
+                    document.getElementById('sp-courses-list').appendChild(wrap);
+                    wrap.querySelector('input').focus();
+                }
+                </script>
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Status</label>
@@ -2673,7 +2695,15 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
                 <?php if (!empty($sp['email'])): ?><div><?= h($sp['email']) ?></div><?php endif; ?>
                 <?php if (!empty($sp['phone'])): ?><div><?= h($sp['phone']) ?></div><?php endif; ?>
             </td>
-            <td style="font-size:13px;color:var(--text-muted)"><?= h($sp['courses'] ?? '') ?></td>
+            <td>
+                <?php
+                $sp_c = $sp['courses'] ?? [];
+                if (is_string($sp_c)) $sp_c = $sp_c ? [$sp_c] : [];
+                foreach (array_filter($sp_c) as $sp_cv):
+                ?>
+                <span style="display:inline-block;background:#e5e7eb;color:#374151;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:500;margin:2px 2px 2px 0"><?= h($sp_cv) ?></span>
+                <?php endforeach; ?>
+            </td>
             <td>
                 <?php $sc = $sp_status_colors[$sp['status'] ?? 'MID'] ?? '#6b7280'; ?>
                 <span class="crm-status-badge" style="background:<?= $sc ?>"><?= h($sp['status'] ?? 'MID') ?></span>
