@@ -2559,88 +2559,21 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
 <style>
 .crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
 .crm-table td { vertical-align:top; }
+.crm-form .form-group { margin-bottom:8px !important; }
+.crm-form .form-group label { margin-bottom:3px !important; }
+.crm-form input[type="text"],.crm-form input[type="email"],.crm-form input[type="url"],.crm-form select { padding:5px 9px !important; font-size:12px !important; }
+.crm-form textarea { padding:5px 9px !important; font-size:12px !important; min-height:60px !important; }
 </style>
-
-<h1 class="wp-page-title">Speakeri</h1>
 
 <?php if (isset($_GET['saved'])): ?>
 <div class="notice notice-success">Speakerul a fost salvat.</div>
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
-    <form method="post" action="/admin/?tab=speakeri">
-        <input type="hidden" name="action" value="save_speaker">
-        <input type="hidden" name="speaker_id" value="<?= h($edit_sp['id'] ?? '') ?>">
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-            <div class="form-group" style="margin-bottom:0">
-                <label>Nume <span style="color:var(--danger)">*</span></label>
-                <input type="text" name="sp_name" value="<?= h($edit_sp['name'] ?? '') ?>" required>
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Email</label>
-                <input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>">
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Telefon</label>
-                <input type="text" name="sp_phone" value="<?= h($edit_sp['phone'] ?? '') ?>">
-            </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px">
-            <div class="form-group" style="margin-bottom:0">
-                <label>Cursuri susținute</label>
-                <?php
-                $sp_courses_arr = $edit_sp['courses'] ?? [];
-                if (is_string($sp_courses_arr)) $sp_courses_arr = $sp_courses_arr ? [$sp_courses_arr] : [];
-                if (empty($sp_courses_arr)) $sp_courses_arr = [''];
-                ?>
-                <div id="sp-courses-list" style="display:flex;flex-direction:column;gap:6px">
-                <?php foreach ($sp_courses_arr as $sc_val): ?>
-                    <div style="display:flex;gap:6px;align-items:center">
-                        <input type="text" name="sp_courses[]" value="<?= h($sc_val) ?>" style="flex:1">
-                        <button type="button" onclick="this.closest('div').remove()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:0 8px;height:34px;cursor:pointer;color:#666;font-size:16px;line-height:1">×</button>
-                    </div>
-                <?php endforeach; ?>
-                </div>
-                <button type="button" onclick="spAddCourse()" style="margin-top:6px;background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;color:#444">+ Adaugă curs</button>
-                <script>
-                function spAddCourse() {
-                    var wrap = document.createElement('div');
-                    wrap.style.cssText = 'display:flex;gap:6px;align-items:center';
-                    wrap.innerHTML = '<input type="text" name="sp_courses[]" style="flex:1"><button type="button" onclick="this.closest(\'div\').remove()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:0 8px;height:34px;cursor:pointer;color:#666;font-size:16px;line-height:1">×</button>';
-                    document.getElementById('sp-courses-list').appendChild(wrap);
-                    wrap.querySelector('input').focus();
-                }
-                </script>
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Status</label>
-                <select name="sp_status">
-                    <?php foreach (['RECURENT','MID','NOPE'] as $s): ?>
-                    <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group" style="margin-top:12px">
-            <label>Note</label>
-            <textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea>
-        </div>
-
-        <div style="display:flex;gap:8px">
-            <button type="submit" class="btn btn-primary"><?= $edit_sp ? 'Salvează modificările' : 'Adaugă speakerul' ?></button>
-            <?php if ($edit_sp): ?>
-            <a href="/admin/?tab=speakeri" class="btn btn-secondary">Anulează</a>
-            <?php endif; ?>
-        </div>
-    </form>
-</div>
-
-<div class="card">
-    <div class="card-title">Speakeri (<?= count($speakers) ?>)</div>
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Speakeri (<?= count($speakers) ?>)</span>
+        <button type="button" onclick="document.getElementById('sp-form').style.display=document.getElementById('sp-form').style.display==='none'?'block':'none'" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
+    </div>
     <?php if (empty($speakers)): ?>
     <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
     <?php else: ?>
@@ -2697,6 +2630,61 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
     <?php endif; ?>
 </div>
 
+<div id="sp-form" style="<?= $edit_sp ? '' : 'display:none' ?>">
+<div class="card crm-form">
+    <div class="card-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
+    <form method="post" action="/admin/?tab=speakeri">
+        <input type="hidden" name="action" value="save_speaker">
+        <input type="hidden" name="speaker_id" value="<?= h($edit_sp['id'] ?? '') ?>">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div class="form-group"><label>Nume *</label><input type="text" name="sp_name" value="<?= h($edit_sp['name'] ?? '') ?>" required></div>
+            <div class="form-group"><label>Email</label><input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>"></div>
+            <div class="form-group"><label>Telefon</label><input type="text" name="sp_phone" value="<?= h($edit_sp['phone'] ?? '') ?>"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px">
+            <div class="form-group">
+                <label>Cursuri susținute</label>
+                <?php
+                $sp_courses_arr = $edit_sp['courses'] ?? [];
+                if (is_string($sp_courses_arr)) $sp_courses_arr = $sp_courses_arr ? [$sp_courses_arr] : [];
+                if (empty($sp_courses_arr)) $sp_courses_arr = [''];
+                ?>
+                <div id="sp-courses-list" style="display:flex;flex-direction:column;gap:4px">
+                <?php foreach ($sp_courses_arr as $sc_val): ?>
+                    <div style="display:flex;gap:4px;align-items:center">
+                        <input type="text" name="sp_courses[]" value="<?= h($sc_val) ?>" style="flex:1;padding:5px 9px;font-size:12px">
+                        <button type="button" onclick="this.closest('div').remove()" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0 7px;height:28px;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1">×</button>
+                    </div>
+                <?php endforeach; ?>
+                </div>
+                <button type="button" onclick="spAddCourse()" style="margin-top:4px;background:none;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:#6b7280">+ curs</button>
+                <script>
+                function spAddCourse() {
+                    var wrap = document.createElement('div');
+                    wrap.style.cssText = 'display:flex;gap:4px;align-items:center';
+                    wrap.innerHTML = '<input type="text" name="sp_courses[]" style="flex:1;padding:5px 9px;font-size:12px;border:1px solid #e5e7eb;border-radius:8px"><button type="button" onclick="this.closest(\'div\').remove()" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0 7px;height:28px;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1">×</button>';
+                    document.getElementById('sp-courses-list').appendChild(wrap);
+                    wrap.querySelector('input').focus();
+                }
+                </script>
+            </div>
+            <div class="form-group"><label>Status</label>
+                <select name="sp_status">
+                    <?php foreach (['RECURENT','MID','NOPE'] as $s): ?>
+                    <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="form-group"><label>Note</label><textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea></div>
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-sm"><?= $edit_sp ? 'Salvează' : 'Adaugă speakerul' ?></button>
+            <a href="/admin/?tab=speakeri" class="btn btn-secondary btn-sm">Anulează</a>
+        </div>
+    </form>
+</div>
+</div>
+
 <?php /* ======================================================= TAB: LOCATII */ ?>
 <?php elseif ($tab === 'locatii'): ?>
 
@@ -2711,56 +2699,15 @@ if ($edit_loc_id) {
 }
 ?>
 
-<h1 class="wp-page-title">Locații</h1>
-
 <?php if (isset($_GET['saved'])): ?>
 <div class="notice notice-success">Locația a fost salvată.</div>
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-title"><?= $edit_loc ? 'Editează locație' : 'Adaugă locație' ?></div>
-    <form method="post" action="/admin/?tab=locatii">
-        <input type="hidden" name="action" value="save_location">
-        <input type="hidden" name="location_id" value="<?= h($edit_loc['id'] ?? '') ?>">
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div class="form-group" style="margin-bottom:0">
-                <label>Nume locație <span style="color:var(--danger)">*</span></label>
-                <input type="text" name="loc_name" value="<?= h($edit_loc['name'] ?? '') ?>" required>
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Telefon</label>
-                <input type="text" name="loc_phone" value="<?= h($edit_loc['phone'] ?? '') ?>">
-            </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-            <div class="form-group" style="margin-bottom:0">
-                <label>Link Google Maps</label>
-                <input type="url" name="loc_maps" value="<?= h($edit_loc['maps_link'] ?? '') ?>">
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Zile disponibile</label>
-                <input type="text" name="loc_days" value="<?= h($edit_loc['days'] ?? '') ?>">
-            </div>
-        </div>
-
-        <div class="form-group" style="margin-top:12px">
-            <label>Note</label>
-            <textarea name="loc_notes" rows="2"><?= h($edit_loc['notes'] ?? '') ?></textarea>
-        </div>
-
-        <div style="display:flex;gap:8px">
-            <button type="submit" class="btn btn-primary"><?= $edit_loc ? 'Salvează modificările' : 'Adaugă locația' ?></button>
-            <?php if ($edit_loc): ?>
-            <a href="/admin/?tab=locatii" class="btn btn-secondary">Anulează</a>
-            <?php endif; ?>
-        </div>
-    </form>
-</div>
-
-<div class="card">
-    <div class="card-title">Locații (<?= count($locations) ?>)</div>
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Locații (<?= count($locations) ?>)</span>
+        <button type="button" onclick="document.getElementById('loc-form').style.display=document.getElementById('loc-form').style.display==='none'?'block':'none'" class="btn btn-sm btn-primary">+ Adaugă locație</button>
+    </div>
     <?php if (empty($locations)): ?>
     <p style="color:var(--text-muted)">Nu există locații adăugate încă.</p>
     <?php else: ?>
@@ -2807,6 +2754,27 @@ if ($edit_loc_id) {
     <?php endif; ?>
 </div>
 
+<div id="loc-form" style="<?= $edit_loc ? '' : 'display:none' ?>">
+<div class="card crm-form">
+    <div class="card-title"><?= $edit_loc ? 'Editează locație' : 'Adaugă locație' ?></div>
+    <form method="post" action="/admin/?tab=locatii">
+        <input type="hidden" name="action" value="save_location">
+        <input type="hidden" name="location_id" value="<?= h($edit_loc['id'] ?? '') ?>">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+            <div class="form-group"><label>Nume *</label><input type="text" name="loc_name" value="<?= h($edit_loc['name'] ?? '') ?>" required></div>
+            <div class="form-group"><label>Telefon</label><input type="text" name="loc_phone" value="<?= h($edit_loc['phone'] ?? '') ?>"></div>
+            <div class="form-group"><label>Link Google Maps</label><input type="url" name="loc_maps" value="<?= h($edit_loc['maps_link'] ?? '') ?>"></div>
+            <div class="form-group"><label>Zile disponibile</label><input type="text" name="loc_days" value="<?= h($edit_loc['days'] ?? '') ?>"></div>
+        </div>
+        <div class="form-group"><label>Note</label><textarea name="loc_notes" rows="2"><?= h($edit_loc['notes'] ?? '') ?></textarea></div>
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-sm"><?= $edit_loc ? 'Salvează' : 'Adaugă locația' ?></button>
+            <a href="/admin/?tab=locatii" class="btn btn-secondary btn-sm">Anulează</a>
+        </div>
+    </form>
+</div>
+</div>
+
 <?php /* ======================================================= TAB: COLABORARI */ ?>
 <?php elseif ($tab === 'colaborari'): ?>
 
@@ -2821,56 +2789,15 @@ if ($edit_col_id) {
 }
 ?>
 
-<h1 class="wp-page-title">Colaborări</h1>
-
 <?php if (isset($_GET['saved'])): ?>
 <div class="notice notice-success">Colaborarea a fost salvată.</div>
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-title"><?= $edit_col ? 'Editează colaborare' : 'Adaugă colaborare' ?></div>
-    <form method="post" action="/admin/?tab=colaborari">
-        <input type="hidden" name="action" value="save_collaboration">
-        <input type="hidden" name="collab_id" value="<?= h($edit_col['id'] ?? '') ?>">
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div class="form-group" style="margin-bottom:0">
-                <label>Nume brand / organizație <span style="color:var(--danger)">*</span></label>
-                <input type="text" name="col_name" value="<?= h($edit_col['name'] ?? '') ?>" required>
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Persoana de contact</label>
-                <input type="text" name="col_contact" value="<?= h($edit_col['contact'] ?? '') ?>">
-            </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-            <div class="form-group" style="margin-bottom:0">
-                <label>Email / Telefon</label>
-                <input type="text" name="col_contact_info" value="<?= h($edit_col['contact_info'] ?? '') ?>">
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-                <label>Status</label>
-                <input type="text" name="col_status" value="<?= h($edit_col['status'] ?? '') ?>">
-            </div>
-        </div>
-
-        <div class="form-group" style="margin-top:12px">
-            <label>Note</label>
-            <textarea name="col_notes" rows="2"><?= h($edit_col['notes'] ?? '') ?></textarea>
-        </div>
-
-        <div style="display:flex;gap:8px">
-            <button type="submit" class="btn btn-primary"><?= $edit_col ? 'Salvează modificările' : 'Adaugă colaborarea' ?></button>
-            <?php if ($edit_col): ?>
-            <a href="/admin/?tab=colaborari" class="btn btn-secondary">Anulează</a>
-            <?php endif; ?>
-        </div>
-    </form>
-</div>
-
-<div class="card">
-    <div class="card-title">Colaborări (<?= count($collabs) ?>)</div>
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Colaborări (<?= count($collabs) ?>)</span>
+        <button type="button" onclick="document.getElementById('col-form').style.display=document.getElementById('col-form').style.display==='none'?'block':'none'" class="btn btn-sm btn-primary">+ Adaugă colaborare</button>
+    </div>
     <?php if (empty($collabs)): ?>
     <p style="color:var(--text-muted)">Nu există colaborări adăugate încă.</p>
     <?php else: ?>
@@ -2911,6 +2838,27 @@ if ($edit_col_id) {
         </tbody>
     </table>
     <?php endif; ?>
+</div>
+
+<div id="col-form" style="<?= $edit_col ? '' : 'display:none' ?>">
+<div class="card crm-form">
+    <div class="card-title"><?= $edit_col ? 'Editează colaborare' : 'Adaugă colaborare' ?></div>
+    <form method="post" action="/admin/?tab=colaborari">
+        <input type="hidden" name="action" value="save_collaboration">
+        <input type="hidden" name="collab_id" value="<?= h($edit_col['id'] ?? '') ?>">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+            <div class="form-group"><label>Nume brand / org. *</label><input type="text" name="col_name" value="<?= h($edit_col['name'] ?? '') ?>" required></div>
+            <div class="form-group"><label>Persoana de contact</label><input type="text" name="col_contact" value="<?= h($edit_col['contact'] ?? '') ?>"></div>
+            <div class="form-group"><label>Email / Telefon</label><input type="text" name="col_contact_info" value="<?= h($edit_col['contact_info'] ?? '') ?>"></div>
+            <div class="form-group"><label>Status</label><input type="text" name="col_status" value="<?= h($edit_col['status'] ?? '') ?>"></div>
+        </div>
+        <div class="form-group"><label>Note</label><textarea name="col_notes" rows="2"><?= h($edit_col['notes'] ?? '') ?></textarea></div>
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-sm"><?= $edit_col ? 'Salvează' : 'Adaugă colaborarea' ?></button>
+            <a href="/admin/?tab=colaborari" class="btn btn-secondary btn-sm">Anulează</a>
+        </div>
+    </form>
+</div>
 </div>
 
 <?php /* Securitate tab redirects to config */ ?>
