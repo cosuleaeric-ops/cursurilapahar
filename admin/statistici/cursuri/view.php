@@ -381,7 +381,7 @@ include __DIR__ . '/../layout_header.php';
     .raport-preview { display:none; margin-top:12px; background:var(--green-light); border:1px solid #b2d9c0; border-radius:var(--radius-sm); padding:12px 16px; font-size:14px; }
     .raport-submit { display:none; margin-top:10px; }
     @media(max-width:600px) { .raport-grid { grid-template-columns:1fr; } }
-    .actions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+    .actions-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
     .actions-grid .section-card { margin-bottom:0; display:flex; flex-direction:column; }
     .actions-grid .section-card > form,
     .actions-grid .section-card .raport-form { flex:1; display:flex; flex-direction:column; }
@@ -478,9 +478,9 @@ include __DIR__ . '/../layout_header.php';
     <?php endif; ?>
 
     <!-- Lista participanți -->
-    <?php if (!empty($dist['name_counts'])): ?>
     <div class="section-card">
-      <h3>Participanti (<?php echo count($dist['name_counts']); ?> comenzi)</h3>
+      <h3>Participanti<?php if (!empty($dist['name_counts'])): ?> (<?php echo count($dist['name_counts']); ?> comenzi)<?php endif; ?></h3>
+      <?php if (!empty($dist['name_counts'])): ?>
       <ul class="participants-list">
         <?php
           $sorted = $dist['name_counts'];
@@ -493,8 +493,28 @@ include __DIR__ . '/../layout_header.php';
           </li>
         <?php endforeach; ?>
       </ul>
+      <?php else: ?>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Niciun participant inregistrat.</p>
+      <?php endif; ?>
+      <form method="post" id="updateForm" style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+        <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+        <input type="hidden" name="action" value="update_participants">
+        <input type="hidden" name="participants_json" id="updateParticipantsJson">
+        <div class="update-drop" id="updateDrop" style="padding:10px 16px">
+          <input type="file" id="updateFileInput" accept=".xlsx,.xls,.csv">
+          <p style="font-size:12px">Actualizeaza lista &mdash; trage sau apasa pentru XLSX / CSV</p>
+        </div>
+        <div class="update-col-picker" id="updateColPicker">
+          <label>Selecteaza coloana cu nume participanti</label>
+          <select id="updateColSelect"></select>
+          <button type="button" class="btn btn-ghost" id="btnUpdateApplyCol" style="margin-top:8px;width:100%;justify-content:center">Aplica</button>
+        </div>
+        <div class="update-preview" id="updatePreview"></div>
+        <div class="update-submit" id="updateSubmit">
+          <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px">Inlocuieste lista</button>
+        </div>
+      </form>
     </div>
-    <?php endif; ?>
 
     <!-- Actiuni: Raport / Participanti / Viza -->
     <div class="actions-grid">
@@ -503,29 +523,6 @@ include __DIR__ . '/../layout_header.php';
       <div class="section-card" style="margin-bottom:0">
         <h3>Raport eveniment</h3>
         <?php include __DIR__ . '/../raport_upload_form.inc.php'; ?>
-      </div>
-
-      <!-- Actualizeaza participanti -->
-      <div class="section-card" style="margin-bottom:0">
-        <h3>Actualizeaza participanti</h3>
-        <form method="post" id="updateForm">
-          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
-          <input type="hidden" name="action" value="update_participants">
-          <input type="hidden" name="participants_json" id="updateParticipantsJson">
-          <div class="update-drop" id="updateDrop">
-            <input type="file" id="updateFileInput" accept=".xlsx,.xls,.csv">
-            <p>Trage sau apasa pentru a incarca XLSX / CSV</p>
-          </div>
-          <div class="update-col-picker" id="updateColPicker">
-            <label>Selecteaza coloana cu nume participanti</label>
-            <select id="updateColSelect"></select>
-            <button type="button" class="btn btn-ghost" id="btnUpdateApplyCol" style="margin-top:8px;width:100%;justify-content:center">Aplica</button>
-          </div>
-          <div class="update-preview" id="updatePreview"></div>
-          <div class="update-submit" id="updateSubmit">
-            <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px">Inlocuieste lista</button>
-          </div>
-        </form>
       </div>
 
       <!-- Viza bilete -->
