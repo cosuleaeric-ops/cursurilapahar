@@ -1541,8 +1541,8 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 $_ql = $settings['quick_links'] ?? [];
 if (!empty($_ql)): ?>
 <style>
-.ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s; }
-.ql-btn:hover { border-color:var(--accent);background:#1e1e1e; }
+.ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:#fff;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
+.ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
 </style>
 <div class="dash-section" style="margin-bottom:24px">
     <div class="dash-section-title"><span>Linkuri utile</span></div>
