@@ -1360,7 +1360,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
         <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
         <a href="/" class="wp-header-site-link">🌐 Vezi site</a>
     </div>
-    <span style="font-size:12px;color:#a0aec0"><?= h(clp_current_user()['username'] ?? '') ?> <span style="opacity:.5">(<?= h(clp_current_user()['role'] ?? '') ?>)</span></span>
+    <span style="font-size:12px;color:#a0aec0"><?= h(ucfirst(clp_current_user()['username'] ?? '')) ?></span>
     <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
