@@ -14,6 +14,7 @@ define('COLLABORATIONS_FILE', dirname(__DIR__) . '/data/collaborations.json');
 define('UPLOADS_DIR',         dirname(__DIR__) . '/assets/images/uploads');
 define('UPLOADS_URL',         '/assets/images/uploads');
 define('PUBLIC_HTML',         dirname(__DIR__));
+define('USERS_FILE',          dirname(__DIR__) . '/data/users.json');
 
 // ── Auth secret — stored in settings.json, never in code ─────────────────────
 function get_auth_secret(): string {
@@ -26,18 +27,47 @@ function get_auth_secret(): string {
     return $s['auth_secret'] ?? '';
 }
 
-// ── Cookie-based auth ─────────────────────────────────────────────────────────
-function is_authenticated(): bool {
-    $secret = get_auth_secret();
-    if (!$secret) return false;
-    $cookie   = $_COOKIE['clp_auth'] ?? '';
-    if (!$cookie) return false;
-    $expected = hash_hmac('sha256', 'clp_admin_ok', $secret);
-    return hash_equals($expected, $cookie);
+// ── Users ─────────────────────────────────────────────────────────────────────
+function load_users(): array {
+    if (!file_exists(USERS_FILE)) return [];
+    return json_decode(file_get_contents(USERS_FILE), true) ?: [];
 }
-function set_auth_cookie(): void {
-    $token = hash_hmac('sha256', 'clp_admin_ok', get_auth_secret());
-    setcookie('clp_auth', $token, [
+function save_users(array $users): void {
+    file_put_contents(USERS_FILE, json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+function find_user(string $username): ?array {
+    foreach (load_users() as $u) {
+        if (($u['username'] ?? '') === $username) return $u;
+    }
+    return null;
+}
+
+// ── Cookie-based auth ─────────────────────────────────────────────────────────
+function clp_current_user(): ?array { // renamed from get_current_user to avoid PHP builtin conflict
+    $secret = get_auth_secret();
+    if (!$secret) return null;
+    $cookie = $_COOKIE['clp_auth'] ?? '';
+    if (!$cookie || !str_contains($cookie, ':')) return null;
+    [$uname, $token] = explode(':', $cookie, 2);
+    $expected = hash_hmac('sha256', 'clp_user:' . $uname, $secret);
+    if (!hash_equals($expected, $token)) return null;
+    return find_user($uname);
+}
+function is_authenticated(): bool {
+    return clp_current_user() !== null;
+}
+function is_owner(): bool {
+    return (clp_current_user()['role'] ?? '') === 'owner';
+}
+function can_access_tab(string $tab): bool {
+    $user = clp_current_user();
+    if (!$user) return false;
+    if (($user['role'] ?? '') === 'owner') return true;
+    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'speakeri', 'locatii', 'colaborari']);
+}
+function set_auth_cookie(string $username): void {
+    $token = hash_hmac('sha256', 'clp_user:' . $username, get_auth_secret());
+    setcookie('clp_auth', $username . ':' . $token, [
         'expires'  => time() + 86400 * 30,
         'path'     => '/',
         'httponly' => true,
@@ -46,14 +76,6 @@ function set_auth_cookie(): void {
 }
 function clear_auth_cookie(): void {
     setcookie('clp_auth', '', ['expires' => time() - 3600, 'path' => '/']);
-}
-
-function get_active_password(): string {
-    if (file_exists(SETTINGS_FILE)) {
-        $s = json_decode(file_get_contents(SETTINGS_FILE), true) ?: [];
-        if (!empty($s['admin_password'])) return $s['admin_password'];
-    }
-    return ADMIN_PASSWORD;
 }
 
 // Ensure secrets exist in settings (generate on first run)
@@ -72,24 +94,23 @@ function ensure_secrets(): void {
 }
 ensure_secrets();
 
-if (isset($_POST['login_password'])) {
-    $stored = get_active_password();
-    // Support both legacy plaintext and bcrypt hashed passwords
-    $ok = (str_starts_with($stored, '$2y$') || str_starts_with($stored, '$2b$'))
-        ? password_verify($_POST['login_password'], $stored)
-        : ($_POST['login_password'] === $stored);
-    // Auto-upgrade plaintext to hash on successful login
-    if ($ok && !str_starts_with($stored, '$2y$') && !str_starts_with($stored, '$2b$')) {
-        $settings = load_settings();
-        $settings['admin_password'] = password_hash($_POST['login_password'], PASSWORD_DEFAULT);
-        save_settings($settings);
+if (isset($_POST['login_username'])) {
+    $uname = trim($_POST['login_username'] ?? '');
+    $pass  = $_POST['login_password'] ?? '';
+    $user  = find_user($uname);
+    $ok    = false;
+    if ($user) {
+        $stored = $user['password_hash'] ?? '';
+        $ok = (str_starts_with($stored, '$2y$') || str_starts_with($stored, '$2b$'))
+            ? password_verify($pass, $stored)
+            : ($pass === $stored);
     }
     if ($ok) {
-        set_auth_cookie();
+        set_auth_cookie($uname);
         header('Location: /admin/');
         exit;
     } else {
-        $login_error = 'Parolă incorectă.';
+        $login_error = 'Utilizator sau parolă incorecte.';
     }
 }
 if (isset($_GET['logout'])) {
@@ -224,6 +245,19 @@ function default_settings(): array {
             'faq'              => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
             'colaborare'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
             'contact'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
+        ],
+        'quick_links' => [
+            ['label' => 'Drive',               'url' => 'https://drive.google.com/drive/u/2/folders/1eXWzwb1KiDPTH1nNjl0wu3B0w0zqZKNV', 'icon' => '📁'],
+            ['label' => 'Foto-video',          'url' => 'https://drive.google.com/drive/u/3/folders/1ix1WBuvRAk7EfEJhdc_9qHU2D8MwjxNF', 'icon' => '📷'],
+            ['label' => 'Centralizator',       'url' => 'https://docs.google.com/spreadsheets/d/11Ch00q2d10JlW16nByLJE9LKXww77dEsSFOVYeTkr-c/edit?gid=548786879#gid=548786879', 'icon' => '📊'],
+            ['label' => 'Platforma ticketing', 'url' => 'https://admin.livetickets.ro/', 'icon' => '🎟️'],
+            ['label' => 'Tutorial LiveTickets','url' => 'https://payvent.notion.site/Organizer-Help-Center-b79f9086bbc9451087c7accdf6c9818e', 'icon' => '📖'],
+            ['label' => 'Newsletter',          'url' => 'https://app.kit.com/dashboard', 'icon' => '📧'],
+            ['label' => 'Afis IG',             'url' => 'https://www.canva.com/design/DAHBqjH01CA/r5YqP_oEent4GsU7aL1wZw/edit', 'icon' => '🖼️'],
+            ['label' => 'Afis 1:1',            'url' => 'https://www.canva.com/design/DAHCF25PYEg/LlXrH9lP-x4U-JYciu5ILw/edit', 'icon' => '📋'],
+            ['label' => 'Badge',               'url' => 'https://www.canva.com/design/DAHCdELFiuE/ZGLv9HI6NnX_8VFYvPUdVg/edit', 'icon' => '🏷️'],
+            ['label' => 'Invitatie',           'url' => 'https://www.canva.com/design/DAHAEaZYZHE/akhj1g2nUiwthNTGEyo0dQ/edit', 'icon' => '✉️'],
+            ['label' => 'Logo',                'url' => 'https://www.canva.com/design/DAG_I_HdOsQ/eAuL52PZe88j8KLMVSAaQw/edit', 'icon' => '🎨'],
         ],
     ];
 }
@@ -413,6 +447,26 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($faq_items)) $settings['faq_items'] = $faq_items;
         save_settings($settings);
         header('Location: /admin/?tab=setari&saved=1');
+        exit;
+    }
+
+    // ── Save quick links (Owner only)
+    if ($action === 'save_quick_links' && is_owner()) {
+        $settings = load_settings();
+        $labels = $_POST['ql_label'] ?? [];
+        $urls   = $_POST['ql_url']   ?? [];
+        $icons  = $_POST['ql_icon']  ?? [];
+        $links  = [];
+        for ($i = 0; $i < count($labels); $i++) {
+            $lbl = trim($labels[$i] ?? '');
+            $url = trim($urls[$i]   ?? '');
+            if ($lbl && $url) {
+                $links[] = ['label' => $lbl, 'url' => $url, 'icon' => trim($icons[$i] ?? '🔗')];
+            }
+        }
+        $settings['quick_links'] = $links;
+        save_settings($settings);
+        header('Location: /admin/?tab=config&saved=1');
         exit;
     }
 
@@ -667,14 +721,21 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Change admin password
+    // ── Change password (current user)
     if ($action === 'change_password') {
         $new     = trim($_POST['new_password']     ?? '');
         $confirm = trim($_POST['confirm_password'] ?? '');
-        if ($new && $new === $confirm && strlen($new) >= 6) {
-            $settings = load_settings();
-            $settings['admin_password'] = password_hash($new, PASSWORD_DEFAULT);
-            save_settings($settings);
+        $cu      = clp_current_user();
+        if ($new && $new === $confirm && strlen($new) >= 6 && $cu) {
+            $users = load_users();
+            foreach ($users as &$u) {
+                if ($u['username'] === $cu['username']) {
+                    $u['password_hash'] = password_hash($new, PASSWORD_DEFAULT);
+                    break;
+                }
+            }
+            unset($u);
+            save_users($users);
             header('Location: /admin/?tab=config&saved=1');
         } else {
             header('Location: /admin/?tab=config&error=1');
@@ -1066,6 +1127,7 @@ $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'dashboard';
 if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','speakeri','locatii','colaborari','securitate','config'])) $tab = 'dashboard';
+if (is_authenticated() && !can_access_tab($tab)) $tab = 'dashboard';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -1273,7 +1335,8 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
         <p class="login-error"><?= h($login_error) ?></p>
         <?php endif; ?>
         <form method="post">
-            <input type="password" name="login_password" placeholder="Parolă" autofocus>
+            <input type="text" name="login_username" autocomplete="username" autofocus style="margin-bottom:8px">
+            <input type="password" name="login_password" autocomplete="current-password">
             <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px">Intră</button>
         </form>
     </div>
@@ -1287,6 +1350,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
         <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
         <a href="/" class="wp-header-site-link">🌐 Vezi site</a>
     </div>
+    <span style="font-size:12px;color:#a0aec0"><?= h(clp_current_user()['username'] ?? '') ?> <span style="opacity:.5">(<?= h(clp_current_user()['role'] ?? '') ?>)</span></span>
     <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
@@ -1298,6 +1362,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/" class="<?= $tab === 'dashboard' ? 'active' : '' ?>">
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
+            <?php if (is_owner()): ?>
             <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
@@ -1311,6 +1376,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' || $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📄</span> Pagini
             </a>
+            <?php endif; ?>
             <div class="sidebar-section">Comunitate</div>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
                 <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
@@ -1328,6 +1394,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
+            <?php if (is_owner()): ?>
             <div class="sidebar-section">Date</div>
             <a href="/admin/statistici/">
                 <span class="nav-icon">📊</span> Statistici
@@ -1336,6 +1403,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">
                 <span class="nav-icon">⚙️</span> Setări
             </a>
+            <?php endif; ?>
         </nav>
     </aside>
 
@@ -1459,9 +1527,21 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 
 <h1 class="wp-page-title">Dashboard</h1>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<?php
+$_ql = $settings['quick_links'] ?? [];
+if (!empty($_ql)): ?>
+<div class="ql-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px">
+<?php foreach ($_ql as $_ql_item): ?>
+    <a href="<?= h($_ql_item['url'] ?? '#') ?>" target="_blank" rel="noopener" class="ql-btn" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.background='#1e1e1e'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+        <span style="font-size:17px"><?= h($_ql_item['icon'] ?? '🔗') ?></span>
+        <?= h($_ql_item['label'] ?? '') ?>
+    </a>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <style>
-.dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
 .dash-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
 .dash-card .dash-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
 .dash-card .dash-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
@@ -1499,24 +1579,6 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
         <div class="dash-value"><?= number_format($_dash_participants, 0, ',', '.') ?></div>
         <div class="dash-sub"><?= number_format($_dash_total_tickets, 0, ',', '.') ?> bilete total</div>
     </div>
-    <div class="dash-card accent-gold">
-        <div class="dash-label">Profit net <?= h($_dash_month_label) ?></div>
-        <div class="dash-value <?= $_dash_pnl_profit >= 0 ? 'positive' : 'negative' ?>"><?= $_dash_pnl_profit >= 0 ? '+' : '' ?><?= number_format($_dash_pnl_profit, 0, ',', '.') ?> lei</div>
-        <div class="dash-sub"><?= number_format($_dash_pnl_venituri, 0, ',', '.') ?> venituri / <?= number_format($_dash_pnl_cheltuieli, 0, ',', '.') ?> cheltuieli</div>
-    </div>
-    <div class="dash-card accent-red">
-        <div class="dash-label">Taxa DITL <?= date('Y') ?></div>
-        <div class="dash-value" style="color:var(--danger)"><?= number_format($_dash_ditl_year, 0, ',', '.') ?> lei</div>
-        <div class="dash-sub"><a href="/admin/statistici/cursuri/?tab=ditl" style="color:var(--accent);text-decoration:none">Rapoarte DITL &rarr;</a></div>
-    </div>
-</div>
-
-<!-- P&L chart full width -->
-<div class="dash-section">
-    <div class="dash-section-title"><span>Venituri vs Cheltuieli <?= date('Y') ?></span> <a href="/admin/statistici/pnl/">P&L complet &rarr;</a></div>
-    <div class="dash-chart-wrap">
-        <canvas id="dashPnlChart"></canvas>
-    </div>
 </div>
 
 <div class="dash-cols">
@@ -1524,7 +1586,7 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
     <div>
         <!-- Upcoming courses -->
         <div class="dash-section">
-            <div class="dash-section-title"><span>Urmatoarele cursuri</span> <a href="/admin/?tab=pagini&page=cursuri">Toate &rarr;</a></div>
+            <div class="dash-section-title"><span>Urmatoarele cursuri</span></div>
             <?php if (empty($_dash_upcoming)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Niciun curs programat.</p>
             <?php else: ?>
@@ -1541,7 +1603,7 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 
         <!-- Participant evolution -->
         <div class="dash-section">
-            <div class="dash-section-title"><span>Evolutie participanti</span> <a href="/admin/statistici/participanti/">Toti &rarr;</a></div>
+            <div class="dash-section-title"><span>Evolutie participanti</span></div>
             <?php if (empty($_dash_participant_months)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
             <?php else: ?>
@@ -1584,7 +1646,7 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 
         <!-- Top fideli -->
         <div class="dash-section">
-            <div class="dash-section-title"><span>Participanti fideli</span> <a href="/admin/statistici/participanti/">Toti &rarr;</a></div>
+            <div class="dash-section-title"><span>Participanti fideli</span></div>
             <?php if (empty($_dash_top_fideli)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Niciun participant recurent.</p>
             <?php else: ?>
@@ -1601,32 +1663,6 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
     </div>
 </div>
 
-<script>
-(function() {
-    const data = <?= json_encode($_dash_pnl_monthly) ?>;
-    const labels = <?= json_encode(array_map(fn($i) => $_ro_months_dash[$i], range(1, count($_dash_pnl_monthly)))) ?>;
-    if (!data.length) return;
-    new Chart(document.getElementById('dashPnlChart'), {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                { label: 'Venituri', data: data.map(d => d.v), backgroundColor: 'rgba(0,163,42,0.75)', borderRadius: 4, borderSkipped: false },
-                { label: 'Cheltuieli', data: data.map(d => d.c), backgroundColor: 'rgba(214,54,56,0.65)', borderRadius: 4, borderSkipped: false }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } },
-                tooltip: { callbacks: { label: ctx => ' ' + new Intl.NumberFormat('ro-RO',{minimumFractionDigits:0}).format(ctx.parsed.y) + ' lei' } } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: '#e0e0e0' }, ticks: { callback: v => new Intl.NumberFormat('ro-RO',{notation:'compact'}).format(v), font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { font: { size: 12 } } }
-            }
-        }
-    });
-})();
-</script>
 
 <?php /* ======================================================= TAB: CURSURI (acum sub Pagini) */ ?>
 <?php elseif ($tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri')): ?>
@@ -2975,6 +3011,42 @@ if ($edit_col_id) {
         <button type="submit" class="btn btn-danger">Regenerează webhook secret</button>
     </form>
 </div>
+
+<!-- Quick links editor (Owner only) -->
+<div class="card">
+    <div class="card-title">🔗 Linkuri rapide — Dashboard</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Aceste linkuri apar ca butoane în partea de sus a dashboard-ului.</p>
+    <form method="post" action="/admin/?tab=config" id="qlForm">
+        <input type="hidden" name="action" value="save_quick_links">
+        <div id="qlRows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        <?php foreach ($settings['quick_links'] ?? [] as $idx => $_ql): ?>
+            <div class="ql-row" style="display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center">
+                <input type="text" name="ql_icon[]" value="<?= h($_ql['icon'] ?? '🔗') ?>" style="text-align:center;font-size:18px">
+                <input type="text" name="ql_label[]" value="<?= h($_ql['label'] ?? '') ?>">
+                <input type="text" name="ql_url[]" value="<?= h($_ql['url'] ?? '') ?>">
+                <button type="button" onclick="this.closest('.ql-row').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>
+            </div>
+        <?php endforeach; ?>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" onclick="addQlRow()" class="btn btn-secondary btn-sm">+ Adaugă link</button>
+            <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addQlRow() {
+    const row = document.createElement('div');
+    row.className = 'ql-row';
+    row.style.cssText = 'display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center';
+    row.innerHTML = '<input type="text" name="ql_icon[]" value="🔗" style="text-align:center;font-size:18px">'
+        + '<input type="text" name="ql_label[]" value="">'
+        + '<input type="text" name="ql_url[]" value="">'
+        + '<button type="button" onclick="this.closest(\'.ql-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>';
+    document.getElementById('qlRows').appendChild(row);
+}
+</script>
 
 <?php endif; ?>
 

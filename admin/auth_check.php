@@ -9,6 +9,7 @@
 declare(strict_types=1);
 
 define('SETTINGS_FILE_AUTH', dirname(__DIR__) . '/data/settings.json');
+define('USERS_FILE_AUTH',    dirname(__DIR__) . '/data/users.json');
 
 function _auth_secret(): string {
     static $s = null;
@@ -20,13 +21,28 @@ function _auth_secret(): string {
     return $s['auth_secret'] ?? '';
 }
 
-function is_authenticated(): bool {
+function _auth_current_user(): ?array {
     $secret = _auth_secret();
-    if (!$secret) return false;
-    $cookie   = $_COOKIE['clp_auth'] ?? '';
-    if (!$cookie) return false;
-    $expected = hash_hmac('sha256', 'clp_admin_ok', $secret);
-    return hash_equals($expected, $cookie);
+    if (!$secret) return null;
+    $cookie = $_COOKIE['clp_auth'] ?? '';
+    if (!$cookie || !str_contains($cookie, ':')) return null;
+    [$uname, $token] = explode(':', $cookie, 2);
+    $expected = hash_hmac('sha256', 'clp_user:' . $uname, $secret);
+    if (!hash_equals($expected, $token)) return null;
+    if (!file_exists(USERS_FILE_AUTH)) return null;
+    $users = json_decode(file_get_contents(USERS_FILE_AUTH), true) ?: [];
+    foreach ($users as $u) {
+        if (($u['username'] ?? '') === $uname) return $u;
+    }
+    return null;
+}
+
+function is_authenticated(): bool {
+    return _auth_current_user() !== null;
+}
+
+function is_owner_auth(): bool {
+    return (_auth_current_user()['role'] ?? '') === 'owner';
 }
 
 /**

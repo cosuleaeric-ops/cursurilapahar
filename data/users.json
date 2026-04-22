@@ -1,0 +1,12 @@
+[
+    {
+        "username": "eric6",
+        "password_hash": "$2y$12$2dWGrc.k7sizuCBC18huu.XgqNkCgfVZ0DCaDS1kZQOFIDzgfLRPC",
+        "role": "owner"
+    },
+    {
+        "username": "andy",
+        "password_hash": "$2y$12$uxs/.33puwE3AmeCbilyve6t33qF3JXeaiObwDSiADFATmxQYzBvq",
+        "role": "city_manager"
+    }
+]
