@@ -5,12 +5,15 @@ if (file_exists(dirname(__DIR__) . '/private/secrets.php')) {
     require dirname(__DIR__) . '/private/secrets.php';
 }
 if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', '');
-define('COURSES_FILE',      dirname(__DIR__) . '/data/courses.json');
-define('VOTE_COURSES_FILE', dirname(__DIR__) . '/data/vote_courses.json');
-define('SETTINGS_FILE',     dirname(__DIR__) . '/data/settings.json');
-define('UPLOADS_DIR',       dirname(__DIR__) . '/assets/images/uploads');
-define('UPLOADS_URL',       '/assets/images/uploads');
-define('PUBLIC_HTML',       dirname(__DIR__));
+define('COURSES_FILE',        dirname(__DIR__) . '/data/courses.json');
+define('VOTE_COURSES_FILE',   dirname(__DIR__) . '/data/vote_courses.json');
+define('SETTINGS_FILE',       dirname(__DIR__) . '/data/settings.json');
+define('SPEAKERS_FILE',       dirname(__DIR__) . '/data/speakers.json');
+define('LOCATIONS_FILE',      dirname(__DIR__) . '/data/locations.json');
+define('COLLABORATIONS_FILE', dirname(__DIR__) . '/data/collaborations.json');
+define('UPLOADS_DIR',         dirname(__DIR__) . '/assets/images/uploads');
+define('UPLOADS_URL',         '/assets/images/uploads');
+define('PUBLIC_HTML',         dirname(__DIR__));
 
 // ── Auth secret — stored in settings.json, never in code ─────────────────────
 function get_auth_secret(): string {
@@ -116,6 +119,36 @@ function save_vote_courses(array $courses): void {
     $dir = dirname(VOTE_COURSES_FILE);
     if (!is_dir($dir)) mkdir($dir, 0755, true);
     file_put_contents(VOTE_COURSES_FILE, json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
+function load_speakers(): array {
+    if (!file_exists(SPEAKERS_FILE)) return [];
+    return json_decode(file_get_contents(SPEAKERS_FILE), true) ?: [];
+}
+function save_speakers(array $items): void {
+    $dir = dirname(SPEAKERS_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(SPEAKERS_FILE, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
+function load_locations(): array {
+    if (!file_exists(LOCATIONS_FILE)) return [];
+    return json_decode(file_get_contents(LOCATIONS_FILE), true) ?: [];
+}
+function save_locations(array $items): void {
+    $dir = dirname(LOCATIONS_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(LOCATIONS_FILE, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
+function load_collaborations(): array {
+    if (!file_exists(COLLABORATIONS_FILE)) return [];
+    return json_decode(file_get_contents(COLLABORATIONS_FILE), true) ?: [];
+}
+function save_collaborations(array $items): void {
+    $dir = dirname(COLLABORATIONS_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(COLLABORATIONS_FILE, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 function default_settings(): array {
@@ -725,6 +758,118 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Save speaker
+    if ($action === 'save_speaker') {
+        $id    = trim($_POST['speaker_id'] ?? '');
+        $items = load_speakers();
+        $entry = [
+            'id'      => $id ?: uniqid('sp', true),
+            'name'    => trim($_POST['sp_name']    ?? ''),
+            'email'   => trim($_POST['sp_email']   ?? ''),
+            'phone'   => trim($_POST['sp_phone']   ?? ''),
+            'courses' => trim($_POST['sp_courses'] ?? ''),
+            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE']) ? $_POST['sp_status'] : 'MID',
+            'notes'   => trim($_POST['sp_notes']   ?? ''),
+        ];
+        if ($id) {
+            $found = false;
+            foreach ($items as &$it) {
+                if (($it['id'] ?? '') === $id) { $it = $entry; $found = true; break; }
+            }
+            unset($it);
+            if (!$found) $items[] = $entry;
+        } else {
+            $items[] = $entry;
+        }
+        save_speakers($items);
+        header('Location: /admin/?tab=speakeri&saved=1');
+        exit;
+    }
+
+    // ── Delete speaker
+    if ($action === 'delete_speaker') {
+        $id    = $_POST['id'] ?? '';
+        $items = load_speakers();
+        $items = array_filter($items, fn($it) => ($it['id'] ?? '') !== $id);
+        save_speakers($items);
+        header('Location: /admin/?tab=speakeri');
+        exit;
+    }
+
+    // ── Save location
+    if ($action === 'save_location') {
+        $id    = trim($_POST['location_id'] ?? '');
+        $items = load_locations();
+        $entry = [
+            'id'        => $id ?: uniqid('loc', true),
+            'name'      => trim($_POST['loc_name']  ?? ''),
+            'phone'     => trim($_POST['loc_phone'] ?? ''),
+            'maps_link' => trim($_POST['loc_maps']  ?? ''),
+            'days'      => trim($_POST['loc_days']  ?? ''),
+            'notes'     => trim($_POST['loc_notes'] ?? ''),
+        ];
+        if ($id) {
+            $found = false;
+            foreach ($items as &$it) {
+                if (($it['id'] ?? '') === $id) { $it = $entry; $found = true; break; }
+            }
+            unset($it);
+            if (!$found) $items[] = $entry;
+        } else {
+            $items[] = $entry;
+        }
+        save_locations($items);
+        header('Location: /admin/?tab=locatii&saved=1');
+        exit;
+    }
+
+    // ── Delete location
+    if ($action === 'delete_location') {
+        $id    = $_POST['id'] ?? '';
+        $items = load_locations();
+        $items = array_filter($items, fn($it) => ($it['id'] ?? '') !== $id);
+        save_locations($items);
+        header('Location: /admin/?tab=locatii');
+        exit;
+    }
+
+    // ── Save collaboration
+    if ($action === 'save_collaboration') {
+        $id    = trim($_POST['collab_id'] ?? '');
+        $items = load_collaborations();
+        $entry = [
+            'id'      => $id ?: uniqid('col', true),
+            'name'    => trim($_POST['col_name']    ?? ''),
+            'contact' => trim($_POST['col_contact'] ?? ''),
+            'contact_info' => trim($_POST['col_contact_info'] ?? ''),
+            'status'  => trim($_POST['col_status']  ?? ''),
+            'notes'   => trim($_POST['col_notes']   ?? ''),
+        ];
+        if ($id) {
+            $found = false;
+            foreach ($items as &$it) {
+                if (($it['id'] ?? '') === $id) { $it = $entry; $found = true; break; }
+            }
+            unset($it);
+            if (!$found) $items[] = $entry;
+        } else {
+            $items[] = $entry;
+        }
+        save_collaborations($items);
+        header('Location: /admin/?tab=colaborari&saved=1');
+        exit;
+    }
+
+    // ── Delete collaboration
+    if ($action === 'delete_collaboration') {
+        $id    = $_POST['id'] ?? '';
+        $items = load_collaborations();
+        $items = array_filter($items, fn($it) => ($it['id'] ?? '') !== $id);
+        save_collaborations($items);
+        header('Location: /admin/?tab=colaborari');
+        exit;
+    }
+
     // ── Delete message
     if ($action === 'delete_message') {
         $idx  = (int)($_POST['msg_index'] ?? -1);
@@ -920,7 +1065,7 @@ if (is_authenticated() && ($action === 'save_section_bg')) {
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'dashboard';
-if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','securitate','config'])) $tab = 'dashboard';
+if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','speakeri','locatii','colaborari','securitate','config'])) $tab = 'dashboard';
 
 if (is_authenticated()) {
     $courses = load_courses();
@@ -1195,6 +1340,16 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); font
             </a>
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
+            </a>
+            <div class="sidebar-section">CRM</div>
+            <a href="/admin/?tab=speakeri" class="<?= $tab === 'speakeri' ? 'active' : '' ?>">
+                <span class="nav-icon">🎤</span> Speakeri
+            </a>
+            <a href="/admin/?tab=locatii" class="<?= $tab === 'locatii' ? 'active' : '' ?>">
+                <span class="nav-icon">📍</span> Locații
+            </a>
+            <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
+                <span class="nav-icon">🤝</span> Colaborări
             </a>
             <a href="/admin/statistici/">
                 <span class="nav-icon">📊</span> Statistici
@@ -2409,6 +2564,348 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
                 </td>
             </tr>
             <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>
+
+<?php /* ======================================================= TAB: SPEAKERI */ ?>
+<?php elseif ($tab === 'speakeri'): ?>
+
+<?php
+$speakers    = load_speakers();
+$edit_sp     = null;
+$edit_sp_id  = $_GET['edit'] ?? '';
+if ($edit_sp_id) {
+    foreach ($speakers as $sp) {
+        if (($sp['id'] ?? '') === $edit_sp_id) { $edit_sp = $sp; break; }
+    }
+}
+$sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626'];
+?>
+
+<style>
+.crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
+.crm-table td { vertical-align:top; }
+</style>
+
+<h1 class="wp-page-title">Speakeri</h1>
+
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Speakerul a fost salvat.</div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
+    <form method="post" action="/admin/?tab=speakeri">
+        <input type="hidden" name="action" value="save_speaker">
+        <input type="hidden" name="speaker_id" value="<?= h($edit_sp['id'] ?? '') ?>">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="form-group" style="margin-bottom:0">
+                <label>Nume <span style="color:var(--danger)">*</span></label>
+                <input type="text" name="sp_name" value="<?= h($edit_sp['name'] ?? '') ?>" required placeholder="ex: Ion Popescu">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Email</label>
+                <input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>" placeholder="ion@example.com">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Telefon</label>
+                <input type="text" name="sp_phone" value="<?= h($edit_sp['phone'] ?? '') ?>" placeholder="+40 700 000 000">
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px">
+            <div class="form-group" style="margin-bottom:0">
+                <label>Cursuri susținute</label>
+                <input type="text" name="sp_courses" value="<?= h($edit_sp['courses'] ?? '') ?>" placeholder="ex: Psihologie, Branding personal">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Status</label>
+                <select name="sp_status">
+                    <?php foreach (['RECURENT','MID','NOPE'] as $s): ?>
+                    <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+            <label>Note</label>
+            <textarea name="sp_notes" rows="2" placeholder="Observații interne..."><?= h($edit_sp['notes'] ?? '') ?></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary"><?= $edit_sp ? 'Salvează modificările' : 'Adaugă speakerul' ?></button>
+            <?php if ($edit_sp): ?>
+            <a href="/admin/?tab=speakeri" class="btn btn-secondary">Anulează</a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-title">Speakeri (<?= count($speakers) ?>)</div>
+    <?php if (empty($speakers)): ?>
+    <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
+    <?php else: ?>
+    <table class="wp-table crm-table">
+        <thead>
+            <tr>
+                <th>Nume</th>
+                <th>Contact</th>
+                <th>Cursuri</th>
+                <th style="width:90px">Status</th>
+                <th style="width:150px">Acțiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($speakers as $sp): ?>
+        <tr>
+            <td style="font-weight:600">
+                <?= h($sp['name'] ?? '') ?>
+                <?php if (!empty($sp['notes'])): ?>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px"><?= h(mb_substr($sp['notes'], 0, 60)) ?><?= mb_strlen($sp['notes']) > 60 ? '…' : '' ?></div>
+                <?php endif; ?>
+            </td>
+            <td style="font-size:13px">
+                <?php if (!empty($sp['email'])): ?><div><?= h($sp['email']) ?></div><?php endif; ?>
+                <?php if (!empty($sp['phone'])): ?><div><?= h($sp['phone']) ?></div><?php endif; ?>
+            </td>
+            <td style="font-size:13px;color:var(--text-muted)"><?= h($sp['courses'] ?? '') ?></td>
+            <td>
+                <?php $sc = $sp_status_colors[$sp['status'] ?? 'MID'] ?? '#6b7280'; ?>
+                <span class="crm-status-badge" style="background:<?= $sc ?>"><?= h($sp['status'] ?? 'MID') ?></span>
+            </td>
+            <td>
+                <div class="row-actions">
+                    <a href="/admin/?tab=speakeri&edit=<?= h($sp['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
+                    <form method="post" action="/admin/?tab=speakeri" onsubmit="return confirm('Ștergi speakerul?')" style="display:inline">
+                        <input type="hidden" name="action" value="delete_speaker">
+                        <input type="hidden" name="id" value="<?= h($sp['id'] ?? '') ?>">
+                        <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>
+
+<?php /* ======================================================= TAB: LOCATII */ ?>
+<?php elseif ($tab === 'locatii'): ?>
+
+<?php
+$locations   = load_locations();
+$edit_loc    = null;
+$edit_loc_id = $_GET['edit'] ?? '';
+if ($edit_loc_id) {
+    foreach ($locations as $loc) {
+        if (($loc['id'] ?? '') === $edit_loc_id) { $edit_loc = $loc; break; }
+    }
+}
+?>
+
+<h1 class="wp-page-title">Locații</h1>
+
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Locația a fost salvată.</div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-title"><?= $edit_loc ? 'Editează locație' : 'Adaugă locație' ?></div>
+    <form method="post" action="/admin/?tab=locatii">
+        <input type="hidden" name="action" value="save_location">
+        <input type="hidden" name="location_id" value="<?= h($edit_loc['id'] ?? '') ?>">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group" style="margin-bottom:0">
+                <label>Nume locație <span style="color:var(--danger)">*</span></label>
+                <input type="text" name="loc_name" value="<?= h($edit_loc['name'] ?? '') ?>" required placeholder="ex: Pub The Office">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Telefon</label>
+                <input type="text" name="loc_phone" value="<?= h($edit_loc['phone'] ?? '') ?>" placeholder="+40 700 000 000">
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+            <div class="form-group" style="margin-bottom:0">
+                <label>Link Google Maps</label>
+                <input type="url" name="loc_maps" value="<?= h($edit_loc['maps_link'] ?? '') ?>" placeholder="https://maps.google.com/...">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Zile disponibile</label>
+                <input type="text" name="loc_days" value="<?= h($edit_loc['days'] ?? '') ?>" placeholder="ex: Luni–Joi, weekend">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+            <label>Note</label>
+            <textarea name="loc_notes" rows="2" placeholder="Capacitate, condiții, persoana de contact..."><?= h($edit_loc['notes'] ?? '') ?></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary"><?= $edit_loc ? 'Salvează modificările' : 'Adaugă locația' ?></button>
+            <?php if ($edit_loc): ?>
+            <a href="/admin/?tab=locatii" class="btn btn-secondary">Anulează</a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-title">Locații (<?= count($locations) ?>)</div>
+    <?php if (empty($locations)): ?>
+    <p style="color:var(--text-muted)">Nu există locații adăugate încă.</p>
+    <?php else: ?>
+    <table class="wp-table crm-table">
+        <thead>
+            <tr>
+                <th>Nume</th>
+                <th>Telefon</th>
+                <th>Zile disponibile</th>
+                <th style="width:80px">Maps</th>
+                <th style="width:150px">Acțiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($locations as $loc): ?>
+        <tr>
+            <td style="font-weight:600">
+                <?= h($loc['name'] ?? '') ?>
+                <?php if (!empty($loc['notes'])): ?>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px"><?= h(mb_substr($loc['notes'], 0, 60)) ?><?= mb_strlen($loc['notes']) > 60 ? '…' : '' ?></div>
+                <?php endif; ?>
+            </td>
+            <td style="font-size:13px"><?= h($loc['phone'] ?? '') ?></td>
+            <td style="font-size:13px;color:var(--text-muted)"><?= h($loc['days'] ?? '') ?></td>
+            <td>
+                <?php if (!empty($loc['maps_link'])): ?>
+                <a href="<?= h($loc['maps_link']) ?>" target="_blank" class="btn btn-sm btn-secondary">Maps ↗</a>
+                <?php endif; ?>
+            </td>
+            <td>
+                <div class="row-actions">
+                    <a href="/admin/?tab=locatii&edit=<?= h($loc['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
+                    <form method="post" action="/admin/?tab=locatii" onsubmit="return confirm('Ștergi locația?')" style="display:inline">
+                        <input type="hidden" name="action" value="delete_location">
+                        <input type="hidden" name="id" value="<?= h($loc['id'] ?? '') ?>">
+                        <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>
+
+<?php /* ======================================================= TAB: COLABORARI */ ?>
+<?php elseif ($tab === 'colaborari'): ?>
+
+<?php
+$collabs      = load_collaborations();
+$edit_col     = null;
+$edit_col_id  = $_GET['edit'] ?? '';
+if ($edit_col_id) {
+    foreach ($collabs as $col) {
+        if (($col['id'] ?? '') === $edit_col_id) { $edit_col = $col; break; }
+    }
+}
+?>
+
+<h1 class="wp-page-title">Colaborări</h1>
+
+<?php if (isset($_GET['saved'])): ?>
+<div class="notice notice-success">Colaborarea a fost salvată.</div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-title"><?= $edit_col ? 'Editează colaborare' : 'Adaugă colaborare' ?></div>
+    <form method="post" action="/admin/?tab=colaborari">
+        <input type="hidden" name="action" value="save_collaboration">
+        <input type="hidden" name="collab_id" value="<?= h($edit_col['id'] ?? '') ?>">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group" style="margin-bottom:0">
+                <label>Nume brand / organizație <span style="color:var(--danger)">*</span></label>
+                <input type="text" name="col_name" value="<?= h($edit_col['name'] ?? '') ?>" required placeholder="ex: Acme SRL">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Persoana de contact</label>
+                <input type="text" name="col_contact" value="<?= h($edit_col['contact'] ?? '') ?>" placeholder="ex: Maria Ionescu">
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+            <div class="form-group" style="margin-bottom:0">
+                <label>Email / Telefon</label>
+                <input type="text" name="col_contact_info" value="<?= h($edit_col['contact_info'] ?? '') ?>" placeholder="email sau telefon">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+                <label>Status</label>
+                <input type="text" name="col_status" value="<?= h($edit_col['status'] ?? '') ?>" placeholder="ex: În discuții, Activ, Încheiat">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+            <label>Note</label>
+            <textarea name="col_notes" rows="2" placeholder="Detalii despre colaborare, termeni, istoricul discuțiilor..."><?= h($edit_col['notes'] ?? '') ?></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary"><?= $edit_col ? 'Salvează modificările' : 'Adaugă colaborarea' ?></button>
+            <?php if ($edit_col): ?>
+            <a href="/admin/?tab=colaborari" class="btn btn-secondary">Anulează</a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-title">Colaborări (<?= count($collabs) ?>)</div>
+    <?php if (empty($collabs)): ?>
+    <p style="color:var(--text-muted)">Nu există colaborări adăugate încă.</p>
+    <?php else: ?>
+    <table class="wp-table crm-table">
+        <thead>
+            <tr>
+                <th>Brand / Organizație</th>
+                <th>Persoana de contact</th>
+                <th>Email / Telefon</th>
+                <th>Status</th>
+                <th style="width:150px">Acțiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($collabs as $col): ?>
+        <tr>
+            <td style="font-weight:600">
+                <?= h($col['name'] ?? '') ?>
+                <?php if (!empty($col['notes'])): ?>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px"><?= h(mb_substr($col['notes'], 0, 60)) ?><?= mb_strlen($col['notes']) > 60 ? '…' : '' ?></div>
+                <?php endif; ?>
+            </td>
+            <td style="font-size:13px"><?= h($col['contact'] ?? '') ?></td>
+            <td style="font-size:13px"><?= h($col['contact_info'] ?? '') ?></td>
+            <td style="font-size:13px;color:var(--text-muted)"><?= h($col['status'] ?? '') ?></td>
+            <td>
+                <div class="row-actions">
+                    <a href="/admin/?tab=colaborari&edit=<?= h($col['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
+                    <form method="post" action="/admin/?tab=colaborari" onsubmit="return confirm('Ștergi colaborarea?')" style="display:inline">
+                        <input type="hidden" name="action" value="delete_collaboration">
+                        <input type="hidden" name="id" value="<?= h($col['id'] ?? '') ?>">
+                        <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        <?php endforeach; ?>
         </tbody>
     </table>
     <?php endif; ?>
