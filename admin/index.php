@@ -2712,34 +2712,20 @@ if ($edit_loc_id) {
     <?php if (empty($locations)): ?>
     <p style="color:var(--text-muted)">Nu există locații adăugate încă.</p>
     <?php else: ?>
-    <table class="wp-table crm-table">
-        <thead>
-            <tr>
-                <th>Nume</th>
-                <th>Telefon</th>
-                <th>Zile disponibile</th>
-                <th style="width:80px">Maps</th>
-                <th style="width:150px">Acțiuni</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($locations as $loc): ?>
-        <tr>
-            <td style="font-weight:600">
-                <?= h($loc['name'] ?? '') ?>
-                <?php if (!empty($loc['notes'])): ?>
-                <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px"><?= h(mb_substr($loc['notes'], 0, 60)) ?><?= mb_strlen($loc['notes']) > 60 ? '…' : '' ?></div>
-                <?php endif; ?>
-            </td>
-            <td style="font-size:13px"><?= h($loc['phone'] ?? '') ?></td>
-            <td style="font-size:13px;color:var(--text-muted)"><?= h($loc['days'] ?? '') ?></td>
-            <td>
-                <?php if (!empty($loc['maps_link'])): ?>
-                <a href="<?= h($loc['maps_link']) ?>" target="_blank" class="btn btn-sm btn-secondary">Maps ↗</a>
-                <?php endif; ?>
-            </td>
-            <td>
-                <div class="row-actions">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <?php foreach ($locations as $loc): ?>
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;background:#fafafa">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                <div>
+                    <div style="font-weight:700;font-size:13px"><?= h($loc['name'] ?? '') ?></div>
+                    <?php if (!empty($loc['phone'])): ?><div style="font-size:12px;color:var(--text-muted);margin-top:2px"><?= h($loc['phone']) ?></div><?php endif; ?>
+                    <?php if (!empty($loc['days'])): ?><div style="font-size:12px;color:var(--text-muted)"><?= h($loc['days']) ?></div><?php endif; ?>
+                    <?php if (!empty($loc['notes'])): ?><div style="font-size:11px;color:#9ca3af;margin-top:3px"><?= h(mb_substr($loc['notes'], 0, 80)) ?><?= mb_strlen($loc['notes']) > 80 ? '…' : '' ?></div><?php endif; ?>
+                </div>
+                <div style="display:flex;gap:5px;flex-shrink:0;align-items:center">
+                    <?php if (!empty($loc['maps_link'])): ?>
+                    <a href="<?= h($loc['maps_link']) ?>" target="_blank" class="btn btn-sm btn-secondary">Maps ↗</a>
+                    <?php endif; ?>
                     <a href="/admin/?tab=locatii&edit=<?= h($loc['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
                     <form method="post" action="/admin/?tab=locatii" onsubmit="return confirm('Ștergi locația?')" style="display:inline">
                         <input type="hidden" name="action" value="delete_location">
@@ -2747,11 +2733,10 @@ if ($edit_loc_id) {
                         <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
                     </form>
                 </div>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+            </div>
+        </div>
+    <?php endforeach; ?>
+    </div>
     <?php endif; ?>
 </div>
 
