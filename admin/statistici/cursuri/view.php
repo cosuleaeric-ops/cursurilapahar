@@ -178,11 +178,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
     }
 
+    if ($action === 'read_debug') {
+        $f = $uploadDir . 'viza_debug_' . $id . '.txt';
+        header('Content-Type: text/plain; charset=utf-8');
+        echo file_exists($f) ? file_get_contents($f) : '(no debug file)';
+        exit;
+    }
+
     if ($action === 'reprocess_viza') {
         $row = $db->querySingle("SELECT filename FROM course_files WHERE course_id={$id} AND file_type='viza' LIMIT 1", true);
         if ($row) {
             $pdfText = trim($_POST['viza_text'] ?? '');
             if (!$pdfText) $pdfText = pdf_to_text($uploadDir . $row['filename']);
+            file_put_contents($uploadDir . 'viza_debug_' . $id . '.txt', $pdfText ?: '(empty)');
             if ($pdfText) {
                 $subtips = parse_viza_subtips($pdfText);
                 $db->exec("DELETE FROM viza_subtips WHERE course_id={$id}");
