@@ -1646,7 +1646,7 @@ if (!empty($_ql)): ?>
     <div>
         <!-- Vote courses -->
         <div class="dash-section">
-            <div class="dash-section-title"><span>Vot cursuri</span> <a href="/admin/?tab=vot">Gestioneaza &rarr;</a></div>
+            <div class="dash-section-title"><span>Vot cursuri</span></div>
             <?php if (empty($_dash_votes)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Nicio propunere de curs.</p>
             <?php else: ?>
