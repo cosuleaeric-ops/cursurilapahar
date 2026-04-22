@@ -66,8 +66,26 @@ function ro_date(string $date): string {
 function parse_viza_subtips(string $text): array {
     $subtips = [];
     $text = preg_replace('/\r\n?/', "\n", $text);
+
+    // Old format: header-anchored (Tariful pe bucată / Seria De la nr. La nr.)
     $pattern = '/Tariful\s+pe\s+buc[aă]t[aă]\s*\(lei\)[^\n]*\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+Seria\s+De\s+la\s+nr\.\s+La\s+nr\.[^\n]*\s+([A-Z]+)\s+(\d+)\s+(\d+)/u';
     if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $subtips[] = [
+                'nr_unitati' => (int)$m[1],
+                'tarif'      => (float)str_replace(',', '.', $m[2]),
+                'seria'      => trim($m[3]),
+                'de_la'      => $m[4],
+                'pana_la'    => $m[5],
+            ];
+        }
+        return $subtips;
+    }
+
+    // New format: inline rows "Name Count Price Total SERIES FROM - SERIES TO"
+    // e.g. "Bilet standard - ONLINE 57 50.00 2,850.00 SSR 0001 - SSR 0057"
+    $pattern2 = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s+(\d+)/mu';
+    if (preg_match_all($pattern2, $text, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $m) {
             $subtips[] = [
                 'nr_unitati' => (int)$m[1],
