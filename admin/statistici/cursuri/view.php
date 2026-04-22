@@ -270,7 +270,7 @@ include __DIR__ . '/../layout_header.php';
 ?>
 <link rel="stylesheet" href="/admin/statistici/style.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="/admin/statistici/js/pdf.min.js"></script>
 <style>
     .course-wrap { max-width: 800px; margin: 0 auto; }
     .course-hero { margin-bottom: 28px; }
@@ -641,7 +641,7 @@ include __DIR__ . '/../layout_header.php';
 })();
 
 // ── Viță PDF upload + text extraction ────────────────────────────────────────
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/admin/statistici/js/pdf.worker.min.js';
 
 // Butonul "Extrage date" — fetch PDF de pe server, extrage text, submit
 (function() {
