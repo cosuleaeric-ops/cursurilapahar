@@ -63,7 +63,7 @@ function can_access_tab(string $tab): bool {
     $user = clp_current_user();
     if (!$user) return false;
     if (($user['role'] ?? '') === 'owner') return true;
-    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'speakeri', 'locatii', 'colaborari']);
+    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'competitori', 'speakeri', 'locatii', 'colaborari']);
 }
 function set_auth_cookie(string $username): void {
     $token = hash_hmac('sha256', 'clp_user:' . $username, get_auth_secret());
@@ -1136,7 +1136,7 @@ if (is_authenticated() && ($action === 'save_section_bg')) {
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'dashboard';
-if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','speakeri','locatii','colaborari','securitate','config'])) $tab = 'dashboard';
+if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','competitori','speakeri','locatii','colaborari','securitate','config'])) $tab = 'dashboard';
 if (is_authenticated() && !can_access_tab($tab)) $tab = 'dashboard';
 
 if (is_authenticated()) {
@@ -1393,6 +1393,9 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             </a>
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
+            </a>
+            <a href="/admin/?tab=competitori" class="<?= $tab === 'competitori' ? 'active' : '' ?>">
+                <span class="nav-icon">🔍</span> Competitori
             </a>
             <div class="sidebar-section">CRM</div>
             <a href="/admin/?tab=speakeri" class="<?= $tab === 'speakeri' ? 'active' : '' ?>">
@@ -2596,6 +2599,59 @@ usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
         </tbody>
     </table>
     <?php endif; ?>
+</div>
+
+<?php /* ======================================================= TAB: COMPETITORI */ ?>
+<?php elseif ($tab === 'competitori'): ?>
+
+<h1 class="wp-page-title">Competitori</h1>
+
+<?php
+$_competitors = [
+    ['name' => 'Nota de Subsol',          'ig' => 'https://www.instagram.com/notadesubsol.live/', 'tt' => 'https://www.tiktok.com/@notadesubsol.live', 'web' => ''],
+    ['name' => 'Lectures on Tap',         'ig' => 'https://www.instagram.com/lecturesontap/',     'tt' => 'https://www.tiktok.com/@lecturesontap',     'web' => 'https://lecturesontap.com/'],
+    ['name' => 'Boozy Lectures',          'ig' => 'https://www.instagram.com/boozylectures/',     'tt' => 'https://www.tiktok.com/@boozylecturesyyc',  'web' => 'https://www.boozylectures.com/'],
+    ['name' => 'Brewing Minds',           'ig' => 'https://www.instagram.com/brewingminds_lectures/', 'tt' => 'https://www.tiktok.com/@brewingminds',  'web' => 'https://www.brewing-minds.com/'],
+    ['name' => 'Brains and Barstools',    'ig' => 'https://www.instagram.com/brainsandbarstools/', 'tt' => 'https://www.tiktok.com/@brainsandbarstools', 'web' => 'http://brainsandbarstools.com/'],
+    ['name' => 'Sip and Scholar',         'ig' => 'https://www.instagram.com/sipandscholar/',     'tt' => '',                                          'web' => 'https://www.sipandscholar.com/'],
+    ['name' => 'Pint of View',            'ig' => 'https://www.instagram.com/pintofview.club/',   'tt' => '',                                          'web' => 'https://pintofview.club/'],
+    ['name' => 'Big Brain SF',            'ig' => 'https://www.instagram.com/bigbrainsf/',         'tt' => 'https://www.tiktok.com/@bigbrainsf',        'web' => ''],
+    ['name' => 'Society of Intellectuals','ig' => 'https://www.instagram.com/societyofintellectuals/', 'tt' => '',                                     'web' => 'https://societyofintellectuals.org/'],
+    ['name' => 'Cursuri la Bar',          'ig' => 'https://www.instagram.com/cursurilabar',       'tt' => 'https://www.tiktok.com/@cursurilabar',      'web' => 'https://cursurilabar.ro/'],
+];
+?>
+<style>
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.comp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.comp-card-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
+.comp-card-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.comp-card-links { display: flex; gap: 8px; padding: 14px 20px; flex-wrap: wrap; }
+.comp-link { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
+.comp-link:hover { opacity: .75; }
+.comp-link-ig  { background: #fce7f3; color: #be185d; }
+.comp-link-tt  { background: #f0fdf4; color: #166534; }
+.comp-link-web { background: #eff6ff; color: #1d4ed8; }
+</style>
+
+<div class="comp-grid">
+<?php foreach ($_competitors as $_c): ?>
+<div class="comp-card">
+    <div class="comp-card-header">
+        <div class="comp-card-name"><?= h($_c['name']) ?></div>
+    </div>
+    <div class="comp-card-links">
+        <?php if ($_c['ig']): ?>
+        <a href="<?= h($_c['ig']) ?>" target="_blank" rel="noopener" class="comp-link comp-link-ig">📸 Instagram</a>
+        <?php endif; ?>
+        <?php if ($_c['tt']): ?>
+        <a href="<?= h($_c['tt']) ?>" target="_blank" rel="noopener" class="comp-link comp-link-tt">🎵 TikTok</a>
+        <?php endif; ?>
+        <?php if ($_c['web']): ?>
+        <a href="<?= h($_c['web']) ?>" target="_blank" rel="noopener" class="comp-link comp-link-web">🌐 Website</a>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endforeach; ?>
 </div>
 
 <?php /* ======================================================= TAB: SPEAKERI */ ?>
