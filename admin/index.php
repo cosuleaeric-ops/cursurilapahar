@@ -2712,7 +2712,7 @@ if ($edit_loc_id) {
     <?php if (empty($locations)): ?>
     <p style="color:var(--text-muted)">Nu există locații adăugate încă.</p>
     <?php else: ?>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
     <?php foreach ($locations as $loc): ?>
         <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;background:#fafafa">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
