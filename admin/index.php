@@ -2604,22 +2604,22 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Nume <span style="color:var(--danger)">*</span></label>
-                <input type="text" name="sp_name" value="<?= h($edit_sp['name'] ?? '') ?>" required placeholder="ex: Ion Popescu">
+                <input type="text" name="sp_name" value="<?= h($edit_sp['name'] ?? '') ?>" required>
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Email</label>
-                <input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>" placeholder="ion@example.com">
+                <input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>">
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Telefon</label>
-                <input type="text" name="sp_phone" value="<?= h($edit_sp['phone'] ?? '') ?>" placeholder="+40 700 000 000">
+                <input type="text" name="sp_phone" value="<?= h($edit_sp['phone'] ?? '') ?>">
             </div>
         </div>
 
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Cursuri susținute</label>
-                <input type="text" name="sp_courses" value="<?= h($edit_sp['courses'] ?? '') ?>" placeholder="ex: Psihologie, Branding personal">
+                <input type="text" name="sp_courses" value="<?= h($edit_sp['courses'] ?? '') ?>">
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Status</label>
@@ -2633,7 +2633,7 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
 
         <div class="form-group" style="margin-top:12px">
             <label>Note</label>
-            <textarea name="sp_notes" rows="2" placeholder="Observații interne..."><?= h($edit_sp['notes'] ?? '') ?></textarea>
+            <textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea>
         </div>
 
         <div style="display:flex;gap:8px">
@@ -2724,28 +2724,28 @@ if ($edit_loc_id) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Nume locație <span style="color:var(--danger)">*</span></label>
-                <input type="text" name="loc_name" value="<?= h($edit_loc['name'] ?? '') ?>" required placeholder="ex: Pub The Office">
+                <input type="text" name="loc_name" value="<?= h($edit_loc['name'] ?? '') ?>" required>
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Telefon</label>
-                <input type="text" name="loc_phone" value="<?= h($edit_loc['phone'] ?? '') ?>" placeholder="+40 700 000 000">
+                <input type="text" name="loc_phone" value="<?= h($edit_loc['phone'] ?? '') ?>">
             </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Link Google Maps</label>
-                <input type="url" name="loc_maps" value="<?= h($edit_loc['maps_link'] ?? '') ?>" placeholder="https://maps.google.com/...">
+                <input type="url" name="loc_maps" value="<?= h($edit_loc['maps_link'] ?? '') ?>">
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Zile disponibile</label>
-                <input type="text" name="loc_days" value="<?= h($edit_loc['days'] ?? '') ?>" placeholder="ex: Luni–Joi, weekend">
+                <input type="text" name="loc_days" value="<?= h($edit_loc['days'] ?? '') ?>">
             </div>
         </div>
 
         <div class="form-group" style="margin-top:12px">
             <label>Note</label>
-            <textarea name="loc_notes" rows="2" placeholder="Capacitate, condiții, persoana de contact..."><?= h($edit_loc['notes'] ?? '') ?></textarea>
+            <textarea name="loc_notes" rows="2"><?= h($edit_loc['notes'] ?? '') ?></textarea>
         </div>
 
         <div style="display:flex;gap:8px">
@@ -2834,28 +2834,28 @@ if ($edit_col_id) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Nume brand / organizație <span style="color:var(--danger)">*</span></label>
-                <input type="text" name="col_name" value="<?= h($edit_col['name'] ?? '') ?>" required placeholder="ex: Acme SRL">
+                <input type="text" name="col_name" value="<?= h($edit_col['name'] ?? '') ?>" required>
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Persoana de contact</label>
-                <input type="text" name="col_contact" value="<?= h($edit_col['contact'] ?? '') ?>" placeholder="ex: Maria Ionescu">
+                <input type="text" name="col_contact" value="<?= h($edit_col['contact'] ?? '') ?>">
             </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
             <div class="form-group" style="margin-bottom:0">
                 <label>Email / Telefon</label>
-                <input type="text" name="col_contact_info" value="<?= h($edit_col['contact_info'] ?? '') ?>" placeholder="email sau telefon">
+                <input type="text" name="col_contact_info" value="<?= h($edit_col['contact_info'] ?? '') ?>">
             </div>
             <div class="form-group" style="margin-bottom:0">
                 <label>Status</label>
-                <input type="text" name="col_status" value="<?= h($edit_col['status'] ?? '') ?>" placeholder="ex: În discuții, Activ, Încheiat">
+                <input type="text" name="col_status" value="<?= h($edit_col['status'] ?? '') ?>">
             </div>
         </div>
 
         <div class="form-group" style="margin-top:12px">
             <label>Note</label>
-            <textarea name="col_notes" rows="2" placeholder="Detalii despre colaborare, termeni, istoricul discuțiilor..."><?= h($edit_col['notes'] ?? '') ?></textarea>
+            <textarea name="col_notes" rows="2"><?= h($edit_col['notes'] ?? '') ?></textarea>
         </div>
 
         <div style="display:flex;gap:8px">
