@@ -220,6 +220,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
     }
 
+    if ($action === 'add_viza_subtip') {
+        $seria    = trim($_POST['seria']      ?? '');
+        $tarif    = (float)str_replace(',', '.', $_POST['tarif']    ?? '0');
+        $nr       = (int)($_POST['nr_unitati'] ?? 0);
+        $de_la    = trim($_POST['de_la']      ?? '');
+        $pana_la  = trim($_POST['pana_la']    ?? '');
+        if ($seria && $nr > 0 && $tarif > 0) {
+            $si = $db->prepare('INSERT INTO viza_subtips (course_id, seria, tarif, nr_unitati, de_la, pana_la) VALUES (:cid,:s,:t,:n,:d,:p)');
+            $si->bindValue(':cid', $id,      SQLITE3_INTEGER);
+            $si->bindValue(':s',   $seria,   SQLITE3_TEXT);
+            $si->bindValue(':t',   $tarif,   SQLITE3_FLOAT);
+            $si->bindValue(':n',   $nr,      SQLITE3_INTEGER);
+            $si->bindValue(':d',   $de_la,   SQLITE3_TEXT);
+            $si->bindValue(':p',   $pana_la, SQLITE3_TEXT);
+            $si->execute();
+        }
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
     if ($action === 'delete_course') {
         // Delete associated files from disk
         $res = $db->query("SELECT filename FROM course_files WHERE course_id={$id}");
@@ -558,7 +577,32 @@ include __DIR__ . '/../layout_header.php';
             </tbody>
           </table>
         <?php elseif (!empty($vizaFiles)): ?>
-          <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasa „Extrage date" sau re-incarca PDF-ul.</p>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasa „Extrage date" sau introdu manual:</p>
+          <form method="post" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+            <input type="hidden" name="action" value="add_viza_subtip">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:11px;color:var(--muted)">Seria</label>
+              <input type="text" name="seria" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:11px;color:var(--muted)">Tarif (RON)</label>
+              <input type="number" name="tarif" step="0.01" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:11px;color:var(--muted)">Nr. bilete</label>
+              <input type="number" name="nr_unitati" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:11px;color:var(--muted)">De la nr.</label>
+              <input type="text" name="de_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:11px;color:var(--muted)">Până la nr.</label>
+              <input type="text" name="pana_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            </div>
+            <button type="submit" style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer">Adaugă</button>
+          </form>
         <?php endif; ?>
 
       <?php endif; ?>
