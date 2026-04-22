@@ -2,13 +2,21 @@
 // Admin bar — shown on public pages when logged in as admin
 function clp_is_admin(): bool {
     $cookie = $_COOKIE['clp_auth'] ?? '';
-    if (!$cookie) return false;
+    if (!$cookie || !str_contains($cookie, ':')) return false;
     $settings_file = dirname(__DIR__) . '/data/settings.json';
     $s = file_exists($settings_file) ? (json_decode(file_get_contents($settings_file), true) ?: []) : [];
     $secret = $s['auth_secret'] ?? '';
     if (!$secret) return false;
-    $expected = hash_hmac('sha256', 'clp_admin_ok', $secret);
-    return hash_equals($expected, $cookie);
+    [$uname, $token] = explode(':', $cookie, 2);
+    $expected = hash_hmac('sha256', 'clp_user:' . $uname, $secret);
+    if (!hash_equals($expected, $token)) return false;
+    $users_file = dirname(__DIR__) . '/data/users.json';
+    if (!file_exists($users_file)) return false;
+    $users = json_decode(file_get_contents($users_file), true) ?: [];
+    foreach ($users as $u) {
+        if (($u['username'] ?? '') === $uname) return ($u['role'] ?? '') === 'owner';
+    }
+    return false;
 }
 if (!clp_is_admin()) return;
 $current = $_SERVER['REQUEST_URI'] ?? '/';
