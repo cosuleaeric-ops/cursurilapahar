@@ -524,115 +524,7 @@ include __DIR__ . '/../layout_header.php';
       <!-- Viza bilete -->
       <div class="section-card" style="margin-bottom:0">
         <h3>Viza bilete</h3>
-
-        <?php if (!empty($vizaFiles)): $vf = $vizaFiles[0]; ?>
-          <div class="viza-file" style="margin-bottom:12px">
-            <div>
-              <a class="viza-name" href="/admin/statistici/uploads/<?php echo h($vf['filename']); ?>" target="_blank" rel="noopener">
-                <?php echo h($vf['original_name']); ?>
-              </a>
-              <div class="viza-date">Incarcat <?php echo h(substr($vf['uploaded_at'], 0, 10)); ?></div>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <?php if (empty($vizaSubtips)): ?>
-                <form method="post" style="margin:0" id="reprocessVizaForm">
-                  <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
-                  <input type="hidden" name="action" value="reprocess_viza">
-                  <input type="hidden" name="viza_text" id="reprocessVizaText">
-                  <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
-                    data-pdf-url="/admin/statistici/cursuri/view.php?id=<?php echo $id; ?>&action=serve_viza"
-                    title="Extrage date din PDF">&#8635; Extrage date</button>
-                </form>
-              <?php endif; ?>
-              <form method="post" onsubmit="return confirm('Stergi viza?');" style="margin:0">
-                <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
-                <input type="hidden" name="action" value="delete_viza">
-                <input type="hidden" name="file_id" value="<?php echo (int)$vf['id']; ?>">
-                <button type="submit" class="icon-btn danger" title="Sterge">&times;</button>
-              </form>
-            </div>
-          </div>
-
-          <?php if (!empty($vizaSubtips)):
-            $seen_keys = [];
-            $has_dupes = false;
-            foreach ($vizaSubtips as $s) {
-                $k = $s['seria'].'_'.$s['de_la'].'_'.$s['pana_la'];
-                if (isset($seen_keys[$k])) { $has_dupes = true; break; }
-                $seen_keys[$k] = true;
-            }
-          ?>
-            <?php if ($has_dupes): ?>
-            <form method="post" style="margin-bottom:8px">
-              <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
-              <input type="hidden" name="action" value="dedup_viza_subtips">
-              <button type="submit" style="font-size:12px;color:#c0392b;background:none;border:1px solid #c0392b;border-radius:6px;padding:3px 10px;cursor:pointer">Sterge duplicate</button>
-            </form>
-            <?php endif; ?>
-            <table class="subtip-table">
-              <thead>
-                <tr>
-                  <th>Seria</th>
-                  <th>Tarif</th>
-                  <th>Nr. bilete</th>
-                  <th>De la</th>
-                  <th>Pana la</th>
-                  <?php if (!empty($reportByPrice)): ?><th>Vandute</th><?php endif; ?>
-                </tr>
-              </thead>
-              <tbody>
-                <?php foreach ($vizaSubtips as $sub):
-                  $key   = (string)(float)$sub['tarif'];
-                  $match = $reportByPrice[$key] ?? null;
-                ?>
-                <tr>
-                  <td><span class="seria-badge"><?php echo h($sub['seria']); ?></span></td>
-                  <td class="num"><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
-                  <td class="num"><?php echo (int)$sub['nr_unitati']; ?></td>
-                  <td class="num"><?php echo h($sub['de_la']); ?></td>
-                  <td class="num"><?php echo h($sub['pana_la']); ?></td>
-                  <?php if (!empty($reportByPrice)): ?>
-                  <td class="num <?php echo $match ? 'sold-match' : 'no-match'; ?>">
-                    <?php echo $match ? (int)$match['vandute'] . ' vandute' : '—'; ?>
-                  </td>
-                  <?php endif; ?>
-                  <td><form method="post" style="margin:0"><input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>"><input type="hidden" name="action" value="delete_viza_subtip"><input type="hidden" name="subtip_id" value="<?php echo (int)$sub['id']; ?>"><button type="submit" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px" title="Sterge">×</button></form></td>
-                </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          <?php elseif (!empty($vizaFiles)): ?>
-            <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasa „Extrage date" sau introdu manual:</p>
-            <form method="post" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-              <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
-              <input type="hidden" name="action" value="add_viza_subtip">
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label style="font-size:11px;color:var(--muted)">Seria</label>
-                <input type="text" name="seria" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label style="font-size:11px;color:var(--muted)">Tarif (RON)</label>
-                <input type="number" name="tarif" step="0.01" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label style="font-size:11px;color:var(--muted)">Nr. bilete</label>
-                <input type="number" name="nr_unitati" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label style="font-size:11px;color:var(--muted)">De la nr.</label>
-                <input type="text" name="de_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label style="font-size:11px;color:var(--muted)">Pana la nr.</label>
-                <input type="text" name="pana_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
-              </div>
-              <button type="submit" style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer">Adauga</button>
-            </form>
-          <?php endif; ?>
-
-        <?php endif; ?>
-
-        <form method="post" enctype="multipart/form-data" id="vizaUploadForm" style="margin-top:<?php echo empty($vizaFiles) ? 0 : 16; ?>px">
+        <form method="post" enctype="multipart/form-data" id="vizaUploadForm">
           <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
           <input type="hidden" name="action" value="upload_viza">
           <input type="hidden" name="viza_text" id="vizaTextInput">
@@ -644,6 +536,115 @@ include __DIR__ . '/../layout_header.php';
       </div>
 
     </div>
+
+    <?php if (!empty($vizaFiles)): $vf = $vizaFiles[0]; ?>
+    <!-- Viza bilete — detalii (full width) -->
+    <div class="section-card">
+      <div class="viza-file" style="margin-bottom:12px">
+        <div>
+          <a class="viza-name" href="/admin/statistici/uploads/<?php echo h($vf['filename']); ?>" target="_blank" rel="noopener">
+            <?php echo h($vf['original_name']); ?>
+          </a>
+          <div class="viza-date">Incarcat <?php echo h(substr($vf['uploaded_at'], 0, 10)); ?></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <?php if (empty($vizaSubtips)): ?>
+            <form method="post" style="margin:0" id="reprocessVizaForm">
+              <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+              <input type="hidden" name="action" value="reprocess_viza">
+              <input type="hidden" name="viza_text" id="reprocessVizaText">
+              <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
+                data-pdf-url="/admin/statistici/cursuri/view.php?id=<?php echo $id; ?>&action=serve_viza"
+                title="Extrage date din PDF">&#8635; Extrage date</button>
+            </form>
+          <?php endif; ?>
+          <form method="post" onsubmit="return confirm('Stergi viza?');" style="margin:0">
+            <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+            <input type="hidden" name="action" value="delete_viza">
+            <input type="hidden" name="file_id" value="<?php echo (int)$vf['id']; ?>">
+            <button type="submit" class="icon-btn danger" title="Sterge">&times;</button>
+          </form>
+        </div>
+      </div>
+
+      <?php if (!empty($vizaSubtips)):
+        $seen_keys = [];
+        $has_dupes = false;
+        foreach ($vizaSubtips as $s) {
+            $k = $s['seria'].'_'.$s['de_la'].'_'.$s['pana_la'];
+            if (isset($seen_keys[$k])) { $has_dupes = true; break; }
+            $seen_keys[$k] = true;
+        }
+      ?>
+        <?php if ($has_dupes): ?>
+        <form method="post" style="margin-bottom:8px">
+          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+          <input type="hidden" name="action" value="dedup_viza_subtips">
+          <button type="submit" style="font-size:12px;color:#c0392b;background:none;border:1px solid #c0392b;border-radius:6px;padding:3px 10px;cursor:pointer">Sterge duplicate</button>
+        </form>
+        <?php endif; ?>
+        <table class="subtip-table">
+          <thead>
+            <tr>
+              <th>Seria</th>
+              <th>Tarif</th>
+              <th>Nr. bilete</th>
+              <th>De la</th>
+              <th>Pana la</th>
+              <?php if (!empty($reportByPrice)): ?><th>Vandute</th><?php endif; ?>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($vizaSubtips as $sub):
+              $key   = (string)(float)$sub['tarif'];
+              $match = $reportByPrice[$key] ?? null;
+            ?>
+            <tr>
+              <td><span class="seria-badge"><?php echo h($sub['seria']); ?></span></td>
+              <td class="num"><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
+              <td class="num"><?php echo (int)$sub['nr_unitati']; ?></td>
+              <td class="num"><?php echo h($sub['de_la']); ?></td>
+              <td class="num"><?php echo h($sub['pana_la']); ?></td>
+              <?php if (!empty($reportByPrice)): ?>
+              <td class="num <?php echo $match ? 'sold-match' : 'no-match'; ?>">
+                <?php echo $match ? (int)$match['vandute'] . ' vandute' : '—'; ?>
+              </td>
+              <?php endif; ?>
+              <td><form method="post" style="margin:0"><input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>"><input type="hidden" name="action" value="delete_viza_subtip"><input type="hidden" name="subtip_id" value="<?php echo (int)$sub['id']; ?>"><button type="submit" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px" title="Sterge">×</button></form></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php else: ?>
+        <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasa „Extrage date" sau introdu manual:</p>
+        <form method="post" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+          <input type="hidden" name="action" value="add_viza_subtip">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Seria</label>
+            <input type="text" name="seria" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Tarif (RON)</label>
+            <input type="number" name="tarif" step="0.01" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Nr. bilete</label>
+            <input type="number" name="nr_unitati" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">De la nr.</label>
+            <input type="text" name="de_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Pana la nr.</label>
+            <input type="text" name="pana_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <button type="submit" style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer">Adauga</button>
+        </form>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <!-- Danger zone -->
     <div class="section-card" style="border-color:#f5c6c7">
