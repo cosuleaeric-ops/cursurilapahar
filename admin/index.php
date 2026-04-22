@@ -94,6 +94,16 @@ function ensure_secrets(): void {
 }
 ensure_secrets();
 
+// Auto-create users.json on server if missing
+if (!file_exists(USERS_FILE)) {
+    $dir = dirname(USERS_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(USERS_FILE, json_encode([
+        ['username' => 'eric6', 'password_hash' => '$2y$12$2dWGrc.k7sizuCBC18huu.XgqNkCgfVZ0DCaDS1kZQOFIDzgfLRPC', 'role' => 'owner'],
+        ['username' => 'andy',  'password_hash' => '$2y$12$uxs/.33puwE3AmeCbilyve6t33qF3JXeaiObwDSiADFATmxQYzBvq',  'role' => 'city_manager'],
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
 if (isset($_POST['login_username'])) {
     $uname = trim($_POST['login_username'] ?? '');
     $pass  = $_POST['login_password'] ?? '';
