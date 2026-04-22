@@ -134,7 +134,7 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
                     </div>
                     <div class="form-group">
                         <label for="pp_phone">Număr de telefon</label>
-                        <input type="tel" id="pp_phone" name="phone">
+                        <input type="tel" id="pp_phone" name="phone" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -160,7 +160,7 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
                 </div>
                 <div class="form-group">
                     <label for="pp_values">De ce crezi că valorile noastre se aliniază?</label>
-                    <textarea id="pp_values" name="values_alignment" rows="3"></textarea>
+                    <textarea id="pp_values" name="values_alignment" rows="3" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="pp_other">Mai e ceva ce vrei să ne transmiți?</label>

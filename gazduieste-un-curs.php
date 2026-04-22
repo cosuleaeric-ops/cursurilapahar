@@ -137,7 +137,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="guc_phone">Număr de telefon</label>
-                        <input type="tel" id="guc_phone" name="phone">
+                        <input type="tel" id="guc_phone" name="phone" required>
                     </div>
                     <div class="form-group">
                         <label for="guc_venue">Cum se numește localul? *</label>
@@ -151,7 +151,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
                     </div>
                     <div class="form-group">
                         <label for="guc_capacity">Capacitate (seated)</label>
-                        <input type="text" id="guc_capacity" name="capacity">
+                        <input type="text" id="guc_capacity" name="capacity" required>
                     </div>
                 </div>
                 <div class="form-group">

@@ -130,11 +130,11 @@ $sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Punem preț pe calitatea inf
                 <div class="form-row">
                     <div class="form-group">
                         <label for="suc_phone">Număr de telefon</label>
-                        <input type="tel" id="suc_phone" name="phone">
+                        <input type="tel" id="suc_phone" name="phone" required>
                     </div>
                     <div class="form-group">
                         <label for="suc_social">Link profil social media</label>
-                        <input type="url" id="suc_social" name="social">
+                        <input type="url" id="suc_social" name="social" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -151,25 +151,25 @@ $sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Punem preț pe calitatea inf
                 </div>
                 <div class="form-group">
                     <label for="suc_experience">Ce experiențe sau competențe te califică?</label>
-                    <textarea id="suc_experience" name="experience" rows="3"></textarea>
+                    <textarea id="suc_experience" name="experience" rows="3" required></textarea>
                 </div>
                 <div class="form-group">
                     <label>Ai mai susținut astfel de prezentări?</label>
                     <div class="radio-group">
                         <label class="radio-label">
-                            <input type="radio" name="previous_presentations" value="yes_often"> Da, o fac deseori.
+                            <input type="radio" name="previous_presentations" value="yes_often" required> Da, o fac deseori.
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="previous_presentations" value="yes_few"> Da, de puține ori.
+                            <input type="radio" name="previous_presentations" value="yes_few" required> Da, de puține ori.
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="previous_presentations" value="no"> Nu, dar vreau să încerc.
+                            <input type="radio" name="previous_presentations" value="no" required> Nu, dar vreau să încerc.
                         </label>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="suc_city">În ce oraș ai vrea să susții cursul?</label>
-                    <input type="text" id="suc_city" name="city">
+                    <input type="text" id="suc_city" name="city" required>
                 </div>
                 <div class="form-group">
                     <label for="suc_other">Mai e ceva ce vrei să ne transmiți?</label>
