@@ -85,8 +85,12 @@ function parse_viza_subtips(string $text): array {
     // New format: inline rows "Name Count Price Total SERIES FROM - SERIES TO"
     // e.g. "Bilet standard - ONLINE 57 50.00 2,850.00 SSR 0001 - SSR 0057"
     $pattern2 = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s+(\d+)/mu';
+    $seen = [];
     if (preg_match_all($pattern2, $text, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $m) {
+            $key = trim($m[3]) . '_' . $m[4] . '_' . $m[5];
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
             $subtips[] = [
                 'nr_unitati' => (int)$m[1],
                 'tarif'      => (float)str_replace(',', '.', $m[2]),

@@ -220,6 +220,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
     }
 
+    if ($action === 'delete_viza_subtip') {
+        $sid = (int)($_POST['subtip_id'] ?? 0);
+        if ($sid) $db->exec("DELETE FROM viza_subtips WHERE id={$sid} AND course_id={$id}");
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
     if ($action === 'add_viza_subtip') {
         $seria    = trim($_POST['seria']      ?? '');
         $tarif    = (float)str_replace(',', '.', $_POST['tarif']    ?? '0');
@@ -572,6 +578,7 @@ include __DIR__ . '/../layout_header.php';
                   <?php echo $match ? (int)$match['vandute'] . ' vandute' : '—'; ?>
                 </td>
                 <?php endif; ?>
+                <td><form method="post" style="margin:0"><input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>"><input type="hidden" name="action" value="delete_viza_subtip"><input type="hidden" name="subtip_id" value="<?php echo (int)$sub['id']; ?>"><button type="submit" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px" title="Sterge">×</button></form></td>
               </tr>
               <?php endforeach; ?>
             </tbody>
