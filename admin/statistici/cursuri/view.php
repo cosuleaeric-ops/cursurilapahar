@@ -280,6 +280,9 @@ $res = $db->query("SELECT * FROM course_files WHERE course_id={$id} AND file_typ
 $vizaFiles = [];
 while ($r = $res->fetchArray(SQLITE3_ASSOC)) $vizaFiles[] = $r;
 
+$db->exec("DELETE FROM viza_subtips WHERE course_id={$id} AND id NOT IN (
+    SELECT MIN(id) FROM viza_subtips WHERE course_id={$id} GROUP BY seria, de_la, pana_la
+)");
 $res = $db->query("SELECT * FROM viza_subtips WHERE course_id={$id} ORDER BY tarif DESC");
 $vizaSubtips = [];
 while ($r = $res->fetchArray(SQLITE3_ASSOC)) $vizaSubtips[] = $r;
