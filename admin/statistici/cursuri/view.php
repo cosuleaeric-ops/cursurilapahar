@@ -17,6 +17,13 @@ $csrf = csrf_token();
 $uploadDir = __DIR__ . '/../uploads/';
 $error = '';
 
+if (($_GET['action'] ?? '') === 'read_debug') {
+    $f = $uploadDir . 'viza_debug_' . $id . '.txt';
+    header('Content-Type: text/plain; charset=utf-8');
+    echo file_exists($f) ? file_get_contents($f) : '(no debug file)';
+    exit;
+}
+
 // ── Handle POST ───────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf_token'] ?? '')) { http_response_code(400); exit('CSRF invalid'); }
@@ -176,13 +183,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $db->exec("DELETE FROM viza_subtips WHERE course_id={$id}");
         header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
-    }
-
-    if ($action === 'read_debug') {
-        $f = $uploadDir . 'viza_debug_' . $id . '.txt';
-        header('Content-Type: text/plain; charset=utf-8');
-        echo file_exists($f) ? file_get_contents($f) : '(no debug file)';
-        exit;
     }
 
     if ($action === 'reprocess_viza') {
