@@ -2288,10 +2288,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 <?php endif; ?>
 <style>
 .msg-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
-.msg-tab { padding:8px 18px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-size:13px; font-weight:500; cursor:pointer; transition:.15s; }
-.msg-tab:hover { background:rgba(255,255,255,.06); color:var(--text); }
-.msg-tab.active { background:var(--sidebar-active-bg); border-color:transparent; color:#fff; }
-.msg-tab .msg-count { display:inline-block; background:rgba(255,255,255,.18); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:5px; }
+.msg-tab .msg-count { display:inline-block; background:rgba(255,255,255,.2); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:5px; }
 .msg-panel { display:none; }
 .msg-panel.active { display:block; }
 .msg-cards { display:grid; grid-template-columns:1fr; gap:12px; }
