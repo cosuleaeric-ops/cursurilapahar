@@ -2980,12 +2980,42 @@ if ($edit_col_id) {
 <?php if (isset($_GET['imported'])): ?>
 <div class="notice notice-success">Import reușit! <?= (int)$_GET['imported'] ?> imagini descărcate.</div>
 <?php endif; ?>
-<?php if (isset($_GET['import_error'])): ?>
-<div class="notice notice-error">Eroare la import. Verifică fișierul.</div>
-<?php endif; ?>
-<?php if (isset($_GET['webhook_saved'])): ?>
-<div class="notice notice-success">Webhook secret regenerat. Actualizează-l și în setările webhook-ului de pe GitHub.</div>
-<?php endif; ?>
+
+<!-- Quick links editor (Owner only) -->
+<div class="card">
+    <div class="card-title">🔗 Linkuri rapide — Dashboard</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Aceste linkuri apar ca butoane în partea de sus a dashboard-ului.</p>
+    <form method="post" action="/admin/?tab=config" id="qlForm">
+        <input type="hidden" name="action" value="save_quick_links">
+        <div id="qlRows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        <?php foreach ($settings['quick_links'] ?? [] as $idx => $_ql): ?>
+            <div class="ql-row" style="display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center">
+                <input type="text" name="ql_icon[]" value="<?= h($_ql['icon'] ?? '🔗') ?>" style="text-align:center;font-size:18px">
+                <input type="text" name="ql_label[]" value="<?= h($_ql['label'] ?? '') ?>">
+                <input type="text" name="ql_url[]" value="<?= h($_ql['url'] ?? '') ?>">
+                <button type="button" onclick="this.closest('.ql-row').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>
+            </div>
+        <?php endforeach; ?>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" onclick="addQlRow()" class="btn btn-secondary btn-sm">+ Adaugă link</button>
+            <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addQlRow() {
+    const row = document.createElement('div');
+    row.className = 'ql-row';
+    row.style.cssText = 'display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center';
+    row.innerHTML = '<input type="text" name="ql_icon[]" value="🔗" style="text-align:center;font-size:18px">'
+        + '<input type="text" name="ql_label[]" value="">'
+        + '<input type="text" name="ql_url[]" value="">'
+        + '<button type="button" onclick="this.closest(\'.ql-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>';
+    document.getElementById('qlRows').appendChild(row);
+}
+</script>
 
 <!-- Kit (Email) -->
 <form method="post" action="/admin/?tab=config">
@@ -3041,88 +3071,6 @@ if ($edit_col_id) {
     </form>
     <p class="form-desc" style="margin-top:12px">Parola este salvată în <code>data/settings.json</code> și nu apare nicăieri în cod sau Git.</p>
 </div>
-
-<!-- Cheie sesiune -->
-<div class="card">
-    <div class="card-title">🔑 Cheie de sesiune</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Regenerarea cheii invalidează toate sesiunile active (vei fi deconectat și va trebui să te reloghezi).</p>
-    <form method="post" action="/admin/?tab=config" onsubmit="return confirm('Ești sigur? Vei fi deconectat.')">
-        <input type="hidden" name="action" value="regenerate_secret">
-        <button type="submit" class="btn btn-danger">Regenerează cheia de sesiune</button>
-    </form>
-</div>
-
-<!-- Export / Import -->
-<div class="card">
-    <div class="card-title">📦 Export / Import setări</div>
-    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Folosește Export pe serverul vechi și Import pe cel nou pentru a transfera toate setările și imaginile.</p>
-    <form method="post" action="/admin/?tab=config" style="margin-bottom:16px">
-        <input type="hidden" name="action" value="export_settings">
-        <button type="submit" class="btn btn-primary">⬇ Export settings.json</button>
-    </form>
-    <form method="post" action="/admin/?tab=config" enctype="multipart/form-data">
-        <input type="hidden" name="action" value="import_settings">
-        <div class="form-group">
-            <label>Fișier settings.json exportat</label>
-            <input type="file" name="settings_file" accept=".json" required>
-        </div>
-        <div class="form-group">
-            <label>Domeniu sursă (de unde se descarcă imaginile)</label>
-            <input type="text" name="source_domain" value="https://robotache.ro" placeholder="https://robotache.ro">
-        </div>
-        <button type="submit" class="btn btn-primary">⬆ Importă setări + imagini</button>
-    </form>
-</div>
-
-<!-- Webhook -->
-<div class="card">
-    <div class="card-title">🔗 Webhook secret (GitHub)</div>
-    <?php $wh_secret = load_settings()['webhook_secret'] ?? ''; ?>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">
-        Secretul curent (copiază-l în GitHub → repo → Settings → Webhooks):
-    </p>
-    <code style="display:block;background:#f6f7f7;border:1px solid var(--border);padding:10px 12px;border-radius:4px;font-size:13px;word-break:break-all;margin-bottom:14px;user-select:all"><?= h($wh_secret) ?></code>
-    <form method="post" action="/admin/?tab=config" onsubmit="return confirm('Vei trebui să actualizezi și webhook-ul pe GitHub cu noul secret.')">
-        <input type="hidden" name="action" value="regenerate_webhook_secret">
-        <button type="submit" class="btn btn-danger">Regenerează webhook secret</button>
-    </form>
-</div>
-
-<!-- Quick links editor (Owner only) -->
-<div class="card">
-    <div class="card-title">🔗 Linkuri rapide — Dashboard</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Aceste linkuri apar ca butoane în partea de sus a dashboard-ului.</p>
-    <form method="post" action="/admin/?tab=config" id="qlForm">
-        <input type="hidden" name="action" value="save_quick_links">
-        <div id="qlRows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
-        <?php foreach ($settings['quick_links'] ?? [] as $idx => $_ql): ?>
-            <div class="ql-row" style="display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center">
-                <input type="text" name="ql_icon[]" value="<?= h($_ql['icon'] ?? '🔗') ?>" style="text-align:center;font-size:18px">
-                <input type="text" name="ql_label[]" value="<?= h($_ql['label'] ?? '') ?>">
-                <input type="text" name="ql_url[]" value="<?= h($_ql['url'] ?? '') ?>">
-                <button type="button" onclick="this.closest('.ql-row').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>
-            </div>
-        <?php endforeach; ?>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button type="button" onclick="addQlRow()" class="btn btn-secondary btn-sm">+ Adaugă link</button>
-            <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
-        </div>
-    </form>
-</div>
-
-<script>
-function addQlRow() {
-    const row = document.createElement('div');
-    row.className = 'ql-row';
-    row.style.cssText = 'display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center';
-    row.innerHTML = '<input type="text" name="ql_icon[]" value="🔗" style="text-align:center;font-size:18px">'
-        + '<input type="text" name="ql_label[]" value="">'
-        + '<input type="text" name="ql_url[]" value="">'
-        + '<button type="button" onclick="this.closest(\'.ql-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>';
-    document.getElementById('qlRows').appendChild(row);
-}
-</script>
 
 <?php endif; ?>
 
