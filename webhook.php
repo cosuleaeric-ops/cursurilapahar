@@ -107,6 +107,10 @@ if (!file_exists(PUBLIC_HTML . '/data/vote_courses.json')) {
     $seed = gh_get($base_url . 'data/vote_courses.json');
     if ($seed) @file_put_contents(PUBLIC_HTML . '/data/vote_courses.json', $seed);
 }
+if (!file_exists(PUBLIC_HTML . '/data/users.json')) {
+    $seed = gh_get($base_url . 'data/users.json');
+    if ($seed) @file_put_contents(PUBLIC_HTML . '/data/users.json', $seed);
+}
 
 $log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)";
 if (!empty($errors)) $log .= ' | ' . implode(', ', $errors);
