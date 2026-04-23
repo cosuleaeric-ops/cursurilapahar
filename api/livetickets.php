@@ -46,27 +46,31 @@ if (!$slug && !$event_id) {
     exit;
 }
 
-// For /e/ short links, follow the redirect to get the real slug
+// For /e/ short links, fetch page HTML and extract slug from og:url or canonical
 if ($event_id && !$slug) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_MAXREDIRS      => 5,
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_NOBODY         => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; bot)',
+        CURLOPT_HTTPHEADER     => ['Accept: text/html'],
     ]);
-    curl_exec($ch);
-    $final_url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+    $html = curl_exec($ch);
     curl_close($ch);
-    $rpath  = trim(parse_url($final_url, PHP_URL_PATH) ?? '', '/');
-    $rparts = explode('/', $rpath);
-    $bi = array_search('bilete', $rparts);
-    if ($bi !== false && isset($rparts[$bi + 1])) {
-        $slug = $rparts[$bi + 1];
+    // Try og:url
+    if (preg_match('/<meta[^>]+property=["\']og:url["\'][^>]+content=["\']([^"\']+)["\']/', $html, $m) ||
+        preg_match('/<link[^>]+rel=["\']canonical["\'][^>]+href=["\']([^"\']+)["\']/', $html, $m)) {
+        $rpath  = trim(parse_url($m[1], PHP_URL_PATH) ?? '', '/');
+        $rparts = explode('/', $rpath);
+        $bi = array_search('bilete', $rparts);
+        if ($bi !== false && isset($rparts[$bi + 1])) {
+            $slug = $rparts[$bi + 1];
+        }
     }
     if (!$slug) {
-        echo json_encode(['success' => false, 'message' => 'Debug: final_url=' . $final_url]);
+        echo json_encode(['success' => false, 'message' => 'Nu am putut rezolva linkul scurt LiveTickets.']);
         exit;
     }
 }
