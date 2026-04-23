@@ -70,7 +70,7 @@ if ($event_id && !$slug) {
         }
     }
     if (!$slug) {
-        echo json_encode(['success' => false, 'message' => 'Nu am putut rezolva linkul scurt LiveTickets.']);
+        echo json_encode(['success' => false, 'message' => 'Debug HTML: ' . substr(strip_tags($html), 0, 400)]);
         exit;
     }
 }
