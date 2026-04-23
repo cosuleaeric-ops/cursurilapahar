@@ -66,7 +66,7 @@ if ($event_id && !$slug) {
         $slug = $rparts[$bi + 1];
     }
     if (!$slug) {
-        echo json_encode(['success' => false, 'message' => 'Nu am putut rezolva linkul scurt LiveTickets.']);
+        echo json_encode(['success' => false, 'message' => 'Debug: final_url=' . $final_url]);
         exit;
     }
 }
