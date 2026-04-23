@@ -292,7 +292,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $target = ($course['livetickets_url'] ?? '') ? '_blank' : '_self';
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
             ?>
-            <a href="<?= htmlspecialchars($card_url) ?>" target="<?= $target ?>" rel="noopener" class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
+            <a <?= $is_sold_out ? '' : 'href="' . htmlspecialchars($card_url) . '" target="' . $target . '" rel="noopener"' ?> class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
                 <?php if ($is_sold_out): ?>
                 <div class="sold-out-badge">SOLD OUT</div>
                 <?php endif; ?>

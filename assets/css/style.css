@@ -467,6 +467,7 @@ ul { list-style: none; }
 }
 .event-card--soldout {
   position: relative;
+  cursor: default;
 }
 .event-card--soldout::after {
   content: '';
