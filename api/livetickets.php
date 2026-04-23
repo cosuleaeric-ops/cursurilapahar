@@ -46,10 +46,33 @@ if (!$slug && !$event_id) {
     exit;
 }
 
+// For /e/ short links, follow the redirect to get the real slug
+if ($event_id && !$slug) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS      => 5,
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_NOBODY         => true,
+    ]);
+    curl_exec($ch);
+    $final_url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+    curl_close($ch);
+    $rpath  = trim(parse_url($final_url, PHP_URL_PATH) ?? '', '/');
+    $rparts = explode('/', $rpath);
+    $bi = array_search('bilete', $rparts);
+    if ($bi !== false && isset($rparts[$bi + 1])) {
+        $slug = $rparts[$bi + 1];
+    }
+    if (!$slug) {
+        echo json_encode(['success' => false, 'message' => 'Nu am putut rezolva linkul scurt LiveTickets.']);
+        exit;
+    }
+}
+
 // Call LiveTickets API
-$api_url = $slug
-    ? 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug)
-    : 'https://api.livetickets.ro/public/events/' . urlencode($event_id);
+$api_url = 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug);
 $response = file_get_contents($api_url, false, stream_context_create([
     'http' => [
         'method' => 'GET',
