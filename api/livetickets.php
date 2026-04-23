@@ -46,31 +46,16 @@ if (!$slug && !$event_id) {
     exit;
 }
 
-// For /e/ short links, fetch page HTML and extract slug from og:url or canonical
+// For /e/ short links, resolve the short code via LiveTickets API
 if ($event_id && !$slug) {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_MAXREDIRS      => 5,
-        CURLOPT_TIMEOUT        => 15,
-        CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; bot)',
-        CURLOPT_HTTPHEADER     => ['Accept: text/html'],
-    ]);
-    $html = curl_exec($ch);
-    curl_close($ch);
-    // Try og:url
-    if (preg_match('/<meta[^>]+property=["\']og:url["\'][^>]+content=["\']([^"\']+)["\']/', $html, $m) ||
-        preg_match('/<link[^>]+rel=["\']canonical["\'][^>]+href=["\']([^"\']+)["\']/', $html, $m)) {
-        $rpath  = trim(parse_url($m[1], PHP_URL_PATH) ?? '', '/');
-        $rparts = explode('/', $rpath);
-        $bi = array_search('bilete', $rparts);
-        if ($bi !== false && isset($rparts[$bi + 1])) {
-            $slug = $rparts[$bi + 1];
-        }
-    }
+    $resolve = file_get_contents(
+        'https://api.livetickets.ro/public/events/get-url?code=' . urlencode($event_id),
+        false, stream_context_create(['http' => ['timeout' => 10, 'ignore_errors' => true]])
+    );
+    $resolved = $resolve ? json_decode($resolve, true) : null;
+    $slug = $resolved['url'] ?? '';
     if (!$slug) {
-        echo json_encode(['success' => false, 'message' => 'Debug HTML: ' . substr(strip_tags($html), 0, 400)]);
+        echo json_encode(['success' => false, 'message' => 'Nu am putut rezolva linkul scurt LiveTickets.']);
         exit;
     }
 }
