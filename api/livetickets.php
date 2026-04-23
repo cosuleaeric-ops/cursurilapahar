@@ -27,24 +27,29 @@ if (!$url) {
     exit;
 }
 
-// Extract slug from LiveTickets URL
-// e.g. https://www.livetickets.ro/bilete/some-event-slug
+// Extract slug/id from LiveTickets URL
+// Supports: /bilete/some-event-slug  and  /e/5a2896d
 $path  = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
 $parts = explode('/', $path);
-// slug is the segment after 'bilete'
 $slug = '';
+$event_id = '';
 $bilete_idx = array_search('bilete', $parts);
+$e_idx = array_search('e', $parts);
 if ($bilete_idx !== false && isset($parts[$bilete_idx + 1])) {
     $slug = $parts[$bilete_idx + 1];
+} elseif ($e_idx !== false && isset($parts[$e_idx + 1])) {
+    $event_id = $parts[$e_idx + 1];
 }
 
-if (!$slug) {
-    echo json_encode(['success' => false, 'message' => 'URL invalid. Asigură-te că e un link de tip livetickets.ro/bilete/...']);
+if (!$slug && !$event_id) {
+    echo json_encode(['success' => false, 'message' => 'URL invalid. Folosește un link de tip livetickets.ro/bilete/... sau livetickets.ro/e/...']);
     exit;
 }
 
 // Call LiveTickets API
-$api_url = 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug);
+$api_url = $slug
+    ? 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug)
+    : 'https://api.livetickets.ro/public/events/' . urlencode($event_id);
 $response = file_get_contents($api_url, false, stream_context_create([
     'http' => [
         'method' => 'GET',
