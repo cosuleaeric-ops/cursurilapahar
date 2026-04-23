@@ -293,14 +293,14 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
             ?>
             <a href="<?= htmlspecialchars($card_url) ?>" target="<?= $target ?>" rel="noopener" class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
+                <?php if ($is_sold_out): ?>
+                <div class="sold-out-badge">SOLD OUT</div>
+                <?php endif; ?>
                 <div class="event-card-img">
                     <?php if (!empty($course['image_url'])): ?>
                     <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($course['title'] ?? '') ?>" loading="lazy">
                     <?php else: ?>
                     <div class="event-card-img-placeholder"></div>
-                    <?php endif; ?>
-                    <?php if ($is_sold_out): ?>
-                    <div class="sold-out-badge">Sold Out</div>
                     <?php endif; ?>
                     <?php if ($badge_day): ?>
                     <div class="event-card-date-badge">
