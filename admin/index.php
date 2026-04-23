@@ -1606,7 +1606,7 @@ if (!empty($_ql)): ?>
     <div>
         <!-- Upcoming courses -->
         <div class="dash-section">
-            <div class="dash-section-title"><span>Urmatoarele cursuri</span></div>
+            <div class="dash-section-title"><span>Urmatoarele cursuri</span><a href="?tab=cursuri" style="font-size:12px;font-weight:400;color:var(--primary);text-decoration:none;margin-left:10px">+ Adaugă</a></div>
             <?php if (empty($_dash_upcoming)): ?>
                 <p style="color:var(--text-muted);font-size:13px">Niciun curs programat.</p>
             <?php else: ?>
