@@ -2368,6 +2368,9 @@ if ($editing_page && isset($page_meta[$editing_page])):
 .msg-detail-val { color:var(--text); flex:1; min-width:0; overflow-wrap:break-word; }
 .msg-detail-actions { margin-top:12px; }
 .msg-empty { color:var(--text-muted); font-size:13px; padding:12px 0; }
+.msg-copy-btn { margin-left:8px; background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:5px; padding:2px 8px; font-size:11px; cursor:pointer; transition:.15s; vertical-align:middle; }
+.msg-copy-btn:hover { border-color:var(--primary,#333); color:var(--primary,#333); }
+.msg-copy-btn.copied { border-color:#27ae60; color:#27ae60; }
 </style>
 
 <?php
@@ -2444,7 +2447,7 @@ if (file_exists($log_file) && filesize($log_file)) {
             ?>
             <div class="msg-detail-row">
                 <span class="msg-detail-lbl"><?= h($lbl) ?></span>
-                <span class="msg-detail-val"><?= h($val) ?></span>
+                <span class="msg-detail-val"><?= h($val) ?><?php if (strtolower($lbl) === 'social' && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază link">Copiază</button><?php endif; ?></span>
             </div>
             <?php endforeach; ?>
             <div class="msg-detail-actions">
@@ -2468,6 +2471,13 @@ function showMsgTab(key) {
 function toggleMsg(uid) {
     const el = document.getElementById('msg-' + uid);
     el.classList.toggle('open');
+}
+function copyField(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copiat!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copiază'; btn.classList.remove('copied'); }, 2000);
+    });
 }
 function deleteMsg(btn, type, idx) {
     if (!confirm('Sigur vrei să ștergi acest mesaj?')) return;
