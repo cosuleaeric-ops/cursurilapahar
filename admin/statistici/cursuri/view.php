@@ -413,10 +413,6 @@ include __DIR__ . '/../layout_header.php';
           <div class="value"><?php echo number_format((float)$report['total_incasari'], 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
         </div>
         <div class="raport-stat">
-          <div class="label">Total bilete (brut)</div>
-          <div class="value"><?php echo number_format((float)$report['total_bilete'], 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
-        </div>
-        <div class="raport-stat">
           <div class="label">Taxa DITL (2%)</div>
           <div class="value ditl"><?php echo number_format((float)$report['total_bilete'] * 0.02, 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
         </div>
