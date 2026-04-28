@@ -117,7 +117,7 @@ include __DIR__ . '/../layout_header.php';
     .viza-subtable tr:last-child td { border-bottom:none; }
     .seria-badge { background:#EAF5EF; border:1px solid #b2d9c0; border-radius:4px; padding:1px 6px; font-weight:700; font-size:11px; }
     .btn-green { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:13px; font-weight:600; text-decoration:none; cursor:pointer; }
-    .btn-green:hover { background:var(--accent-hover); }
+    .btn-green:hover { background:#1e40af; }
     @media(max-width:600px) { .summary-grid { grid-template-columns:1fr; } }
 </style>
 <?php include __DIR__ . '/../layout_nav.php'; ?>
