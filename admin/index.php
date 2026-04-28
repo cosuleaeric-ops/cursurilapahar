@@ -1408,9 +1408,15 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
             <?php if (is_owner()): ?>
-            <div class="sidebar-section">Date</div>
-            <a href="/admin/statistici/">
-                <span class="nav-icon">📊</span> Statistici
+            <div class="sidebar-section">Statistici</div>
+            <a href="/admin/statistici/cursuri/">
+                <span class="nav-icon">📋</span> Cursuri
+            </a>
+            <a href="/admin/statistici/participanti/">
+                <span class="nav-icon">👥</span> Participanti
+            </a>
+            <a href="/admin/statistici/pnl/">
+                <span class="nav-icon">📈</span> P&amp;L Cursuri
             </a>
             <div class="sidebar-section">Sistem</div>
             <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">
