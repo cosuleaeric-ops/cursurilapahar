@@ -9,7 +9,7 @@ $db = get_clp_db();
 // ── An + lună comune pentru ambele tab-uri ────────────────────────────────────
 $now       = new DateTimeImmutable();
 $ditlYear  = (int)($_GET['year']  ?? $now->format('Y'));
-$ditlMonth = isset($_GET['month']) ? (int)$_GET['month'] : 0; // 0 = tot anul
+$ditlMonth = isset($_GET['month']) ? (int)$_GET['month'] : (int)$now->format('n');
 $datePrefix = $ditlMonth > 0
     ? $ditlYear . '-' . str_pad((string)$ditlMonth, 2, '0', STR_PAD_LEFT)
     : (string)$ditlYear;
