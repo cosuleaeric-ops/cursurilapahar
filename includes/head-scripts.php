@@ -16,3 +16,10 @@ if (!isset($settings)) {
 if (!empty($settings['head_scripts'])) {
     echo $settings['head_scripts'] . "\n";
 }
+?>
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-3t0zbcrOJNHSBQ4-KIokx.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
