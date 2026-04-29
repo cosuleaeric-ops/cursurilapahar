@@ -4,6 +4,7 @@ data/messages.log
 # Secrets – never commit
 private/secrets.php
 data/settings.json
+.sync-token
 
 # Financial data & uploads
 admin/statistici/data/pnl.sqlite
@@ -19,5 +20,9 @@ server.py
 
 # Editor
 .vscode/
+.claude/
 *.swp
 *.zip
+
+# Dependencies
+node_modules/
