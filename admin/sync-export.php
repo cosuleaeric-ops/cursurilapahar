@@ -2,29 +2,32 @@
 // ── Sync export endpoint ─────────────────────────────────────────────────────
 // Returneaza un bundle JSON cu datele "publice" (settings, courses, vote_courses,
 // speakers, locations, collaborations) pentru a sincroniza un mediu local.
-// Protejat printr-un token din private/secrets.php (SYNC_TOKEN).
+// Protejat printr-un token din data/settings.json (sync_token) — auto-generat
+// la prima rulare a admin-ului.
 // Exclude: users.json (parole), messages.log (privacy).
 
-if (file_exists(dirname(__DIR__) . '/private/secrets.php')) {
-    require dirname(__DIR__) . '/private/secrets.php';
-}
+$data_dir = dirname(__DIR__) . '/data';
+$settings_file = $data_dir . '/settings.json';
+$settings = file_exists($settings_file)
+    ? (json_decode(file_get_contents($settings_file), true) ?: [])
+    : [];
+$sync_token = $settings['sync_token'] ?? '';
 
-if (!defined('SYNC_TOKEN') || SYNC_TOKEN === '') {
+if ($sync_token === '') {
     http_response_code(503);
     header('Content-Type: text/plain');
-    echo "SYNC_TOKEN not configured on this server.";
+    echo "sync_token not configured. Open the admin UI on this server once to auto-generate it.";
     exit;
 }
 
 $provided = $_GET['token'] ?? ($_SERVER['HTTP_X_SYNC_TOKEN'] ?? '');
-if (!hash_equals(SYNC_TOKEN, (string)$provided)) {
+if (!hash_equals($sync_token, (string)$provided)) {
     http_response_code(403);
     header('Content-Type: text/plain');
     echo "Forbidden.";
     exit;
 }
 
-$data_dir = dirname(__DIR__) . '/data';
 $files = [
     'settings'        => 'settings.json',
     'courses'         => 'courses.json',
@@ -40,9 +43,9 @@ foreach ($files as $key => $filename) {
     $bundle[$key] = file_exists($path) ? json_decode(file_get_contents($path), true) : null;
 }
 
-// Strip secrets from settings (parole admin etc, daca exista)
+// Strip secrets din settings inainte de a le trimite
 if (is_array($bundle['settings'])) {
-    foreach (['admin_password', 'auth_secret', 'webhook_secret'] as $secret_key) {
+    foreach (['admin_password','auth_secret','webhook_secret','sync_token'] as $secret_key) {
         unset($bundle['settings'][$secret_key]);
     }
 }

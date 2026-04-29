@@ -86,6 +86,7 @@ function ensure_secrets(): void {
     $changed = false;
     if (empty($settings['auth_secret']))    { $settings['auth_secret']    = bin2hex(random_bytes(32)); $changed = true; }
     if (empty($settings['webhook_secret'])) { $settings['webhook_secret'] = bin2hex(random_bytes(32)); $changed = true; }
+    if (empty($settings['sync_token']))     { $settings['sync_token']     = bin2hex(random_bytes(32)); $changed = true; }
     if ($changed) {
         $dir = dirname(SETTINGS_FILE);
         if (!is_dir($dir)) mkdir($dir, 0755, true);
@@ -659,12 +660,21 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Regenerate sync token
+    if ($action === 'regenerate_sync_token') {
+        $settings = load_settings();
+        $settings['sync_token'] = bin2hex(random_bytes(32));
+        save_settings($settings);
+        header('Location: /admin/?tab=config&saved=1');
+        exit;
+    }
+
     // ── Export all data as download
     if ($action === 'export_settings') {
         $data_dir = dirname(SETTINGS_FILE);
         $export_settings = file_exists(SETTINGS_FILE) ? json_decode(file_get_contents(SETTINGS_FILE), true) : [];
         // Strip secrets from export
-        foreach (['admin_password','auth_secret','webhook_secret'] as $k) {
+        foreach (['admin_password','auth_secret','webhook_secret','sync_token'] as $k) {
             unset($export_settings[$k]);
         }
         $bundle = [
@@ -691,7 +701,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Preserve local secrets and password
                 $local = load_settings();
-                foreach (['admin_password','auth_secret','webhook_secret'] as $k) {
+                foreach (['admin_password','auth_secret','webhook_secret','sync_token'] as $k) {
                     if (!empty($local[$k])) $imported[$k] = $local[$k];
                 }
                 save_settings($imported);
@@ -3127,6 +3137,34 @@ function addQlRow() {
     </form>
     <p class="form-desc" style="margin-top:12px">Parola este salvată în <code>data/settings.json</code> și nu apare nicăieri în cod sau Git.</p>
 </div>
+
+<!-- Sync token (pentru sync.sh local) -->
+<div class="card">
+    <div class="card-title">🔄 Sync Token</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+        Folosit de scriptul <code>./sync.sh</code> pentru a sincroniza datele din producție în mediul local.
+        Pune valoarea într-un fișier <code>.sync-token</code> în root-ul proiectului local.
+    </p>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <input type="text" id="sync_token_input" value="<?= h($settings['sync_token'] ?? '') ?>" readonly style="font-family:monospace;font-size:12px;flex:1">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="copySyncToken()">Copiază</button>
+        <form method="post" action="/admin/?tab=config" style="margin:0" onsubmit="return confirm('Regenerezi tokenul? Va trebui să-l actualizezi local.')">
+            <input type="hidden" name="action" value="regenerate_sync_token">
+            <button type="submit" class="btn btn-secondary btn-sm">Regenerează</button>
+        </form>
+    </div>
+    <p class="form-desc" style="margin:0">Conținut <code>.sync-token</code>:</p>
+    <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:12px;margin:6px 0 0;user-select:all">SYNC_URL=https://cursurilapahar.ro/admin/sync-export.php
+SYNC_TOKEN=<?= h($settings['sync_token'] ?? '') ?></pre>
+</div>
+
+<script>
+function copySyncToken() {
+    const inp = document.getElementById('sync_token_input');
+    inp.select();
+    navigator.clipboard.writeText(inp.value);
+}
+</script>
 
 <?php endif; ?>
 
