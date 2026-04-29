@@ -134,7 +134,19 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 
 function load_courses(): array {
     if (!file_exists(COURSES_FILE)) return [];
-    return json_decode(file_get_contents(COURSES_FILE), true) ?: [];
+    $courses = json_decode(file_get_contents(COURSES_FILE), true) ?: [];
+    // Auto-deactivate courses whose date has passed
+    $today = date('Y-m-d');
+    $changed = false;
+    foreach ($courses as &$c) {
+        if (!empty($c['date_raw']) && $c['date_raw'] < $today && !empty($c['active'])) {
+            $c['active'] = false;
+            $changed = true;
+        }
+    }
+    unset($c);
+    if ($changed) save_courses($courses);
+    return $courses;
 }
 function save_courses(array $courses): void {
     $dir = dirname(COURSES_FILE);
@@ -1729,20 +1741,21 @@ if (!empty($_ql)): ?>
         </form>
     </div>
 
-    <!-- Courses table -->
-    <div class="card">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-            <span>Cursuri (<?= count($courses) ?>)</span>
-            <form method="post" action="/admin/?tab=cursuri" style="margin:0">
-                <input type="hidden" name="action" value="clear_soldout_cache">
-                <button class="btn btn-secondary" type="submit" title="Șterge cache-ul de sold out — util dacă s-au adăugat bilete înapoi">
-                    &#8635; Resetează sold out cache
-                </button>
-            </form>
-        </div>
-        <?php if (empty($courses)): ?>
-        <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
-        <?php else: ?>
+    <?php
+    $today_ymd = date('Y-m-d');
+    $courses_upcoming = [];
+    $courses_past = [];
+    foreach ($courses as $c) {
+        if (!empty($c['date_raw']) && $c['date_raw'] < $today_ymd) {
+            $courses_past[] = $c;
+        } else {
+            $courses_upcoming[] = $c;
+        }
+    }
+    // Past: most recent first
+    usort($courses_past, fn($a, $b) => strcmp($b['date_raw'] ?? '', $a['date_raw'] ?? ''));
+    $render_courses_table = function(array $list) {
+        ?>
         <table class="wp-table">
             <thead>
                 <tr>
@@ -1754,7 +1767,7 @@ if (!empty($_ql)): ?>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($courses as $c): ?>
+                <?php foreach ($list as $c): ?>
                 <tr>
                     <td>
                         <?php if (!empty($c['image_url'])): ?>
@@ -1790,8 +1803,34 @@ if (!empty($_ql)): ?>
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <?php endif; ?>
+        <?php
+    };
+    ?>
+
+    <!-- Courses table (upcoming) -->
+    <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Cursuri (<?= count($courses_upcoming) ?>)</span>
+            <form method="post" action="/admin/?tab=cursuri" style="margin:0">
+                <input type="hidden" name="action" value="clear_soldout_cache">
+                <button class="btn btn-secondary" type="submit" title="Șterge cache-ul de sold out — util dacă s-au adăugat bilete înapoi">
+                    &#8635; Resetează sold out cache
+                </button>
+            </form>
+        </div>
+        <?php if (empty($courses_upcoming)): ?>
+        <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
+        <?php else: $render_courses_table($courses_upcoming); endif; ?>
     </div>
+
+    <?php if (!empty($courses_past)): ?>
+    <!-- Courses table (past / auto-deactivated) -->
+    <div class="card">
+        <div class="card-title">Cursuri trecute (<?= count($courses_past) ?>)</div>
+        <p style="color:var(--text-muted);margin:-4px 0 12px">Aceste cursuri au fost dezactivate automat după ce a trecut data evenimentului.</p>
+        <?php $render_courses_table($courses_past); ?>
+    </div>
+    <?php endif; ?>
 
 <?php /* ======================================================= TAB: IMAGINI */ ?>
 <?php elseif ($tab === 'imagini'): ?>
