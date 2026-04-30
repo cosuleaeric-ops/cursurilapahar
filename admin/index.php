@@ -247,7 +247,7 @@ function default_settings(): array {
         'head_scripts'      => '',
         'pages'             => [
             'sustine' => [
-                'title'       => 'Susține un curs',
+                'title'       => 'Prezintă un curs',
                 'subtitle'    => 'Împărtășește-ți expertiza cu comunitatea noastră.',
                 'description' => 'Ești expert într-un domeniu care te pasionează? Vino să susții un curs în fața unei comunități curioase, într-un cadru relaxat, la un pahar.',
             ],
@@ -2332,7 +2332,7 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 
 <?php
 $page_meta = [
-    'sustine'     => ['title' => 'Susține un curs',       'url' => '/sustine-un-curs'],
+    'sustine'     => ['title' => 'Prezintă un curs',       'url' => '/sustine-un-curs'],
     'gazduieste'  => ['title' => 'Găzduiește un curs',    'url' => '/gazduieste-un-curs'],
     'parteneriat' => ['title' => 'Propune un parteneriat','url' => '/propune-un-parteneriat'],
 ];
@@ -2432,7 +2432,7 @@ if ($editing_page && isset($page_meta[$editing_page])):
 $log_file = dirname(SETTINGS_FILE) . '/messages.log';
 $categories = [
     'contact'     => ['label' => 'Contact',           'icon' => '💬'],
-    'sustine'     => ['label' => 'Susține un curs',   'icon' => '🎤'],
+    'sustine'     => ['label' => 'Prezintă un curs',   'icon' => '🎤'],
     'gazduieste'  => ['label' => 'Locații',           'icon' => '📍'],
     'parteneriat' => ['label' => 'Parteneriate',      'icon' => '🤝'],
 ];

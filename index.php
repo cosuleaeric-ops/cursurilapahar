@@ -363,9 +363,9 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
         <div class="collab-grid">
             <a href="/sustine-un-curs" class="collab-card">
                 <div class="collab-card-img">
-                    <img src="/assets/images/uploads/sustine.webp" alt="Susține un curs" loading="lazy">
+                    <img src="/assets/images/uploads/sustine.webp" alt="Prezintă un curs" loading="lazy">
                 </div>
-                <h3>Susține un curs</h3>
+                <h3>Prezintă un curs</h3>
                 <p>Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre.</p>
                 <span class="collab-link">Află mai multe →</span>
             </a>

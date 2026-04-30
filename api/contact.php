@@ -29,8 +29,8 @@ if (!$email) {
 $form_type = preg_replace('/[^a-z0-9-]/', '', $body['form_type'] ?? 'contact');
 $subjects = [
     'contact'             => 'Mesaj nou de pe site',
-    'sustine'             => 'Cerere nouă: Susține un curs',
-    'sustine-un-curs'     => 'Cerere nouă: Susține un curs',
+    'sustine'             => 'Cerere nouă: Prezintă un curs',
+    'sustine-un-curs'     => 'Cerere nouă: Prezintă un curs',
     'gazduieste'          => 'Cerere nouă: Găzduiește un curs',
     'gazduieste-un-curs'  => 'Cerere nouă: Găzduiește un curs',
     'parteneriat'         => 'Cerere nouă: Propune un parteneriat',

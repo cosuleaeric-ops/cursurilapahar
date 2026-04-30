@@ -1,6 +1,6 @@
 <?php
 /**
- * Cursuri la Pahar – Susține un curs
+ * Cursuri la Pahar – Prezintă un curs
  */
 
 // ── Load settings ─────────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ function clp_e(string $key, array $settings): string {
     return 'data-edit-key="' . htmlspecialchars($key) . '"';
 }
 
-$sustine_title   = $settings['sustine_title']   ?? 'Susține un curs';
+$sustine_title   = $settings['sustine_title']   ?? 'Prezintă un curs';
 $sustine_intro_1 = $settings['sustine_intro_1'] ?? 'Căutăm voci noi pentru <strong>Cursuri la Pahar</strong>! Dacă ai experiență într-un domeniu care te pasionează și vrei să dai mai departe din învățăturile tale, te așteptăm să susții un curs în cadrul evenimentelor noastre.';
 $sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Punem preț pe calitatea informației și pe vibe-ul bun, așa că, dacă ești gata să inspiri comunitatea cu învățăturile tale, <strong>completează formularul de mai jos</strong>!';
 ?>
@@ -33,8 +33,8 @@ $sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Punem preț pe calitatea inf
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Susține un curs – Cursuri la Pahar</title>
-    <meta name="description" content="Susține un curs la Cursuri la Pahar. Vino să împărtășești expertiza ta cu comunitatea noastră.">
+    <title>Prezintă un curs – Cursuri la Pahar</title>
+    <meta name="description" content="Prezintă un curs la Cursuri la Pahar. Vino să împărtășești expertiza ta cu comunitatea noastră.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <?php

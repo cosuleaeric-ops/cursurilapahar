@@ -1,0 +1,105 @@
+[
+    {
+        "id": "sp69e8d05f92bd59.71911791",
+        "name": "Alice Donea",
+        "email": "doneaalice03@gmail.com",
+        "phone": "0728977233",
+        "courses": [
+            "Viata personala si profesionala",
+            "Comunicare asertiva",
+            "Dependente",
+            "Cum sa treci peste burnout",
+            "Managementul stresului",
+            "Psihologia hartuirii",
+            "Cum sa transformam convingerile limitative",
+            "Cum sa ai un somn mai bun",
+            "Increderea si stima de sine",
+            "Cum functioneaza mintea, emotiile, relatiile si deciziile",
+            "Atasamentul securizant",
+            "Granite sanatoase: cum spui nu fara vinovatie"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d0a8049ba9.01704416",
+        "name": "Sonia Rusu",
+        "email": "soniamedarusu@gmail.com",
+        "phone": "0799869175",
+        "courses": [
+            "Metacognitia sanatoasa",
+            "Comunicare",
+            "Gandire critica"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d0cf380142.99835017",
+        "name": "Iuliana Mihaela Cirlig",
+        "email": "iulicirlig@yahoo.com",
+        "phone": "0723589994",
+        "courses": [
+            "Reconectarea in cuplu"
+        ],
+        "status": "MID",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d0f037a222.52014302",
+        "name": "Delia Vișan",
+        "email": "hello@deliavisan.com",
+        "phone": "732343572",
+        "courses": [
+            "Cum sa relationezi cu clientii dificili",
+            "Public Speaking"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d11f3bcf86.70665066",
+        "name": "Irina Babici",
+        "email": "irinaelenababici@gmail.com",
+        "phone": "764420035",
+        "courses": [
+            "Longevitate & echilibru nutrițional"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d14d0f9261.23515674",
+        "name": "Andrei Paruschi",
+        "email": "paruschi.andrei@yahoo.com",
+        "phone": "0750442991",
+        "courses": [
+            "Cum să oferi primul ajutor"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d1b9935e53.92728177",
+        "name": "Kassandra Popa",
+        "email": "kassandra.popa1@gmail.com",
+        "phone": "0756432495",
+        "courses": [
+            "Inteligenta emotionala",
+            "Inteligenta interpersonala"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    },
+    {
+        "id": "sp69e8d1fc41ba17.52889023",
+        "name": "Radu Dincă",
+        "email": "radualex1805@gmail.com",
+        "phone": "0784202862",
+        "courses": [
+            "Filozofie stuff"
+        ],
+        "status": "RECURENT",
+        "notes": ""
+    }
+]

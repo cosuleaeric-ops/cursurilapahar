@@ -1,13 +1,57 @@
 [
     {
-        "id": "c69d92d0161fa20.52110941",
-        "title": "Curs la Pahar - METACOGNIȚIA APLICATĂ. DE CE GÂNDESC AȘA? // 21 aprilie",
-        "date_display": "21 Aprilie 2026",
-        "date_raw": "2026-04-21",
+        "id": "c69e7a5fb6ed808.77533465",
+        "title": "Curs la Pahar - STRES VS BURNOUT. Cum eviți epuizarea cronică // 28 aprilie",
+        "date_display": "28 Aprilie 2026",
+        "date_raw": "2026-04-28",
+        "time": "18:30",
+        "location": "Twisted Olives x SUPA DUPA, Strada Covaci 4, București",
+        "livetickets_url": "https://www.livetickets.ro/bilete/curs-la-pahar-stres-vs-burnout-cum-eviti-epuizarea-cronica-28-aprilie?preview=true",
+        "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-stres-vs-burnout-cum-eviti-epuizarea-cronica-28-aprilie/Background_MEDIUM.jpg?396fec4c-8dc8-47a5-b5f0-38b8dd30089b",
+        "active": false
+    },
+    {
+        "id": "c69ea7519b87b74.04145434",
+        "title": "Curs la Pahar - BUNE MANIERE ȘI ETICHETA SOCIALĂ // 30 aprilie",
+        "date_display": "30 Aprilie 2026",
+        "date_raw": "2026-04-30",
+        "time": "18:30",
+        "location": "Rost Urban Dining, Strada Pictor Stefan Dimitrescu 2D, București",
+        "livetickets_url": "https://www.livetickets.ro/e/599e278",
+        "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-bune-maniere-si-eticheta-sociala-30-aprilie/Background_MEDIUM.jpg?670a93ba-4228-4d29-98ef-d7b961513c78",
+        "active": false
+    },
+    {
+        "id": "c69f230f3d63600.91165494",
+        "title": "Curs la Pahar - NEUROȘTIINȚA ÎNVĂȚĂRII // 14 mai",
+        "date_display": "14 Mai 2026",
+        "date_raw": "2026-05-14",
+        "time": "18:30",
+        "location": "Twisted Olives x SUPA DUPA, Strada Covaci 4, București",
+        "livetickets_url": "https://www.livetickets.ro/e/a5295d5",
+        "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-neurostiinta-invatarii-14-mai/Background_MEDIUM.jpg?59f47c15-9daf-4c7e-81c0-98ad7be85240",
+        "active": true
+    },
+    {
+        "id": "c69f23118000975.03992320",
+        "title": "Curs la Pahar - INTELIGENȚA EMOȚIONALĂ // 12 mai",
+        "date_display": "12 Mai 2026",
+        "date_raw": "2026-05-12",
         "time": "18:30",
         "location": "Mojo, Strada Lipscani 69, București",
-        "livetickets_url": "https://www.livetickets.ro/bilete/curs-la-pahar-metacognitia-aplicata-de-ce-gandesc-asa-21-aprilie",
-        "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-metacognitia-aplicata-de-ce-gandesc-asa-21-aprilie/Background_MEDIUM.jpg?d63895ef-8242-4242-a181-2c3f64722b3e",
+        "livetickets_url": "https://www.livetickets.ro/e/d7ee383",
+        "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-inteligenta-emotionala-12-mai/Background_MEDIUM.jpg?6a12b69e-f92a-4851-acff-92c96c64995d",
+        "active": true
+    },
+    {
+        "id": "c69f2313fa38ff5.89389699",
+        "title": "Curs la Pahar - LONGEVITATE LA PAHAR // 07 mai",
+        "date_display": "7 Mai 2026",
+        "date_raw": "2026-05-07",
+        "time": "18:30",
+        "location": "Mojo, Strada Lipscani 69, București",
+        "livetickets_url": "https://www.livetickets.ro/e/44e6ef0",
+        "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-longevitate-la-pahar-7-mai/Background_MEDIUM.jpg?08b94478-5bd6-4234-ada7-a005ffab909e",
         "active": true
     }
 ]

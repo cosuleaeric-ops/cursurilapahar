@@ -4,48 +4,84 @@
         "name": "Educație montană",
         "emoji": "🏔️",
         "description": "Mulți oameni urcă pe munte conduși de entuziasm, nu de pregătire, și consecințele pot fi grave. Cursul acoperă practic ce contează: cum alegi traseul potrivit nivelului tău, ce trebuie să ai în rucsac și cum iei decizii bune când condițiile se schimbă. Educație montană reală, nu după reels.",
-        "likes": 0
+        "likes": 46
     },
     {
         "id": "vc_iubim_oameni_care_ne_ranesc",
         "name": "De ce iubim oameni care ne rănesc",
         "emoji": "💔",
         "description": "De ce ajungem să iubim oameni care ne fac rău, chiar și când mintea știe că ceva e greșit? Cursul explorează mecanismele din spatele atașamentului dureros, de la traumă relațională la semnalele pe care le trimite corpul, și explică de ce înțelegerea singură nu e suficientă pentru schimbare.",
-        "likes": 0
+        "likes": 83
     },
     {
         "id": "vc_numerologie",
         "name": "Numerologie",
         "emoji": "🔮",
         "description": "Un curs introductiv care explică de la zero cum funcționează numerologia și ce poți afla despre tine pornind de la câteva cifre simple. Participanții învață să-și calculeze și interpreteze propria hartă numerologică, cu aplicații concrete în autocunoaștere, relații și decizii de zi cu zi.",
-        "likes": 0
+        "likes": 37,
+        "active": false
     },
     {
         "id": "vc69da9c312e44b7.20321173",
         "name": "Branding personal",
         "emoji": "🌟",
         "description": "Un curs practic despre cum te poziționezi autentic în mintea celorlalți, fie că ești antreprenor, freelancer sau angajat care vrea să iasă în evidență. Înveți să-ți identifici valorile, vocea și mesajul, și să le comunici coerent oriunde contează.",
-        "likes": 0
+        "likes": 71
     },
     {
         "id": "vc69da9c6d943812.26171605",
         "name": "Ce se ascunde în spatele cafelei de specialitate",
         "emoji": "☕",
         "description": "Un curs pentru cei curioși să înțeleagă ce se ascunde în ceașca lor, de la diferența dintre cafeaua de specialitate și cea comercială, până la metodele de procesare și preparare. Pleci acasă știind cum să faci o cafea cu adevărat bună, fără să ai nevoie de o cafenea.",
-        "likes": 0
+        "likes": 49
     },
     {
         "id": "vc69da9cb1836179.42928517",
         "name": "Sindromul impostorului",
         "emoji": "🎭",
         "description": "Un curs practic despre sindromul impostorului: ce este, de ce apare și cum ne sabotează fără să ne dăm seama. Prin exerciții individuale și interacțiune, participanții învață să recunoască tiparul și să facă primii pași concreți spre a-l depăși.",
-        "likes": 0
+        "likes": 116
     },
     {
         "id": "vc69da9d2d9d65b1.20100186",
         "name": "Cum funcționează comedia",
         "emoji": "😂",
         "description": "Un curs care disecă mecanismele din spatele comediei: de ce râdem, cum e construită o glumă bună și ce face diferența dintre umor care prinde și umor care pică. Teorie, exemple și exerciții practice pentru cei curioși să înțeleagă arta de a face oamenii să râdă.",
-        "likes": 0
+        "likes": 45
+    },
+    {
+        "id": "vc69e40662d2f5d3.51690986",
+        "name": "Galaxiile si arta de a se ciocni cand nu e trafic",
+        "emoji": "🌌",
+        "description": "Un curs despre galaxii și ce se întâmplă când se ciocnesc, de la tipuri și structuri, până la efectele pe termen scurt și lung ale coliziunilor galactice. Punctul central: propria noastră întâlnire cu Andromeda, programată peste aproximativ 4 miliarde de ani.",
+        "likes": 41
+    },
+    {
+        "id": "vc69e4069002d6c1.28334527",
+        "name": "Istoria modei în sec. XIX-XX",
+        "emoji": "👚",
+        "description": "Un curs care urmărește moda din epoca Revoluției Franceze până azi, cu accent pe transformările mari și motivele din spatele lor. Corsete, crinoline și alte excentricități vestimentare explicate în context istoric, cu detalii inedite și mai puțin știute.",
+        "likes": 42
+    },
+    {
+        "id": "vc69e406d31a0062.43237270",
+        "name": "Știința fericirii",
+        "emoji": "😁",
+        "description": "Un curs bazat pe psihologie pozitivă care te ajută să înțelegi ce anume îți aduce cu adevărat fericire și împlinire, nu la modul abstract, ci aplicat. Prin exerciții practice, participanții își identifică punctele forte, emoțiile care îi susțin și valorile care ar trebui să le ghideze deciziile.",
+        "likes": 107
+    },
+    {
+        "id": "vc69e406fd5844e6.39623002",
+        "name": "Istoria explorării Arcticii",
+        "emoji": "❄️",
+        "description": "Un curs care acoperă trei secole de explorare arctică, de la primele încercări de a găsi Pasajul de Nord-Vest până la cursa pentru Polul Nord, cu tot cu naufragii, expediții de salvare și povești de supraviețuire la limită. Materialul e vast și captivant, iar fiecare segment funcționează și ca workshop de sine stătător.",
+        "likes": 33
+    },
+    {
+        "id": "vc69e4071f508b07.33591253",
+        "name": "Hipnoza",
+        "emoji": "🌀",
+        "description": "Un curs care demontează mituri și explică ce este hipnoza cu adevărat, cum funcționează și când are sens să apelezi la ea. Include și o distincție importantă între hipnoza clinică, folosită terapeutic, și cea de marketing, cu care suntem bombardați fără să știm.",
+        "likes": 58
     }
 ]
