@@ -525,13 +525,27 @@ ul { list-style: none; }
 .section-bg-blur {
   position: relative;
   overflow: hidden;
+  contain: paint;
 }
 .section-bg-blur::before {
   content: '';
+  position: fixed;
+  inset: 0;
+  background-image: var(--section-bg-img);
+  background-size: cover;
+  background-position: center;
+  background-attachment: scroll;
+  filter: blur(var(--section-blur, 6px));
+  transform: translateZ(0);
+  will-change: transform;
+  z-index: 0;
+}
+.section-bg-blur::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background: var(--bg-dark, #0d0d0d);
-  z-index: 0;
+  background: rgba(0,0,0,var(--section-overlay, .72));
+  z-index: 1;
 }
 .section-bg-blur > .container,
 .section-bg-blur > .container-narrow {
