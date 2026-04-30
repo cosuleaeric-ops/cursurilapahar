@@ -2,8 +2,10 @@ Options -Indexes
 RewriteEngine On
 RewriteBase /
 
-# Route /sustine-un-curs etc to PHP files
-RewriteRule ^sustine-un-curs/?$ /sustine-un-curs.php [L]
+# Route /prezinta-un-curs etc to PHP files
+RewriteRule ^prezinta-un-curs/?$ /prezinta-un-curs.php [L]
+# Redirect old URL to new
+RewriteRule ^sustine-un-curs/?$ /prezinta-un-curs [R=301,L]
 RewriteRule ^gazduieste-un-curs/?$ /gazduieste-un-curs.php [L]
 RewriteRule ^propune-un-parteneriat/?$ /propune-un-parteneriat.php [L]
 RewriteRule ^voteaza-cursuri/?$ /voteaza-cursuri.php [L]

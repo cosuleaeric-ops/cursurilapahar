@@ -61,7 +61,7 @@ $base_url   = 'https://raw.githubusercontent.com/' . REPO . '/' . $commit_sha . 
 
 $deploy_prefixes = [
     'index.php', 'api/', 'admin/', 'assets/', '.htaccess', 'private/',
-    'sustine-un-curs.php', 'gazduieste-un-curs.php', 'propune-un-parteneriat.php',
+    'prezinta-un-curs.php', 'sustine-un-curs.php', 'gazduieste-un-curs.php', 'propune-un-parteneriat.php',
     'voteaza-cursuri.php',
 ];
 

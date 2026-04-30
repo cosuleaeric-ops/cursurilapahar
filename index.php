@@ -361,7 +361,7 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
         <h2 class="section-title" <?= clp_e('collab_title',$settings) ?>><?= htmlspecialchars($settings['collab_title']) ?></h2>
         <p class="section-subtitle" <?= clp_e('collab_subtitle',$settings) ?>><?= htmlspecialchars($settings['collab_subtitle']) ?></p>
         <div class="collab-grid">
-            <a href="/sustine-un-curs" class="collab-card">
+            <a href="/prezinta-un-curs" class="collab-card">
                 <div class="collab-card-img">
                     <img src="/assets/images/uploads/sustine.webp" alt="Prezintă un curs" loading="lazy">
                 </div>

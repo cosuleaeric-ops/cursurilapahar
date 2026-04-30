@@ -2332,7 +2332,7 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 
 <?php
 $page_meta = [
-    'sustine'     => ['title' => 'Prezintă un curs',       'url' => '/sustine-un-curs'],
+    'sustine'     => ['title' => 'Prezintă un curs',       'url' => '/prezinta-un-curs'],
     'gazduieste'  => ['title' => 'Găzduiește un curs',    'url' => '/gazduieste-un-curs'],
     'parteneriat' => ['title' => 'Propune un parteneriat','url' => '/propune-un-parteneriat'],
 ];
