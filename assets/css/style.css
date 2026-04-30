@@ -534,7 +534,9 @@ ul { list-style: none; }
   background-size: cover;
   background-position: center;
   filter: blur(var(--section-blur, 6px));
-  transform: scale(1.04);
+  transform: scale(1.04) translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
   z-index: 0;
 }
 .section-bg-blur::after {
