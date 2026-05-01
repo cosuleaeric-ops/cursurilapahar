@@ -1260,6 +1260,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .wp-sidebar nav a.active { color: #fff; background: #1d4ed8; border-left-color: #93c5fd; }
 .wp-sidebar nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
 .sidebar-section { padding: 18px 16px 4px; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #4a5568; font-weight: 700; }
+.sidebar-section.collapsible { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding-right: 14px; }
+.sidebar-section.collapsible::after { content: '▾'; font-size: 11px; transition: transform .2s; }
+.sidebar-section.collapsible.collapsed::after { transform: rotate(-90deg); }
+.sidebar-collapse-content { overflow: hidden; transition: max-height .25s ease; max-height: 400px; }
+.sidebar-collapse-content.collapsed { max-height: 0; }
 .nav-new-badge { margin-left: auto; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; white-space: nowrap; }
 
 /* ── Main content ── */
@@ -1395,7 +1400,9 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
             <?php if (is_owner()): ?>
-            <div class="sidebar-section">Conținut</div>
+            <?php $_continut_active = in_array($tab, ['imagini','setari','aspect','pagini','cursuri','vot']); ?>
+            <div class="sidebar-section collapsible<?= $_continut_active ? '' : ' collapsed' ?>" onclick="clpToggleSidebarSection(this,'continut')">Conținut</div>
+            <div class="sidebar-collapse-content<?= $_continut_active ? '' : ' collapsed' ?>" id="sidebar-continut">
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
@@ -1408,13 +1415,14 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' || $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📄</span> Pagini
             </a>
+            <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
+                <span class="nav-icon">❤️</span> Vot cursuri
+            </a>
+            </div>
             <?php endif; ?>
             <div class="sidebar-section">Comunitate</div>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
                 <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
-            </a>
-            <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
-                <span class="nav-icon">❤️</span> Vot cursuri
             </a>
             <a href="/admin/?tab=competitori" class="<?= $tab === 'competitori' ? 'active' : '' ?>">
                 <span class="nav-icon">🔍</span> Competitori
@@ -3223,5 +3231,11 @@ async function importLT() {
 </script>
 
 <?php endif; ?>
+<script>
+function clpToggleSidebarSection(header, id) {
+    header.classList.toggle('collapsed');
+    document.getElementById('sidebar-' + id).classList.toggle('collapsed');
+}
+</script>
 </body>
 </html>
