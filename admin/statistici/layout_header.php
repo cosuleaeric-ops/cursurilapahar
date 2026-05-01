@@ -37,6 +37,11 @@ body { background:#f1f5f9; color:#1f2937; font-family:-apple-system,BlinkMacSyst
 .wp-sidebar nav a.active { color:#fff; background:#1d4ed8; border-left-color:#93c5fd; }
 .wp-sidebar nav a .nav-icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
 .sidebar-section { padding:18px 16px 4px; font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:#4a5568; font-weight:700; }
+.sidebar-section.collapsible { cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center; padding-right:14px; }
+.sidebar-section.collapsible::after { content:'▾'; font-size:11px; transition:transform .2s; }
+.sidebar-section.collapsible.collapsed::after { transform:rotate(-90deg); }
+.sidebar-collapse-content { overflow:hidden; transition:max-height .25s ease; max-height:400px; }
+.sidebar-collapse-content.collapsed { max-height:0; }
 .wp-main { flex:1; padding:24px 28px; min-width:0; margin-left:220px; }
 .wp-page-title { font-size:20px; font-weight:700; color:#111827; margin-bottom:20px; }
 .card { background:#fff !important; border:1px solid #e5e7eb !important; border-radius:12px !important; padding:20px !important; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,.04); display:block !important; }

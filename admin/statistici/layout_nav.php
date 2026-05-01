@@ -14,15 +14,17 @@
         <nav>
             <a href="/admin/"><span class="nav-icon">🏠</span> Dashboard</a>
             <?php if (is_owner_auth()): ?>
-            <div class="sidebar-section">Conținut</div>
+            <div class="sidebar-section collapsible collapsed" onclick="clpToggleSidebarSection(this,'continut')">Conținut</div>
+            <div class="sidebar-collapse-content collapsed" id="sidebar-continut">
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
             <a href="/admin/?tab=setari"><span class="nav-icon">✏️</span> Texte</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>
             <a href="/admin/?tab=pagini"><span class="nav-icon">📄</span> Pagini</a>
+            <a href="/admin/?tab=vot"><span class="nav-icon">❤️</span> Vot cursuri</a>
+            </div>
             <?php endif; ?>
             <div class="sidebar-section">Comunitate</div>
             <a href="/admin/?tab=mesaje"><span class="nav-icon">💬</span> Mesaje</a>
-            <a href="/admin/?tab=vot"><span class="nav-icon">❤️</span> Vot cursuri</a>
             <a href="/admin/?tab=competitori"><span class="nav-icon">🔍</span> Competitori</a>
             <div class="sidebar-section">CRM</div>
             <a href="/admin/?tab=speakeri"><span class="nav-icon">🎤</span> Speakeri</a>
@@ -39,4 +41,10 @@
             <?php endif; ?>
         </nav>
     </aside>
+    <script>
+    function clpToggleSidebarSection(header, id) {
+        header.classList.toggle('collapsed');
+        document.getElementById('sidebar-' + id).classList.toggle('collapsed');
+    }
+    </script>
     <main class="wp-main">
