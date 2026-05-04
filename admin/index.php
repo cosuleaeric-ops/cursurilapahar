@@ -778,7 +778,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$img) {
                         $ch = curl_init($source_domain . $path);
                         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>1,CURLOPT_FOLLOWLOCATION=>1,CURLOPT_TIMEOUT=>10]);
-                        $img = curl_exec($ch); curl_close($ch);
+                        $img = curl_exec($ch);
                     }
                     if ($img) { file_put_contents($local_path, $img); $downloaded++; }
                 }

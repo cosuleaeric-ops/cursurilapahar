@@ -39,7 +39,6 @@ function gh_get(string $url): string|false {
         ]);
         $body = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         if ($code === 200 && $body !== false && strlen($body) > 0) return $body;
         return false;
     }

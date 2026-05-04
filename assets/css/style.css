@@ -291,7 +291,13 @@ ul { list-style: none; }
   .navbar-hamburger { display: flex; }
 }
 @media (max-width: 768px) {
-  .hero-content { padding-bottom: 28px; }
+  .hero-content { padding-bottom: 60px; }
+  .hero { 
+    height: 60svh !important;
+    min-height: 200px !important;
+    max-height: 750px;
+  }
+  .announcement-banner { display: none; }
 }
 
 /* ── Announcement Banner ─────────────────── */
@@ -356,7 +362,7 @@ ul { list-style: none; }
   align-items: center;
   justify-content: flex-end;
   text-align: center;
-  padding: 24px 24px 78px;
+  padding: 24px 24px 30px;
   gap: 32px;
 }
 .hero-title {
@@ -384,7 +390,7 @@ ul { list-style: none; }
 }
 .hero-scroll-hint svg {
   width: 28px; height: 28px;
-  color: rgba(255,255,255,.5);
+  color: rgb(225, 255, 0);
 }
 @keyframes scrollBounce {
   0%, 100% { transform: translateY(0); }

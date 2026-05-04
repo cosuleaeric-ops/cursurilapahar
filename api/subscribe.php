@@ -30,7 +30,6 @@ curl_setopt_array($ch, [
 $response = curl_exec($ch);
 $curl_err = curl_error($ch);
 $code     = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
 
 if ($response === false || $code === 0) {
     echo json_encode(['success'=>false,'message'=>'Eroare conexiune: ' . $curl_err]); exit;

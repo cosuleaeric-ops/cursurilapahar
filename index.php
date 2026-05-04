@@ -89,7 +89,7 @@ function lt_http_get(string $url) {
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>5,CURLOPT_FOLLOWLOCATION=>1,CURLOPT_HTTPHEADER=>['Accept: application/json']]);
-        $r = curl_exec($ch); curl_close($ch); return $r;
+        return curl_exec($ch);
     }
     $ctx = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true, 'header' => 'Accept: application/json']]);
     return @file_get_contents($url, false, $ctx);
