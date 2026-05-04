@@ -354,13 +354,51 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($id) {
             $found = false;
             foreach ($courses as &$c) {
-                if (($c['id'] ?? '') === $id) { $c = $entry; $found = true; break; }
+                if (($c['id'] ?? '') === $id) {
+                    foreach (['discount_percent', 'discount_ends_at'] as $k) {
+                        if (isset($c[$k])) $entry[$k] = $c[$k];
+                    }
+                    $c = $entry;
+                    $found = true;
+                    break;
+                }
             }
             unset($c);
             if (!$found) $courses[] = $entry;
         } else {
             $courses[] = $entry;
         }
+        save_courses($courses);
+        header('Location: /admin/?tab=cursuri');
+        exit;
+    }
+
+    // ── Save / clear discount for a course
+    if ($action === 'save_discount') {
+        $id = trim($_POST['id'] ?? '');
+        $clear = !empty($_POST['clear']);
+        $courses = load_courses();
+        foreach ($courses as &$c) {
+            if (($c['id'] ?? '') !== $id) continue;
+            if ($clear) {
+                unset($c['discount_percent'], $c['discount_ends_at']);
+                break;
+            }
+            $pct = (int)($_POST['discount_percent'] ?? 0);
+            $local = trim($_POST['discount_ends_at'] ?? '');
+            if ($pct > 0 && $pct <= 100 && $local !== '') {
+                $tz = new DateTimeZone('Europe/Bucharest');
+                $dt = DateTime::createFromFormat('Y-m-d\TH:i', $local, $tz);
+                if ($dt) {
+                    $c['discount_percent'] = $pct;
+                    $c['discount_ends_at'] = $dt->format('c');
+                }
+            } else {
+                unset($c['discount_percent'], $c['discount_ends_at']);
+            }
+            break;
+        }
+        unset($c);
         save_courses($courses);
         header('Location: /admin/?tab=cursuri');
         exit;
@@ -1326,6 +1364,13 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .course-thumb { width: 60px; height: 40px; object-fit: cover; border-radius: 6px; display: block; }
 .course-thumb-empty { width: 60px; height: 40px; background: #f1f5f9; border: 1px solid #e5e7eb; border-radius: 6px; }
 .row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.discount-tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: middle; }
+.discount-tag--active { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+.discount-tag--expired { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+.discount-edit-row > td { background: #fafafa !important; padding: 14px 16px !important; }
+.discount-form { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; }
+.discount-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #475569; font-weight: 600; }
+.discount-form input { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
 
 /* ── Notices ── */
 .notice { padding: 12px 16px; border-radius: 8px; border-left: 4px solid; margin-bottom: 16px; font-size: 13px; }
@@ -1785,7 +1830,20 @@ if (!empty($_ql)): ?>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($list as $c): ?>
+                <?php foreach ($list as $c):
+                    $cid = $c['id'] ?? '';
+                    $has_disc = !empty($c['discount_percent']) && !empty($c['discount_ends_at']);
+                    $disc_local = '';
+                    $disc_active_now = false;
+                    if ($has_disc) {
+                        try {
+                            $dt = new DateTime($c['discount_ends_at']);
+                            $dt->setTimezone(new DateTimeZone('Europe/Bucharest'));
+                            $disc_local = $dt->format('Y-m-d\TH:i');
+                            $disc_active_now = $dt->getTimestamp() > time();
+                        } catch (Exception $e) {}
+                    }
+                ?>
                 <tr>
                     <td>
                         <?php if (!empty($c['image_url'])): ?>
@@ -1794,12 +1852,19 @@ if (!empty($_ql)): ?>
                         <div class="course-thumb-empty"></div>
                         <?php endif; ?>
                     </td>
-                    <td style="font-weight:600"><?= h($c['title'] ?? '') ?></td>
+                    <td style="font-weight:600">
+                        <?= h($c['title'] ?? '') ?>
+                        <?php if ($has_disc): ?>
+                            <span class="discount-tag <?= $disc_active_now ? 'discount-tag--active' : 'discount-tag--expired' ?>">
+                                −<?= (int)$c['discount_percent'] ?>%<?= $disc_active_now ? '' : ' (expirată)' ?>
+                            </span>
+                        <?php endif; ?>
+                    </td>
                     <td style="color:var(--text-muted)"><?= h($c['date_display'] ?? $c['date_raw'] ?? '') ?></td>
                     <td>
                         <form method="post" action="/admin/?tab=cursuri" style="display:inline">
                             <input type="hidden" name="action" value="toggle_course">
-                            <input type="hidden" name="id" value="<?= h($c['id'] ?? '') ?>">
+                            <input type="hidden" name="id" value="<?= h($cid) ?>">
                             <button type="submit" class="btn btn-sm <?= !empty($c['active']) ? 'status-active' : 'status-inactive' ?>">
                                 <?= !empty($c['active']) ? 'Activ' : 'Inactiv' ?>
                             </button>
@@ -1807,15 +1872,34 @@ if (!empty($_ql)): ?>
                     </td>
                     <td>
                         <div class="row-actions">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDiscountRow('<?= h($cid) ?>')">Reducere ▾</button>
                             <form method="post" action="/admin/?tab=cursuri" onsubmit="return confirm('Ștergi cursul?')" style="display:inline">
                                 <input type="hidden" name="action" value="delete_course">
-                                <input type="hidden" name="id" value="<?= h($c['id'] ?? '') ?>">
+                                <input type="hidden" name="id" value="<?= h($cid) ?>">
                                 <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
                             </form>
                             <?php if (!empty($c['livetickets_url'])): ?>
-                            <a href="<?= h($c['livetickets_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">LiveTickets ↗</a>
+                            <a href="<?= h($c['livetickets_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">LT ↗</a>
                             <?php endif; ?>
                         </div>
+                    </td>
+                </tr>
+                <tr id="discount-row-<?= h($cid) ?>" class="discount-edit-row" style="display:none">
+                    <td colspan="5">
+                        <form method="post" action="/admin/?tab=cursuri" class="discount-form">
+                            <input type="hidden" name="action" value="save_discount">
+                            <input type="hidden" name="id" value="<?= h($cid) ?>">
+                            <label>Reducere (%):
+                                <input type="number" name="discount_percent" min="1" max="100" value="<?= $has_disc ? (int)$c['discount_percent'] : '' ?>" style="width:90px">
+                            </label>
+                            <label>Expiră la (ora București):
+                                <input type="datetime-local" name="discount_ends_at" value="<?= h($disc_local) ?>">
+                            </label>
+                            <button type="submit" class="btn btn-sm btn-primary">Salvează reducerea</button>
+                            <?php if ($has_disc): ?>
+                                <button type="submit" name="clear" value="1" class="btn btn-sm btn-danger" onclick="return confirm('Ștergi reducerea?')">Șterge reducerea</button>
+                            <?php endif; ?>
+                        </form>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -3180,6 +3264,11 @@ function copySyncToken() {
 </div><!-- /wp-layout -->
 
 <script>
+function toggleDiscountRow(id) {
+    const row = document.getElementById('discount-row-' + id);
+    if (!row) return;
+    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
 async function importLT() {
     const url = document.getElementById('ltUrl').value.trim();
     const msg = document.getElementById('importMsg');
