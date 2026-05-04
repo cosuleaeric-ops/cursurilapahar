@@ -316,9 +316,6 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 <?php if ($is_sold_out): ?>
                 <div class="sold-out-badge">SOLD OUT</div>
                 <?php endif; ?>
-                <?php if ($discount_active): ?>
-                <div class="discount-badge">−<?= $discount_pct ?>%</div>
-                <?php endif; ?>
                 <div class="event-card-img">
                     <?php if (!empty($course['image_url'])): ?>
                     <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($course['title'] ?? '') ?>" loading="lazy">
@@ -330,6 +327,9 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                         <span class="badge-day"><?= $badge_day ?></span>
                         <span class="badge-month"><?= $badge_month ?></span>
                     </div>
+                    <?php endif; ?>
+                    <?php if ($discount_active): ?>
+                    <div class="discount-badge">−<?= $discount_pct ?>%</div>
                     <?php endif; ?>
                 </div>
                 <div class="event-card-body">
