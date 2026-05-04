@@ -52,6 +52,8 @@
         "location": "Mojo, Strada Lipscani 69, București",
         "livetickets_url": "https://www.livetickets.ro/e/44e6ef0",
         "image_url": "https://livetickets-cdn.azureedge.net/itemimages/curs-la-pahar-longevitate-la-pahar-7-mai/Background_MEDIUM.jpg?2be9390d-0a33-4cd7-b3a3-38e53b9baf1b",
-        "active": true
+        "active": true,
+        "discount_percent": 30,
+        "discount_ends_at": "2026-05-05T00:30:00+03:00"
     }
 ]

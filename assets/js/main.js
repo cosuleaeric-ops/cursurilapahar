@@ -391,3 +391,33 @@ innerForms.forEach(form => {
     }
   });
 });
+
+// ── Discount countdown ──────────────────────────────────────────
+(function () {
+  const els = document.querySelectorAll('.discount-countdown');
+  if (!els.length) return;
+
+  function tick() {
+    const now = Date.now();
+    els.forEach(el => {
+      const endsAt = new Date(el.dataset.endsAt).getTime();
+      let diff = Math.floor((endsAt - now) / 1000);
+      if (!isFinite(diff) || diff <= 0) {
+        const card = el.closest('.event-card');
+        if (card) {
+          const badge = card.querySelector('.discount-badge');
+          if (badge) badge.style.display = 'none';
+        }
+        el.style.display = 'none';
+        return;
+      }
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      const t = el.querySelector('.discount-countdown-time');
+      if (t) t.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+})();

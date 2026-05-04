@@ -300,10 +300,24 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $card_url = $course['livetickets_url'] ?? '#';
                 $target = ($course['livetickets_url'] ?? '') ? '_blank' : '_self';
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
+                $discount_active = false;
+                $discount_pct = 0;
+                $discount_ends = '';
+                if (!$is_sold_out && !empty($course['discount_percent']) && !empty($course['discount_ends_at'])) {
+                    $ends_ts = strtotime($course['discount_ends_at']);
+                    if ($ends_ts && $ends_ts > time()) {
+                        $discount_active = true;
+                        $discount_pct = (int)$course['discount_percent'];
+                        $discount_ends = $course['discount_ends_at'];
+                    }
+                }
             ?>
             <a <?= $is_sold_out ? '' : 'href="' . htmlspecialchars($card_url) . '" target="' . $target . '" rel="noopener"' ?> class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
                 <?php if ($is_sold_out): ?>
                 <div class="sold-out-badge">SOLD OUT</div>
+                <?php endif; ?>
+                <?php if ($discount_active): ?>
+                <div class="discount-badge">−<?= $discount_pct ?>%</div>
                 <?php endif; ?>
                 <div class="event-card-img">
                     <?php if (!empty($course['image_url'])): ?>
@@ -334,6 +348,12 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                         </span>
                         <?php endif; ?>
                     </div>
+                    <?php if ($discount_active): ?>
+                    <div class="discount-countdown" data-ends-at="<?= htmlspecialchars($discount_ends) ?>">
+                        <span class="discount-countdown-label">Reducerea expiră în</span>
+                        <span class="discount-countdown-time">--:--:--</span>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </a>
             <?php endforeach; ?>
