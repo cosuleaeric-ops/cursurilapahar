@@ -389,7 +389,7 @@ ul { list-style: none; }
 }
 .hero-scroll-hint svg {
   width: 28px; height: 28px;
-  color: rgb(225, 255, 0);
+  color: rgb(153, 153, 153);
 }
 @keyframes scrollBounce {
   0%, 100% { transform: translateY(0); }
