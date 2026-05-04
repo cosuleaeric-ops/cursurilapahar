@@ -297,7 +297,7 @@ ul { list-style: none; }
     min-height: 200px !important;
     max-height: 750px;
   }
-  .announcement-banner { font-size: 13px; }
+  .announcement-banner { font-size: 13px !important; }
 }
 
 /* ── Announcement Banner ─────────────────── */
