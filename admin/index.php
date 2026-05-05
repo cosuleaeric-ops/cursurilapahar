@@ -1273,9 +1273,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
             <?php if (is_owner()): ?>
-            <?php $_continut_active = in_array($tab, ['imagini','aspect','cursuri','vot']); ?>
-            <div class="sidebar-section collapsible<?= $_continut_active ? '' : ' collapsed' ?>" onclick="clpToggleSidebarSection(this,'continut')">Conținut</div>
-            <div class="sidebar-collapse-content<?= $_continut_active ? '' : ' collapsed' ?>" id="sidebar-continut">
+            <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
             </a>
@@ -1288,7 +1286,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
             </a>
-            </div>
             <?php endif; ?>
             <div class="sidebar-section">Comunitate</div>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
