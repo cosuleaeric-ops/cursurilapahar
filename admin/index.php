@@ -15,6 +15,21 @@ define('UPLOADS_DIR',         dirname(__DIR__) . '/assets/images/uploads');
 define('UPLOADS_URL',         '/assets/images/uploads');
 define('PUBLIC_HTML',         dirname(__DIR__));
 define('USERS_FILE',          dirname(__DIR__) . '/data/users.json');
+define('MESSAGE_META_FILE',   dirname(__DIR__) . '/data/message_meta.json');
+
+// ── Message metadata (read/eval/comments) ────────────────────────────────────
+function msg_id_from_block(string $block): string {
+    return substr(md5($block), 0, 12);
+}
+function load_msg_meta(): array {
+    if (!file_exists(MESSAGE_META_FILE)) return [];
+    return json_decode(file_get_contents(MESSAGE_META_FILE), true) ?: [];
+}
+function save_msg_meta(array $meta): void {
+    $dir = dirname(MESSAGE_META_FILE);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    file_put_contents(MESSAGE_META_FILE, json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
 
 // ── Auth secret — stored in settings.json, never in code ─────────────────────
 function get_auth_secret(): string {
@@ -956,8 +971,14 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             if ($to_remove >= 0) {
+                $removed_id = msg_id_from_block($blocks[$to_remove]);
                 array_splice($blocks, $to_remove, 1);
                 file_put_contents($log_file, implode("\n\n", $blocks) . "\n", LOCK_EX);
+                $meta = load_msg_meta();
+                if (isset($meta[$removed_id])) {
+                    unset($meta[$removed_id]);
+                    save_msg_meta($meta);
+                }
             }
         }
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
@@ -966,6 +987,53 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         header('Location: /admin/?tab=mesaje&deleted=1');
+        exit;
+    }
+
+    // ── Toggle read state (Contact)
+    if ($action === 'mark_read_message') {
+        header('Content-Type: application/json');
+        $id = preg_replace('/[^a-f0-9]/', '', $_POST['msg_id'] ?? '');
+        if (!$id) { echo json_encode(['ok' => false]); exit; }
+        $read = !empty($_POST['read']);
+        $meta = load_msg_meta();
+        if (!isset($meta[$id])) $meta[$id] = [];
+        $meta[$id]['read'] = $read;
+        save_msg_meta($meta);
+        echo json_encode(['ok' => true, 'read' => $read]);
+        exit;
+    }
+
+    // ── Set evaluation (Speakeri)
+    if ($action === 'eval_message') {
+        header('Content-Type: application/json');
+        $id   = preg_replace('/[^a-f0-9]/', '', $_POST['msg_id'] ?? '');
+        $eval = $_POST['eval'] ?? '';
+        if (!$id || !in_array($eval, ['nope','meh','top',''], true)) {
+            echo json_encode(['ok' => false]); exit;
+        }
+        $meta = load_msg_meta();
+        if (!isset($meta[$id])) $meta[$id] = [];
+        if ($eval === '') unset($meta[$id]['evaluation']);
+        else $meta[$id]['evaluation'] = $eval;
+        save_msg_meta($meta);
+        echo json_encode(['ok' => true, 'evaluation' => $eval]);
+        exit;
+    }
+
+    // ── Add comment (Speakeri)
+    if ($action === 'add_message_comment') {
+        header('Content-Type: application/json');
+        $id   = preg_replace('/[^a-f0-9]/', '', $_POST['msg_id'] ?? '');
+        $text = trim($_POST['text'] ?? '');
+        if (!$id || $text === '') { echo json_encode(['ok' => false]); exit; }
+        $meta = load_msg_meta();
+        if (!isset($meta[$id])) $meta[$id] = [];
+        if (!isset($meta[$id]['comments'])) $meta[$id]['comments'] = [];
+        $entry = ['text' => mb_substr($text, 0, 2000), 'at' => date('Y-m-d H:i:s')];
+        $meta[$id]['comments'][] = $entry;
+        save_msg_meta($meta);
+        echo json_encode(['ok' => true, 'comment' => $entry]);
         exit;
     }
 }
@@ -1981,8 +2049,12 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-panel { display:none; }
 .msg-panel.active { display:block; }
 .msg-cards { display:grid; grid-template-columns:1fr; gap:12px; }
-.msg-card { background:var(--surface, #fff); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:background .15s; }
+.msg-card { background:var(--surface, #fff); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:background .15s, opacity .15s; }
 .msg-card:hover { background:rgba(0,0,0,.02); }
+.msg-card.is-read { background:#f3f4f6; opacity:.72; }
+.msg-card.eval-nope { border-left:4px solid #e74c3c; }
+.msg-card.eval-meh  { border-left:4px solid #f5a623; }
+.msg-card.eval-top  { border-left:4px solid #16a34a; }
 .msg-delete-btn { background:transparent; border:1px solid var(--danger, #e74c3c); color:var(--danger, #e74c3c); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:.15s; }
 .msg-delete-btn:hover { background:var(--danger, #e74c3c); color:#fff; }
 .msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -1993,24 +2065,62 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-detail.open { display:block; }
 .msg-detail-row { display:flex; gap:10px; font-size:13px; line-height:1.6; }
 .msg-detail-row + .msg-detail-row { margin-top:4px; }
-.msg-detail-lbl { color:var(--text-muted); min-width:110px; flex-shrink:0; }
+.msg-detail-lbl { color:var(--text-muted); min-width:110px; flex-shrink:0; display:inline-flex; align-items:center; gap:4px; }
 .msg-detail-val { color:var(--text); flex:1; min-width:0; overflow-wrap:break-word; }
-.msg-detail-actions { margin-top:12px; }
+.msg-detail-actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .msg-empty { color:var(--text-muted); font-size:13px; padding:12px 0; }
 .msg-copy-btn { margin-left:8px; background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:5px; padding:2px 8px; font-size:11px; cursor:pointer; transition:.15s; vertical-align:middle; }
 .msg-copy-btn:hover { border-color:var(--primary,#333); color:var(--primary,#333); }
 .msg-copy-btn.copied { border-color:#27ae60; color:#27ae60; }
+.msg-info { display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:10px; font-weight:700; cursor:help; user-select:none; flex-shrink:0; }
+.msg-info:hover { background:#d1d5db; color:#1f2937; }
+.msg-read-btn, .msg-eval-btn, .msg-comment-btn {
+    border:1px solid var(--border); background:#fff; color:var(--text);
+    border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500;
+    cursor:pointer; transition:.15s;
+}
+.msg-read-btn:hover { border-color:#16a34a; color:#16a34a; }
+.msg-read-btn.is-active { background:#16a34a; color:#fff; border-color:#16a34a; }
+.msg-eval-btn[data-eval=nope]:hover, .msg-eval-btn[data-eval=nope].is-active { background:#e74c3c; color:#fff; border-color:#e74c3c; }
+.msg-eval-btn[data-eval=meh]:hover,  .msg-eval-btn[data-eval=meh].is-active  { background:#f5a623; color:#fff; border-color:#f5a623; }
+.msg-eval-btn[data-eval=top]:hover,  .msg-eval-btn[data-eval=top].is-active  { background:#16a34a; color:#fff; border-color:#16a34a; }
+.msg-comment-btn:hover { border-color:#2271b1; color:#2271b1; }
+.msg-comments { margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); }
+.msg-comments-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px; }
+.msg-comment-item { background:#f9fafb; border-radius:6px; padding:8px 10px; margin-bottom:6px; font-size:13px; line-height:1.5; }
+.msg-comment-item .msg-comment-when { display:block; font-size:11px; color:var(--text-muted); margin-bottom:2px; }
+.msg-comment-form { display:flex; gap:6px; margin-top:8px; }
+.msg-comment-form textarea { flex:1; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; resize:vertical; min-height:34px; }
+.msg-comment-form button { padding:6px 14px; border:none; background:#2271b1; color:#fff; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; }
+.msg-comment-form button:hover { background:#135e96; }
+.msg-section-title { font-size:13px; font-weight:600; color:var(--text); margin:0 0 10px; padding:6px 0; }
+.msg-section + .msg-section { margin-top:24px; }
 </style>
 
 <?php
 $log_file = dirname(SETTINGS_FILE) . '/messages.log';
 $categories = [
-    'contact'     => ['label' => 'Contact',           'icon' => '💬'],
-    'sustine'     => ['label' => 'Prezintă un curs',   'icon' => '🎤'],
-    'gazduieste'  => ['label' => 'Locații',           'icon' => '📍'],
-    'parteneriat' => ['label' => 'Parteneriate',      'icon' => '🤝'],
+    'contact'     => ['label' => 'Contact',      'icon' => '💬'],
+    'sustine'     => ['label' => 'Speakeri',     'icon' => '🎤'],
+    'gazduieste'  => ['label' => 'Locații',      'icon' => '📍'],
+    'parteneriat' => ['label' => 'Parteneriate', 'icon' => '🤝'],
 ];
-$grouped = array_fill_keys(array_keys($categories), []);
+// Map auto-generated labels back to their original form questions (Speakeri tab tooltips)
+$sustine_questions = [
+    'Name'                   => 'Nume și prenume',
+    'Email'                  => 'Email',
+    'Phone'                  => 'Număr de telefon',
+    'Social'                 => 'Link profil social media',
+    'Course name'            => 'Nume curs susținut',
+    'Course desc'            => 'Descrie cursul susținut',
+    'Motivation'             => 'De ce îți dorești să susții acest curs?',
+    'Experience'             => 'Ce experiențe sau competențe te califică?',
+    'Previous presentations' => 'Ai mai susținut astfel de prezentări?',
+    'City'                   => 'În ce oraș ai vrea să susții cursul?',
+    'Other'                  => 'Mai e ceva ce vrei să ne transmiți?',
+];
+$grouped     = array_fill_keys(array_keys($categories), []);
+$_msg_meta   = load_msg_meta();
 
 if (file_exists($log_file) && filesize($log_file)) {
     $raw    = file_get_contents($log_file);
@@ -2038,33 +2148,40 @@ if (file_exists($log_file) && filesize($log_file)) {
                 $fields[$last_key] .= ' ' . $l;
             }
         }
-        $grouped[$type][] = ['date' => $date, 'fields' => $fields];
+        $mid = msg_id_from_block($block);
+        $grouped[$type][] = [
+            'date'   => $date,
+            'fields' => $fields,
+            'id'     => $mid,
+            'meta'   => $_msg_meta[$mid] ?? [],
+        ];
     }
 }
-?>
 
-<div class="msg-tabs">
-<?php foreach ($categories as $key => $cat): $cnt = count($grouped[$key]); ?>
-    <button class="msg-tab <?= $key === 'contact' ? 'active' : '' ?>" onclick="showMsgTab('<?= $key ?>')">
-        <?= $cat['icon'] ?> <?= $cat['label'] ?><?php if ($cnt): ?><span class="msg-count"><?= $cnt ?></span><?php endif; ?>
-    </button>
-<?php endforeach; ?>
-</div>
+// Per-tab smart counts
+$tab_counts = [];
+foreach ($grouped as $k => $list) {
+    if ($k === 'contact') {
+        $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['read'])));
+    } elseif ($k === 'sustine') {
+        $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['evaluation'])));
+    } else {
+        $tab_counts[$k] = count($list);
+    }
+}
 
-<?php foreach ($categories as $key => $cat): ?>
-<div class="msg-panel <?= $key === 'contact' ? 'active' : '' ?>" id="msg-panel-<?= $key ?>">
-<?php if (empty($grouped[$key])): ?>
-    <div class="card"><p class="msg-empty">Niciun mesaj în această categorie.</p></div>
-<?php else: ?>
-    <div class="msg-cards">
-    <?php foreach ($grouped[$key] as $i => $msg):
-        $name    = $msg['fields']['Nume'] ?? $msg['fields']['nume'] ?? $msg['fields']['Name'] ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—';
-        $email   = $msg['fields']['Email'] ?? $msg['fields']['email'] ?? '';
-        $preview = '';
-        foreach ($msg['fields'] as $k => $v) { if (!in_array(strtolower($k), ['email','nume','name'])) { $preview = $v; break; } }
-        $uid = $key . '_' . $i;
+$render_card = function(string $key, int $i, array $msg) use ($sustine_questions) {
+    $name = $msg['fields']['Nume'] ?? $msg['fields']['nume'] ?? $msg['fields']['Name']
+         ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—';
+    $uid  = $key . '_' . $i;
+    $is_read = !empty($msg['meta']['read']);
+    $eval    = $msg['meta']['evaluation'] ?? '';
+    $comments = $msg['meta']['comments'] ?? [];
+    $card_classes = ['msg-card'];
+    if ($key === 'contact' && $is_read) $card_classes[] = 'is-read';
+    if ($key === 'sustine' && $eval)    $card_classes[] = 'eval-' . $eval;
     ?>
-    <div class="msg-card" onclick="toggleMsg('<?= $uid ?>')">
+    <div class="<?= implode(' ', $card_classes) ?>" data-msg-id="<?= h($msg['id']) ?>" onclick="toggleMsg('<?= $uid ?>')">
         <div class="msg-card-head">
             <span class="msg-card-name"><?= h($name) ?></span>
             <span class="msg-card-date"><?= h($msg['date']) ?></span>
@@ -2073,18 +2190,94 @@ if (file_exists($log_file) && filesize($log_file)) {
             <?php foreach ($msg['fields'] as $lbl => $val):
                 $lbl_lc = strtolower($lbl);
                 if ($lbl_lc === 'trimis de pe' || $lbl_lc === 'data') continue;
+                $tooltip = ($key === 'sustine' && isset($sustine_questions[$lbl])) ? $sustine_questions[$lbl] : '';
             ?>
             <div class="msg-detail-row">
-                <span class="msg-detail-lbl"><?= h($lbl) ?></span>
+                <span class="msg-detail-lbl"><?= h($lbl) ?><?php if ($tooltip): ?><span class="msg-info" title="<?= h($tooltip) ?>">i</span><?php endif; ?></span>
                 <span class="msg-detail-val"><?= h($val) ?><?php if (strtolower($lbl) === 'social' && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază link">Copiază</button><?php endif; ?></span>
             </div>
             <?php endforeach; ?>
+
             <div class="msg-detail-actions">
-                <button type="button" class="msg-delete-btn" onclick="deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
+                <?php if ($key === 'contact'): ?>
+                    <button type="button" class="msg-read-btn <?= $is_read ? 'is-active' : '' ?>" onclick="event.stopPropagation();markRead(this)">
+                        <?= $is_read ? '✓ Citit' : 'Citit' ?>
+                    </button>
+                <?php elseif ($key === 'sustine'): ?>
+                    <button type="button" class="msg-eval-btn <?= $eval === 'nope' ? 'is-active' : '' ?>" data-eval="nope" onclick="event.stopPropagation();evalMsg(this,'nope')">Nope</button>
+                    <button type="button" class="msg-eval-btn <?= $eval === 'meh' ? 'is-active' : '' ?>"  data-eval="meh"  onclick="event.stopPropagation();evalMsg(this,'meh')">Meh</button>
+                    <button type="button" class="msg-eval-btn <?= $eval === 'top' ? 'is-active' : '' ?>"  data-eval="top"  onclick="event.stopPropagation();evalMsg(this,'top')">Top</button>
+                    <button type="button" class="msg-comment-btn" onclick="event.stopPropagation();toggleCommentForm(this)">💬 Comentariu</button>
+                <?php endif; ?>
+                <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
             </div>
+
+            <?php if ($key === 'sustine'): ?>
+            <div class="msg-comments">
+                <div class="msg-comments-title">Comentarii</div>
+                <div class="msg-comments-list">
+                    <?php foreach ($comments as $c): ?>
+                    <div class="msg-comment-item">
+                        <span class="msg-comment-when"><?= h($c['at'] ?? '') ?></span>
+                        <?= h($c['text'] ?? '') ?>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="msg-comment-form" style="display:none">
+                    <textarea placeholder="Scrie un comentariu..." rows="2" onclick="event.stopPropagation()"></textarea>
+                    <button type="button" onclick="event.stopPropagation();saveComment(this)">Adaugă</button>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
-    <?php endforeach; ?>
+    <?php
+};
+?>
+
+<div class="msg-tabs">
+<?php foreach ($categories as $key => $cat): $cnt = $tab_counts[$key]; ?>
+    <button class="msg-tab <?= $key === 'contact' ? 'active' : '' ?>" data-key="<?= h($key) ?>" onclick="showMsgTab('<?= $key ?>')">
+        <?= $cat['icon'] ?> <?= $cat['label'] ?><span class="msg-count"<?= $cnt ? '' : ' style="display:none"' ?>><?= $cnt ?></span>
+    </button>
+<?php endforeach; ?>
+</div>
+
+<?php foreach ($categories as $key => $cat): ?>
+<div class="msg-panel <?= $key === 'contact' ? 'active' : '' ?>" id="msg-panel-<?= $key ?>">
+<?php if (empty($grouped[$key])): ?>
+    <div class="card"><p class="msg-empty">Niciun mesaj în această categorie.</p></div>
+<?php elseif ($key === 'sustine'):
+    $pending   = [];
+    $evaluated = [];
+    foreach ($grouped[$key] as $i => $msg) {
+        if (!empty($msg['meta']['evaluation'])) $evaluated[] = [$i, $msg];
+        else                                    $pending[]   = [$i, $msg];
+    }
+?>
+    <div class="msg-section">
+        <h3 class="msg-section-title">🤔 De evaluat (<?= count($pending) ?>)</h3>
+        <?php if (empty($pending)): ?>
+            <p class="msg-empty">Nimic de evaluat.</p>
+        <?php else: ?>
+            <div class="msg-cards">
+            <?php foreach ($pending as [$i, $msg]) $render_card($key, $i, $msg); ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    <div class="msg-section">
+        <h3 class="msg-section-title">✅ Evaluați (<?= count($evaluated) ?>)</h3>
+        <?php if (empty($evaluated)): ?>
+            <p class="msg-empty">Niciun candidat evaluat încă.</p>
+        <?php else: ?>
+            <div class="msg-cards">
+            <?php foreach ($evaluated as [$i, $msg]) $render_card($key, $i, $msg); ?>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php else: ?>
+    <div class="msg-cards">
+    <?php foreach ($grouped[$key] as $i => $msg) $render_card($key, $i, $msg); ?>
     </div>
 <?php endif; ?>
 </div>
@@ -2117,7 +2310,94 @@ function deleteMsg(btn, type, idx) {
     fd.append('msg_index', idx);
     fetch('/admin/?tab=mesaje', { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}, body: fd })
         .then(r => r.json())
-        .then(d => { if (d.ok) card.remove(); });
+        .then(d => { if (d.ok) { updateBadgeAfterRemoval(card, type); card.remove(); } });
+}
+function updateBadge(tabKey, delta) {
+    const tab = document.querySelector('.msg-tab[data-key="' + tabKey + '"]');
+    if (!tab) return;
+    const span = tab.querySelector('.msg-count');
+    let n = parseInt(span.textContent, 10) || 0;
+    n = Math.max(0, n + delta);
+    span.textContent = n;
+    span.style.display = n > 0 ? '' : 'none';
+}
+function updateBadgeAfterRemoval(card, type) {
+    if (type === 'contact'  && !card.classList.contains('is-read')) updateBadge('contact', -1);
+    if (type === 'sustine'  && !card.className.match(/eval-(nope|meh|top)/)) updateBadge('sustine', -1);
+    if (type !== 'contact' && type !== 'sustine') updateBadge(type, -1);
+}
+function markRead(btn) {
+    const card = btn.closest('.msg-card');
+    const id = card.dataset.msgId;
+    const wasRead = card.classList.contains('is-read');
+    const now = !wasRead;
+    const fd = new FormData();
+    fd.append('action', 'mark_read_message');
+    fd.append('msg_id', id);
+    if (now) fd.append('read', '1');
+    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+        .then(r => r.json()).then(d => {
+            if (!d.ok) return;
+            card.classList.toggle('is-read', now);
+            btn.classList.toggle('is-active', now);
+            btn.textContent = now ? '✓ Citit' : 'Citit';
+            updateBadge('contact', now ? -1 : 1);
+        });
+}
+function evalMsg(btn, value) {
+    const card = btn.closest('.msg-card');
+    const id   = card.dataset.msgId;
+    const cur  = (card.className.match(/eval-(nope|meh|top)/) || [,''])[1];
+    const next = cur === value ? '' : value; // toggle off if same button pressed twice
+    const fd = new FormData();
+    fd.append('action', 'eval_message');
+    fd.append('msg_id', id);
+    fd.append('eval',   next);
+    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+        .then(r => r.json()).then(d => {
+            if (!d.ok) return;
+            card.classList.remove('eval-nope','eval-meh','eval-top');
+            if (next) card.classList.add('eval-' + next);
+            card.querySelectorAll('.msg-eval-btn').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.eval === next)
+            );
+            // badge: pending count = unevaluated; cur was unset → -1; cur was set & next='' → +1
+            if (!cur && next) updateBadge('sustine', -1);
+            if (cur && !next) updateBadge('sustine', +1);
+        });
+}
+function toggleCommentForm(btn) {
+    const form = btn.closest('.msg-detail-actions').nextElementSibling.querySelector('.msg-comment-form');
+    const visible = form.style.display !== 'none';
+    form.style.display = visible ? 'none' : 'flex';
+    if (!visible) form.querySelector('textarea').focus();
+}
+function saveComment(btn) {
+    const form = btn.closest('.msg-comment-form');
+    const card = btn.closest('.msg-card');
+    const ta   = form.querySelector('textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    const id = card.dataset.msgId;
+    const fd = new FormData();
+    fd.append('action', 'add_message_comment');
+    fd.append('msg_id', id);
+    fd.append('text',   text);
+    btn.disabled = true;
+    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+        .then(r => r.json()).then(d => {
+            btn.disabled = false;
+            if (!d.ok) return;
+            const list = card.querySelector('.msg-comments-list');
+            const item = document.createElement('div');
+            item.className = 'msg-comment-item';
+            item.innerHTML = '<span class="msg-comment-when"></span>';
+            item.querySelector('.msg-comment-when').textContent = d.comment.at;
+            item.appendChild(document.createTextNode(d.comment.text));
+            list.appendChild(item);
+            ta.value = '';
+            form.style.display = 'none';
+        });
 }
 </script>
 
