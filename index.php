@@ -57,9 +57,8 @@ if (file_exists($settings_file)) {
     $settings = array_merge($settings, $loaded);
 }
 
-// ── Inline edit helper ───────────────────────────────────────────────────────
 function clp_e(string $key, array $settings): string {
-    return 'data-edit-key="' . htmlspecialchars($key) . '"';
+    return '';
 }
 
 function clp_section_bg(string $id, array $settings, string $default_img = ''): string {

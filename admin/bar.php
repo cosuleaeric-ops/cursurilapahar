@@ -24,7 +24,6 @@ $_clp_s  = file_exists(dirname(__DIR__) . '/data/settings.json')
     ? (json_decode(file_get_contents(dirname(__DIR__) . '/data/settings.json'), true) ?: []) : [];
 $_clp_fh = $_clp_s['font_heading'] ?? 'Nunito';
 $_clp_fb = $_clp_s['font_body']    ?? 'Inter';
-// Navbar settings
 $_clp_nav = [
     'nav_bg'           => $_clp_s['nav_bg']           ?? '#000000',
     'nav_brand_color'  => $_clp_s['nav_brand_color']  ?? '#ffffff',
@@ -56,56 +55,8 @@ $_clp_nav = [
 #clp-adminbar .bar-brand { font-weight: 600; color: #fff; }
 #clp-adminbar .bar-sep { flex: 1; }
 #clp-adminbar .bar-logout { border-right: none; border-left: 1px solid rgba(255,255,255,.07); }
-#clp-edit-btn { color: #f0c040 !important; font-weight: 600 !important; }
-#clp-edit-btn.active { background: #2271b1 !important; color: #fff !important; }
 body { padding-top: 120px !important; } /* 32px admin bar + 88px navbar */
 .navbar { top: 32px !important; }
-
-/* Editable elements */
-[data-edit-key] { cursor: default; }
-body.clp-edit-mode [data-edit-key] {
-    outline: 2px dashed rgba(255,193,7,.5); outline-offset: 3px;
-    cursor: text !important; border-radius: 2px;
-    transition: outline-color .15s;
-}
-body.clp-edit-mode [data-edit-key]:hover { outline-color: #ffc107; }
-body.clp-edit-mode [data-edit-key]:focus { outline: 2px solid #2271b1; outline-offset: 3px; }
-body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999; font-style: italic; }
-
-/* Toolbar */
-#clp-toolbar {
-    display: none;
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    z-index: 999999;
-    background: #1d2327; border-radius: 10px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.5);
-    padding: 10px 14px; gap: 10px; align-items: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 12px; color: #a7aaad;
-    flex-wrap: wrap; max-width: 90vw;
-}
-#clp-toolbar.visible { display: flex; }
-#clp-toolbar label { font-size: 11px; color: #777; margin-right: 2px; }
-#clp-toolbar select, #clp-toolbar input[type=number] {
-    background: #2c3338; color: #fff; border: 1px solid rgba(255,255,255,.15);
-    border-radius: 5px; padding: 4px 6px; font-size: 12px; cursor: pointer;
-}
-#clp-toolbar .tb-sep { width: 1px; height: 20px; background: rgba(255,255,255,.1); }
-#clp-toolbar button {
-    padding: 5px 12px; border-radius: 5px; border: none; cursor: pointer;
-    font-size: 12px; font-weight: 600; transition: .15s;
-}
-#clp-tb-italic { background: rgba(255,255,255,.08); color: #fff; font-style: italic; width: 32px; padding: 5px; }
-#clp-tb-italic.on { background: #2271b1; }
-.tb-dev-group { display: flex; gap: 2px; }
-.tb-dev { background: rgba(255,255,255,.08); color: #fff; padding: 4px 7px; font-size: 13px; }
-.tb-dev.active { background: #2271b1; }
-#clp-tb-save { background: #2271b1; color: #fff; }
-#clp-tb-save:hover { background: #135e96; }
-#clp-tb-ok  { color: #00a32a; display: none; font-size: 16px; }
-#clp-tb-err { color: #d63638; display: none; font-size: 12px; max-width: 260px; }
-#clp-tb-el { color: #fff; font-weight: 600; font-size: 11px;
-    background: rgba(255,255,255,.08); padding: 3px 8px; border-radius: 4px; }
 
 /* Font panel */
 #clp-font-panel {
@@ -194,16 +145,13 @@ body.clp-edit-mode [data-edit-key]:empty:before { content: '(gol)'; color: #999;
 <div id="clp-adminbar">
     <a href="/admin/" class="bar-brand">⚙ Admin</a>
     <a href="/admin/?tab=cursuri">📋 Cursuri</a>
-    <a href="/admin/?tab=setari">✏️ Texte</a>
     <a href="/admin/?tab=aspect">🎨 Aspect</a>
     <a href="/admin/?tab=imagini">🖼 Imagini</a>
-    <a href="/admin/?tab=pagini">📄 Pagini</a>
     <a href="/admin/?tab=mesaje">💬 Mesaje</a>
     <a href="/admin/?tab=vot">❤️ Vot</a>
     <span class="bar-sep"></span>
     <button class="bar-link" id="clp-fonts-btn" onclick="clpToggleFontPanel()">🔤 Fonturi</button>
     <button class="bar-link" id="clp-navbar-btn" onclick="clpToggleNavbarPanel()">🖊 Navbar</button>
-    <button class="bar-link" id="clp-edit-btn" onclick="clpToggleEdit()">✏ Editează live</button>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>
     <?php endif; ?>
@@ -275,36 +223,6 @@ $_clp_weight_opts   = [300,400,500,600,700,800,900];
     <div class="np-actions">
         <button id="clp-np-save" onclick="clpSaveNavbar()">Salvează</button>
         <span id="clp-np-ok">✓ Salvat</span>
-    </div>
-</div>
-
-<!-- Section background panel -->
-<div id="clp-sbg-panel">
-    <button id="clp-sbg-close" onclick="document.getElementById('clp-sbg-panel').classList.remove('visible')">✕</button>
-    <div class="sbg-section-title">🖼 Fundal secțiune: <span id="clp-sbg-section-name"></span></div>
-
-    <label class="sbg-label">URL imagine</label>
-    <input type="text" id="clp-sbg-img" placeholder="https://... sau /assets/images/..." oninput="clpSectionBgApply()">
-
-    <label class="sbg-label">Alege din imagini existente</label>
-    <div class="sbg-gallery" id="clp-sbg-gallery"></div>
-    <button class="sbg-clear" onclick="document.getElementById('clp-sbg-img').value='';clpSectionBgApply()">✕ Elimină fundalul</button>
-
-    <label class="sbg-label">Blur</label>
-    <div class="sbg-row">
-        <input type="range" id="clp-sbg-blur" min="0" max="20" value="6" oninput="document.getElementById('clp-sbg-blur-val').textContent=this.value+'px';clpSectionBgApply()">
-        <span class="sbg-val" id="clp-sbg-blur-val">6px</span>
-    </div>
-
-    <label class="sbg-label">Opacitate overlay întunecat</label>
-    <div class="sbg-row">
-        <input type="range" id="clp-sbg-overlay" min="0" max="95" value="72" oninput="document.getElementById('clp-sbg-overlay-val').textContent=this.value+'%';clpSectionBgApply()">
-        <span class="sbg-val" id="clp-sbg-overlay-val">72%</span>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-        <button id="clp-sbg-save" onclick="clpSaveSectionBg()">Salvează</button>
-        <span id="clp-sbg-ok">✓ Salvat</span>
     </div>
 </div>
 
@@ -392,423 +310,7 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
     </div>
 </div>
 
-<!-- Floating edit toolbar -->
-<div id="clp-toolbar">
-    <span id="clp-tb-el">—</span>
-    <div class="tb-sep"></div>
-    <div class="tb-dev-group">
-        <button class="tb-dev active" data-dev="desktop" onclick="clpSetDevice('desktop')" title="Desktop">🖥</button>
-        <button class="tb-dev" data-dev="tablet" onclick="clpSetDevice('tablet')" title="Tabletă">💻</button>
-        <button class="tb-dev" data-dev="mobile" onclick="clpSetDevice('mobile')" title="Telefon">📱</button>
-    </div>
-    <div class="tb-sep"></div>
-    <label>Greutate</label>
-    <select id="clp-tb-fw" onchange="clpApply()">
-        <option value="">—</option>
-        <?php foreach ([300,400,500,600,700,800,900] as $w): ?>
-        <option value="<?= $w ?>"><?= $w ?></option>
-        <?php endforeach; ?>
-    </select>
-    <button id="clp-tb-italic" onclick="clpToggleItalic()" title="Italic">I</button>
-    <div class="tb-sep"></div>
-    <label>Font</label>
-    <select id="clp-tb-ff" onchange="clpApply()">
-        <option value="">— moștenit —</option>
-        <option value="var(--font-heading)">↑ Font titluri</option>
-        <option value="var(--font-sans)">↑ Font text</option>
-        <option disabled>──────────</option>
-        <option value="Poppins, sans-serif">Poppins</option>
-        <option value="Inter, sans-serif">Inter</option>
-        <option value="Nunito, sans-serif">Nunito</option>
-        <option value="Rubik, sans-serif">Rubik</option>
-        <option value="Anton, sans-serif">Anton</option>
-        <option value="Georgia, serif">Georgia</option>
-        <option value="system-ui, sans-serif">System</option>
-    </select>
-    <div class="tb-sep"></div>
-    <label>Mărime</label>
-    <input type="number" id="clp-tb-fs" min="10" max="120" step="1" style="width:60px" oninput="clpApply()" placeholder="px">
-    <div class="tb-sep"></div>
-    <button id="clp-tb-save" onclick="clpSave()">Salvează</button>
-    <span id="clp-tb-ok">✓</span>
-    <span id="clp-tb-err"></span>
-</div>
-
 <script>
-(function(){
-    let editMode = false;
-    let selEl = null, selKey = null;
-    let editDevice = 'desktop';
-
-    // Keys that store/return HTML (not plain text)
-    const htmlKeys = ['hero_title', 'announcement',
-        'sustine_intro_1', 'sustine_intro_2',
-        'gazduieste_intro_1', 'gazduieste_intro_2',
-        'parteneriat_intro_1', 'parteneriat_intro_2'];
-
-    function clpGetValue(el, key) {
-        return htmlKeys.includes(key) ? el.innerHTML : el.innerText.trim();
-    }
-
-    // Silent background save (no UI feedback) — used for auto-save on blur
-    function clpAutoSave(el, key, value, style) {
-        const fd = new FormData();
-        fd.append('action', 'save_inline_edit');
-        fd.append('key',    key);
-        fd.append('value',  value);
-        fd.append('style',  style);
-        fd.append('device', editDevice);
-        fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-            .then(r => r.json())
-            .then(d => { if (d.ok) el._clpOrig = value; });
-    }
-
-    window.clpToggleEdit = function() {
-        editMode = !editMode;
-        const btn = document.getElementById('clp-edit-btn');
-        const tb  = document.getElementById('clp-toolbar');
-        document.body.classList.toggle('clp-edit-mode', editMode);
-        btn.classList.toggle('active', editMode);
-        btn.textContent = editMode ? '✓ Ieși editare' : '✏ Editează live';
-
-        document.querySelectorAll('[data-edit-key]').forEach(el => {
-            if (editMode) {
-                el.contentEditable = 'true';
-                el.addEventListener('focus', clpOnFocus);
-                el.addEventListener('keydown', clpOnKey);
-                el.addEventListener('blur', clpOnBlur);
-            } else {
-                el.contentEditable = 'false';
-                el.removeEventListener('focus', clpOnFocus);
-                el.removeEventListener('keydown', clpOnKey);
-                el.removeEventListener('blur', clpOnBlur);
-                el.classList.remove('clp-sel');
-            }
-        });
-
-        clpToggleSectionBgButtons(editMode);
-
-        if (!editMode) {
-            tb.classList.remove('visible');
-            selEl = null; selKey = null;
-        }
-    };
-
-    function clpOnFocus(e) {
-        selEl  = e.currentTarget;
-        selKey = selEl.dataset.editKey;
-        document.querySelectorAll('[data-edit-key]').forEach(x => x.classList.remove('clp-sel'));
-        selEl.classList.add('clp-sel');
-
-        // Store original content for change detection
-        selEl._clpOrig = clpGetValue(selEl, selKey);
-
-        document.getElementById('clp-tb-el').textContent = selKey;
-        loadToolbarStyles();
-        document.getElementById('clp-toolbar').classList.add('visible');
-        document.getElementById('clp-tb-ok').style.display = 'none';
-    }
-
-    // Auto-save when focus leaves an element and content changed
-    function clpOnBlur(e) {
-        const el  = e.currentTarget;
-        const key = el.dataset.editKey;
-        const cur = clpGetValue(el, key);
-        if (cur === el._clpOrig) return; // nothing changed
-
-        // Read current toolbar styles (still reflect this element since blur fires before next focus)
-        const fw = document.getElementById('clp-tb-fw').value;
-        const it = document.getElementById('clp-tb-italic').classList.contains('on');
-        const ff = document.getElementById('clp-tb-ff').value;
-        const fs = document.getElementById('clp-tb-fs').value;
-        const parts = [];
-        if (fw) parts.push('font-weight:' + fw);
-        if (it) parts.push('font-style:italic');
-        if (ff) parts.push('font-family:' + ff);
-        if (fs) parts.push('font-size:' + fs + 'px');
-
-        clpAutoSave(el, key, cur, parts.join(';'));
-    }
-
-    function clpOnKey(e) {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
-    }
-
-    window.clpApply = function() {
-        if (!selEl) return;
-        const fw = document.getElementById('clp-tb-fw').value;
-        const it = document.getElementById('clp-tb-italic').classList.contains('on');
-        let   ff = document.getElementById('clp-tb-ff').value;
-        const fs = document.getElementById('clp-tb-fs').value;
-
-        // Anton only has one weight — auto-switch to Poppins when weight is changed
-        // (skip if a CSS variable is already selected)
-        if (fw && !ff && !ff.startsWith('var(')) {
-            const currentFont = window.getComputedStyle(selEl).fontFamily.toLowerCase();
-            if (currentFont.includes('anton')) {
-                ff = 'Poppins, sans-serif';
-                document.getElementById('clp-tb-ff').value = 'Poppins, sans-serif';
-            }
-        }
-
-        selEl.style.fontWeight  = fw  || '';
-        selEl.style.fontStyle   = it  ? 'italic' : '';
-        selEl.style.fontFamily  = ff  || '';
-        selEl.style.fontSize    = fs  ? fs + 'px' : '';
-    };
-
-    window.clpToggleItalic = function() {
-        document.getElementById('clp-tb-italic').classList.toggle('on');
-        clpApply();
-    };
-
-    // Per-device saved styles (for tablet/mobile overrides)
-    const _tabletStyles = <?= json_encode($_clp_s['element_styles_tablet'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
-    const _mobileStyles = <?= json_encode($_clp_s['element_styles_mobile'] ?? (object)[], JSON_FORCE_OBJECT) ?>;
-
-    function loadToolbarStyles() {
-        if (!selEl || !selKey) return;
-        let fw = '', it = false, ff = '', fs = '';
-        const store = editDevice === 'tablet' ? _tabletStyles : editDevice === 'mobile' ? _mobileStyles : null;
-        if (store && store[selKey]) {
-            store[selKey].split(';').filter(Boolean).forEach(p => {
-                const [k, ...rest] = p.split(':');
-                const v = rest.join(':').trim();
-                if (k.trim() === 'font-weight') fw = v;
-                else if (k.trim() === 'font-style') it = v === 'italic';
-                else if (k.trim() === 'font-family') ff = v;
-                else if (k.trim() === 'font-size') fs = parseInt(v) || '';
-            });
-        } else if (editDevice === 'desktop') {
-            const cs = window.getComputedStyle(selEl);
-            fw = Math.round(parseInt(cs.fontWeight) / 100) * 100 || '';
-            it = cs.fontStyle === 'italic';
-            fs = Math.round(parseFloat(cs.fontSize)) || '';
-        }
-        document.getElementById('clp-tb-fw').value = fw;
-        document.getElementById('clp-tb-italic').classList.toggle('on', it);
-        document.getElementById('clp-tb-ff').value = ff;
-        document.getElementById('clp-tb-fs').value = fs;
-    }
-
-    window.clpSetDevice = function(dev) {
-        editDevice = dev;
-        document.querySelectorAll('.tb-dev').forEach(b => b.classList.toggle('active', b.dataset.dev === dev));
-        loadToolbarStyles();
-    };
-
-    window.clpSave = function() {
-        if (!selEl || !selKey) return;
-        const fw = document.getElementById('clp-tb-fw').value;
-        const it = document.getElementById('clp-tb-italic').classList.contains('on');
-        const ff = document.getElementById('clp-tb-ff').value;
-        const fs = document.getElementById('clp-tb-fs').value;
-
-        const parts = [];
-        if (fw)  parts.push('font-weight:' + fw);
-        if (it)  parts.push('font-style:italic');
-        if (ff)  parts.push('font-family:' + ff);
-        if (fs)  parts.push('font-size:' + fs + 'px');
-
-        const value = clpGetValue(selEl, selKey);
-
-        const fd = new FormData();
-        fd.append('action', 'save_inline_edit');
-        fd.append('key',    selKey);
-        fd.append('value',  value);
-        fd.append('style',  parts.join(';'));
-        fd.append('device', editDevice);
-
-        const btn = document.getElementById('clp-tb-save');
-        const errEl = document.getElementById('clp-tb-err');
-        btn.textContent = '…';
-        errEl.style.display = 'none';
-        fetch('/admin/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-            .then(r => {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.text();
-            })
-            .then(text => {
-                btn.textContent = 'Salvează';
-                let d;
-                try { d = JSON.parse(text); } catch(e) {
-                    errEl.textContent = 'Răspuns invalid: ' + text.substring(0, 120);
-                    errEl.style.display = 'inline';
-                    return;
-                }
-                if (d.ok) {
-                    if (selEl) selEl._clpOrig = value;
-                    // Update local style cache so device preview stays correct
-                    const styleStr = parts.join(';');
-                    if (editDevice === 'tablet') _tabletStyles[selKey] = styleStr;
-                    else if (editDevice === 'mobile') _mobileStyles[selKey] = styleStr;
-                    const ok = document.getElementById('clp-tb-ok');
-                    ok.style.display = 'inline';
-                    setTimeout(() => ok.style.display = 'none', 2000);
-                } else {
-                    errEl.textContent = '✗ Eroare: ok=false, key=' + selKey;
-                    errEl.style.display = 'inline';
-                }
-            })
-            .catch(err => {
-                btn.textContent = 'Salvează';
-                errEl.textContent = '✗ ' + err.message;
-                errEl.style.display = 'inline';
-            });
-    };
-})();
-
-// ── Section Background Editor ─────────────────────────────────────────────────
-(function(){
-    let selSection = null;
-    // All images from assets/images + uploads
-    const galleryImgs = <?php
-        $_sbg_imgs = [];
-        $_sbg_dirs = [
-            [dirname(__DIR__) . '/assets/images', '/assets/images/'],
-            [dirname(__DIR__) . '/assets/images/uploads', '/assets/images/uploads/'],
-        ];
-        foreach ($_sbg_dirs as [$dir, $prefix]) {
-            if (!is_dir($dir)) continue;
-            $files = scandir($dir);
-            $names = array_map('strtolower', $files);
-            foreach ($files as $f) {
-                if ($f[0] === '.' || !is_file("$dir/$f")) continue;
-                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                if (!in_array($ext, ['jpg','jpeg','png','webp','gif'])) continue;
-                if ($ext === 'webp') {
-                    $base = strtolower(pathinfo($f, PATHINFO_FILENAME));
-                    if (in_array($base.'.jpg',$names)||in_array($base.'.jpeg',$names)||in_array($base.'.png',$names)) continue;
-                }
-                $_sbg_imgs[] = $prefix . $f;
-            }
-        }
-        echo json_encode(array_values(array_unique($_sbg_imgs)));
-    ?>;
-
-    // Build gallery on init
-    (function buildGallery() {
-        const gallery = document.getElementById('clp-sbg-gallery');
-        if (!gallery || !galleryImgs.length) return;
-        galleryImgs.forEach(url => {
-            const img = document.createElement('img');
-            img.src = url;
-            img.alt = '';
-            img.onclick = () => {
-                document.getElementById('clp-sbg-img').value = url;
-                gallery.querySelectorAll('img').forEach(i => i.classList.remove('selected'));
-                img.classList.add('selected');
-                clpSectionBgApply();
-            };
-            gallery.appendChild(img);
-        });
-    })();
-
-    window.clpOpenSectionBg = function(sectionId) {
-        selSection = sectionId;
-        const section = document.querySelector('[data-section-bg="' + sectionId + '"]');
-        document.getElementById('clp-sbg-section-name').textContent = sectionId;
-
-        // Read current values from inline style
-        const curImg  = (section && section.style.getPropertyValue('--section-bg-img') || '').replace(/^url\(['"]?|['"]?\)$/g,'');
-        const curBlur = parseInt(section && section.style.getPropertyValue('--section-blur')) || 6;
-        const curOvRaw = parseFloat(section && section.style.getPropertyValue('--section-overlay'));
-        const curOv   = isNaN(curOvRaw) ? 72 : Math.round(curOvRaw * 100);
-
-        document.getElementById('clp-sbg-img').value = curImg;
-        document.getElementById('clp-sbg-blur').value = curBlur;
-        document.getElementById('clp-sbg-blur-val').textContent = curBlur + 'px';
-        document.getElementById('clp-sbg-overlay').value = curOv;
-        document.getElementById('clp-sbg-overlay-val').textContent = curOv + '%';
-
-        // Mark selected gallery image
-        document.querySelectorAll('#clp-sbg-gallery img').forEach(img => {
-            img.classList.toggle('selected', img.src === curImg || img.getAttribute('src') === curImg);
-        });
-
-        document.getElementById('clp-sbg-panel').classList.add('visible');
-    };
-
-    window.clpSectionBgApply = function() {
-        if (!selSection) return;
-        const section = document.querySelector('[data-section-bg="' + selSection + '"]');
-        if (!section) return;
-        const img     = document.getElementById('clp-sbg-img').value.trim();
-        const blur    = document.getElementById('clp-sbg-blur').value;
-        const overlay = (document.getElementById('clp-sbg-overlay').value / 100).toFixed(2);
-
-        if (img) {
-            section.style.setProperty('--section-bg-img', "url('" + img + "')");
-            section.style.setProperty('--section-blur', blur + 'px');
-            section.style.setProperty('--section-overlay', overlay);
-            section.classList.add('section-bg-blur', 'section-dark');
-        } else {
-            section.style.removeProperty('--section-bg-img');
-            section.style.removeProperty('--section-blur');
-            section.style.removeProperty('--section-overlay');
-            // Only remove section-dark if the section didn't have it originally
-            const origDark = section.dataset.origDark === '1';
-            if (!origDark) section.classList.remove('section-dark');
-            section.classList.remove('section-bg-blur');
-        }
-    };
-
-    window.clpSaveSectionBg = function() {
-        if (!selSection) return;
-        const img     = document.getElementById('clp-sbg-img').value.trim();
-        const blur    = document.getElementById('clp-sbg-blur').value;
-        const overlay = (document.getElementById('clp-sbg-overlay').value / 100).toFixed(2);
-        const btn     = document.getElementById('clp-sbg-save');
-        const okEl    = document.getElementById('clp-sbg-ok');
-
-        const fd = new FormData();
-        fd.append('action',  'save_section_bg');
-        fd.append('section', selSection);
-        fd.append('image',   img);
-        fd.append('blur',    blur);
-        fd.append('overlay', overlay);
-
-        btn.textContent = '…';
-        fetch('/admin/', { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}, body: fd })
-            .then(r => r.json())
-            .then(d => {
-                btn.textContent = 'Salvează';
-                if (d.ok) { okEl.style.display = 'inline'; setTimeout(() => okEl.style.display = 'none', 2000); }
-            })
-            .catch(() => { btn.textContent = 'Salvează'; });
-    };
-
-    // Add/remove "🖼 Fundal" buttons when edit mode changes
-    // Called from clpToggleEdit
-    window.clpToggleSectionBgButtons = function(enable) {
-        document.querySelectorAll('[data-section-bg]').forEach(section => {
-            // Store original dark state
-            if (section.dataset.origDark === undefined) {
-                section.dataset.origDark = section.classList.contains('section-dark') ? '1' : '0';
-            }
-            let btn = section.querySelector('.clp-sbg-btn');
-            if (!btn) {
-                btn = document.createElement('button');
-                btn.className = 'clp-sbg-btn';
-                btn.innerHTML = '🖼 Fundal';
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    clpOpenSectionBg(section.dataset.sectionBg);
-                });
-                // Make section relative if not already
-                const pos = window.getComputedStyle(section).position;
-                if (pos === 'static') section.style.position = 'relative';
-                section.appendChild(btn);
-            }
-        });
-        // CSS handles show/hide via body.clp-edit-mode .clp-sbg-btn
-        if (!enable) {
-            document.getElementById('clp-sbg-panel').classList.remove('visible');
-        }
-    };
-})();
-
 // ── Global font panel ────────────────────────────────────────────────────────
 (function(){
     function clpLoadFont(family) {
@@ -828,8 +330,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         const btn   = document.getElementById('clp-fonts-btn');
         const open  = panel.classList.toggle('visible');
         btn.classList.toggle('active', open);
-        // Close edit toolbar if open
-        if (open) document.getElementById('clp-toolbar').classList.remove('visible');
     };
 
     window.clpFontApply = function() {
@@ -848,11 +348,9 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         clpLoadFont(fhFam);
         clpLoadFont(fbFam);
 
-        // Apply CSS variables
         document.documentElement.style.setProperty('--font-heading', "'" + fhFam + "', sans-serif");
         document.documentElement.style.setProperty('--font-sans', "'" + fbFam + "', system-ui, sans-serif");
 
-        // Inject responsive overrides via a dynamic style tag
         let styleEl = document.getElementById('clp-typo-override');
         if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'clp-typo-override'; document.head.appendChild(styleEl); }
         let css = '';
@@ -877,7 +375,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         if (fbSm) css += '@media(max-width:768px){body{font-size:'  + fbSm + 'px!important;}}';
         styleEl.textContent = css;
 
-        // Update preview
         const ph = document.getElementById('clp-prev-h');
         ph.style.fontFamily  = "'" + fhFam + "', sans-serif";
         ph.style.fontWeight  = fhW  || '';
@@ -917,7 +414,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             });
     };
 
-    // Close font panel when clicking outside
     document.addEventListener('click', function(e) {
         const panel = document.getElementById('clp-font-panel');
         const btn   = document.getElementById('clp-fonts-btn');
@@ -937,11 +433,9 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         const btn   = document.getElementById('clp-navbar-btn');
         const open  = panel.classList.toggle('visible');
         btn.classList.toggle('active', open);
-        // Close other panels
         if (open) {
             document.getElementById('clp-font-panel').classList.remove('visible');
             document.getElementById('clp-fonts-btn').classList.remove('active');
-            document.getElementById('clp-toolbar').classList.remove('visible');
         }
     };
 
@@ -966,7 +460,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
         root.style.setProperty('--nav-link-size',    linkSize + 'px');
         root.style.setProperty('--nav-link-weight',  linkWeight);
 
-        // Load font if needed
         const id = 'clp-gf-' + brandFont.replace(/\s+/g, '-').toLowerCase();
         if (!document.getElementById(id)) {
             const l = document.createElement('link');
@@ -1002,7 +495,6 @@ $_clp_fb_sm    = $_clp_s['fb_size_sm']  ?? '';
             });
     };
 
-    // Close navbar panel when clicking outside
     document.addEventListener('click', function(e) {
         const panel = document.getElementById('clp-navbar-panel');
         const btn   = document.getElementById('clp-navbar-btn');

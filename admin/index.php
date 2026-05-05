@@ -480,37 +480,6 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Save settings
-    if ($action === 'save_settings') {
-        $settings = load_settings();
-        $fields = ['announcement','hero_title','hero_btn','courses_title','gallery_title','newsletter_title','newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle'];
-        foreach ($fields as $f) {
-            $settings[$f] = $_POST[$f] ?? $settings[$f];
-        }
-        // Steps
-        $step_titles = $_POST['step_title'] ?? [];
-        $step_texts  = $_POST['step_text']  ?? [];
-        if (!empty($step_titles)) {
-            $steps = [];
-            foreach ($step_titles as $i => $title) {
-                $steps[] = ['title' => trim($title), 'text' => trim($step_texts[$i] ?? '')];
-            }
-            $settings['steps'] = $steps;
-        }
-        // FAQ
-        $faq_qs = $_POST['faq_q'] ?? [];
-        $faq_as = $_POST['faq_a'] ?? [];
-        $faq_items = [];
-        foreach ($faq_qs as $i => $q) {
-            $q = trim($q); $a = trim($faq_as[$i] ?? '');
-            if ($q) $faq_items[] = ['q' => $q, 'a' => $a];
-        }
-        if (!empty($faq_items)) $settings['faq_items'] = $faq_items;
-        save_settings($settings);
-        header('Location: /admin/?tab=setari&saved=1');
-        exit;
-    }
-
     // ── Save quick links (Owner only)
     if ($action === 'save_quick_links' && is_owner()) {
         $settings = load_settings();
@@ -537,24 +506,6 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings['head_scripts'] = $_POST['head_scripts'] ?? '';
         save_settings($settings);
         header('Location: /admin/?tab=config&saved=1');
-        exit;
-    }
-
-    // ── Save navbar (mutat la tab Texte)
-    if ($action === 'save_navbar') {
-        $settings = load_settings();
-        $settings['nav_brand_text'] = trim($_POST['nav_brand_text'] ?? 'Cursuri la Pahar');
-        $nav_labels = $_POST['nav_label'] ?? [];
-        $nav_urls   = $_POST['nav_url']   ?? [];
-        $nav_links  = [];
-        foreach ($nav_labels as $i => $label) {
-            $label = trim($label);
-            $url   = trim($nav_urls[$i] ?? '');
-            if ($label && $url) $nav_links[] = ['label' => $label, 'url' => $url];
-        }
-        if ($nav_links) $settings['nav_links'] = $nav_links;
-        save_settings($settings);
-        header('Location: /admin/?tab=setari&saved=1');
         exit;
     }
 
@@ -649,24 +600,6 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         // Fall through to render page with $favicon_error set
-    }
-
-    // ── Save page content
-    if ($action === 'save_page') {
-        $page_key = preg_replace('/[^a-z]/', '', $_POST['page_key'] ?? '');
-        $valid_pages = ['sustine','gazduieste','parteneriat'];
-        if (in_array($page_key, $valid_pages)) {
-            $settings = load_settings();
-            if (!isset($settings['pages'])) $settings['pages'] = [];
-            $settings['pages'][$page_key] = [
-                'title'       => trim($_POST['title'] ?? ''),
-                'subtitle'    => trim($_POST['subtitle'] ?? ''),
-                'description' => trim($_POST['description'] ?? ''),
-            ];
-            save_settings($settings);
-        }
-        header('Location: /admin/?tab=pagini&saved=1&page=' . urlencode($page_key));
-        exit;
     }
 
     // ── Save Kit settings
@@ -1087,116 +1020,11 @@ if (is_authenticated() && ($action === 'save_global_fonts')) {
     exit;
 }
 
-// ── Inline edit (from live site editor) ──────────────────────────────────────
-if (is_authenticated() && ($action === 'save_inline_edit')) {
-    $key   = trim($_POST['key']   ?? '');
-    $raw   = $_POST['value'] ?? '';
-    // Fields that may contain HTML tags — allow only safe subset
-    $html_keys = ['hero_title', 'announcement',
-                  'sustine_intro_1', 'sustine_intro_2',
-                  'gazduieste_intro_1', 'gazduieste_intro_2',
-                  'parteneriat_intro_1', 'parteneriat_intro_2'];
-    $value = in_array($key, $html_keys)
-        ? trim(strip_tags($raw, '<br><em><strong>'))
-        : trim(strip_tags($raw));
-    $style = trim($_POST['style'] ?? '');
-    $device = trim($_POST['device'] ?? 'desktop');
-    $styles_key = match($device) {
-        'tablet' => 'element_styles_tablet',
-        'mobile' => 'element_styles_mobile',
-        default  => 'element_styles',
-    };
-    $flat_allowed = ['hero_title','announcement','courses_title','newsletter_title',
-                     'newsletter_desc','collab_title','collab_subtitle','contact_title','contact_subtitle',
-                     'gallery_title','steps_title','faq_title','nav_brand_text',
-                     'vote_title','vote_subtitle',
-                     'sustine_title','sustine_intro_1','sustine_intro_2',
-                     'gazduieste_title','gazduieste_intro_1','gazduieste_intro_2',
-                     'parteneriat_title','parteneriat_intro_1','parteneriat_intro_2'];
-    header('Content-Type: application/json');
-    $ok = false;
-    if ($key) {
-        $s = load_settings();
-        if (!isset($s[$styles_key])) $s[$styles_key] = [];
-
-        // step_{i}_title or step_{i}_text
-        if (preg_match('/^step_(\d+)_(title|text)$/', $key, $m)) {
-            $idx  = (int)$m[1];
-            $prop = $m[2];
-            $defaults = [
-                ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
-                ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
-                ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
-                ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
-            ];
-            if (!isset($s['steps'])) $s['steps'] = $defaults;
-            if (isset($s['steps'][$idx])) {
-                $s['steps'][$idx][$prop] = $value;
-                if ($style) $s[$styles_key][$key] = $style;
-                else unset($s[$styles_key][$key]);
-                $ok = true;
-            }
-        // faq_{i}_q or faq_{i}_a
-        } elseif (preg_match('/^faq_(\d+)_(q|a)$/', $key, $m)) {
-            $idx  = (int)$m[1];
-            $prop = $m[2];
-            if (!isset($s['faq_items'])) $s['faq_items'] = [];
-            if (isset($s['faq_items'][$idx])) {
-                $s['faq_items'][$idx][$prop] = $value;
-                if ($style) $s[$styles_key][$key] = $style;
-                else unset($s[$styles_key][$key]);
-                $ok = true;
-            }
-        // nav_link_{i}_label
-        } elseif (preg_match('/^nav_link_(\d+)_label$/', $key, $m)) {
-            $idx = (int)$m[1];
-            if (!isset($s['nav_links'])) $s['nav_links'] = [];
-            if (isset($s['nav_links'][$idx])) {
-                $s['nav_links'][$idx]['label'] = $value;
-                if ($style) $s[$styles_key][$key] = $style;
-                else unset($s[$styles_key][$key]);
-                $ok = true;
-            }
-        // flat keys
-        } elseif (in_array($key, $flat_allowed)) {
-            $s[$key] = $value;
-            if ($style) $s[$styles_key][$key] = $style;
-            else unset($s[$styles_key][$key]);
-            $ok = true;
-        }
-
-        if ($ok) $ok = save_settings($s);
-    }
-    echo json_encode(['ok' => $ok, 'writable' => is_writable(dirname(SETTINGS_FILE))]);
-    exit;
-}
-
-// ── Section background edit ───────────────────────────────────────────────────
-if (is_authenticated() && ($action === 'save_section_bg')) {
-    $allowed_sections = ['cursuri','newsletter','faq','colaborare','contact'];
-    $section = trim($_POST['section'] ?? '');
-    header('Content-Type: application/json');
-    if (in_array($section, $allowed_sections)) {
-        $s = load_settings();
-        if (!isset($s['section_bgs'])) $s['section_bgs'] = [];
-        $s['section_bgs'][$section] = [
-            'image'   => trim($_POST['image'] ?? ''),
-            'blur'    => max(0, min(30, (int)($_POST['blur'] ?? 6))),
-            'overlay' => max(0, min(1, round((float)($_POST['overlay'] ?? 0.72), 2))),
-        ];
-        $ok = save_settings($s);
-        echo json_encode(['ok' => $ok]);
-    } else {
-        echo json_encode(['ok' => false, 'error' => 'invalid section']);
-    }
-    exit;
-}
-
 // ── Load data for display ─────────────────────────────────────────────────────
 $courses  = [];
 $settings = load_settings();
 $tab      = $_GET['tab'] ?? 'dashboard';
-if (!in_array($tab, ['dashboard','cursuri','imagini','setari','aspect','pagini','kit','mesaje','vot','competitori','speakeri','locatii','colaborari','securitate','config'])) $tab = 'dashboard';
+if (!in_array($tab, ['dashboard','cursuri','imagini','aspect','kit','mesaje','vot','competitori','speakeri','locatii','colaborari','securitate','config'])) $tab = 'dashboard';
 if (is_authenticated() && !can_access_tab($tab)) $tab = 'dashboard';
 
 if (is_authenticated()) {
@@ -1445,20 +1273,17 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
             <?php if (is_owner()): ?>
-            <?php $_continut_active = in_array($tab, ['imagini','setari','aspect','pagini','cursuri','vot']); ?>
+            <?php $_continut_active = in_array($tab, ['imagini','aspect','cursuri','vot']); ?>
             <div class="sidebar-section collapsible<?= $_continut_active ? '' : ' collapsed' ?>" onclick="clpToggleSidebarSection(this,'continut')">Conținut</div>
             <div class="sidebar-collapse-content<?= $_continut_active ? '' : ' collapsed' ?>" id="sidebar-continut">
+            <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
+                <span class="nav-icon">📋</span> Cursuri
+            </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
-            <a href="/admin/?tab=setari" class="<?= $tab === 'setari' ? 'active' : '' ?>">
-                <span class="nav-icon">✏️</span> Texte
-            </a>
             <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
                 <span class="nav-icon">🎨</span> Aspect
-            </a>
-            <a href="/admin/?tab=pagini" class="<?= $tab === 'pagini' || $tab === 'cursuri' ? 'active' : '' ?>">
-                <span class="nav-icon">📄</span> Pagini
             </a>
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
@@ -1765,8 +1590,8 @@ if (!empty($_ql)): ?>
 </div>
 
 
-<?php /* ======================================================= TAB: CURSURI (acum sub Pagini) */ ?>
-<?php elseif ($tab === 'cursuri' || ($tab === 'pagini' && ($_GET['page'] ?? '') === 'cursuri')): ?>
+<?php /* ======================================================= TAB: CURSURI */ ?>
+<?php elseif ($tab === 'cursuri'): ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
 
@@ -2017,303 +1842,6 @@ if (!empty($_ql)): ?>
     }
     </script>
 
-<?php /* ======================================================= TAB: SETARI */ ?>
-<?php elseif ($tab === 'setari'): ?>
-
-    <h1 class="wp-page-title">Setări</h1>
-
-    <?php if (isset($_GET['saved'])): ?>
-    <div class="notice notice-success">Setările au fost salvate cu succes.</div>
-    <?php endif; ?>
-
-    <style>
-    .tf-card { background: var(--surface, #fff); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
-    .tf-card-title { padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-    .tf-row { border-bottom: 1px solid var(--border); }
-    .tf-row:last-child { border-bottom: none; }
-    .tf-header { display: flex; align-items: center; gap: 12px; padding: 11px 18px; cursor: pointer; user-select: none; transition: background .12s; }
-    .tf-header:hover { background: rgba(255,255,255,.04); }
-    .tf-label { font-size: 13px; font-weight: 600; color: var(--text); min-width: 180px; flex-shrink: 0; }
-    .tf-preview { font-size: 12px; color: var(--text-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tf-arrow { color: var(--text-muted); font-size: 11px; transition: transform .2s; flex-shrink: 0; }
-    .tf-row.open .tf-arrow { transform: rotate(180deg); }
-    .tf-body { display: none; padding: 4px 18px 16px; }
-    .tf-row.open .tf-body { display: block; }
-    .tf-body .form-desc { margin-top: 6px; }
-
-    .tf-step { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
-    .tf-step-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; user-select: none; background: var(--surface); transition: background .12s; }
-    .tf-step-header:hover { background: #f8f8f8; }
-    .tf-step-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); flex: 1; }
-    .tf-step-preview { font-size: 12px; color: var(--text-muted); flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tf-step-body { display: none; padding: 14px 16px; background: var(--surface); border-top: 1px solid var(--border); }
-    .tf-step.open .tf-step-body { display: block; }
-    .tf-step.open .tf-arrow { transform: rotate(180deg); }
-
-    .faq-edit-item .faq-item-header { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
-    .faq-edit-item .faq-item-preview { font-size: 12px; color: var(--text-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .faq-edit-item .faq-item-body { display: none; margin-top: 12px; }
-    .faq-edit-item.open .faq-item-body { display: block; }
-    .faq-edit-item.open .tf-arrow { transform: rotate(180deg); }
-    </style>
-
-    <form method="post" action="/admin/?tab=setari">
-        <input type="hidden" name="action" value="save_settings">
-
-        <div class="tf-card">
-            <div class="tf-card-title">Banner &amp; Hero</div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Anunț banner</span>
-                    <span class="tf-preview"><?= h($settings['announcement']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <textarea id="s_announcement" name="announcement" rows="2" class="form-group" style="margin:0;width:100%"><?= h($settings['announcement']) ?></textarea>
-                    <p class="form-desc">Textul afișat în bannerul de anunț de sub hero.</p>
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Titlu hero</span>
-                    <span class="tf-preview"><?= h(strip_tags($settings['hero_title'])) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <textarea id="s_hero_title" name="hero_title" rows="3" style="width:100%"><?= h($settings['hero_title']) ?></textarea>
-                    <p class="form-desc">Suportă HTML, ex: <code>&lt;em&gt;text italic&lt;/em&gt;</code>, <code>&lt;br&gt;</code>.</p>
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Text buton hero</span>
-                    <span class="tf-preview"><?= h($settings['hero_btn']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <input type="text" id="s_hero_btn" name="hero_btn" value="<?= h($settings['hero_btn']) ?>" style="width:100%">
-                </div>
-            </div>
-        </div>
-
-        <div class="tf-card">
-            <div class="tf-card-title">Secțiuni</div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Titlu Cursuri</span>
-                    <span class="tf-preview"><?= h($settings['courses_title']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <input type="text" id="s_courses_title" name="courses_title" value="<?= h($settings['courses_title']) ?>" style="width:100%">
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Titlu Galerie</span>
-                    <span class="tf-preview"><?= h($settings['gallery_title'] ?? 'Galerie') ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <input type="text" id="s_gallery_title" name="gallery_title" value="<?= h($settings['gallery_title'] ?? 'Galerie') ?>" style="width:100%">
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Titlu Newsletter</span>
-                    <span class="tf-preview"><?= h($settings['newsletter_title']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <input type="text" id="s_newsletter_title" name="newsletter_title" value="<?= h($settings['newsletter_title']) ?>" style="width:100%">
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Descriere Newsletter</span>
-                    <span class="tf-preview"><?= h($settings['newsletter_desc']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <textarea id="s_newsletter_desc" name="newsletter_desc" rows="3" style="width:100%"><?= h($settings['newsletter_desc']) ?></textarea>
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Titlu Colaborare</span>
-                    <span class="tf-preview"><?= h($settings['collab_title']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <input type="text" id="s_collab_title" name="collab_title" value="<?= h($settings['collab_title']) ?>" style="width:100%">
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Subtitlu Colaborare</span>
-                    <span class="tf-preview"><?= h($settings['collab_subtitle']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <textarea id="s_collab_subtitle" name="collab_subtitle" rows="2" style="width:100%"><?= h($settings['collab_subtitle']) ?></textarea>
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Titlu Contact</span>
-                    <span class="tf-preview"><?= h($settings['contact_title']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <input type="text" id="s_contact_title" name="contact_title" value="<?= h($settings['contact_title']) ?>" style="width:100%">
-                </div>
-            </div>
-
-            <div class="tf-row">
-                <div class="tf-header" onclick="toggleTf(this)">
-                    <span class="tf-label">Subtitlu Contact</span>
-                    <span class="tf-preview"><?= h($settings['contact_subtitle']) ?></span>
-                    <span class="tf-arrow">▼</span>
-                </div>
-                <div class="tf-body">
-                    <textarea id="s_contact_subtitle" name="contact_subtitle" rows="2" style="width:100%"><?= h($settings['contact_subtitle']) ?></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="tf-card">
-            <div class="tf-card-title">FAQ – Întrebări frecvente</div>
-            <div id="faq-editor" style="padding:8px 8px 4px">
-                <?php foreach ($settings['faq_items'] as $i => $item): ?>
-                <div class="faq-edit-item" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative">
-                    <div class="faq-item-header" onclick="this.closest('.faq-edit-item').classList.toggle('open')">
-                        <span style="font-size:13px;font-weight:600;color:var(--text);flex-shrink:0">Q</span>
-                        <span class="faq-item-preview"><?= h($item['q']) ?></span>
-                        <span class="tf-arrow" style="color:var(--text-muted);font-size:11px;transition:transform .2s;margin-right:24px">▼</span>
-                        <button type="button" onclick="event.stopPropagation();this.closest('.faq-edit-item').remove()" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>
-                    </div>
-                    <div class="faq-item-body">
-                        <div class="form-group" style="margin-top:10px">
-                            <label>Întrebare</label>
-                            <input type="text" name="faq_q[]" value="<?= h($item['q']) ?>">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
-                            <label>Răspuns</label>
-                            <textarea name="faq_a[]" rows="3"><?= h($item['a']) ?></textarea>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <div style="padding:0 8px 12px">
-                <button type="button" onclick="addFaqItem()" class="btn btn-secondary" style="font-size:13px">+ Adaugă întrebare</button>
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="margin-bottom:24px">Salvează setările</button>
-    </form>
-    <script>
-    function toggleTf(header) {
-        header.closest('.tf-row').classList.toggle('open');
-    }
-    function addFaqItem() {
-        const editor = document.getElementById('faq-editor');
-        const div = document.createElement('div');
-        div.className = 'faq-edit-item open';
-        div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;position:relative';
-        div.innerHTML = '<div class="faq-item-header" onclick="this.closest(\'.faq-edit-item\').classList.toggle(\'open\')">'
-            + '<span style="font-size:13px;font-weight:600;color:var(--text);flex-shrink:0">Q</span>'
-            + '<span class="faq-item-preview">Întrebare nouă</span>'
-            + '<span class="tf-arrow" style="color:var(--text-muted);font-size:11px;transition:transform .2s;margin-right:24px">▼</span>'
-            + '<button type="button" onclick="event.stopPropagation();this.closest(\'.faq-edit-item\').remove()" title="Șterge" style="position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px">✕</button>'
-            + '</div>'
-            + '<div class="faq-item-body" style="display:block">'
-            + '<div class="form-group" style="margin-top:10px"><label>Întrebare</label><input type="text" name="faq_q[]" value=""></div>'
-            + '<div class="form-group" style="margin-bottom:0"><label>Răspuns</label><textarea name="faq_a[]" rows="3"></textarea></div>'
-            + '</div>';
-        editor.appendChild(div);
-        div.querySelector('input').focus();
-    }
-    function removeFaqItem(btn) { btn.closest('.faq-edit-item').remove(); }
-    </script>
-
-<!-- Brand text + Nav links -->
-<form method="post" action="/admin/?tab=setari">
-    <input type="hidden" name="action" value="save_navbar">
-    <div class="card">
-        <div class="card-title">Navbar</div>
-        <div class="form-group">
-            <label>Text brand (lângă logo)</label>
-            <input type="text" name="nav_brand_text" value="<?= h($settings['nav_brand_text'] ?? 'Cursuri la Pahar') ?>">
-        </div>
-        <div class="form-group">
-            <label>Linkuri meniu <span style="font-weight:400;color:var(--text-muted)">(trage pentru reordonare)</span></label>
-            <div id="navLinksList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-                <?php foreach ($settings['nav_links'] ?? [] as $i => $nl): ?>
-                <div class="nav-link-row" draggable="true" style="display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid var(--border);border-radius:4px;padding:6px 10px;cursor:grab">
-                    <span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>
-                    <input type="text" name="nav_label[]" value="<?= h($nl['label'] ?? '') ?>" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff">
-                    <input type="text" name="nav_url[]"   value="<?= h($nl['url'] ?? '') ?>"   placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:13px;background:#fff;font-family:monospace">
-                    <button type="button" onclick="this.closest('.nav-link-row').remove()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="addNavLink()">+ Adaugă link</button>
-        </div>
-        <button type="submit" class="btn btn-primary">Salvează navbar</button>
-<script>
-(function(){
-    const list = document.getElementById('navLinksList');
-    if (!list) return;
-    let dragged = null;
-    list.addEventListener('dragstart', e => {
-        dragged = e.target.closest('.nav-link-row');
-        setTimeout(() => dragged && dragged.classList.add('dragging'), 0);
-    });
-    list.addEventListener('dragend', () => {
-        if (dragged) dragged.classList.remove('dragging');
-        dragged = null;
-    });
-    list.addEventListener('dragover', e => {
-        e.preventDefault();
-        const row = e.target.closest('.nav-link-row');
-        if (row && row !== dragged) {
-            const rect = row.getBoundingClientRect();
-            const after = e.clientY > rect.top + rect.height / 2;
-            list.insertBefore(dragged, after ? row.nextSibling : row);
-        }
-    });
-    const style = document.createElement('style');
-    style.textContent = '.nav-link-row.dragging { opacity:.4; }';
-    document.head.appendChild(style);
-})();
-function addNavLink() {
-    const list = document.getElementById('navLinksList');
-    const row = document.createElement('div');
-    row.className = 'nav-link-row';
-    row.draggable = true;
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f6f7f7;border:1px solid #c3c4c7;border-radius:4px;padding:6px 10px;cursor:grab';
-    row.innerHTML = '<span style="color:#aaa;font-size:16px;cursor:grab;flex-shrink:0">⠿</span>'
-        + '<input type="text" name="nav_label[]" placeholder="Nume" style="flex:0 0 160px;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff">'
-        + '<input type="text" name="nav_url[]" placeholder="/url" style="flex:1;padding:4px 8px;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;background:#fff;font-family:monospace">'
-        + '<button type="button" onclick="this.closest(\'.nav-link-row\').remove()" style="background:none;border:none;color:#d63638;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0" title="Șterge">✕</button>';
-    list.appendChild(row);
-    row.querySelector('input').focus();
-}
-</script>
-    </div>
-</form>
-
 <?php /* ======================================================= TAB: ASPECT */ ?>
 <?php elseif ($tab === 'aspect'): ?>
 <h1 class="wp-page-title">Aspect</h1>
@@ -2414,74 +1942,6 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
     swatches: ['#0D0D0D','#161616','#1A1A1A','#ffffff','#C9A84C','#b8922e','#FFB000','#E8E4DC','#9CA3AF'],
 });
 </script>
-
-<?php /* ======================================================= TAB: PAGINI */ ?>
-<?php elseif ($tab === 'pagini'): ?>
-<h1 class="wp-page-title">Pagini</h1>
-<?php if (isset($_GET['saved'])): ?>
-<div class="notice notice-success">Pagina a fost salvată.</div>
-<?php endif; ?>
-
-<?php
-$page_meta = [
-    'sustine'     => ['title' => 'Prezintă un curs',       'url' => '/prezinta-un-curs'],
-    'gazduieste'  => ['title' => 'Găzduiește un curs',    'url' => '/gazduieste-un-curs'],
-    'parteneriat' => ['title' => 'Propune un parteneriat','url' => '/propune-un-parteneriat'],
-];
-$editing_page = $_GET['page'] ?? '';
-if ($editing_page && isset($page_meta[$editing_page])):
-    $pg = $settings['pages'][$editing_page] ?? [];
-?>
-<div class="card">
-    <div class="card-title">
-        Editează: <?= h($page_meta[$editing_page]['title']) ?>
-        <a href="<?= h($page_meta[$editing_page]['url']) ?>" target="_blank" style="font-size:12px;font-weight:400;color:var(--accent);margin-left:10px">Vizualizează ↗</a>
-    </div>
-    <form method="post" action="/admin/?tab=pagini&page=<?= h($editing_page) ?>">
-        <input type="hidden" name="action" value="save_page">
-        <input type="hidden" name="page_key" value="<?= h($editing_page) ?>">
-        <div class="form-group">
-            <label>Titlu pagină</label>
-            <input type="text" name="title" value="<?= h($pg['title'] ?? '') ?>">
-        </div>
-        <div class="form-group">
-            <label>Subtitlu</label>
-            <input type="text" name="subtitle" value="<?= h($pg['subtitle'] ?? '') ?>">
-        </div>
-        <div class="form-group">
-            <label>Descriere / Intro text</label>
-            <textarea name="description" rows="4"><?= h($pg['description'] ?? '') ?></textarea>
-        </div>
-        <div style="display:flex;gap:8px;">
-            <button type="submit" class="btn btn-primary">Salvează</button>
-            <a href="/admin/?tab=pagini" class="btn btn-secondary">Înapoi</a>
-        </div>
-    </form>
-</div>
-
-<?php else: ?>
-
-<!-- Pages list -->
-<div class="card">
-    <div class="card-title">Pagini disponibile</div>
-    <table class="wp-table">
-        <thead><tr><th>Pagină</th><th>URL</th></tr></thead>
-        <tbody>
-            <tr>
-                <td><a href="/admin/?tab=pagini&page=cursuri" style="font-weight:600;color:var(--accent);text-decoration:none">Cursuri</a></td>
-                <td><a href="/#cursuri" target="_blank" style="color:var(--text-muted);font-size:12px">/#cursuri ↗</a></td>
-            </tr>
-            <?php foreach ($page_meta as $key => $pm): ?>
-            <tr>
-                <td><a href="/admin/?tab=pagini&page=<?= h($key) ?>" style="font-weight:600;color:var(--accent);text-decoration:none"><?= h($pm['title']) ?></a></td>
-                <td><a href="<?= h($pm['url']) ?>" target="_blank" style="color:var(--text-muted);font-size:12px"><?= h($pm['url']) ?> ↗</a></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
-
-<?php endif; ?>
 
 <?php /* KIT tab redirects to config */ ?>
 <?php elseif ($tab === 'kit'): ?>

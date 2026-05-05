@@ -21,7 +21,7 @@ $_loaded = file_exists($settings_file) ? (json_decode(file_get_contents($setting
 $settings = array_merge($_defaults, $_loaded);
 
 function clp_e(string $key, array $settings): string {
-    return 'data-edit-key="' . htmlspecialchars($key) . '"';
+    return '';
 }
 
 $parteneriat_title   = $settings['parteneriat_title']   ?? 'Propune un parteneriat';

@@ -16,10 +16,9 @@
             <?php if (is_owner_auth()): ?>
             <div class="sidebar-section collapsible collapsed" onclick="clpToggleSidebarSection(this,'continut')">Conținut</div>
             <div class="sidebar-collapse-content collapsed" id="sidebar-continut">
+            <a href="/admin/?tab=cursuri"><span class="nav-icon">📋</span> Cursuri</a>
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
-            <a href="/admin/?tab=setari"><span class="nav-icon">✏️</span> Texte</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>
-            <a href="/admin/?tab=pagini"><span class="nav-icon">📄</span> Pagini</a>
             <a href="/admin/?tab=vot"><span class="nav-icon">❤️</span> Vot cursuri</a>
             </div>
             <?php endif; ?>
