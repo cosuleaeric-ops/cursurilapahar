@@ -2080,6 +2080,7 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-delete-btn:hover { background:var(--danger, #e74c3c); color:#fff; }
 .msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .msg-card-name { font-size:14px; font-weight:600; color:var(--text); }
+.msg-card-course { font-weight:400; color:var(--text-muted); }
 .msg-card-date { font-size:11px; color:var(--text-muted); white-space:nowrap; }
 .msg-card-preview { padding:0 16px 14px; font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .msg-detail { display:none; padding:16px; border-top:1px solid var(--border); background:var(--bg-surface); }
@@ -2227,9 +2228,18 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
     if ($key === 'contact' && $is_read) $card_classes[] = 'is-read';
     if ($key === 'sustine' && $eval)    $card_classes[] = 'eval-' . $eval;
     ?>
+    <?php
+    $name_extra = '';
+    if ($key === 'sustine' && !empty($msg['fields']['Course name'])) {
+        $cn = trim($msg['fields']['Course name']);
+        // Take just the first sentence/line so the head stays readable
+        $cn_first = preg_split('/(?<=[.!?])\s+|\s*[\r\n]+\s*/u', $cn, 2)[0];
+        $name_extra = ' — ' . $cn_first;
+    }
+    ?>
     <div class="<?= implode(' ', $card_classes) ?>" data-msg-id="<?= h($msg['id']) ?>" onclick="toggleMsg('<?= $uid ?>')">
         <div class="msg-card-head">
-            <span class="msg-card-name"><?= h($name) ?></span>
+            <span class="msg-card-name"><?= h($name) ?><?php if ($name_extra): ?><span class="msg-card-course"><?= h($name_extra) ?></span><?php endif; ?></span>
             <span class="msg-card-date"><?= h($msg['date']) ?></span>
         </div>
         <div class="msg-detail" id="msg-<?= $uid ?>">
