@@ -2072,8 +2072,23 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-copy-btn { margin-left:8px; background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:5px; padding:2px 8px; font-size:11px; cursor:pointer; transition:.15s; vertical-align:middle; }
 .msg-copy-btn:hover { border-color:var(--primary,#333); color:var(--primary,#333); }
 .msg-copy-btn.copied { border-color:#27ae60; color:#27ae60; }
-.msg-info { display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:10px; font-weight:700; cursor:help; user-select:none; flex-shrink:0; }
+.msg-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:10px; font-weight:700; cursor:help; user-select:none; flex-shrink:0; }
 .msg-info:hover { background:#d1d5db; color:#1f2937; }
+.msg-info::after {
+    content: attr(data-tooltip);
+    position:absolute; left:50%; bottom:calc(100% + 6px); transform:translateX(-50%);
+    background:#1f2937; color:#fff; padding:6px 10px; border-radius:6px;
+    font-size:12px; font-weight:400; line-height:1.35; white-space:normal;
+    width:max-content; max-width:280px; text-align:left;
+    opacity:0; pointer-events:none; transition:opacity .12s; z-index:50;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+.msg-info::before {
+    content:''; position:absolute; left:50%; bottom:100%; transform:translateX(-50%);
+    border:5px solid transparent; border-top-color:#1f2937;
+    opacity:0; pointer-events:none; transition:opacity .12s; z-index:50;
+}
+.msg-info:hover::after, .msg-info:hover::before { opacity:1; }
 .msg-read-btn, .msg-eval-btn, .msg-comment-btn {
     border:1px solid var(--border); background:#fff; color:var(--text);
     border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500;
@@ -2200,7 +2215,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
                 $tooltip = ($key === 'sustine' && isset($sustine_questions[$lbl])) ? $sustine_questions[$lbl] : '';
             ?>
             <div class="msg-detail-row">
-                <span class="msg-detail-lbl"><?= h($lbl) ?><?php if ($tooltip): ?><span class="msg-info" title="<?= h($tooltip) ?>">i</span><?php endif; ?></span>
+                <span class="msg-detail-lbl"><?= h($lbl) ?><?php if ($tooltip): ?><span class="msg-info" data-tooltip="<?= h($tooltip) ?>">i</span><?php endif; ?></span>
                 <span class="msg-detail-val"><?= h($val) ?><?php if (strtolower($lbl) === 'social' && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază link">Copiază</button><?php endif; ?></span>
             </div>
             <?php endforeach; ?>
