@@ -2777,6 +2777,7 @@ $_competitors = [
     ['name' => 'Pint of View',            'ig' => 'https://www.instagram.com/pintofview.club/',   'tt' => '',                                          'web' => 'https://pintofview.club/'],
     ['name' => 'Big Brain SF',            'ig' => 'https://www.instagram.com/bigbrainsf/',         'tt' => 'https://www.tiktok.com/@bigbrainsf',        'web' => ''],
     ['name' => 'Society of Intellectuals','ig' => 'https://www.instagram.com/societyofintellectuals/', 'tt' => '',                                     'web' => 'https://societyofintellectuals.org/'],
+    ['name' => 'Off-Campus',              'ig' => 'https://www.instagram.com/offcampus_fr/',      'tt' => '',                                          'web' => 'https://www.offcampus.fr/'],
     ['name' => 'Cursuri la Bar',          'ig' => 'https://www.instagram.com/cursurilabar',       'tt' => 'https://www.tiktok.com/@cursurilabar',      'web' => 'https://cursurilabar.ro/'],
 ];
 ?>
