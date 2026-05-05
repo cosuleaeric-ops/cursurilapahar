@@ -1021,6 +1021,23 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Delete comment (Speakeri, owner only)
+    if ($action === 'delete_message_comment' && is_owner()) {
+        header('Content-Type: application/json');
+        $id  = preg_replace('/[^a-f0-9]/', '', $_POST['msg_id'] ?? '');
+        $idx = (int)($_POST['idx'] ?? -1);
+        if (!$id || $idx < 0) { echo json_encode(['ok' => false]); exit; }
+        $meta = load_msg_meta();
+        if (isset($meta[$id]['comments'][$idx])) {
+            array_splice($meta[$id]['comments'], $idx, 1);
+            save_msg_meta($meta);
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+        echo json_encode(['ok' => false]);
+        exit;
+    }
+
     // ── Add comment (Speakeri)
     if ($action === 'add_message_comment') {
         header('Content-Type: application/json');
@@ -2113,8 +2130,11 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-comment-btn:hover { border-color:#2271b1; color:#2271b1; }
 .msg-comments { margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); }
 .msg-comments-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px; }
-.msg-comment-item { background:#f9fafb; border-radius:6px; padding:8px 10px; margin-bottom:6px; font-size:13px; line-height:1.5; }
+.msg-comment-item { position:relative; background:#f9fafb; border-radius:6px; padding:8px 30px 8px 10px; margin-bottom:6px; font-size:13px; line-height:1.5; }
 .msg-comment-item .msg-comment-when { display:block; font-size:11px; color:var(--text-muted); margin-bottom:2px; }
+.msg-comment-del { position:absolute; top:6px; right:8px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px; opacity:0; transition:opacity .15s, color .15s; }
+.msg-comment-item:hover .msg-comment-del { opacity:1; }
+.msg-comment-del:hover { color:var(--danger,#e74c3c); }
 .msg-comment-form { display:flex; gap:6px; margin-top:8px; }
 .msg-comment-form textarea { flex:1; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; resize:vertical; min-height:34px; }
 .msg-comment-form button { padding:6px 14px; border:none; background:#2271b1; color:#fff; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; }
@@ -2244,10 +2264,13 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
             <div class="msg-comments">
                 <div class="msg-comments-title">Comentarii</div>
                 <div class="msg-comments-list">
-                    <?php foreach ($comments as $c): ?>
-                    <div class="msg-comment-item">
+                    <?php foreach ($comments as $cidx => $c): ?>
+                    <div class="msg-comment-item" data-comment-idx="<?= $cidx ?>">
                         <span class="msg-comment-when"><?= h($c['at'] ?? '') ?><?php if (!empty($c['by'])): ?> · <?= h($c['by']) ?><?php endif; ?></span>
                         <?= h($c['text'] ?? '') ?>
+                        <?php if (is_owner()): ?>
+                        <button type="button" class="msg-comment-del" onclick="event.stopPropagation();deleteComment(this)" title="Șterge comentariu">×</button>
+                        <?php endif; ?>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -2312,11 +2335,28 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
 <?php endforeach; ?>
 
 <script>
+window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;
 function showMsgTab(key) {
     document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
     event.currentTarget.classList.add('active');
     document.getElementById('msg-panel-' + key).classList.add('active');
+}
+function deleteComment(btn) {
+    if (!confirm('Ștergi comentariul?')) return;
+    const item = btn.closest('.msg-comment-item');
+    const card = btn.closest('.msg-card');
+    const fd = new FormData();
+    fd.append('action', 'delete_message_comment');
+    fd.append('msg_id', card.dataset.msgId);
+    fd.append('idx',    item.dataset.commentIdx);
+    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+        .then(r => r.json()).then(d => {
+            if (!d.ok) return;
+            const list = item.parentElement;
+            item.remove();
+            list.querySelectorAll('.msg-comment-item').forEach((el, i) => el.dataset.commentIdx = i);
+        });
 }
 function toggleMsg(uid) {
     const el = document.getElementById('msg-' + uid);
@@ -2420,10 +2460,20 @@ function saveComment(btn) {
             const list = card.querySelector('.msg-comments-list');
             const item = document.createElement('div');
             item.className = 'msg-comment-item';
+            item.dataset.commentIdx = list.querySelectorAll('.msg-comment-item').length;
             item.innerHTML = '<span class="msg-comment-when"></span>';
             item.querySelector('.msg-comment-when').textContent =
                 d.comment.at + (d.comment.by ? ' · ' + d.comment.by : '');
             item.appendChild(document.createTextNode(d.comment.text));
+            if (window.CLP_IS_OWNER) {
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'msg-comment-del';
+                del.title = 'Șterge comentariu';
+                del.textContent = '×';
+                del.onclick = function(e) { e.stopPropagation(); deleteComment(this); };
+                item.appendChild(del);
+            }
             list.appendChild(item);
             ta.value = '';
             form.style.display = 'none';
