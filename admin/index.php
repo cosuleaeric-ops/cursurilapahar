@@ -2364,6 +2364,7 @@ function markRead(btn) {
             btn.classList.toggle('is-active', now);
             btn.textContent = now ? '✓ Citit' : 'Citit';
             updateBadge('contact', now ? -1 : 1);
+            if (now) card.querySelector('.msg-detail').classList.remove('open');
         });
 }
 function evalMsg(btn, value) {
