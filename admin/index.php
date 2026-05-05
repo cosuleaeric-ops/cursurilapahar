@@ -1445,21 +1445,46 @@ $_dash_month_label = $_ro_months_full[(int)date('n')] . ' ' . date('Y');
 
 <?php
 $_ql = $settings['quick_links'] ?? [];
+$_ql_general = [];
+$_ql_canva   = [];
+foreach ($_ql as $_ql_item) {
+    if (str_contains($_ql_item['url'] ?? '', 'canva.com')) $_ql_canva[] = $_ql_item;
+    else $_ql_general[] = $_ql_item;
+}
 if (!empty($_ql)): ?>
 <style>
 .ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:#fff;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
 .ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
+.ql-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px; }
+@media (max-width: 900px) { .ql-grid { grid-template-columns:1fr; } }
 </style>
-<div class="dash-section" style="margin-bottom:24px">
-    <div class="dash-section-title"><span>Linkuri utile</span></div>
-    <div style="display:flex;flex-wrap:wrap;gap:10px">
-    <?php foreach ($_ql as $_ql_item): ?>
-        <a href="<?= h($_ql_item['url'] ?? '#') ?>" target="_blank" rel="noopener" class="ql-btn">
-            <span style="font-size:17px"><?= h($_ql_item['icon'] ?? '🔗') ?></span>
-            <?= h($_ql_item['label'] ?? '') ?>
-        </a>
-    <?php endforeach; ?>
+<div class="ql-grid">
+    <?php if (!empty($_ql_general)): ?>
+    <div class="dash-section" style="margin:0">
+        <div class="dash-section-title"><span>Linkuri utile</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <?php foreach ($_ql_general as $_ql_item): ?>
+            <a href="<?= h($_ql_item['url'] ?? '#') ?>" target="_blank" rel="noopener" class="ql-btn">
+                <span style="font-size:17px"><?= h($_ql_item['icon'] ?? '🔗') ?></span>
+                <?= h($_ql_item['label'] ?? '') ?>
+            </a>
+        <?php endforeach; ?>
+        </div>
     </div>
+    <?php endif; ?>
+    <?php if (!empty($_ql_canva)): ?>
+    <div class="dash-section" style="margin:0">
+        <div class="dash-section-title"><span>Canva</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <?php foreach ($_ql_canva as $_ql_item): ?>
+            <a href="<?= h($_ql_item['url'] ?? '#') ?>" target="_blank" rel="noopener" class="ql-btn">
+                <span style="font-size:17px"><?= h($_ql_item['icon'] ?? '🔗') ?></span>
+                <?= h($_ql_item['label'] ?? '') ?>
+            </a>
+        <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 
