@@ -1030,7 +1030,11 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $meta = load_msg_meta();
         if (!isset($meta[$id])) $meta[$id] = [];
         if (!isset($meta[$id]['comments'])) $meta[$id]['comments'] = [];
-        $entry = ['text' => mb_substr($text, 0, 2000), 'at' => date('Y-m-d H:i:s')];
+        $entry = [
+            'text' => mb_substr($text, 0, 2000),
+            'at'   => date('Y-m-d H:i:s'),
+            'by'   => clp_current_user()['username'] ?? '',
+        ];
         $meta[$id]['comments'][] = $entry;
         save_msg_meta($meta);
         echo json_encode(['ok' => true, 'comment' => $entry]);
@@ -2225,13 +2229,15 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
                     <button type="button" class="msg-read-btn <?= $is_read ? 'is-active' : '' ?>" onclick="event.stopPropagation();markRead(this)">
                         <?= $is_read ? '✓ Citit' : 'Citit' ?>
                     </button>
+                    <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
                 <?php elseif ($key === 'sustine'): ?>
                     <button type="button" class="msg-eval-btn <?= $eval === 'nope' ? 'is-active' : '' ?>" data-eval="nope" onclick="event.stopPropagation();evalMsg(this,'nope')">Nope</button>
                     <button type="button" class="msg-eval-btn <?= $eval === 'meh' ? 'is-active' : '' ?>"  data-eval="meh"  onclick="event.stopPropagation();evalMsg(this,'meh')">Meh</button>
                     <button type="button" class="msg-eval-btn <?= $eval === 'top' ? 'is-active' : '' ?>"  data-eval="top"  onclick="event.stopPropagation();evalMsg(this,'top')">Top</button>
                     <button type="button" class="msg-comment-btn" onclick="event.stopPropagation();toggleCommentForm(this)">💬 Comentariu</button>
+                <?php else: ?>
+                    <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
                 <?php endif; ?>
-                <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
             </div>
 
             <?php if ($key === 'sustine'): ?>
@@ -2240,7 +2246,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
                 <div class="msg-comments-list">
                     <?php foreach ($comments as $c): ?>
                     <div class="msg-comment-item">
-                        <span class="msg-comment-when"><?= h($c['at'] ?? '') ?></span>
+                        <span class="msg-comment-when"><?= h($c['at'] ?? '') ?><?php if (!empty($c['by'])): ?> · <?= h($c['by']) ?><?php endif; ?></span>
                         <?= h($c['text'] ?? '') ?>
                     </div>
                     <?php endforeach; ?>
@@ -2415,7 +2421,8 @@ function saveComment(btn) {
             const item = document.createElement('div');
             item.className = 'msg-comment-item';
             item.innerHTML = '<span class="msg-comment-when"></span>';
-            item.querySelector('.msg-comment-when').textContent = d.comment.at;
+            item.querySelector('.msg-comment-when').textContent =
+                d.comment.at + (d.comment.by ? ' · ' + d.comment.by : '');
             item.appendChild(document.createTextNode(d.comment.text));
             list.appendChild(item);
             ta.value = '';
