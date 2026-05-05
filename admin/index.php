@@ -2146,8 +2146,8 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 <?php
 $log_file = dirname(SETTINGS_FILE) . '/messages.log';
 $categories = [
-    'contact'     => ['label' => 'Contact',      'icon' => '💬'],
     'sustine'     => ['label' => 'Speakeri',     'icon' => '🎤'],
+    'contact'     => ['label' => 'Contact',      'icon' => '💬'],
     'gazduieste'  => ['label' => 'Locații',      'icon' => '📍'],
     'parteneriat' => ['label' => 'Parteneriate', 'icon' => '🤝'],
 ];
@@ -2288,14 +2288,14 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
 
 <div class="msg-tabs">
 <?php foreach ($categories as $key => $cat): $cnt = $tab_counts[$key]; ?>
-    <button class="msg-tab <?= $key === 'contact' ? 'active' : '' ?>" data-key="<?= h($key) ?>" onclick="showMsgTab('<?= $key ?>')">
+    <button class="msg-tab <?= $key === 'sustine' ? 'active' : '' ?>" data-key="<?= h($key) ?>" onclick="showMsgTab('<?= $key ?>')">
         <?= $cat['icon'] ?> <?= $cat['label'] ?><span class="msg-count"<?= $cnt ? '' : ' style="display:none"' ?>><?= $cnt ?></span>
     </button>
 <?php endforeach; ?>
 </div>
 
 <?php foreach ($categories as $key => $cat): ?>
-<div class="msg-panel <?= $key === 'contact' ? 'active' : '' ?>" id="msg-panel-<?= $key ?>">
+<div class="msg-panel <?= $key === 'sustine' ? 'active' : '' ?>" id="msg-panel-<?= $key ?>">
 <?php if (empty($grouped[$key])): ?>
     <div class="card"><p class="msg-empty">Niciun mesaj în această categorie.</p></div>
 <?php elseif ($key === 'sustine'):
