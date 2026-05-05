@@ -2080,7 +2080,7 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-info:hover { background:#d1d5db; color:#1f2937; }
 .msg-info::after {
     content: attr(data-tooltip);
-    position:absolute; left:50%; bottom:calc(100% + 6px); transform:translateX(-50%);
+    position:absolute; left:0; bottom:calc(100% + 6px);
     background:#1f2937; color:#fff; padding:6px 10px; border-radius:6px;
     font-size:12px; font-weight:400; line-height:1.35; white-space:normal;
     width:max-content; max-width:280px; text-align:left;
