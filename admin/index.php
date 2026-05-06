@@ -2208,12 +2208,10 @@ if (file_exists($log_file) && filesize($log_file)) {
 // Per-tab smart counts
 $tab_counts = [];
 foreach ($grouped as $k => $list) {
-    if ($k === 'contact') {
-        $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['read'])));
-    } elseif ($k === 'sustine') {
+    if ($k === 'sustine') {
         $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['evaluation'])));
     } else {
-        $tab_counts[$k] = count($list);
+        $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['read'])));
     }
 }
 
@@ -2225,7 +2223,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
     $eval    = $msg['meta']['evaluation'] ?? '';
     $comments = $msg['meta']['comments'] ?? [];
     $card_classes = ['msg-card'];
-    if ($key === 'contact' && $is_read) $card_classes[] = 'is-read';
+    if ($key !== 'sustine' && $is_read) $card_classes[] = 'is-read';
     if ($key === 'sustine' && $eval)    $card_classes[] = 'eval-' . $eval;
     ?>
     <?php
@@ -2255,17 +2253,15 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
             <?php endforeach; ?>
 
             <div class="msg-detail-actions">
-                <?php if ($key === 'contact'): ?>
-                    <button type="button" class="msg-read-btn <?= $is_read ? 'is-active' : '' ?>" onclick="event.stopPropagation();markRead(this)">
-                        <?= $is_read ? '✓ Citit' : 'Citit' ?>
-                    </button>
-                    <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
-                <?php elseif ($key === 'sustine'): ?>
+                <?php if ($key === 'sustine'): ?>
                     <button type="button" class="msg-eval-btn <?= $eval === 'nope' ? 'is-active' : '' ?>" data-eval="nope" onclick="event.stopPropagation();evalMsg(this,'nope')">Nope</button>
                     <button type="button" class="msg-eval-btn <?= $eval === 'meh' ? 'is-active' : '' ?>"  data-eval="meh"  onclick="event.stopPropagation();evalMsg(this,'meh')">Meh</button>
                     <button type="button" class="msg-eval-btn <?= $eval === 'top' ? 'is-active' : '' ?>"  data-eval="top"  onclick="event.stopPropagation();evalMsg(this,'top')">Top</button>
                     <button type="button" class="msg-comment-btn" onclick="event.stopPropagation();toggleCommentForm(this)">💬 Comentariu</button>
                 <?php else: ?>
+                    <button type="button" class="msg-read-btn <?= $is_read ? 'is-active' : '' ?>" onclick="event.stopPropagation();markRead(this)">
+                        <?= $is_read ? '✓ Citit' : 'Citit' ?>
+                    </button>
                     <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
                 <?php endif; ?>
             </div>
@@ -2400,12 +2396,16 @@ function updateBadge(tabKey, delta) {
     span.style.display = n > 0 ? '' : 'none';
 }
 function updateBadgeAfterRemoval(card, type) {
-    if (type === 'contact'  && !card.classList.contains('is-read')) updateBadge('contact', -1);
-    if (type === 'sustine'  && !card.className.match(/eval-(nope|meh|top)/)) updateBadge('sustine', -1);
-    if (type !== 'contact' && type !== 'sustine') updateBadge(type, -1);
+    if (type === 'sustine') {
+        if (!card.className.match(/eval-(nope|meh|top)/)) updateBadge('sustine', -1);
+    } else {
+        if (!card.classList.contains('is-read')) updateBadge(type, -1);
+    }
 }
 function markRead(btn) {
-    const card = btn.closest('.msg-card');
+    const card  = btn.closest('.msg-card');
+    const panel = card.closest('.msg-panel');
+    const type  = panel ? panel.id.replace('msg-panel-', '') : 'contact';
     const id = card.dataset.msgId;
     const wasRead = card.classList.contains('is-read');
     const now = !wasRead;
@@ -2419,7 +2419,7 @@ function markRead(btn) {
             card.classList.toggle('is-read', now);
             btn.classList.toggle('is-active', now);
             btn.textContent = now ? '✓ Citit' : 'Citit';
-            updateBadge('contact', now ? -1 : 1);
+            updateBadge(type, now ? -1 : 1);
             if (now) card.querySelector('.msg-detail').classList.remove('open');
         });
 }
