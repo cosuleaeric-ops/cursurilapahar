@@ -2142,6 +2142,12 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-comment-form button:hover { background:#135e96; }
 .msg-section-title { font-size:13px; font-weight:600; color:var(--text); margin:0 0 10px; padding:6px 0; }
 .msg-section + .msg-section { margin-top:24px; }
+.msg-eval-filter { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+.msg-eval-filter-btn { border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; padding:4px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
+.msg-eval-filter-btn[data-filter="all"].active { background:#6b7280; border-color:#6b7280; color:#fff; }
+.msg-eval-filter-btn[data-filter="nope"].active { background:#e74c3c; border-color:#e74c3c; color:#fff; }
+.msg-eval-filter-btn[data-filter="meh"].active  { background:#f5a623; border-color:#f5a623; color:#fff; }
+.msg-eval-filter-btn[data-filter="top"].active  { background:#16a34a; border-color:#16a34a; color:#fff; }
 </style>
 
 <?php
@@ -2327,6 +2333,12 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
         <?php if (empty($evaluated)): ?>
             <p class="msg-empty">Niciun candidat evaluat încă.</p>
         <?php else: ?>
+            <div class="msg-eval-filter">
+                <button type="button" class="msg-eval-filter-btn active" data-filter="all"  onclick="filterEval(this)">Toți</button>
+                <button type="button" class="msg-eval-filter-btn" data-filter="nope" onclick="filterEval(this)">⛔ Nope</button>
+                <button type="button" class="msg-eval-filter-btn" data-filter="meh"  onclick="filterEval(this)">🤔 Meh</button>
+                <button type="button" class="msg-eval-filter-btn" data-filter="top"  onclick="filterEval(this)">✅ Top</button>
+            </div>
             <div class="msg-cards">
             <?php foreach ($evaluated as [$i, $msg]) $render_card($key, $i, $msg); ?>
             </div>
@@ -2342,6 +2354,14 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
 
 <script>
 window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;
+function filterEval(btn) {
+    const filter = btn.dataset.filter;
+    btn.closest('.msg-section').querySelectorAll('.msg-eval-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    btn.closest('.msg-section').querySelectorAll('.msg-card').forEach(card => {
+        card.style.display = (filter === 'all' || card.classList.contains('eval-' + filter)) ? '' : 'none';
+    });
+}
 function showMsgTab(key) {
     document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
