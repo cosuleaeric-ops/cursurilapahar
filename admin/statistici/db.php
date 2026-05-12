@@ -88,7 +88,7 @@ function parse_viza_subtips(string $text): array {
     $seen = [];
     if (preg_match_all($pattern2, $text, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $m) {
-            $key = trim($m[3]) . '_' . $m[4] . '_' . $m[5];
+            $key = trim($m[3]) . '_' . $m[4];
             if (isset($seen[$key])) continue;
             $seen[$key] = true;
             $subtips[] = [
@@ -100,6 +100,31 @@ function parse_viza_subtips(string $text): array {
             ];
         }
     }
+
+    // Fallback: rows where the seria cell wraps across lines in the PDF, causing pana_la
+    // to appear separated (possibly after an intervening row in pdftotext -layout output).
+    $pattern_partial = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/mu';
+    if (preg_match_all($pattern_partial, $text, $pm, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        foreach ($pm as $m) {
+            $seria = trim($m[3][0]);
+            $de_la = $m[4][0];
+            $key   = $seria . '_' . $de_la;
+            if (isset($seen[$key])) continue;
+            // Search the next 400 chars for a standalone 4+ digit number (the pana_la)
+            $after = substr($text, $m[0][1] + strlen($m[0][0]), 400);
+            if (preg_match('/^\s*(\d{4,})\s*$/m', $after, $nm)) {
+                $seen[$key] = true;
+                $subtips[] = [
+                    'nr_unitati' => (int)$m[1][0],
+                    'tarif'      => (float)str_replace(',', '.', $m[2][0]),
+                    'seria'      => $seria,
+                    'de_la'      => $de_la,
+                    'pana_la'    => $nm[1],
+                ];
+            }
+        }
+    }
+
     return $subtips;
 }
 
