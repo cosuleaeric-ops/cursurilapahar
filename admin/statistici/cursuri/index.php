@@ -261,11 +261,11 @@ include __DIR__ . '/../layout_header.php';
                       <thead>
                         <tr>
                           <th>Seria</th>
-                          <th>Tarif</th>
-                          <th>Total bilete</th>
-                          <th>Vandute</th>
                           <th>De la</th>
                           <th>Pana la</th>
+                          <th>Vandute</th>
+                          <th>Total bilete</th>
+                          <th>Tarif</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -275,11 +275,11 @@ include __DIR__ . '/../layout_header.php';
                         ?>
                         <tr>
                           <td><span class="seria-badge"><?php echo h($sub['seria']); ?></span></td>
-                          <td><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
-                          <td><?php echo (int)$sub['nr_unitati']; ?></td>
-                          <td><?php echo $vandute !== null ? '<strong>'.$vandute.'</strong>' : '<span style="color:var(--text-muted)">—</span>'; ?></td>
                           <td><?php echo h($sub['de_la']); ?></td>
                           <td><?php echo h($sub['pana_la']); ?></td>
+                          <td><?php echo $vandute !== null ? '<strong>'.$vandute.'</strong>' : '<span style="color:var(--text-muted)">—</span>'; ?></td>
+                          <td><?php echo (int)$sub['nr_unitati']; ?></td>
+                          <td><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
                         </tr>
                         <?php endforeach; ?>
                       </tbody>
