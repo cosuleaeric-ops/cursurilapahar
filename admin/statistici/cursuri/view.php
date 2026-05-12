@@ -587,11 +587,11 @@ include __DIR__ . '/../layout_header.php';
           <thead>
             <tr>
               <th>Seria</th>
-              <th>Tarif</th>
-              <th>Nr. bilete</th>
               <th>De la</th>
               <th>Pana la</th>
               <?php if (!empty($reportByPrice)): ?><th>Vandute</th><?php endif; ?>
+              <th>Nr. bilete</th>
+              <th>Tarif</th>
             </tr>
           </thead>
           <tbody>
@@ -601,8 +601,6 @@ include __DIR__ . '/../layout_header.php';
             ?>
             <tr>
               <td><span class="seria-badge"><?php echo h($sub['seria']); ?></span></td>
-              <td class="num"><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
-              <td class="num"><?php echo (int)$sub['nr_unitati']; ?></td>
               <td class="num"><?php echo h($sub['de_la']); ?></td>
               <td class="num"><?php echo h($sub['pana_la']); ?></td>
               <?php if (!empty($reportByPrice)): ?>
@@ -610,6 +608,8 @@ include __DIR__ . '/../layout_header.php';
                 <?php echo $match ? (int)$match['vandute'] . ' vandute' : '—'; ?>
               </td>
               <?php endif; ?>
+              <td class="num"><?php echo (int)$sub['nr_unitati']; ?></td>
+              <td class="num"><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
               <td><form method="post" style="margin:0"><input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>"><input type="hidden" name="action" value="delete_viza_subtip"><input type="hidden" name="subtip_id" value="<?php echo (int)$sub['id']; ?>"><button type="submit" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px" title="Sterge">×</button></form></td>
             </tr>
             <?php endforeach; ?>
