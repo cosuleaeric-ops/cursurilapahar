@@ -1473,7 +1473,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
-            <?php if (is_owner()): ?>
             <div class="sidebar-section">Statistici</div>
             <a href="/admin/statistici/cursuri/">
                 <span class="nav-icon">📋</span> Cursuri
@@ -1481,6 +1480,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/statistici/participanti/">
                 <span class="nav-icon">👥</span> Participanti
             </a>
+            <?php if (is_owner()): ?>
             <a href="/admin/statistici/pnl/">
                 <span class="nav-icon">📈</span> P&amp;L Cursuri
             </a>
