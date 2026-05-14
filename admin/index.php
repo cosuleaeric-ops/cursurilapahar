@@ -1402,8 +1402,8 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
         <span style="font-size:12px;color:#a0aec0"><?= h(ucfirst($real_user['username'])) ?></span>
         <div style="position:relative" id="user-switcher">
             <button id="user-switcher-btn"
-                style="font-size:11px;padding:3px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:#374151">
-                Schimbă cont ▾
+                style="padding:2px 5px;border:none;background:none;cursor:pointer;color:#c0c8d4;font-size:10px;line-height:1" title="Schimbă cont">
+                ▾
             </button>
             <div id="user-switcher-menu" style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:140px;z-index:999">
                 <?php foreach ($all_users as $u): if ($u['username'] === $real_user['username']) continue; ?>
