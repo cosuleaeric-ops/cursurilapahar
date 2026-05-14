@@ -58,7 +58,7 @@ function find_user(string $username): ?array {
 }
 
 // ── Cookie-based auth ─────────────────────────────────────────────────────────
-function clp_current_user(): ?array { // renamed from get_current_user to avoid PHP builtin conflict
+function clp_real_user(): ?array {
     $secret = get_auth_secret();
     if (!$secret) return null;
     $cookie = $_COOKIE['clp_auth'] ?? '';
@@ -67,6 +67,24 @@ function clp_current_user(): ?array { // renamed from get_current_user to avoid 
     $expected = hash_hmac('sha256', 'clp_user:' . $uname, $secret);
     if (!hash_equals($expected, $token)) return null;
     return find_user($uname);
+}
+function clp_current_user(): ?array { // renamed from get_current_user to avoid PHP builtin conflict
+    $real = clp_real_user();
+    if (!$real) return null;
+    if (($real['role'] ?? '') === 'owner') {
+        $view_as = $_COOKIE['clp_view_as'] ?? '';
+        if ($view_as) {
+            $impersonated = find_user($view_as);
+            if ($impersonated) return $impersonated;
+        }
+    }
+    return $real;
+}
+function is_impersonating(): bool {
+    $real = clp_real_user();
+    if (!$real || ($real['role'] ?? '') !== 'owner') return false;
+    $view_as = $_COOKIE['clp_view_as'] ?? '';
+    return !empty($view_as) && find_user($view_as) !== null;
 }
 function is_authenticated(): bool {
     return clp_current_user() !== null;
@@ -317,6 +335,18 @@ function save_settings(array $settings): bool {
 // ── Actions (only when authenticated) ────────────────────────────────────────
 if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    // ── Switch user (owner impersonation)
+    if ($action === 'switch_user' && ($clp_real_user_check = clp_real_user()) && ($clp_real_user_check['role'] ?? '') === 'owner') {
+        $target = trim($_POST['target_username'] ?? '');
+        if ($target === ($clp_real_user_check['username'] ?? '') || $target === '') {
+            setcookie('clp_view_as', '', ['expires' => time() - 3600, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict']);
+        } elseif (find_user($target)) {
+            setcookie('clp_view_as', $target, ['expires' => time() + 7200, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict']);
+        }
+        header('Location: /admin/');
+        exit;
+    }
 
     // ── Clear sold out cache
     if ($action === 'clear_soldout_cache') {
@@ -1349,7 +1379,57 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
         <a href="/admin/" class="brand">Cursuri la Pahar <span>— Admin</span></a>
         <a href="/" class="wp-header-site-link">🌐 Vezi site</a>
     </div>
+    <?php
+    $real_user = clp_real_user();
+    $is_imp    = is_impersonating();
+    if ($real_user && ($real_user['role'] ?? '') === 'owner'):
+        $all_users = load_users();
+        $cur_view  = clp_current_user()['username'] ?? '';
+    ?>
+    <div style="display:flex;align-items:center;gap:8px">
+        <?php if ($is_imp): ?>
+        <span style="font-size:11px;background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:12px;font-weight:600">
+            Vizualizezi ca: <?= h(ucfirst($cur_view)) ?>
+        </span>
+        <form method="post" action="/admin/" style="margin:0">
+            <input type="hidden" name="action" value="switch_user">
+            <input type="hidden" name="target_username" value="<?= h($real_user['username']) ?>">
+            <button type="submit" style="font-size:11px;padding:3px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:#374151">
+                Înapoi la <?= h(ucfirst($real_user['username'])) ?>
+            </button>
+        </form>
+        <?php else: ?>
+        <span style="font-size:12px;color:#a0aec0"><?= h(ucfirst($real_user['username'])) ?></span>
+        <div style="position:relative" id="user-switcher">
+            <button id="user-switcher-btn"
+                style="font-size:11px;padding:3px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:#374151">
+                Schimbă cont ▾
+            </button>
+            <div id="user-switcher-menu" style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:140px;z-index:999">
+                <?php foreach ($all_users as $u): if ($u['username'] === $real_user['username']) continue; ?>
+                <form method="post" action="/admin/" style="margin:0">
+                    <input type="hidden" name="action" value="switch_user">
+                    <input type="hidden" name="target_username" value="<?= h($u['username']) ?>">
+                    <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:none;cursor:pointer;font-size:13px;color:#374151">
+                        <?= h(ucfirst($u['username'])) ?>
+                    </button>
+                </form>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <script>
+        (function() {
+            var btn = document.getElementById('user-switcher-btn');
+            var menu = document.getElementById('user-switcher-menu');
+            btn.addEventListener('click', function(e) { e.stopPropagation(); menu.style.display = menu.style.display === 'block' ? 'none' : 'block'; });
+            document.addEventListener('click', function() { menu.style.display = 'none'; });
+        })();
+        </script>
+        <?php endif; ?>
+    </div>
+    <?php else: ?>
     <span style="font-size:12px;color:#a0aec0"><?= h(ucfirst(clp_current_user()['username'] ?? '')) ?></span>
+    <?php endif; ?>
     <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
