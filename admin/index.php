@@ -2254,7 +2254,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
             ?>
             <div class="msg-detail-row">
                 <span class="msg-detail-lbl"><?= h($lbl) ?><?php if ($tooltip): ?><span class="msg-info" data-tooltip="<?= h($tooltip) ?>">i</span><?php endif; ?></span>
-                <span class="msg-detail-val"><?= h($val) ?><?php if (strtolower($lbl) === 'social' && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază link">Copiază</button><?php endif; ?></span>
+                <span class="msg-detail-val"><?= h($val) ?><?php if (in_array(strtolower($lbl), ['social', 'email', 'phone']) && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază">Copiază</button><?php endif; ?></span>
             </div>
             <?php endforeach; ?>
 
