@@ -2242,6 +2242,7 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-eval-filter-btn[data-filter="nope"].active { background:#e74c3c; border-color:#e74c3c; color:#fff; }
 .msg-eval-filter-btn[data-filter="meh"].active  { background:#f5a623; border-color:#f5a623; color:#fff; }
 .msg-eval-filter-btn[data-filter="top"].active  { background:#16a34a; border-color:#16a34a; color:#fff; }
+.msg-eval-filter-btn[data-filter="contactat"].active { background:#2271b1; border-color:#2271b1; color:#fff; }
 .msg-card.is-contacted { border-left:4px solid #2271b1; }
 .msg-contact-btn { border:1px solid #2271b1; background:#2271b1; color:#fff; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
 .msg-contact-btn:hover { background:#135e96; border-color:#135e96; }
@@ -2440,6 +2441,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
                 <button type="button" class="msg-eval-filter-btn" data-filter="nope" onclick="filterEval(this)">⛔ Nope</button>
                 <button type="button" class="msg-eval-filter-btn" data-filter="meh"  onclick="filterEval(this)">🤔 Meh</button>
                 <button type="button" class="msg-eval-filter-btn" data-filter="top"  onclick="filterEval(this)">✅ Top</button>
+                <button type="button" class="msg-eval-filter-btn" data-filter="contactat" onclick="filterEval(this)">📋 Contactați</button>
             </div>
             <div class="msg-cards">
             <?php foreach ($evaluated as [$i, $msg]) $render_card($key, $i, $msg); ?>
@@ -2462,7 +2464,11 @@ function filterEval(btn) {
     btn.closest('.msg-section').querySelectorAll('.msg-eval-filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     btn.closest('.msg-section').querySelectorAll('.msg-card').forEach(card => {
-        card.style.display = (filter === 'all' || card.classList.contains('eval-' + filter)) ? '' : 'none';
+        let show;
+        if (filter === 'all') show = true;
+        else if (filter === 'contactat') show = card.classList.contains('is-contacted');
+        else show = card.classList.contains('eval-' + filter);
+        card.style.display = show ? '' : 'none';
     });
 }
 function showMsgTab(key) {
