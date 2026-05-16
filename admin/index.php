@@ -2243,9 +2243,9 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-eval-filter-btn[data-filter="meh"].active  { background:#f5a623; border-color:#f5a623; color:#fff; }
 .msg-eval-filter-btn[data-filter="top"].active  { background:#16a34a; border-color:#16a34a; color:#fff; }
 .msg-card.is-contacted { border-left:4px solid #2271b1; }
-.msg-contact-btn { border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
-.msg-contact-btn:hover { border-color:#2271b1; color:#2271b1; }
-.msg-contact-btn.is-active { background:#2271b1; color:#fff; border-color:#2271b1; }
+.msg-contact-btn { border:1px solid #2271b1; background:#2271b1; color:#fff; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
+.msg-contact-btn:hover { background:#135e96; border-color:#135e96; }
+.msg-contact-btn.is-active { background:#135e96; border-color:#135e96; box-shadow:inset 0 0 0 2px rgba(0,0,0,.2); }
 </style>
 
 <?php
