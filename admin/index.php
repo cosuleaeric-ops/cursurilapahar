@@ -2185,7 +2185,7 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-detail-val { color:var(--text); flex:1; min-width:0; overflow-wrap:break-word; }
 .msg-detail-actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .msg-empty { color:var(--text-muted); font-size:13px; padding:12px 0; }
-.msg-copy-btn { margin-left:8px; background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:5px; padding:2px 8px; font-size:11px; cursor:pointer; transition:.15s; vertical-align:middle; }
+.msg-copy-btn { margin-left:6px; background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; display:inline-flex; align-items:center; line-height:1; }
 .msg-copy-btn:hover { border-color:var(--primary,#333); color:var(--primary,#333); }
 .msg-copy-btn.copied { border-color:#27ae60; color:#27ae60; }
 .msg-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:10px; font-weight:700; cursor:help; user-select:none; flex-shrink:0; }
@@ -2354,7 +2354,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
             ?>
             <div class="msg-detail-row">
                 <span class="msg-detail-lbl"><?= h($lbl) ?><?php if ($tooltip): ?><span class="msg-info" data-tooltip="<?= h($tooltip) ?>">i</span><?php endif; ?></span>
-                <span class="msg-detail-val"><?= h($val) ?><?php if (in_array(strtolower($lbl), ['social', 'email', 'phone']) && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază">Copiază</button><?php endif; ?></span>
+                <span class="msg-detail-val"><?= h($val) ?><?php if (in_array(strtolower($lbl), ['social', 'email', 'phone']) && $val): ?><button type="button" class="msg-copy-btn" onclick="event.stopPropagation();copyField(this,'<?= addslashes($val) ?>')" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><?php endif; ?></span>
             </div>
             <?php endforeach; ?>
 
@@ -2491,11 +2491,13 @@ function toggleMsg(uid) {
     const el = document.getElementById('msg-' + uid);
     el.classList.toggle('open');
 }
+const _COPY_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const _CHECK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 function copyField(btn, text) {
     navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copiat!';
+        btn.innerHTML = _CHECK_SVG;
         btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copiază'; btn.classList.remove('copied'); }, 2000);
+        setTimeout(() => { btn.innerHTML = _COPY_SVG; btn.classList.remove('copied'); }, 2000);
     });
 }
 function deleteMsg(btn, type, idx) {
@@ -2852,7 +2854,7 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 .crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
 .crm-table td { vertical-align:top; }
 .crm-form { max-width:580px !important; }
-.sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:1px 7px; font-size:11px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; }
+.sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; display:inline-flex; align-items:center; line-height:1; }
 .sp-copy-btn:hover { border-color:#2271b1; color:#2271b1; }
 .crm-form .form-group { margin-bottom:8px !important; }
 .crm-form .form-group label { margin-bottom:3px !important; }
@@ -2924,13 +2926,14 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
         <tr data-msg-id="<?= h($c['id']) ?>">
             <td style="font-weight:600"><?= h($c['name']) ?></td>
             <td style="font-size:13px">
-                <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)">Copiază</button></div><?php endif; ?>
-                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)">Copiează</button></div><?php endif; ?>
+                <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
+                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
             </td>
             <td></td>
             <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
             <td>
                 <div class="row-actions">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= json_encode(['name'=>$c['name'],'email'=>$c['email'],'phone'=>$c['phone']]) ?>)">Editează</button>
                     <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
                 </div>
             </td>
@@ -2943,10 +2946,21 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 
 <script>
 function spCopy(btn) {
+    const copySvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    const checkSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     navigator.clipboard.writeText(btn.dataset.copy).then(() => {
-        btn.textContent = 'Copiat!';
-        setTimeout(() => btn.textContent = 'Copiază', 2000);
+        btn.innerHTML = checkSvg;
+        btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+        setTimeout(() => { btn.innerHTML = copySvg; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
     });
+}
+function spContactatEdit(data) {
+    const modal = document.getElementById('sp-modal');
+    modal.querySelector('[name="speaker_id"]').value = '';
+    modal.querySelector('[name="sp_name"]').value = data.name || '';
+    modal.querySelector('[name="sp_email"]').value = data.email || '';
+    modal.querySelector('[name="sp_phone"]').value = data.phone || '';
+    modal.style.display = 'flex';
 }
 function spScoate(btn, id) {
     const fd = new FormData();
