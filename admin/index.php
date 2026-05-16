@@ -2820,6 +2820,32 @@ if ($edit_sp_id) {
     }
 }
 $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626'];
+$_sp_meta = load_msg_meta();
+$_sp_log  = dirname(SETTINGS_FILE) . '/messages.log';
+$_sp_contacted = [];
+if (file_exists($_sp_log) && filesize($_sp_log)) {
+    $raw    = file_get_contents($_sp_log);
+    $blocks = array_values(array_filter(array_map('trim', preg_split('/(?=^===)/m', $raw))));
+    foreach ($blocks as $block) {
+        $mid = msg_id_from_block($block);
+        if (empty($_sp_meta[$mid]['contacted'])) continue;
+        $body  = trim(preg_replace('/^===.*===\n?/m', '', $block));
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $body))));
+        $fields = []; $last_key = null;
+        foreach ($lines as $l) {
+            if ($l === '---') break;
+            $sep = strpos($l, ':');
+            if ($sep !== false && $sep <= 40) { $key = trim(substr($l, 0, $sep)); $fields[$key] = trim(substr($l, $sep + 1)); $last_key = $key; }
+            elseif ($last_key !== null && $l !== '') $fields[$last_key] .= ' ' . $l;
+        }
+        $_sp_contacted[] = [
+            'id'    => $mid,
+            'name'  => $fields['Nume'] ?? $fields['Name'] ?? $fields['Organizație'] ?? $fields['organizatie'] ?? '—',
+            'email' => $fields['Email'] ?? $fields['email'] ?? '',
+            'phone' => $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '',
+        ];
+    }
+}
 ?>
 
 <style>
@@ -2843,7 +2869,7 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
         <span>Speakeri (<?= count($speakers) ?>)</span>
         <button type="button" onclick="document.getElementById('sp-modal').style.display='flex'" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
     </div>
-    <?php if (empty($speakers)): ?>
+    <?php if (empty($speakers) && empty($_sp_contacted)): ?>
     <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
     <?php else: ?>
     <table class="wp-table crm-table">
@@ -2894,65 +2920,19 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
             </td>
         </tr>
         <?php endforeach; ?>
-        </tbody>
-    </table>
-    <?php endif; ?>
-</div>
-
-<?php
-$_sp_meta = load_msg_meta();
-$_sp_log  = dirname(SETTINGS_FILE) . '/messages.log';
-$_sp_contacted = [];
-if (file_exists($_sp_log) && filesize($_sp_log)) {
-    $raw    = file_get_contents($_sp_log);
-    $blocks = array_values(array_filter(array_map('trim', preg_split('/(?=^===)/m', $raw))));
-    foreach ($blocks as $block) {
-        $mid = msg_id_from_block($block);
-        if (empty($_sp_meta[$mid]['contacted'])) continue;
-        $body  = trim(preg_replace('/^===.*===\n?/m', '', $block));
-        $lines = array_values(array_filter(array_map('trim', explode("\n", $body))));
-        $fields = []; $last_key = null;
-        foreach ($lines as $l) {
-            if ($l === '---') break;
-            $sep = strpos($l, ':');
-            if ($sep !== false && $sep <= 40) { $key = trim(substr($l, 0, $sep)); $fields[$key] = trim(substr($l, $sep + 1)); $last_key = $key; }
-            elseif ($last_key !== null && $l !== '') $fields[$last_key] .= ' ' . $l;
-        }
-        $_sp_contacted[] = [
-            'id'    => $mid,
-            'name'  => $fields['Nume'] ?? $fields['Name'] ?? $fields['Organizație'] ?? $fields['organizatie'] ?? '—',
-            'email' => $fields['Email'] ?? $fields['email'] ?? '',
-            'phone' => $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '',
-        ];
-    }
-}
-?>
-
-<div class="card" style="margin-top:16px">
-    <div class="card-title">Contactați (<?= count($_sp_contacted) ?>)</div>
-    <?php if (empty($_sp_contacted)): ?>
-    <p style="color:var(--text-muted);font-size:13px">Niciun contact din Mesaje încă.</p>
-    <?php else: ?>
-    <table class="wp-table crm-table">
-        <thead>
-            <tr>
-                <th>Nume</th>
-                <th>Contact</th>
-                <th style="width:110px">Status</th>
-                <th style="width:90px">Acțiuni</th>
-            </tr>
-        </thead>
-        <tbody>
         <?php foreach ($_sp_contacted as $c): ?>
         <tr data-msg-id="<?= h($c['id']) ?>">
             <td style="font-weight:600"><?= h($c['name']) ?></td>
             <td style="font-size:13px">
                 <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)">Copiază</button></div><?php endif; ?>
-                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)">Copiază</button></div><?php endif; ?>
+                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)">Copiează</button></div><?php endif; ?>
             </td>
+            <td></td>
             <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
             <td>
-                <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
+                <div class="row-actions">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
+                </div>
             </td>
         </tr>
         <?php endforeach; ?>
