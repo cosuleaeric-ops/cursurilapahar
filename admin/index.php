@@ -2933,7 +2933,7 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
             <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
             <td>
                 <div class="row-actions">
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= json_encode(['name'=>$c['name'],'email'=>$c['email'],'phone'=>$c['phone']]) ?>)">Editează</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= h(json_encode(['name'=>$c['name'],'email'=>$c['email'],'phone'=>$c['phone']])) ?>)">Editează</button>
                     <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
                 </div>
             </td>
