@@ -2243,11 +2243,6 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-eval-filter-btn[data-filter="meh"].active  { background:#f5a623; border-color:#f5a623; color:#fff; }
 .msg-eval-filter-btn[data-filter="top"].active  { background:#16a34a; border-color:#16a34a; color:#fff; }
 .msg-card.is-contacted { border-left:4px solid #2271b1; }
-.crm-contact-card { background:var(--surface,#fff); border:1px solid var(--border); border-left:4px solid #2271b1; border-radius:10px; padding:14px 16px; }
-.crm-contact-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-.crm-contact-actions { margin-top:10px; }
-.crm-remove-btn { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:.15s; }
-.crm-remove-btn:hover { border-color:var(--danger,#e74c3c); color:var(--danger,#e74c3c); }
 .msg-contact-btn { border:1px solid #2271b1; background:#2271b1; color:#fff; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
 .msg-contact-btn:hover { background:#135e96; border-color:#135e96; }
 .msg-contact-btn.is-active { background:#135e96; border-color:#135e96; box-shadow:inset 0 0 0 2px rgba(0,0,0,.2); }
@@ -2321,21 +2316,6 @@ foreach ($grouped as $k => $list) {
         $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['evaluation'])));
     } else {
         $tab_counts[$k] = count(array_filter($list, fn($m) => empty($m['meta']['read'])));
-    }
-}
-
-// Collect all contacted messages across all categories
-$contacted_list = [];
-foreach ($grouped as $cat_key => $list) {
-    foreach ($list as $msg) {
-        if (!empty($msg['meta']['contacted'])) {
-            $contacted_list[] = [
-                'id'    => $msg['id'],
-                'name'  => $msg['fields']['Nume'] ?? $msg['fields']['Name'] ?? $msg['fields']['Organizație'] ?? $msg['fields']['organizatie'] ?? '—',
-                'email' => $msg['fields']['Email'] ?? $msg['fields']['email'] ?? '',
-                'phone' => $msg['fields']['Phone'] ?? $msg['fields']['Telefon'] ?? $msg['fields']['telefon'] ?? '',
-            ];
-        }
     }
 }
 
@@ -2426,9 +2406,6 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
         <?= $cat['icon'] ?> <?= $cat['label'] ?><span class="msg-count"<?= $cnt ? '' : ' style="display:none"' ?>><?= $cnt ?></span>
     </button>
 <?php endforeach; ?>
-    <button class="msg-tab" data-key="contactati" onclick="showMsgTab('contactati')" style="border-color:#2271b1; color:#2271b1;">
-        📋 Contactați<span class="msg-count" <?= count($contacted_list) ? '' : 'style="display:none"' ?>><?= count($contacted_list) ?></span>
-    </button>
 </div>
 
 <?php foreach ($categories as $key => $cat): ?>
@@ -2477,37 +2454,6 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
 </div>
 <?php endforeach; ?>
 
-<div class="msg-panel" id="msg-panel-contactati">
-<?php if (empty($contacted_list)): ?>
-    <div class="card"><p class="msg-empty">Niciun contact înregistrat încă.</p></div>
-<?php else: ?>
-    <div class="msg-cards">
-    <?php foreach ($contacted_list as $c): ?>
-    <div class="crm-contact-card" data-msg-id="<?= h($c['id']) ?>">
-        <div class="crm-contact-head">
-            <span class="msg-card-name"><?= h($c['name']) ?></span>
-            <span class="crm-status-badge" style="background:#2271b1;">CONTACTAT</span>
-        </div>
-        <?php if ($c['email']): ?>
-        <div class="msg-detail-row">
-            <span class="msg-detail-lbl">Email</span>
-            <span class="msg-detail-val"><?= h($c['email']) ?><button type="button" class="msg-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="copyField(this,this.dataset.copy)">Copiază</button></span>
-        </div>
-        <?php endif; ?>
-        <?php if ($c['phone']): ?>
-        <div class="msg-detail-row">
-            <span class="msg-detail-lbl">Telefon</span>
-            <span class="msg-detail-val"><?= h($c['phone']) ?><button type="button" class="msg-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="copyField(this,this.dataset.copy)">Copiază</button></span>
-        </div>
-        <?php endif; ?>
-        <div class="crm-contact-actions">
-            <button type="button" class="crm-remove-btn" onclick="removeContacted(this)">Scoate</button>
-        </div>
-    </div>
-    <?php endforeach; ?>
-    </div>
-<?php endif; ?>
-</div>
 
 <script>
 window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;
@@ -2615,57 +2561,6 @@ function markContacted(btn) {
             card.classList.toggle('is-contacted', now);
             btn.classList.toggle('is-active', now);
             btn.textContent = now ? '✓ Contactat' : 'Contactat';
-            if (now) addToContactatiPanel(card, id);
-            else removeFromContactatiPanel(id);
-        });
-}
-function _escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function addToContactatiPanel(card, id) {
-    const nameEl = card.querySelector('.msg-card-name');
-    const name = nameEl ? [...nameEl.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() || '—' : '—';
-    let email = '', phone = '';
-    card.querySelectorAll('.msg-detail-row').forEach(row => {
-        const lbl = (row.querySelector('.msg-detail-lbl')?.textContent || '').toLowerCase().trim();
-        const val = (row.querySelector('.msg-detail-val')?.childNodes[0]?.textContent || '').trim();
-        if (lbl === 'email') email = val;
-        if (lbl === 'telefon' || lbl === 'phone') phone = val;
-    });
-    const panel = document.getElementById('msg-panel-contactati');
-    panel.querySelector('.card')?.remove();
-    let grid = panel.querySelector('.msg-cards');
-    if (!grid) { grid = document.createElement('div'); grid.className = 'msg-cards'; panel.appendChild(grid); }
-    const div = document.createElement('div');
-    div.className = 'crm-contact-card';
-    div.dataset.msgId = id;
-    div.innerHTML =
-        '<div class="crm-contact-head"><span class="msg-card-name">' + _escHtml(name) + '</span><span class="crm-status-badge" style="background:#2271b1;">CONTACTAT</span></div>' +
-        (email ? '<div class="msg-detail-row"><span class="msg-detail-lbl">Email</span><span class="msg-detail-val">' + _escHtml(email) + '<button type="button" class="msg-copy-btn" data-copy="' + _escHtml(email) + '" onclick="copyField(this,this.dataset.copy)">Copiază</button></span></div>' : '') +
-        (phone ? '<div class="msg-detail-row"><span class="msg-detail-lbl">Telefon</span><span class="msg-detail-val">' + _escHtml(phone) + '<button type="button" class="msg-copy-btn" data-copy="' + _escHtml(phone) + '" onclick="copyField(this,this.dataset.copy)">Copiează</button></span></div>' : '') +
-        '<div class="crm-contact-actions"><button type="button" class="crm-remove-btn" onclick="removeContacted(this)">Scoate</button></div>';
-    grid.prepend(div);
-    updateBadge('contactati', 1);
-}
-function removeFromContactatiPanel(id) {
-    const c = document.querySelector('#msg-panel-contactati .crm-contact-card[data-msg-id="' + id + '"]');
-    if (c) { c.remove(); updateBadge('contactati', -1); }
-}
-function removeContacted(btn) {
-    const card = btn.closest('.crm-contact-card');
-    const id = card.dataset.msgId;
-    const fd = new FormData();
-    fd.append('action', 'mark_contacted_message');
-    fd.append('msg_id', id);
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => {
-            if (!d.ok) return;
-            card.remove();
-            updateBadge('contactati', -1);
-            const orig = document.querySelector('.msg-card[data-msg-id="' + id + '"]');
-            if (orig) {
-                orig.classList.remove('is-contacted');
-                const b = orig.querySelector('.msg-contact-btn');
-                if (b) { b.classList.remove('is-active'); b.textContent = 'Contactat'; }
-            }
         });
 }
 function evalMsg(btn, value) {
@@ -2931,6 +2826,8 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
 .crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
 .crm-table td { vertical-align:top; }
 .crm-form { max-width:580px !important; }
+.sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:1px 7px; font-size:11px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; }
+.sp-copy-btn:hover { border-color:#2271b1; color:#2271b1; }
 .crm-form .form-group { margin-bottom:8px !important; }
 .crm-form .form-group label { margin-bottom:3px !important; }
 .crm-form input[type="text"],.crm-form input[type="email"],.crm-form input[type="url"],.crm-form select { padding:5px 9px !important; font-size:12px !important; }
@@ -3001,6 +2898,84 @@ $sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc
     </table>
     <?php endif; ?>
 </div>
+
+<?php
+$_sp_meta = load_msg_meta();
+$_sp_log  = dirname(SETTINGS_FILE) . '/messages.log';
+$_sp_contacted = [];
+if (file_exists($_sp_log) && filesize($_sp_log)) {
+    $raw    = file_get_contents($_sp_log);
+    $blocks = array_values(array_filter(array_map('trim', preg_split('/(?=^===)/m', $raw))));
+    foreach ($blocks as $block) {
+        $mid = msg_id_from_block($block);
+        if (empty($_sp_meta[$mid]['contacted'])) continue;
+        $body  = trim(preg_replace('/^===.*===\n?/m', '', $block));
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $body))));
+        $fields = []; $last_key = null;
+        foreach ($lines as $l) {
+            if ($l === '---') break;
+            $sep = strpos($l, ':');
+            if ($sep !== false && $sep <= 40) { $key = trim(substr($l, 0, $sep)); $fields[$key] = trim(substr($l, $sep + 1)); $last_key = $key; }
+            elseif ($last_key !== null && $l !== '') $fields[$last_key] .= ' ' . $l;
+        }
+        $_sp_contacted[] = [
+            'id'    => $mid,
+            'name'  => $fields['Nume'] ?? $fields['Name'] ?? $fields['Organizație'] ?? $fields['organizatie'] ?? '—',
+            'email' => $fields['Email'] ?? $fields['email'] ?? '',
+            'phone' => $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '',
+        ];
+    }
+}
+?>
+
+<div class="card" style="margin-top:16px">
+    <div class="card-title">Contactați (<?= count($_sp_contacted) ?>)</div>
+    <?php if (empty($_sp_contacted)): ?>
+    <p style="color:var(--text-muted);font-size:13px">Niciun contact din Mesaje încă.</p>
+    <?php else: ?>
+    <table class="wp-table crm-table">
+        <thead>
+            <tr>
+                <th>Nume</th>
+                <th>Contact</th>
+                <th style="width:110px">Status</th>
+                <th style="width:90px">Acțiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($_sp_contacted as $c): ?>
+        <tr data-msg-id="<?= h($c['id']) ?>">
+            <td style="font-weight:600"><?= h($c['name']) ?></td>
+            <td style="font-size:13px">
+                <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)">Copiază</button></div><?php endif; ?>
+                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)">Copiază</button></div><?php endif; ?>
+            </td>
+            <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
+            <td>
+                <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
+</div>
+
+<script>
+function spCopy(btn) {
+    navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+        btn.textContent = 'Copiat!';
+        setTimeout(() => btn.textContent = 'Copiază', 2000);
+    });
+}
+function spScoate(btn, id) {
+    const fd = new FormData();
+    fd.append('action', 'mark_contacted_message');
+    fd.append('msg_id', id);
+    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+        .then(r => r.json()).then(d => { if (d.ok) btn.closest('tr').remove(); });
+}
+</script>
 
 <div id="sp-modal" style="display:<?= $edit_sp ? 'flex' : 'none' ?>;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
 <div class="card crm-form" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
