@@ -1034,6 +1034,20 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Toggle contacted state
+    if ($action === 'mark_contacted_message') {
+        header('Content-Type: application/json');
+        $id = preg_replace('/[^a-f0-9]/', '', $_POST['msg_id'] ?? '');
+        if (!$id) { echo json_encode(['ok' => false]); exit; }
+        $contacted = !empty($_POST['contacted']);
+        $meta = load_msg_meta();
+        if (!isset($meta[$id])) $meta[$id] = [];
+        $meta[$id]['contacted'] = $contacted;
+        save_msg_meta($meta);
+        echo json_encode(['ok' => true, 'contacted' => $contacted]);
+        exit;
+    }
+
     // ── Set evaluation (Speakeri)
     if ($action === 'eval_message') {
         header('Content-Type: application/json');
@@ -2228,6 +2242,10 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 .msg-eval-filter-btn[data-filter="nope"].active { background:#e74c3c; border-color:#e74c3c; color:#fff; }
 .msg-eval-filter-btn[data-filter="meh"].active  { background:#f5a623; border-color:#f5a623; color:#fff; }
 .msg-eval-filter-btn[data-filter="top"].active  { background:#16a34a; border-color:#16a34a; color:#fff; }
+.msg-card.is-contacted { border-left:4px solid #2271b1; }
+.msg-contact-btn { border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
+.msg-contact-btn:hover { border-color:#2271b1; color:#2271b1; }
+.msg-contact-btn.is-active { background:#2271b1; color:#fff; border-color:#2271b1; }
 </style>
 
 <?php
@@ -2308,9 +2326,11 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
     $is_read = !empty($msg['meta']['read']);
     $eval    = $msg['meta']['evaluation'] ?? '';
     $comments = $msg['meta']['comments'] ?? [];
+    $is_contacted = !empty($msg['meta']['contacted']);
     $card_classes = ['msg-card'];
     if ($key !== 'sustine' && $is_read) $card_classes[] = 'is-read';
     if ($key === 'sustine' && $eval)    $card_classes[] = 'eval-' . $eval;
+    if ($is_contacted)                  $card_classes[] = 'is-contacted';
     ?>
     <?php
     $name_extra = '';
@@ -2343,11 +2363,13 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
                     <button type="button" class="msg-eval-btn <?= $eval === 'nope' ? 'is-active' : '' ?>" data-eval="nope" onclick="event.stopPropagation();evalMsg(this,'nope')">Nope</button>
                     <button type="button" class="msg-eval-btn <?= $eval === 'meh' ? 'is-active' : '' ?>"  data-eval="meh"  onclick="event.stopPropagation();evalMsg(this,'meh')">Meh</button>
                     <button type="button" class="msg-eval-btn <?= $eval === 'top' ? 'is-active' : '' ?>"  data-eval="top"  onclick="event.stopPropagation();evalMsg(this,'top')">Top</button>
+                    <button type="button" class="msg-contact-btn <?= $is_contacted ? 'is-active' : '' ?>" onclick="event.stopPropagation();markContacted(this)"><?= $is_contacted ? '✓ Contactat' : 'Contactat' ?></button>
                     <button type="button" class="msg-comment-btn" onclick="event.stopPropagation();toggleCommentForm(this)">💬 Comentariu</button>
                 <?php else: ?>
                     <button type="button" class="msg-read-btn <?= $is_read ? 'is-active' : '' ?>" onclick="event.stopPropagation();markRead(this)">
                         <?= $is_read ? '✓ Citit' : 'Citit' ?>
                     </button>
+                    <button type="button" class="msg-contact-btn <?= $is_contacted ? 'is-active' : '' ?>" onclick="event.stopPropagation();markContacted(this)"><?= $is_contacted ? '✓ Contactat' : 'Contactat' ?></button>
                     <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= h($key) ?>',<?= $i ?>)">Șterge</button>
                 <?php endif; ?>
             </div>
@@ -2521,6 +2543,23 @@ function markRead(btn) {
             btn.textContent = now ? '✓ Citit' : 'Citit';
             updateBadge(type, now ? -1 : 1);
             if (now) card.querySelector('.msg-detail').classList.remove('open');
+        });
+}
+function markContacted(btn) {
+    const card = btn.closest('.msg-card');
+    const id = card.dataset.msgId;
+    const wasContacted = card.classList.contains('is-contacted');
+    const now = !wasContacted;
+    const fd = new FormData();
+    fd.append('action', 'mark_contacted_message');
+    fd.append('msg_id', id);
+    if (now) fd.append('contacted', '1');
+    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
+        .then(r => r.json()).then(d => {
+            if (!d.ok) return;
+            card.classList.toggle('is-contacted', now);
+            btn.classList.toggle('is-active', now);
+            btn.textContent = now ? '✓ Contactat' : 'Contactat';
         });
 }
 function evalMsg(btn, value) {
