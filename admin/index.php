@@ -2651,8 +2651,13 @@ if ($edit_vc_id) {
         if (($vc['id'] ?? '') === $edit_vc_id) { $edit_vc = $vc; break; }
     }
 }
-// Sort by likes descending for admin view
-usort($vote_courses, fn($a,$b) => ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0));
+// Active courses first, then sort by likes descending within each group
+usort($vote_courses, function($a, $b) {
+    $aActive = !empty($a['active']) ? 1 : 0;
+    $bActive = !empty($b['active']) ? 1 : 0;
+    if ($aActive !== $bActive) return $bActive <=> $aActive;
+    return ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0);
+});
 ?>
 
 <style>
