@@ -2866,13 +2866,17 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 .crm-table td { vertical-align:top; }
 .crm-form { max-width:580px !important; }
 .sp-filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-.sp-filter-btn { border:1px solid #e5e7eb; background:#fff; color:#374151; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
-.sp-filter-btn:hover { background:#f1f5f9; }
-.sp-filter-btn.active { background:#1d4ed8; border-color:#1d4ed8; color:#fff; }
+.sp-filter-btn { border:1px solid #e5e7eb; background:#fff; color:#374151; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:.15s; }
+.sp-filter-btn[data-status="RECURENT"] { background:#dcfce7; border-color:#86efac; color:#15803d; }
+.sp-filter-btn[data-status="MID"]      { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
+.sp-filter-btn[data-status="NOPE"]     { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
+.sp-filter-btn[data-status="CONTACTAT"]{ background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
+.sp-filter-btn.active                  { color:#fff; box-shadow:inset 0 0 0 2px rgba(0,0,0,.15); }
+.sp-filter-btn[data-status="all"].active      { background:#1d4ed8; border-color:#1d4ed8; }
 .sp-filter-btn[data-status="RECURENT"].active { background:#16a34a; border-color:#16a34a; }
-.sp-filter-btn[data-status="MID"].active { background:#d97706; border-color:#d97706; }
-.sp-filter-btn[data-status="NOPE"].active { background:#dc2626; border-color:#dc2626; }
-.sp-filter-btn[data-status="CONTACTAT"].active { background:#2271b1; border-color:#2271b1; }
+.sp-filter-btn[data-status="MID"].active      { background:#d97706; border-color:#d97706; }
+.sp-filter-btn[data-status="NOPE"].active     { background:#dc2626; border-color:#dc2626; }
+.sp-filter-btn[data-status="CONTACTAT"].active{ background:#2271b1; border-color:#2271b1; }
 .sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; display:inline-flex; align-items:center; line-height:1; }
 .sp-copy-btn:hover { border-color:#2271b1; color:#2271b1; }
 .crm-form .form-group { margin-bottom:8px !important; }
