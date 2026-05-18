@@ -2653,8 +2653,8 @@ if ($edit_vc_id) {
 }
 // Active courses first, then sort by likes descending within each group
 usort($vote_courses, function($a, $b) {
-    $aActive = !empty($a['active']) ? 1 : 0;
-    $bActive = !empty($b['active']) ? 1 : 0;
+    $aActive = ($a['active'] ?? true) ? 1 : 0;
+    $bActive = ($b['active'] ?? true) ? 1 : 0;
     if ($aActive !== $bActive) return $bActive <=> $aActive;
     return ($b['likes'] ?? 0) <=> ($a['likes'] ?? 0);
 });
@@ -2865,6 +2865,14 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 .crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
 .crm-table td { vertical-align:top; }
 .crm-form { max-width:580px !important; }
+.sp-filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.sp-filter-btn { border:1px solid #e5e7eb; background:#fff; color:#374151; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
+.sp-filter-btn:hover { background:#f1f5f9; }
+.sp-filter-btn.active { background:#1d4ed8; border-color:#1d4ed8; color:#fff; }
+.sp-filter-btn[data-status="RECURENT"].active { background:#16a34a; border-color:#16a34a; }
+.sp-filter-btn[data-status="MID"].active { background:#d97706; border-color:#d97706; }
+.sp-filter-btn[data-status="NOPE"].active { background:#dc2626; border-color:#dc2626; }
+.sp-filter-btn[data-status="CONTACTAT"].active { background:#2271b1; border-color:#2271b1; }
 .sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; display:inline-flex; align-items:center; line-height:1; }
 .sp-copy-btn:hover { border-color:#2271b1; color:#2271b1; }
 .crm-form .form-group { margin-bottom:8px !important; }
@@ -2885,7 +2893,14 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
     <?php if (empty($speakers) && empty($_sp_contacted)): ?>
     <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
     <?php else: ?>
-    <table class="wp-table crm-table">
+    <div class="sp-filter-bar">
+        <button class="sp-filter-btn active" data-status="all" onclick="spFilter(this)">Toți</button>
+        <button class="sp-filter-btn" data-status="RECURENT" onclick="spFilter(this)">RECURENT</button>
+        <button class="sp-filter-btn" data-status="MID" onclick="spFilter(this)">MID</button>
+        <button class="sp-filter-btn" data-status="NOPE" onclick="spFilter(this)">NOPE</button>
+        <button class="sp-filter-btn" data-status="CONTACTAT" onclick="spFilter(this)">CONTACTAT</button>
+    </div>
+    <table class="wp-table crm-table" id="sp-main-table">
         <thead>
             <tr>
                 <th>Nume</th>
@@ -2963,6 +2978,16 @@ function spCopy(btn) {
         btn.innerHTML = checkSvg;
         btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
         setTimeout(() => { btn.innerHTML = copySvg; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+    });
+}
+function spFilter(btn) {
+    document.querySelectorAll('.sp-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const status = btn.dataset.status;
+    document.querySelectorAll('#sp-main-table tbody tr').forEach(row => {
+        if (status === 'all') { row.style.display = ''; return; }
+        const badge = row.querySelector('.crm-status-badge');
+        row.style.display = (badge && badge.textContent.trim() === status) ? '' : 'none';
     });
 }
 function spContactatEdit(data) {
