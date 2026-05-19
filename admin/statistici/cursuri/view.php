@@ -6,12 +6,12 @@ if (!is_authenticated()) { header('Location: /admin/'); exit; }
 
 $db = get_clp_db();
 $id = (int)($_GET['id'] ?? 0);
-if (!$id) { header('Location: /admin/statistici/cursuri/'); exit; }
+if (!$id) { header('Location: /admin/?tab=cursuri'); exit; }
 
 $stmt = $db->prepare('SELECT * FROM courses WHERE id = :id');
 $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
 $course = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-if (!$course) { header('Location: /admin/statistici/cursuri/'); exit; }
+if (!$course) { header('Location: /admin/?tab=cursuri'); exit; }
 
 $csrf = csrf_token();
 $uploadDir = __DIR__ . '/../uploads/';
@@ -259,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $row = $db->querySingle("SELECT filename FROM course_reports WHERE course_id={$id}", true);
         if ($row && $row['filename']) @unlink($uploadDir . $row['filename']);
         $db->exec("DELETE FROM courses WHERE id={$id}");
-        header('Location: /admin/statistici/cursuri/'); exit;
+        header('Location: /admin/?tab=cursuri'); exit;
     }
 }
 
@@ -398,7 +398,7 @@ include __DIR__ . '/../layout_header.php';
     <?php endif; ?>
 
     <div class="course-hero">
-      <a href="/admin/statistici/cursuri/" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px">&larr; Inapoi</a>
+      <a href="/admin/?tab=cursuri" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px">&larr; Inapoi</a>
       <h2><?php echo h($course['name']); ?></h2>
       <div class="meta"><?php echo h(ro_date($course['date'])); ?></div>
     </div>
