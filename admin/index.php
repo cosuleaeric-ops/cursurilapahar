@@ -1540,9 +1540,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
             <div class="sidebar-section">Statistici</div>
-            <a href="/admin/statistici/cursuri/">
-                <span class="nav-icon">📋</span> Cursuri
-            </a>
             <a href="/admin/statistici/participanti/">
                 <span class="nav-icon">👥</span> Participanti
             </a>

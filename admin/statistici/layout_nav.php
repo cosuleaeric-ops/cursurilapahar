@@ -30,7 +30,6 @@
             <a href="/admin/?tab=locatii"><span class="nav-icon">📍</span> Locații</a>
             <a href="/admin/?tab=colaborari"><span class="nav-icon">🤝</span> Colaborări</a>
             <div class="sidebar-section">Statistici</div>
-            <a href="/admin/statistici/cursuri/" class="<?= strpos($_stat_path, '/admin/statistici/cursuri') === 0 ? 'active' : '' ?>"><span class="nav-icon">📋</span> Cursuri</a>
             <a href="/admin/statistici/participanti/" class="<?= strpos($_stat_path, '/admin/statistici/participanti') === 0 ? 'active' : '' ?>"><span class="nav-icon">👥</span> Participanti</a>
             <?php if (is_owner_auth()): ?>
             <a href="/admin/statistici/pnl/" class="<?= strpos($_stat_path, '/admin/statistici/pnl') === 0 ? 'active' : '' ?>"><span class="nav-icon">📈</span> P&amp;L Cursuri</a>
