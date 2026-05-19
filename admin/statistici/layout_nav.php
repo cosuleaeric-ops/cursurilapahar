@@ -14,7 +14,6 @@
         <nav>
             <?php $_stat_path = $_SERVER['REQUEST_URI'] ?? ''; ?>
             <a href="/admin/"><span class="nav-icon">🏠</span> Dashboard</a>
-            <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>
             <a href="/admin/?tab=vot"><span class="nav-icon">❤️</span> Vot cursuri</a>

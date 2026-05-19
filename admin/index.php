@@ -1541,7 +1541,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/" class="<?= $tab === 'dashboard' ? 'active' : '' ?>">
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
-            <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
