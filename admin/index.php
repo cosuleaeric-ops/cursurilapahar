@@ -1542,8 +1542,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
             <div class="sidebar-section">Conținut</div>
-            <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
+            <a href="/admin/?tab=cursuri" class="<?= ($tab === 'cursuri' && ($clp_ctab ?? '') !== 'calendar') ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
+            </a>
+            <a href="/admin/?tab=cursuri&ctab=calendar" class="<?= ($tab === 'cursuri' && ($clp_ctab ?? '') === 'calendar') ? 'active' : '' ?>">
+                <span class="nav-icon">📅</span> Calendar
             </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
