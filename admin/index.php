@@ -414,6 +414,37 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $courses[] = $entry;
         }
         save_courses($courses);
+
+        // Auto-sync to SQLite statistics DB (name + date, no participants)
+        $sqlite_path = __DIR__ . '/statistici/data/clp.sqlite';
+        if (file_exists(dirname($sqlite_path))) {
+            try {
+                $sdb = new SQLite3($sqlite_path);
+                $sdb->exec('PRAGMA foreign_keys = ON;');
+                $sdb->exec('PRAGMA journal_mode = WAL;');
+                $sdb->exec('CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, date TEXT NOT NULL, created_at TEXT NOT NULL);');
+                @$sdb->exec('ALTER TABLE courses ADD COLUMN external_id TEXT;');
+                @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
+                $ext_id = $entry['id'];
+                $existing = $sdb->querySingle("SELECT id FROM courses WHERE external_id = '" . $sdb->escapeString($ext_id) . "' LIMIT 1", true);
+                if ($existing) {
+                    $stmt = $sdb->prepare('UPDATE courses SET name = :name, date = :date WHERE external_id = :ext');
+                    $stmt->bindValue(':name', $entry['title'], SQLITE3_TEXT);
+                    $stmt->bindValue(':date', $entry['date_raw'], SQLITE3_TEXT);
+                    $stmt->bindValue(':ext', $ext_id, SQLITE3_TEXT);
+                    $stmt->execute();
+                } else {
+                    $stmt = $sdb->prepare('INSERT INTO courses (name, date, created_at, external_id) VALUES (:name, :date, :created_at, :ext)');
+                    $stmt->bindValue(':name', $entry['title'], SQLITE3_TEXT);
+                    $stmt->bindValue(':date', $entry['date_raw'], SQLITE3_TEXT);
+                    $stmt->bindValue(':created_at', date('Y-m-d H:i:s'), SQLITE3_TEXT);
+                    $stmt->bindValue(':ext', $ext_id, SQLITE3_TEXT);
+                    $stmt->execute();
+                }
+                $sdb->close();
+            } catch (Exception $e) { /* silently skip if DB not ready */ }
+        }
+
         header('Location: /admin/?tab=cursuri');
         exit;
     }
@@ -1459,6 +1490,9 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
+            </a>
+            <a href="/admin/calendar/" class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/calendar') === 0 ? 'active' : '' ?>">
+                <span class="nav-icon">📅</span> Calendar
             </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini

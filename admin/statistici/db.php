@@ -37,6 +37,8 @@ function get_clp_db(): SQLite3 {
         uploaded_at    TEXT NOT NULL
     );');
     @$db->exec('ALTER TABLE course_reports ADD COLUMN types_json TEXT NOT NULL DEFAULT \'[]\';');
+    @$db->exec('ALTER TABLE courses ADD COLUMN external_id TEXT;');
+    @$db->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
     $db->exec('CREATE TABLE IF NOT EXISTS viza_subtips (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
         course_id  INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,

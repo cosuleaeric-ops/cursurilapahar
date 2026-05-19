@@ -12,10 +12,12 @@
 <div class="wp-layout">
     <aside class="wp-sidebar">
         <nav>
+            <?php $_stat_path = $_SERVER['REQUEST_URI'] ?? ''; ?>
             <a href="/admin/"><span class="nav-icon">🏠</span> Dashboard</a>
             <?php if (is_owner_auth()): ?>
             <div class="sidebar-section">Conținut</div>
             <a href="/admin/?tab=cursuri"><span class="nav-icon">📋</span> Cursuri</a>
+            <a href="/admin/calendar/" class="<?= strpos($_stat_path, '/admin/calendar') === 0 ? 'active' : '' ?>"><span class="nav-icon">📅</span> Calendar</a>
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>
             <?php endif; ?>
@@ -27,7 +29,6 @@
             <a href="/admin/?tab=speakeri"><span class="nav-icon">🎤</span> Speakeri</a>
             <a href="/admin/?tab=locatii"><span class="nav-icon">📍</span> Locații</a>
             <a href="/admin/?tab=colaborari"><span class="nav-icon">🤝</span> Colaborări</a>
-            <?php $_stat_path = $_SERVER['REQUEST_URI'] ?? ''; ?>
             <div class="sidebar-section">Statistici</div>
             <a href="/admin/statistici/cursuri/" class="<?= strpos($_stat_path, '/admin/statistici/cursuri') === 0 ? 'active' : '' ?>"><span class="nav-icon">📋</span> Cursuri</a>
             <a href="/admin/statistici/participanti/" class="<?= strpos($_stat_path, '/admin/statistici/participanti') === 0 ? 'active' : '' ?>"><span class="nav-icon">👥</span> Participanti</a>
