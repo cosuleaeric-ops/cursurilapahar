@@ -1197,7 +1197,7 @@ if (is_authenticated()) {
 }
 
 // ── Statistici cursuri data (loaded when on cursuri tab) ─────────────────────
-$clp_courses = []; $clp_ditl_rows = []; $clp_ditl_years = [];
+$clp_courses = []; $clp_ditl_rows = []; $clp_ditl_years = []; $clp_participants = [];
 $clp_by_month = []; $clp_sum_bilete = 0; $clp_sum_incasari = 0;
 $clp_viza_subtips = []; $clp_report_by_price = [];
 $clp_ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
@@ -1205,7 +1205,8 @@ if (is_authenticated() && $tab === 'cursuri') {
     $clp_now        = new DateTimeImmutable();
     $clp_year       = (int)($_GET['year']  ?? $clp_now->format('Y'));
     $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
-    $clp_ctab       = ($_GET['ctab'] ?? '') === 'ditl' ? 'ditl' : 'cursuri';
+    $_ctab_raw      = $_GET['ctab'] ?? 'cursuri';
+    $clp_ctab       = in_array($_ctab_raw, ['cursuri','ditl','participanti']) ? $_ctab_raw : 'cursuri';
     $clp_prefix     = $clp_month > 0 ? $clp_year . '-' . str_pad((string)$clp_month, 2, '0', STR_PAD_LEFT) : (string)$clp_year;
     $_clp_db_path   = __DIR__ . '/statistici/data/clp.sqlite';
     if (file_exists($_clp_db_path)) {
@@ -1235,6 +1236,12 @@ if (is_authenticated() && $tab === 'cursuri') {
                     foreach ($_types as $_t) $_bp[(string)(float)($_t['pret'] ?? 0)] = $_t;
                     $clp_report_by_price[(int)$_dr2['id']] = $_bp;
                 }
+            }
+            // Participanți
+            $_pr = $_clp_db->query("SELECT t.participant_name, COUNT(DISTINCT t.course_id) AS num_courses, COUNT(*) AS total_tickets, GROUP_CONCAT(c.name || ' (' || c.date || ')', '|') AS course_list FROM tickets t JOIN courses c ON c.id = t.course_id GROUP BY LOWER(TRIM(t.participant_name)) ORDER BY num_courses DESC, total_tickets DESC, t.participant_name ASC");
+            while ($_prow = $_pr->fetchArray(SQLITE3_ASSOC)) {
+                $_prow['courses'] = array_unique(explode('|', $_prow['course_list'] ?? ''));
+                $clp_participants[] = $_prow;
             }
             $_clp_db->close();
         } catch (Exception $_e) { }
@@ -1570,9 +1577,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
             <div class="sidebar-section">Statistici</div>
-            <a href="/admin/statistici/participanti/">
-                <span class="nav-icon">👥</span> Participanti
-            </a>
             <?php if (is_owner()): ?>
             <a href="/admin/statistici/pnl/">
                 <span class="nav-icon">📈</span> P&amp;L Cursuri
@@ -2067,8 +2071,9 @@ if (!empty($_ql)): ?>
     <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div class="clp-tabs">
-                <button class="clp-tab-btn <?= ($clp_ctab ?? 'cursuri') !== 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
-                <button class="clp-tab-btn <?= ($clp_ctab ?? '') === 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'ditl')">Rapoarte DITL</button>
+                <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
+                <button class="clp-tab-btn <?= $clp_ctab === 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'ditl')">Rapoarte DITL</button>
+                <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
             </div>
             <form method="get" id="clpYearForm" style="display:flex;align-items:center;gap:8px">
                 <input type="hidden" name="tab" value="cursuri">
@@ -2088,7 +2093,7 @@ if (!empty($_ql)): ?>
         </div>
 
         <!-- Tab: Cursuri -->
-        <div class="clp-tab-panel <?= ($clp_ctab ?? 'cursuri') !== 'ditl' ? 'active' : '' ?>" id="clp-panel-cursuri">
+        <div class="clp-tab-panel <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" id="clp-panel-cursuri">
         <?php if (empty($clp_courses)): ?>
             <p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>
         <?php else: ?>
@@ -2119,7 +2124,7 @@ if (!empty($_ql)): ?>
         </div>
 
         <!-- Tab: Rapoarte DITL -->
-        <div class="clp-tab-panel <?= ($clp_ctab ?? '') === 'ditl' ? 'active' : '' ?>" id="clp-panel-ditl">
+        <div class="clp-tab-panel <?= $clp_ctab === 'ditl' ? 'active' : '' ?>" id="clp-panel-ditl">
         <?php if (empty($clp_ditl_rows)): ?>
             <p style="color:var(--text-muted)">Niciun raport pentru perioada selectată.</p>
         <?php else: ?>
@@ -2196,6 +2201,54 @@ if (!empty($_ql)): ?>
         <?php endif; ?>
         </div>
     </div>
+        <!-- Tab: Participanți -->
+        <div class="clp-tab-panel <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" id="clp-panel-participanti">
+        <?php
+        $clp_p_unique  = count($clp_participants);
+        $clp_p_return  = count(array_filter($clp_participants, fn($p) => $p['num_courses'] > 1));
+        $clp_p_tickets = array_sum(array_column($clp_participants, 'total_tickets'));
+        ?>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+            <div class="clp-stat-box"><div class="lbl">Participanți unici</div><div class="val"><?= $clp_p_unique ?></div></div>
+            <div class="clp-stat-box"><div class="lbl">Revin la 2+ cursuri</div><div class="val" style="color:#16a34a"><?= $clp_p_return ?></div></div>
+            <div class="clp-stat-box"><div class="lbl">Total bilete vândute</div><div class="val"><?= $clp_p_tickets ?></div></div>
+        </div>
+        <?php if (empty($clp_participants)): ?>
+            <p style="color:var(--text-muted)">Niciun participant înregistrat încă.</p>
+        <?php else: ?>
+            <div style="margin-bottom:12px">
+                <input type="text" id="clpSearch" placeholder="Caută participant…" oninput="clpFilter()" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff">
+            </div>
+            <table class="wp-table" id="clpParticipantsTable">
+                <thead><tr>
+                    <th>Participant</th>
+                    <th style="text-align:right;width:90px"># Cursuri</th>
+                    <th style="text-align:right;width:90px"># Bilete</th>
+                    <th>Cursuri</th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($clp_participants as $_p): ?>
+                <tr>
+                    <td><strong><?= h($_p['participant_name']) ?></strong><?php if ($_p['num_courses'] > 1): ?> <span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">revine</span><?php endif; ?></td>
+                    <td style="text-align:right"><?= (int)$_p['num_courses'] ?></td>
+                    <td style="text-align:right"><?= (int)$_p['total_tickets'] ?></td>
+                    <td>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px">
+                        <?php foreach ($_p['courses'] as $_pc): if (!trim($_pc)) continue;
+                            $_pp = explode(' (', $_pc);
+                            $_pdate = isset($_pp[1]) ? ' <span style="opacity:.6">('.h(substr(rtrim($_pp[1],')'),0,7)).')</span>' : '';
+                        ?>
+                            <span style="background:#f1f5f9;border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text-muted);padding:2px 6px"><?= h(trim($_pp[0])) . $_pdate ?></span>
+                        <?php endforeach; ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+        </div>
+
     <script>
     function clpSwitchTab(e, t) {
         document.querySelectorAll('.clp-tab-btn').forEach(b => b.classList.remove('active'));
@@ -2205,6 +2258,12 @@ if (!empty($_ql)): ?>
         document.querySelector('#clpYearForm input[name=ctab]').value = t;
     }
     function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
+    function clpFilter() {
+        const q = document.getElementById('clpSearch').value.toLowerCase();
+        document.querySelectorAll('#clpParticipantsTable tbody tr').forEach(tr => {
+            tr.style.display = (tr.querySelector('strong')?.textContent.toLowerCase() || '').includes(q) ? '' : 'none';
+        });
+    }
     </script>
 
 <?php /* ======================================================= TAB: IMAGINI */ ?>

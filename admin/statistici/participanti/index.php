@@ -1,8 +1,7 @@
 <?php
-declare(strict_types=1);
 require __DIR__ . '/../../auth_check.php';
-require __DIR__ . '/../db.php';
-if (!is_authenticated()) { header('Location: /admin/'); exit; }
+header('Location: /admin/?tab=cursuri&ctab=participanti');
+exit;
 
 $db = get_clp_db();
 
