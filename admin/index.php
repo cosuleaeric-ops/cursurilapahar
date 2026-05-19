@@ -1196,22 +1196,52 @@ if (is_authenticated()) {
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 }
 
-$stat_courses = [];
-if (is_authenticated() && ($tab === 'cursuri')) {
-    $_stat_sqlite = __DIR__ . '/statistici/data/clp.sqlite';
-    if (file_exists($_stat_sqlite)) {
+// ── Statistici cursuri data (loaded when on cursuri tab) ─────────────────────
+$clp_courses = []; $clp_ditl_rows = []; $clp_ditl_years = [];
+$clp_by_month = []; $clp_sum_bilete = 0; $clp_sum_incasari = 0;
+$clp_viza_subtips = []; $clp_report_by_price = [];
+$clp_ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+if (is_authenticated() && $tab === 'cursuri') {
+    $clp_now        = new DateTimeImmutable();
+    $clp_year       = (int)($_GET['year']  ?? $clp_now->format('Y'));
+    $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
+    $clp_ctab       = ($_GET['ctab'] ?? '') === 'ditl' ? 'ditl' : 'cursuri';
+    $clp_prefix     = $clp_month > 0 ? $clp_year . '-' . str_pad((string)$clp_month, 2, '0', STR_PAD_LEFT) : (string)$clp_year;
+    $_clp_db_path   = __DIR__ . '/statistici/data/clp.sqlite';
+    if (file_exists($_clp_db_path)) {
         try {
-            $_sdb = new SQLite3($_stat_sqlite);
-            $_sdb->exec('PRAGMA journal_mode = WAL;');
-            $_sr = $_sdb->query("SELECT c.id, c.name, c.date,
+            $_clp_db = new SQLite3($_clp_db_path);
+            $_clp_db->exec('PRAGMA journal_mode = WAL;');
+            $_r = $_clp_db->query("SELECT c.id, c.name, c.date,
                 (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
                 (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
                 (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
-                FROM courses c ORDER BY c.date DESC");
-            while ($_srow = $_sr->fetchArray(SQLITE3_ASSOC)) $stat_courses[] = $_srow;
-            $_sdb->close();
+                FROM courses c WHERE c.date LIKE '" . $clp_prefix . "%' ORDER BY c.date DESC");
+            while ($_row = $_r->fetchArray(SQLITE3_ASSOC)) $clp_courses[] = $_row;
+            $_dr = $_clp_db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
+                FROM courses c JOIN course_reports r ON r.course_id = c.id
+                WHERE c.date LIKE '" . $clp_prefix . "%' ORDER BY c.date DESC");
+            while ($_row = $_dr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_rows[] = $_row;
+            $_yr = $_clp_db->query("SELECT DISTINCT strftime('%Y', c.date) AS y FROM courses c JOIN course_reports r ON r.course_id = c.id ORDER BY y DESC");
+            while ($_row = $_yr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_years[] = $_row['y'];
+            if (!in_array((string)$clp_year, $clp_ditl_years)) $clp_ditl_years[] = (string)$clp_year;
+            if (!empty($clp_ditl_rows)) {
+                $_ids = implode(',', array_map(fn($r) => (int)$r['id'], $clp_ditl_rows));
+                $_vs = $_clp_db->query("SELECT * FROM viza_subtips WHERE course_id IN ({$_ids}) ORDER BY course_id, tarif DESC");
+                while ($_row = $_vs->fetchArray(SQLITE3_ASSOC)) $clp_viza_subtips[(int)$_row['course_id']][] = $_row;
+                foreach ($clp_ditl_rows as $_dr2) {
+                    $_types = json_decode($_dr2['types_json'] ?? '[]', true) ?: [];
+                    $_bp = [];
+                    foreach ($_types as $_t) $_bp[(string)(float)($_t['pret'] ?? 0)] = $_t;
+                    $clp_report_by_price[(int)$_dr2['id']] = $_bp;
+                }
+            }
+            $_clp_db->close();
         } catch (Exception $_e) { }
     }
+    foreach ($clp_ditl_rows as $_r2) $clp_by_month[substr($_r2['date'], 0, 7)][] = $_r2;
+    $clp_sum_bilete   = array_sum(array_column($clp_ditl_rows, 'total_bilete'));
+    $clp_sum_incasari = array_sum(array_column($clp_ditl_rows, 'total_incasari'));
 }
 
 // ── Unread messages badge ─────────────────────────────────────────────────────
@@ -2004,44 +2034,178 @@ if (!empty($_ql)): ?>
         <?php else: $render_courses_table($courses_upcoming); endif; ?>
     </div>
 
-    <!-- Statistici cursuri (from SQLite) -->
+    <!-- ── Statistici cursuri (full merge) ─────────────────────────────── -->
+    <style>
+    .clp-tabs { display:flex; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
+    .clp-tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }
+    .clp-tab-btn.active { background:#f1f5f9; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+    .clp-tab-panel { display:none; }
+    .clp-tab-panel.active { display:block; }
+    .clp-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px; }
+    .clp-stat-box { background:#fff; border:1px solid var(--border); border-radius:8px; padding:18px 20px; }
+    .clp-stat-box .lbl { font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; }
+    .clp-stat-box .val { font-size:26px; font-weight:600; }
+    .clp-stat-box .val.ditl { color:#c0392b; }
+    .clp-month-heading { font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted); padding:8px 16px; background:#f8fafc; border:1px solid var(--border); border-bottom:none; border-radius:8px 8px 0 0; }
+    .clp-month-card { background:#fff; border:1px solid var(--border); border-radius:0 0 8px 8px; overflow:hidden; margin-bottom:20px; }
+    .clp-month-card table { width:100%; border-collapse:collapse; font-size:13px; }
+    .clp-month-card thead th { padding:9px 12px; text-align:left; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid #f1f5f9; background:#f8fafc; }
+    .clp-month-card thead th:not(:first-child) { text-align:right; }
+    .clp-month-card tbody td { padding:11px 12px; border-bottom:1px solid #f1f5f9; }
+    .clp-month-card tbody td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+    .clp-month-card tbody tr:last-child td { border-bottom:none; }
+    .clp-month-card tfoot td { padding:10px 12px; font-weight:700; border-top:2px solid var(--border); }
+    .clp-month-card tfoot td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+    .clp-ditl-cell { color:#c0392b; font-weight:600; }
+    .clp-toggle { cursor:pointer; }
+    .clp-toggle:hover { color:var(--primary,#1d4ed8); }
+    .clp-viza-row { display:none; }
+    .clp-viza-row.open { display:table-row; }
+    .clp-seria { background:#EAF5EF; border:1px solid #b2d9c0; border-radius:4px; padding:1px 6px; font-weight:700; font-size:11px; }
+    </style>
+
     <div class="card">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-            <span>Statistici cursuri (<?= count($stat_courses) ?>)</span>
-            <a href="/admin/statistici/cursuri/" class="btn btn-secondary" style="font-size:12px">Vezi tot ↗</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="clp-tabs">
+                <button class="clp-tab-btn <?= ($clp_ctab ?? 'cursuri') !== 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
+                <button class="clp-tab-btn <?= ($clp_ctab ?? '') === 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'ditl')">Rapoarte DITL</button>
+            </div>
+            <form method="get" id="clpYearForm" style="display:flex;align-items:center;gap:8px">
+                <input type="hidden" name="tab" value="cursuri">
+                <input type="hidden" name="ctab" value="<?= h($clp_ctab ?? 'cursuri') ?>">
+                <select name="year" onchange="document.getElementById('clpYearForm').submit()" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;cursor:pointer">
+                    <?php foreach ($clp_ditl_years as $_y): ?>
+                    <option value="<?= h($_y) ?>" <?= (int)$_y === ($clp_year ?? 0) ? 'selected' : '' ?>><?= h($_y) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select name="month" onchange="document.getElementById('clpYearForm').submit()" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;cursor:pointer">
+                    <option value="0" <?= ($clp_month ?? -1) === 0 ? 'selected' : '' ?>>Toate lunile</option>
+                    <?php for ($_m = 1; $_m <= 12; $_m++): ?>
+                    <option value="<?= $_m ?>" <?= ($clp_month ?? -1) === $_m ? 'selected' : '' ?>><?= ucfirst($clp_ro_months[$_m]) ?></option>
+                    <?php endfor; ?>
+                </select>
+            </form>
         </div>
-        <?php if (empty($stat_courses)): ?>
-        <p style="color:var(--text-muted)">Niciun curs în statistici încă. Se adaugă automat la importul unui curs nou.</p>
+
+        <!-- Tab: Cursuri -->
+        <div class="clp-tab-panel <?= ($clp_ctab ?? 'cursuri') !== 'ditl' ? 'active' : '' ?>" id="clp-panel-cursuri">
+        <?php if (empty($clp_courses)): ?>
+            <p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>
         <?php else: ?>
-        <table class="wp-table">
-            <thead>
-                <tr>
+            <table class="wp-table">
+                <thead><tr>
                     <th>Curs</th>
                     <th>Dată</th>
                     <th style="text-align:right">Bilete</th>
                     <th style="text-align:center">Raport</th>
                     <th style="text-align:center">Viză</th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($clp_courses as $_c):
+                    [$_cy,$_cm,$_cd] = explode('-', $_c['date'] . '--');
+                    $_dro = ltrim($_cd,'0').' '.($clp_ro_months[(int)$_cm] ?? '').' '.$_cy;
+                ?>
+                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'">
+                    <td style="font-weight:600"><?= h($_c['name']) ?></td>
+                    <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
+                    <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
+                    <td style="text-align:center"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:center"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
                 </tr>
-            </thead>
-            <tbody>
-            <?php
-            $_ro_m = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
-            foreach ($stat_courses as $_sc):
-                [$_sy, $_sm, $_sd] = explode('-', $_sc['date'] . '--');
-                $_date_ro = ltrim($_sd, '0') . ' ' . ($_ro_m[(int)$_sm] ?? '') . ' ' . $_sy;
-            ?>
-                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_sc['id'] ?>'">
-                    <td style="font-weight:600"><?= h($_sc['name']) ?></td>
-                    <td style="color:var(--text-muted);white-space:nowrap"><?= h($_date_ro) ?></td>
-                    <td style="text-align:right"><?= (int)$_sc['total_tickets'] ?></td>
-                    <td style="text-align:center"><?= $_sc['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:center"><?= $_sc['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
         <?php endif; ?>
+        </div>
+
+        <!-- Tab: Rapoarte DITL -->
+        <div class="clp-tab-panel <?= ($clp_ctab ?? '') === 'ditl' ? 'active' : '' ?>" id="clp-panel-ditl">
+        <?php if (empty($clp_ditl_rows)): ?>
+            <p style="color:var(--text-muted)">Niciun raport pentru perioada selectată.</p>
+        <?php else: ?>
+            <div class="clp-summary-grid">
+                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val"><?= number_format($clp_sum_incasari, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
+                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl"><?= number_format($clp_sum_incasari * 0.02, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
+            </div>
+            <?php foreach ($clp_by_month as $_mk => $_mrows):
+                $_mn = (int)substr($_mk, 5, 2);
+                $_mlabel = ucfirst($clp_ro_months[$_mn]) . ' ' . ($clp_year ?? '');
+                $_mInc = array_sum(array_column($_mrows, 'total_incasari'));
+            ?>
+            <div class="clp-month-heading"><?= h($_mlabel) ?></div>
+            <div class="clp-month-card">
+                <table>
+                    <thead><tr><th>Curs</th><th>Data</th><th>Total încasări</th><th>DITL (2%)</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($_mrows as $_mr):
+                        [$_cy,$_cm,$_cd] = explode('-', $_mr['date'] . '--');
+                        $_dro = ltrim($_cd,'0').' '.($clp_ro_months[(int)$_cm] ?? '').' '.$_cy;
+                        $_subs = $clp_viza_subtips[(int)$_mr['id']] ?? [];
+                        $_bp   = $clp_report_by_price[(int)$_mr['id']] ?? [];
+                        $_rid  = 'clpv-'.(int)$_mr['id'];
+                    ?>
+                    <tr>
+                        <td><?php if (!empty($_subs)): ?><span class="clp-toggle" onclick="clpToggleViza('<?= $_rid ?>')"><?= h($_mr['name']) ?></span><?php else: ?><?= h($_mr['name']) ?><?php endif; ?></td>
+                        <td style="color:var(--text-muted)"><?= h($_dro) ?></td>
+                        <td><?= number_format((float)$_mr['total_incasari'], 2, ',', '.') ?> RON</td>
+                        <td class="clp-ditl-cell"><?= number_format((float)$_mr['total_incasari'] * 0.02, 2, ',', '.') ?> RON</td>
+                    </tr>
+                    <?php if (!empty($_subs)): ?>
+                    <tr class="clp-viza-row" id="<?= $_rid ?>">
+                        <td colspan="4" style="padding:0;background:#f8fafc">
+                            <div style="padding:6px 16px 12px 32px">
+                                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                                    <thead><tr>
+                                        <th style="padding:5px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Seria</th>
+                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">De la</th>
+                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Până la</th>
+                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Vândute</th>
+                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Total</th>
+                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Tarif</th>
+                                    </tr></thead>
+                                    <tbody>
+                                    <?php foreach ($_subs as $_sub):
+                                        $_vk = (string)(float)$_sub['tarif'];
+                                        $_vandute = isset($_bp[$_vk]) ? (int)$_bp[$_vk]['vandute'] : null;
+                                    ?>
+                                    <tr>
+                                        <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria"><?= h($_sub['seria']) ?></span></td>
+                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['de_la']) ?></td>
+                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['pana_la']) ?></td>
+                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= $_vandute !== null ? '<strong>'.$_vandute.'</strong>' : '<span style="color:var(--text-muted)">—</span>' ?></td>
+                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= (int)$_sub['nr_unitati'] ?></td>
+                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= number_format((float)$_sub['tarif'], 0, ',', '.') ?> RON</td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php endforeach; ?>
+                    </tbody>
+                    <tfoot><tr>
+                        <td colspan="2">Total <?= h($_mlabel) ?></td>
+                        <td><?= number_format($_mInc, 2, ',', '.') ?> RON</td>
+                        <td class="clp-ditl-cell"><?= number_format($_mInc * 0.02, 2, ',', '.') ?> RON</td>
+                    </tr></tfoot>
+                </table>
+            </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        </div>
     </div>
+    <script>
+    function clpSwitchTab(e, t) {
+        document.querySelectorAll('.clp-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.clp-tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('clp-panel-' + t).classList.add('active');
+        e.currentTarget.classList.add('active');
+        document.querySelector('#clpYearForm input[name=ctab]').value = t;
+    }
+    function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
+    </script>
 
 <?php /* ======================================================= TAB: IMAGINI */ ?>
 <?php elseif ($tab === 'imagini'): ?>
