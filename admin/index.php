@@ -1243,23 +1243,6 @@ if (is_authenticated() && $tab === 'cursuri') {
                 $_prow['courses'] = array_unique(explode('|', $_prow['course_list'] ?? ''));
                 $clp_participants[] = $_prow;
             }
-            // Bulk-sync courses.json → SQLite (insert missing entries)
-            foreach (load_courses() as $_jc) {
-                $_jid = $_jc['id'] ?? '';
-                $_jname = $_jc['title'] ?? '';
-                $_jdate = $_jc['date_raw'] ?? '';
-                if (!$_jid || !$_jname || !$_jdate) continue;
-                $_exists = $_clp_db->querySingle("SELECT id FROM courses WHERE external_id='" . $_clp_db->escapeString($_jid) . "' LIMIT 1");
-                if (!$_exists) {
-                    $_ins = $_clp_db->prepare('INSERT INTO courses (name, date, created_at, external_id) VALUES (:n,:d,:c,:e)');
-                    $_ins->bindValue(':n', $_jname, SQLITE3_TEXT);
-                    $_ins->bindValue(':d', $_jdate, SQLITE3_TEXT);
-                    $_ins->bindValue(':c', date('Y-m-d H:i:s'), SQLITE3_TEXT);
-                    $_ins->bindValue(':e', $_jid, SQLITE3_TEXT);
-                    $_ins->execute();
-                }
-            }
-
             $_clp_db->close();
         } catch (Exception $_e) { }
     }
