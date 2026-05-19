@@ -29,10 +29,9 @@
             <a href="/admin/?tab=speakeri"><span class="nav-icon">🎤</span> Speakeri</a>
             <a href="/admin/?tab=locatii"><span class="nav-icon">📍</span> Locații</a>
             <a href="/admin/?tab=colaborari"><span class="nav-icon">🤝</span> Colaborări</a>
-            <div class="sidebar-section">Statistici</div>
             <?php if (is_owner_auth()): ?>
-            <a href="/admin/statistici/pnl/" class="<?= strpos($_stat_path, '/admin/statistici/pnl') === 0 ? 'active' : '' ?>"><span class="nav-icon">📈</span> P&amp;L Cursuri</a>
             <div class="sidebar-section">Sistem</div>
+            <a href="/admin/statistici/pnl/" class="<?= strpos($_stat_path, '/admin/statistici/pnl') === 0 ? 'active' : '' ?>"><span class="nav-icon">📈</span> P&amp;L Cursuri</a>
             <a href="/admin/?tab=config"><span class="nav-icon">⚙️</span> Setări</a>
             <?php endif; ?>
         </nav>

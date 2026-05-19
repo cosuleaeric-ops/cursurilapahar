@@ -1576,12 +1576,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
-            <div class="sidebar-section">Statistici</div>
             <?php if (is_owner()): ?>
+            <div class="sidebar-section">Sistem</div>
             <a href="/admin/statistici/pnl/">
                 <span class="nav-icon">📈</span> P&amp;L Cursuri
             </a>
-            <div class="sidebar-section">Sistem</div>
             <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">
                 <span class="nav-icon">⚙️</span> Setări
             </a>
