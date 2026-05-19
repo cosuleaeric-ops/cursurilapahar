@@ -2016,15 +2016,7 @@ if (!empty($_ql)): ?>
 
     <!-- Courses table (upcoming) -->
     <div class="card">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-            <span>Cursuri (<?= count($courses_upcoming) ?>)</span>
-            <form method="post" action="/admin/?tab=cursuri" style="margin:0">
-                <input type="hidden" name="action" value="clear_soldout_cache">
-                <button class="btn btn-secondary" type="submit" title="Șterge cache-ul de sold out — util dacă s-au adăugat bilete înapoi">
-                    &#8635; Resetează sold out cache
-                </button>
-            </form>
-        </div>
+        <div class="card-title">Cursuri (<?= count($courses_upcoming) ?>)</div>
         <?php if (empty($courses_upcoming)): ?>
         <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
         <?php else: $render_courses_table($courses_upcoming); endif; ?>
@@ -2222,7 +2214,6 @@ if (!empty($_ql)): ?>
                 <button onclick="calNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important">&#8592;</button>
                 <h3 id="calTitle"></h3>
                 <button onclick="calNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important">&#8594;</button>
-                <button onclick="calGoToday()" class="btn btn-secondary" style="white-space:nowrap">Azi</button>
             </div>
             <div id="calGrid"></div>
             <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:#6b7280;flex-wrap:wrap">
