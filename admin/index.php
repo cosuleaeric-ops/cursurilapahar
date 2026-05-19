@@ -1206,7 +1206,7 @@ if (is_authenticated() && $tab === 'cursuri') {
     $clp_year       = (int)($_GET['year']  ?? $clp_now->format('Y'));
     $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
     $_ctab_raw      = $_GET['ctab'] ?? 'cursuri';
-    $clp_ctab       = in_array($_ctab_raw, ['cursuri','ditl','participanti']) ? $_ctab_raw : 'cursuri';
+    $clp_ctab       = in_array($_ctab_raw, ['cursuri','participanti','calendar']) ? $_ctab_raw : 'cursuri';
     $clp_prefix     = $clp_month > 0 ? $clp_year . '-' . str_pad((string)$clp_month, 2, '0', STR_PAD_LEFT) : (string)$clp_year;
     $_clp_db_path   = __DIR__ . '/statistici/data/clp.sqlite';
     if (file_exists($_clp_db_path)) {
@@ -2066,7 +2066,6 @@ if (!empty($_ql)): ?>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div class="clp-tabs">
                 <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
-                <button class="clp-tab-btn <?= $clp_ctab === 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'ditl')">Rapoarte DITL</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
             </div>
@@ -2106,13 +2105,10 @@ if (!empty($_ql)): ?>
                 </tbody>
             </table>
         <?php endif; ?>
-        </div>
 
-        <!-- Tab: Rapoarte DITL -->
-        <div class="clp-tab-panel <?= $clp_ctab === 'ditl' ? 'active' : '' ?>" id="clp-panel-ditl">
-        <?php if (empty($clp_ditl_rows)): ?>
-            <p style="color:var(--text-muted)">Niciun raport pentru perioada selectată.</p>
-        <?php else: ?>
+        <?php if (!empty($clp_ditl_rows)): ?>
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:16px">Rapoarte DITL</div>
             <div class="clp-summary-grid">
                 <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val"><?= number_format($clp_sum_incasari, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
                 <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl"><?= number_format($clp_sum_incasari * 0.02, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
@@ -2183,9 +2179,10 @@ if (!empty($_ql)): ?>
                 </table>
             </div>
             <?php endforeach; ?>
+            </div>
         <?php endif; ?>
         </div>
-    </div>
+
         <!-- Tab: Participanți -->
         <div class="clp-tab-panel <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" id="clp-panel-participanti">
         <?php
@@ -2315,11 +2312,18 @@ if (!empty($_ql)): ?>
             '</tbody></table>';
         }
 
-        // Render DITL
-        const ditlPanel = document.getElementById('clp-panel-ditl');
+        // Render DITL (appended inside cursuri panel)
+        let ditlContainer = document.getElementById('clp-ditl-inline');
+        if (!ditlContainer) {
+            ditlContainer = document.createElement('div');
+            ditlContainer.id = 'clp-ditl-inline';
+            cursPanel.appendChild(ditlContainer);
+        }
         if (!data.by_month.length) {
-            ditlPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun raport pentru perioada selectată.</p>';
+            ditlContainer.innerHTML = '';
         } else {
+            ditlContainer.innerHTML = '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:16px">Rapoarte DITL</div></div>';
+            const ditlPanel = ditlContainer.querySelector('div');
             const fmtRON = v => Number(v).toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
             let html = `<div class="clp-summary-grid">
                 <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(data.sum_incasari)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
@@ -2359,7 +2363,7 @@ if (!empty($_ql)): ?>
                     <td class="clp-ditl-cell">${fmtRON(grp.incasari * 0.02)} RON</td>
                 </tr></tfoot></table></div>`;
             });
-            ditlPanel.innerHTML = html;
+            ditlPanel.innerHTML += html;
         }
     }
 
