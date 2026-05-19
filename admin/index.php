@@ -2065,8 +2065,8 @@ if (!empty($_ql)): ?>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div class="clp-tabs">
                 <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
-                <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
+                <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
             </div>
             <div id="clpMonthNav" style="display:<?= $clp_ctab === 'calendar' ? 'none' : 'flex' ?>;align-items:center;gap:6px">
                 <button onclick="clpNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8592;</button>
