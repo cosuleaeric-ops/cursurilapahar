@@ -2075,21 +2075,11 @@ if (!empty($_ql)): ?>
                 <button class="clp-tab-btn <?= $clp_ctab === 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'ditl')">Rapoarte DITL</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
             </div>
-            <form method="get" id="clpYearForm" style="display:flex;align-items:center;gap:8px">
-                <input type="hidden" name="tab" value="cursuri">
-                <input type="hidden" name="ctab" value="<?= h($clp_ctab ?? 'cursuri') ?>">
-                <select name="year" onchange="document.getElementById('clpYearForm').submit()" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;cursor:pointer">
-                    <?php foreach ($clp_ditl_years as $_y): ?>
-                    <option value="<?= h($_y) ?>" <?= (int)$_y === ($clp_year ?? 0) ? 'selected' : '' ?>><?= h($_y) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select name="month" onchange="document.getElementById('clpYearForm').submit()" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;cursor:pointer">
-                    <option value="0" <?= ($clp_month ?? -1) === 0 ? 'selected' : '' ?>>Toate lunile</option>
-                    <?php for ($_m = 1; $_m <= 12; $_m++): ?>
-                    <option value="<?= $_m ?>" <?= ($clp_month ?? -1) === $_m ? 'selected' : '' ?>><?= ucfirst($clp_ro_months[$_m]) ?></option>
-                    <?php endfor; ?>
-                </select>
-            </form>
+            <div style="display:flex;align-items:center;gap:6px">
+                <button onclick="clpNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8592;</button>
+                <span id="clpMonthLabel" style="font-size:13px;font-weight:600;min-width:90px;text-align:center"><?= ucfirst($clp_ro_months[$clp_month ?? 1]) . ' ' . ($clp_year ?? date('Y')) ?></span>
+                <button onclick="clpNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8594;</button>
+            </div>
         </div>
 
         <!-- Tab: Cursuri -->
@@ -2258,6 +2248,98 @@ if (!empty($_ql)): ?>
         document.querySelector('#clpYearForm input[name=ctab]').value = t;
     }
     function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
+
+    let clpYear = <?= (int)($clp_year ?? date('Y')) ?>;
+    let clpMonth = <?= (int)($clp_month ?? date('n')) ?>;
+    const clpRoMonths = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+
+    function clpNav(dir) {
+        clpMonth += dir;
+        if (clpMonth < 1)  { clpMonth = 12; clpYear--; }
+        if (clpMonth > 12) { clpMonth = 1;  clpYear++; }
+        clpLoadMonth();
+    }
+
+    async function clpLoadMonth() {
+        const res  = await fetch('/api/cursuri_month.php?year=' + clpYear + '&month=' + clpMonth);
+        const data = await res.json();
+
+        document.getElementById('clpMonthLabel').textContent =
+            clpRoMonths[data.month].charAt(0).toUpperCase() + clpRoMonths[data.month].slice(1) + ' ' + data.year;
+
+        // Render cursuri table
+        const cursPanel = document.getElementById('clp-panel-cursuri');
+        if (!data.courses.length) {
+            cursPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>';
+        } else {
+            cursPanel.innerHTML = `<table class="wp-table"><thead><tr>
+                <th>Curs</th><th>Dată</th>
+                <th style="text-align:right">Bilete</th>
+                <th style="text-align:center">Raport</th>
+                <th style="text-align:center">Viză</th>
+            </tr></thead><tbody>` +
+            data.courses.map(c => `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
+                <td style="font-weight:600">${esc(c.name)}</td>
+                <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
+                <td style="text-align:right">${c.total_tickets}</td>
+                <td style="text-align:center">${c.has_report ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:center">${c.has_viza ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+            </tr>`).join('') +
+            '</tbody></table>';
+        }
+
+        // Render DITL
+        const ditlPanel = document.getElementById('clp-panel-ditl');
+        if (!data.by_month.length) {
+            ditlPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun raport pentru perioada selectată.</p>';
+        } else {
+            const fmtRON = v => Number(v).toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
+            let html = `<div class="clp-summary-grid">
+                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(data.sum_incasari)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(data.sum_incasari * 0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+            </div>`;
+            data.by_month.forEach(grp => {
+                html += `<div class="clp-month-heading">${esc(grp.label)}</div>
+                <div class="clp-month-card"><table>
+                <thead><tr><th>Curs</th><th>Data</th><th>Total încasări</th><th>DITL (2%)</th></tr></thead><tbody>`;
+                grp.rows.forEach(r => {
+                    const rid = 'clpv-' + r.id;
+                    const hasSubs = r.subtips && r.subtips.length;
+                    html += `<tr>
+                        <td>${hasSubs ? `<span class="clp-toggle" onclick="clpToggleViza('${rid}')">${esc(r.name)}</span>` : esc(r.name)}</td>
+                        <td style="color:var(--text-muted)">${esc(r.date_ro)}</td>
+                        <td>${fmtRON(r.total_incasari)} RON</td>
+                        <td class="clp-ditl-cell">${fmtRON(r.total_incasari * 0.02)} RON</td>
+                    </tr>`;
+                    if (hasSubs) {
+                        html += `<tr class="clp-viza-row" id="${rid}"><td colspan="4" style="padding:0;background:#f8fafc">
+                        <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
+                        <thead><tr>${['Seria','De la','Până la','Vândute','Total','Tarif'].map(h=>`<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h==='Seria'?'left':'right'}">${h}</th>`).join('')}</tr></thead>
+                        <tbody>${r.subtips.map(s => `<tr>
+                            <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria">${esc(s.seria)}</span></td>
+                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.de_la)}</td>
+                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.pana_la)}</td>
+                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">—</td>
+                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${s.nr_unitati}</td>
+                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${Number(s.tarif).toLocaleString('ro-RO',{maximumFractionDigits:0})} RON</td>
+                        </tr>`).join('')}</tbody>
+                        </table></div></td></tr>`;
+                    }
+                });
+                html += `</tbody><tfoot><tr>
+                    <td colspan="2">Total ${esc(grp.label)}</td>
+                    <td>${fmtRON(grp.incasari)} RON</td>
+                    <td class="clp-ditl-cell">${fmtRON(grp.incasari * 0.02)} RON</td>
+                </tr></tfoot></table></div>`;
+            });
+            ditlPanel.innerHTML = html;
+        }
+    }
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     function clpFilter() {
         const q = document.getElementById('clpSearch').value.toLowerCase();
         document.querySelectorAll('#clpParticipantsTable tbody tr').forEach(tr => {
