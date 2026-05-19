@@ -2259,109 +2259,72 @@ if (!empty($_ql)): ?>
     async function clpLoadMonth() {
         const res  = await fetch('/api/cursuri_month.php?year=' + clpYear + '&month=' + clpMonth);
         const data = await res.json();
+        const fmtRON = v => Number(v).toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
 
         document.getElementById('clpMonthLabel').textContent =
             clpRoMonths[data.month].charAt(0).toUpperCase() + clpRoMonths[data.month].slice(1) + ' ' + data.year;
 
-        // Render cursuri table
         const cursPanel = document.getElementById('clp-panel-cursuri');
         if (!data.courses.length) {
             cursPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>';
-        } else {
-            cursPanel.innerHTML = `<table class="wp-table"><thead><tr>
-                <th>Curs</th><th>Dată</th>
-                <th style="text-align:right">Bilete</th>
-                <th style="text-align:center">Raport</th>
-                <th style="text-align:center">Viză</th>
-            </tr></thead><tbody>` +
-            data.courses.map(c => `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
-                <td style="font-weight:600">${esc(c.name)}</td>
+            return;
+        }
+
+        const ditlById = {};
+        data.by_month.forEach(grp => grp.rows.forEach(r => { ditlById[r.id] = r; }));
+
+        const sumInc = data.sum_incasari;
+        let html = sumInc > 0 ? `<div class="clp-summary-grid" style="margin-bottom:16px">
+            <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(sumInc)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+            <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(sumInc*0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+        </div>` : '';
+
+        html += `<table class="wp-table"><thead><tr>
+            <th>Curs</th><th>Dată</th>
+            <th style="text-align:right">Bilete</th>
+            <th style="text-align:center">Raport</th>
+            <th style="text-align:center">Viță</th>
+            <th style="text-align:right">Încasări</th>
+            <th style="text-align:right">DITL (2%)</th>
+        </tr></thead><tbody>`;
+
+        data.courses.forEach(c => {
+            const dr   = ditlById[c.id];
+            const rid  = 'clpv-' + c.id;
+            const subs = dr && dr.subtips && dr.subtips.length ? dr.subtips : [];
+            const inc  = dr ? fmtRON(dr.total_incasari) + ' RON' : '<span style="color:#d1d5db">—</span>';
+            const ditl = dr ? `<span class="clp-ditl-cell">${fmtRON(dr.total_incasari*0.02)} RON</span>` : '<span style="color:#d1d5db">—</span>';
+            const name = subs.length
+                ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
+                : esc(c.name);
+            html += `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
+                <td style="font-weight:600">${name}</td>
                 <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
                 <td style="text-align:right">${c.total_tickets}</td>
-                <td style="text-align:center">${c.has_report ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:center">${c.has_viza ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-            </tr>`).join('') +
-            '</tbody></table>';
-        }
+                <td style="text-align:center">${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:center">${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
+            </tr>`;
+            if (subs.length) {
+                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="7" style="padding:0;background:#f8fafc">
+                <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead><tr>${['Seria','De la','Până la','Total','Tarif'].map(h=>`<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h==='Seria'?'left':'right'}">${h}</th>`).join('')}</tr></thead>
+                <tbody>${subs.map(s=>`<tr>
+                    <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria">${esc(s.seria)}</span></td>
+                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.de_la)}</td>
+                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.pana_la)}</td>
+                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${s.nr_unitati}</td>
+                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${Number(s.tarif).toLocaleString('ro-RO',{maximumFractionDigits:0})} RON</td>
+                </tr>`).join('')}</tbody>
+                </table></div></td></tr>`;
+            }
+        });
 
-        // Render merged DITL data — build lookup by id
-        const ditlById = {};
-        data.by_month.forEach(grp => grp.rows.forEach(r => ditlById[r.id] = r));
-
-        if (!data.courses.length) {
-            cursPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>';
-        } else {
-            const sumInc = data.sum_incasari;
-            let html = sumInc > 0 ? `<div class="clp-summary-grid" style="margin-bottom:16px">
-                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(sumInc)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(sumInc*0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-            </div>` : '';
-            html += `<table class="wp-table"><thead><tr>
-                <th>Curs</th><th>Dată</th>
-                <th style="text-align:right">Bilete</th>
-                <th style="text-align:center">Raport</th>
-                <th style="text-align:center">Viță</th>
-                <th style="text-align:right">Încasări</th>
-                <th style="text-align:right">DITL (2%)</th>
-            </tr></thead><tbody>` +
-            data.courses.map(c => {
-                const dr = ditlById[c.id];
-                const inc = dr ? fmtRON(dr.total_incasari) + ' RON' : '<span style="color:#d1d5db">—</span>';
-                const ditl = dr ? `<span class="clp-ditl-cell">${fmtRON(dr.total_incasari*0.02)} RON</span>` : '<span style="color:#d1d5db">—</span>';
-                return `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
-                    <td style="font-weight:600">${esc(c.name)}</td>
-                    <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
-                    <td style="text-align:right">${c.total_tickets}</td>
-                    <td style="text-align:center">${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                    <td style="text-align:center">${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
-                </tr>`;
-            }).join('') + '</tbody></table>';
-            cursPanel.innerHTML = html;
-        }
-
-        if (false) { // unused DITL block kept for structure
-            const fmtRON = v => Number(v).toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
-            let html = `<div class="clp-summary-grid">
-                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(data.sum_incasari)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(data.sum_incasari * 0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-            </div>`;
-            data.by_month.forEach(grp => {
-                html += `<div class="clp-month-heading">${esc(grp.label)}</div>
-                <div class="clp-month-card"><table>
-                <thead><tr><th>Curs</th><th>Data</th><th>Total încasări</th><th>DITL (2%)</th></tr></thead><tbody>`;
-                grp.rows.forEach(r => {
-                    const rid = 'clpv-' + r.id;
-                    const hasSubs = r.subtips && r.subtips.length;
-                    html += `<tr>
-                        <td>${hasSubs ? `<span class="clp-toggle" onclick="clpToggleViza('${rid}')">${esc(r.name)}</span>` : esc(r.name)}</td>
-                        <td style="color:var(--text-muted)">${esc(r.date_ro)}</td>
-                        <td>${fmtRON(r.total_incasari)} RON</td>
-                        <td class="clp-ditl-cell">${fmtRON(r.total_incasari * 0.02)} RON</td>
-                    </tr>`;
-                    if (hasSubs) {
-                        html += `<tr class="clp-viza-row" id="${rid}"><td colspan="4" style="padding:0;background:#f8fafc">
-                        <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
-                        <thead><tr>${['Seria','De la','Până la','Vândute','Total','Tarif'].map(h=>`<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h==='Seria'?'left':'right'}">${h}</th>`).join('')}</tr></thead>
-                        <tbody>${r.subtips.map(s => `<tr>
-                            <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria">${esc(s.seria)}</span></td>
-                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.de_la)}</td>
-                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.pana_la)}</td>
-                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">—</td>
-                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${s.nr_unitati}</td>
-                            <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${Number(s.tarif).toLocaleString('ro-RO',{maximumFractionDigits:0})} RON</td>
-                        </tr>`).join('')}</tbody>
-                        </table></div></td></tr>`;
-                    }
-                });
-                html += `</tbody><tfoot><tr>
-                    <td colspan="2">Total ${esc(grp.label)}</td>
-                    <td>${fmtRON(grp.incasari)} RON</td>
-                    <td class="clp-ditl-cell">${fmtRON(grp.incasari * 0.02)} RON</td>
-                </tr></tfoot></table></div>`;
-        }
+        html += '</tbody></table>';
+        cursPanel.innerHTML = html;
     }
+
 
     function esc(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
