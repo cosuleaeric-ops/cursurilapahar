@@ -49,15 +49,16 @@ include dirname(__DIR__) . '/statistici/layout_header.php';
 .cal-wrap { height:calc(36px + <?= $num_rows ?> * 120px); }
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:36px repeat(<?= $num_rows ?>,1fr); height:100%; gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
 .cal-dow  { background:#f8fafc; padding:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
-.cal-cell { background:#fff; padding:6px 6px 4px; overflow:hidden; display:flex; flex-direction:column; }
+.cal-cell { background:#fff; padding:6px 8px; overflow:hidden; }
 .cal-cell.other-month { background:#f9fafb; }
 .cal-cell.today { background:#eff6ff; }
-.cal-day-num { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; line-height:1; flex-shrink:0; }
+.cal-day-num { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; line-height:1; }
 .cal-cell.today .cal-day-num { display:inline-flex; }
 .cal-day-num .today-circle { background:#1d4ed8; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
-.cal-event { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; }
-.cal-event img { display:block; width:100%; max-height:100%; aspect-ratio:1/1; object-fit:contain; background:#f1f5f9; border-radius:6px; }
-.cal-event.past img { opacity:0.45; filter:grayscale(40%); }
+.cal-event { font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; margin-bottom:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-event.future { background:#dbeafe; color:#1e40af; }
+.cal-event.past   { background:#f1f5f9; color:#9ca3af; }
+.cal-event.today-ev { background:#1d4ed8; color:#fff; }
 .cal-legend { display:flex; gap:16px; margin-top:12px; font-size:12px; color:#6b7280; align-items:center; flex-wrap:wrap; }
 .cal-legend span { display:flex; align-items:center; gap:6px; }
 .cal-legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
@@ -102,15 +103,10 @@ include dirname(__DIR__) . '/statistici/layout_nav.php';
             }
             if (!empty($courses_by_day[$date_str])) {
                 foreach ($courses_by_day[$date_str] as $c) {
-                    $is_past   = $date_str < $today_ymd;
-                    $ev_class  = $is_past ? 'past' : ($is_today ? 'today-ev' : 'future');
-                    $title     = htmlspecialchars($c['title'] ?? '', ENT_QUOTES, 'UTF-8');
-                    $image_url = htmlspecialchars($c['image_url'] ?? '', ENT_QUOTES, 'UTF-8');
-                    if ($image_url) {
-                        echo '<div class="cal-event ' . $ev_class . '" title="' . $title . '"><img src="' . $image_url . '" alt="' . $title . '"></div>';
-                    } else {
-                        echo '<div class="cal-event ' . $ev_class . '" title="' . $title . '" style="background:#dbeafe;color:#1e40af;padding:2px 6px;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' . $title . '</div>';
-                    }
+                    $is_past  = $date_str < $today_ymd;
+                    $ev_class = $is_today ? 'today-ev' : ($is_past ? 'past' : 'future');
+                    $title    = htmlspecialchars($c['title'] ?? '', ENT_QUOTES, 'UTF-8');
+                    echo '<div class="cal-event ' . $ev_class . '" title="' . $title . '">' . $title . '</div>';
                 }
             }
             echo '</div>';
