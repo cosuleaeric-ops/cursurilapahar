@@ -17,14 +17,13 @@
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>
             <a href="/admin/?tab=vot"><span class="nav-icon">❤️</span> Vot cursuri</a>
-            <div class="sidebar-section">Comunitate</div>
-            <a href="/admin/?tab=mesaje"><span class="nav-icon">💬</span> Mesaje</a>
+            <a href="/admin/?tab=competitori"><span class="nav-icon">🔍</span> Competitori</a>
             <div class="sidebar-section">Management</div>
             <a href="/admin/?tab=cursuri"><span class="nav-icon">📋</span> Cursuri</a>
             <a href="/admin/?tab=speakeri"><span class="nav-icon">🎤</span> Speakeri</a>
             <a href="/admin/?tab=locatii"><span class="nav-icon">📍</span> Locații</a>
             <a href="/admin/?tab=colaborari"><span class="nav-icon">🤝</span> Colaborări</a>
-            <a href="/admin/?tab=competitori"><span class="nav-icon">🔍</span> Competitori</a>
+            <a href="/admin/?tab=mesaje"><span class="nav-icon">💬</span> Mesaje</a>
             <?php if (is_owner_auth()): ?>
             <div class="sidebar-section">Sistem</div>
             <a href="/admin/statistici/pnl/" class="<?= strpos($_stat_path, '/admin/statistici/pnl') === 0 ? 'active' : '' ?>"><span class="nav-icon">📈</span> P&amp;L Cursuri</a>

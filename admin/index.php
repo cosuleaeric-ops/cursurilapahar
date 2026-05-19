@@ -1550,9 +1550,8 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
             </a>
-            <div class="sidebar-section">Comunitate</div>
-            <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
-                <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
+            <a href="/admin/?tab=competitori" class="<?= $tab === 'competitori' ? 'active' : '' ?>">
+                <span class="nav-icon">🔍</span> Competitori
             </a>
             <div class="sidebar-section">Management</div>
             <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
@@ -1567,8 +1566,8 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
-            <a href="/admin/?tab=competitori" class="<?= $tab === 'competitori' ? 'active' : '' ?>">
-                <span class="nav-icon">🔍</span> Competitori
+            <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
+                <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
             </a>
             <?php if (is_owner()): ?>
             <div class="sidebar-section">Sistem</div>
