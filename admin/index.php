@@ -2078,9 +2078,20 @@ if (!empty($_ql)): ?>
 
         <!-- Tab: Cursuri -->
         <div class="clp-tab-panel <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" id="clp-panel-cursuri">
+        <?php
+        // Build DITL lookup by course id
+        $_ditl_by_id = [];
+        foreach ($clp_ditl_rows as $_dr) $_ditl_by_id[(int)$_dr['id']] = $_dr;
+        ?>
         <?php if (empty($clp_courses)): ?>
             <p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>
         <?php else: ?>
+            <?php if ($clp_sum_incasari > 0): ?>
+            <div class="clp-summary-grid" style="margin-bottom:16px">
+                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val"><?= number_format($clp_sum_incasari, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
+                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl"><?= number_format($clp_sum_incasari * 0.02, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
+            </div>
+            <?php endif; ?>
             <table class="wp-table">
                 <thead><tr>
                     <th>Curs</th>
@@ -2088,98 +2099,59 @@ if (!empty($_ql)): ?>
                     <th style="text-align:right">Bilete</th>
                     <th style="text-align:center">Raport</th>
                     <th style="text-align:center">Viză</th>
+                    <th style="text-align:right">Încasări</th>
+                    <th style="text-align:right">DITL (2%)</th>
                 </tr></thead>
                 <tbody>
                 <?php foreach ($clp_courses as $_c):
                     [$_cy,$_cm,$_cd] = explode('-', $_c['date'] . '--');
                     $_dro = ltrim($_cd,'0').' '.($clp_ro_months[(int)$_cm] ?? '').' '.$_cy;
+                    $_dr  = $_ditl_by_id[(int)$_c['id']] ?? null;
+                    $_subs = $clp_viza_subtips[(int)$_c['id']] ?? [];
+                    $_rid  = 'clpv-'.(int)$_c['id'];
                 ?>
                 <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'">
-                    <td style="font-weight:600"><?= h($_c['name']) ?></td>
+                    <td style="font-weight:600"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
                     <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
                     <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
                     <td style="text-align:center"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
                     <td style="text-align:center"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
                 </tr>
+                <?php if (!empty($_subs)): $_bp = $clp_report_by_price[(int)$_c['id']] ?? []; ?>
+                <tr class="clp-viza-row" id="<?= $_rid ?>">
+                    <td colspan="7" style="padding:0;background:#f8fafc">
+                        <div style="padding:6px 16px 12px 32px">
+                            <table style="width:100%;border-collapse:collapse;font-size:12px">
+                                <thead><tr>
+                                    <?php foreach (['Seria','De la','Până la','Vândute','Total','Tarif'] as $_th): ?>
+                                    <th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:<?= $_th==='Seria'?'left':'right' ?>"><?= $_th ?></th>
+                                    <?php endforeach; ?>
+                                </tr></thead>
+                                <tbody>
+                                <?php foreach ($_subs as $_sub):
+                                    $_vk = (string)(float)$_sub['tarif'];
+                                    $_vandute = isset($_bp[$_vk]) ? (int)$_bp[$_vk]['vandute'] : null;
+                                ?>
+                                <tr>
+                                    <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria"><?= h($_sub['seria']) ?></span></td>
+                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['de_la']) ?></td>
+                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['pana_la']) ?></td>
+                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= $_vandute !== null ? '<strong>'.$_vandute.'</strong>' : '—' ?></td>
+                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= (int)$_sub['nr_unitati'] ?></td>
+                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= number_format((float)$_sub['tarif'], 0, ',', '.') ?> RON</td>
+                                </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <?php endif; ?>
                 <?php endforeach; ?>
                 </tbody>
             </table>
-        <?php endif; ?>
-
-        <?php if (!empty($clp_ditl_rows)): ?>
-            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:16px">Rapoarte DITL</div>
-            <div class="clp-summary-grid">
-                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val"><?= number_format($clp_sum_incasari, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
-                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl"><?= number_format($clp_sum_incasari * 0.02, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
-            </div>
-            <?php foreach ($clp_by_month as $_mk => $_mrows):
-                $_mn = (int)substr($_mk, 5, 2);
-                $_mlabel = ucfirst($clp_ro_months[$_mn]) . ' ' . ($clp_year ?? '');
-                $_mInc = array_sum(array_column($_mrows, 'total_incasari'));
-            ?>
-            <div class="clp-month-heading"><?= h($_mlabel) ?></div>
-            <div class="clp-month-card">
-                <table>
-                    <thead><tr><th>Curs</th><th>Data</th><th>Total încasări</th><th>DITL (2%)</th></tr></thead>
-                    <tbody>
-                    <?php foreach ($_mrows as $_mr):
-                        [$_cy,$_cm,$_cd] = explode('-', $_mr['date'] . '--');
-                        $_dro = ltrim($_cd,'0').' '.($clp_ro_months[(int)$_cm] ?? '').' '.$_cy;
-                        $_subs = $clp_viza_subtips[(int)$_mr['id']] ?? [];
-                        $_bp   = $clp_report_by_price[(int)$_mr['id']] ?? [];
-                        $_rid  = 'clpv-'.(int)$_mr['id'];
-                    ?>
-                    <tr>
-                        <td><?php if (!empty($_subs)): ?><span class="clp-toggle" onclick="clpToggleViza('<?= $_rid ?>')"><?= h($_mr['name']) ?></span><?php else: ?><?= h($_mr['name']) ?><?php endif; ?></td>
-                        <td style="color:var(--text-muted)"><?= h($_dro) ?></td>
-                        <td><?= number_format((float)$_mr['total_incasari'], 2, ',', '.') ?> RON</td>
-                        <td class="clp-ditl-cell"><?= number_format((float)$_mr['total_incasari'] * 0.02, 2, ',', '.') ?> RON</td>
-                    </tr>
-                    <?php if (!empty($_subs)): ?>
-                    <tr class="clp-viza-row" id="<?= $_rid ?>">
-                        <td colspan="4" style="padding:0;background:#f8fafc">
-                            <div style="padding:6px 16px 12px 32px">
-                                <table style="width:100%;border-collapse:collapse;font-size:12px">
-                                    <thead><tr>
-                                        <th style="padding:5px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Seria</th>
-                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">De la</th>
-                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Până la</th>
-                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Vândute</th>
-                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Total</th>
-                                        <th style="padding:5px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)">Tarif</th>
-                                    </tr></thead>
-                                    <tbody>
-                                    <?php foreach ($_subs as $_sub):
-                                        $_vk = (string)(float)$_sub['tarif'];
-                                        $_vandute = isset($_bp[$_vk]) ? (int)$_bp[$_vk]['vandute'] : null;
-                                    ?>
-                                    <tr>
-                                        <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria"><?= h($_sub['seria']) ?></span></td>
-                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['de_la']) ?></td>
-                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['pana_la']) ?></td>
-                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= $_vandute !== null ? '<strong>'.$_vandute.'</strong>' : '<span style="color:var(--text-muted)">—</span>' ?></td>
-                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= (int)$_sub['nr_unitati'] ?></td>
-                                        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= number_format((float)$_sub['tarif'], 0, ',', '.') ?> RON</td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-                    <?php endforeach; ?>
-                    </tbody>
-                    <tfoot><tr>
-                        <td colspan="2">Total <?= h($_mlabel) ?></td>
-                        <td><?= number_format($_mInc, 2, ',', '.') ?> RON</td>
-                        <td class="clp-ditl-cell"><?= number_format($_mInc * 0.02, 2, ',', '.') ?> RON</td>
-                    </tr></tfoot>
-                </table>
-            </div>
-            <?php endforeach; ?>
-            </div>
         <?php endif; ?>
         </div>
 
@@ -2312,18 +2284,44 @@ if (!empty($_ql)): ?>
             '</tbody></table>';
         }
 
-        // Render DITL (appended inside cursuri panel)
-        let ditlContainer = document.getElementById('clp-ditl-inline');
-        if (!ditlContainer) {
-            ditlContainer = document.createElement('div');
-            ditlContainer.id = 'clp-ditl-inline';
-            cursPanel.appendChild(ditlContainer);
-        }
-        if (!data.by_month.length) {
-            ditlContainer.innerHTML = '';
+        // Render merged DITL data — build lookup by id
+        const ditlById = {};
+        data.by_month.forEach(grp => grp.rows.forEach(r => ditlById[r.id] = r));
+
+        if (!data.courses.length) {
+            cursPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>';
         } else {
-            ditlContainer.innerHTML = '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:16px">Rapoarte DITL</div></div>';
-            const ditlPanel = ditlContainer.querySelector('div');
+            const sumInc = data.sum_incasari;
+            let html = sumInc > 0 ? `<div class="clp-summary-grid" style="margin-bottom:16px">
+                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(sumInc)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(sumInc*0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+            </div>` : '';
+            html += `<table class="wp-table"><thead><tr>
+                <th>Curs</th><th>Dată</th>
+                <th style="text-align:right">Bilete</th>
+                <th style="text-align:center">Raport</th>
+                <th style="text-align:center">Viță</th>
+                <th style="text-align:right">Încasări</th>
+                <th style="text-align:right">DITL (2%)</th>
+            </tr></thead><tbody>` +
+            data.courses.map(c => {
+                const dr = ditlById[c.id];
+                const inc = dr ? fmtRON(dr.total_incasari) + ' RON' : '<span style="color:#d1d5db">—</span>';
+                const ditl = dr ? `<span class="clp-ditl-cell">${fmtRON(dr.total_incasari*0.02)} RON</span>` : '<span style="color:#d1d5db">—</span>';
+                return `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
+                    <td style="font-weight:600">${esc(c.name)}</td>
+                    <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
+                    <td style="text-align:right">${c.total_tickets}</td>
+                    <td style="text-align:center">${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                    <td style="text-align:center">${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
+                </tr>`;
+            }).join('') + '</tbody></table>';
+            cursPanel.innerHTML = html;
+        }
+
+        if (false) { // unused DITL block kept for structure
             const fmtRON = v => Number(v).toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
             let html = `<div class="clp-summary-grid">
                 <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(data.sum_incasari)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
@@ -2362,8 +2360,6 @@ if (!empty($_ql)): ?>
                     <td>${fmtRON(grp.incasari)} RON</td>
                     <td class="clp-ditl-cell">${fmtRON(grp.incasari * 0.02)} RON</td>
                 </tr></tfoot></table></div>`;
-            });
-            ditlPanel.innerHTML += html;
         }
     }
 
