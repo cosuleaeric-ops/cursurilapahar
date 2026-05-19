@@ -1559,11 +1559,8 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🔍</span> Competitori
             </a>
             <div class="sidebar-section">Management</div>
-            <a href="/admin/?tab=cursuri" class="<?= ($tab === 'cursuri' && ($clp_ctab ?? '') !== 'calendar') ? 'active' : '' ?>">
+            <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
-            </a>
-            <a href="/admin/?tab=cursuri&ctab=calendar" class="<?= ($tab === 'cursuri' && ($clp_ctab ?? '') === 'calendar') ? 'active' : '' ?>">
-                <span class="nav-icon">📅</span> Calendar
             </a>
             <a href="/admin/?tab=speakeri" class="<?= $tab === 'speakeri' ? 'active' : '' ?>">
                 <span class="nav-icon">🎤</span> Speakeri

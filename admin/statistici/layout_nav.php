@@ -23,7 +23,6 @@
             <a href="/admin/?tab=competitori"><span class="nav-icon">🔍</span> Competitori</a>
             <div class="sidebar-section">Management</div>
             <a href="/admin/?tab=cursuri"><span class="nav-icon">📋</span> Cursuri</a>
-            <a href="/admin/?tab=cursuri&ctab=calendar" class="<?= strpos($_stat_path, 'ctab=calendar') !== false ? 'active' : '' ?>"><span class="nav-icon">📅</span> Calendar</a>
             <a href="/admin/?tab=speakeri"><span class="nav-icon">🎤</span> Speakeri</a>
             <a href="/admin/?tab=locatii"><span class="nav-icon">📍</span> Locații</a>
             <a href="/admin/?tab=colaborari"><span class="nav-icon">🤝</span> Colaborări</a>
