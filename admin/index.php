@@ -1545,9 +1545,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
             <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
             </a>
-            <a href="/admin/calendar/" class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/calendar') === 0 ? 'active' : '' ?>">
-                <span class="nav-icon">📅</span> Calendar
-            </a>
             <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
                 <span class="nav-icon">🖼️</span> Imagini
             </a>
@@ -2071,6 +2068,7 @@ if (!empty($_ql)): ?>
                 <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'ditl' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'ditl')">Rapoarte DITL</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
+                <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
                 <button onclick="clpNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8592;</button>
@@ -2236,13 +2234,44 @@ if (!empty($_ql)): ?>
         <?php endif; ?>
         </div>
 
+        <!-- Tab: Calendar -->
+        <style>
+        .cal-nav2 { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+        .cal-nav2 h3 { font-size:15px; font-weight:700; color:#111827; margin:0; flex:1; text-align:center; }
+        #calGrid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
+        .cal-dow  { background:#f8fafc; padding:8px 0; text-align:center; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
+        .cal-cell { background:#fff; padding:6px 8px; min-height:90px; }
+        .cal-cell.other-month { background:#f9fafb; }
+        .cal-cell.today { background:#eff6ff; }
+        .cal-day-num { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; line-height:1; }
+        .cal-circle { background:#1d4ed8; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
+        .cal-event { font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; margin-bottom:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .cal-event.future { background:#dbeafe; color:#1e40af; }
+        .cal-event.past   { background:#f1f5f9; color:#9ca3af; }
+        .cal-event.today-ev { background:#1d4ed8; color:#fff; }
+        </style>
+        <div class="clp-tab-panel <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" id="clp-panel-calendar">
+            <div class="cal-nav2">
+                <button onclick="calNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important">&#8592;</button>
+                <h3 id="calTitle"></h3>
+                <button onclick="calNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important">&#8594;</button>
+                <button onclick="calGoToday()" class="btn btn-secondary" style="white-space:nowrap">Azi</button>
+            </div>
+            <div id="calGrid"></div>
+            <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:#6b7280;flex-wrap:wrap">
+                <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#dbeafe;border:1px solid #bfdbfe;display:inline-block"></span> Curs viitor</span>
+                <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#1d4ed8;display:inline-block"></span> Curs azi</span>
+                <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#f1f5f9;border:1px solid #e5e7eb;display:inline-block"></span> Curs trecut</span>
+            </div>
+        </div>
+
     <script>
     function clpSwitchTab(e, t) {
         document.querySelectorAll('.clp-tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.clp-tab-panel').forEach(p => p.classList.remove('active'));
         document.getElementById('clp-panel-' + t).classList.add('active');
         e.currentTarget.classList.add('active');
-        document.querySelector('#clpYearForm input[name=ctab]').value = t;
+        if (t === 'calendar') calRender();
     }
     function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
 
@@ -2336,6 +2365,51 @@ if (!empty($_ql)): ?>
     function esc(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
+
+    // ── Calendar ──────────────────────────────────────────────────────────────
+    const calCourses = <?= json_encode(array_map(fn($c) => ['date' => $c['date_raw'] ?? '', 'title' => $c['title'] ?? ''], $courses)) ?>;
+    const calRoMonths = ['','Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+    const calDow = ['Lu','Ma','Mi','Jo','Vi','Sâ','Du'];
+    let calYear = <?= date('Y') ?>, calMonth = <?= date('n') ?>;
+    const calToday = new Date().toISOString().slice(0,10);
+
+    function calNav(dir) { calMonth += dir; if (calMonth<1){calMonth=12;calYear--;} if (calMonth>12){calMonth=1;calYear++;} calRender(); }
+    function calGoToday() { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth()+1; calRender(); }
+
+    function calRender() {
+        document.getElementById('calTitle').textContent = calRoMonths[calMonth] + ' ' + calYear;
+        const firstDow = (new Date(calYear, calMonth-1, 1).getDay() + 6) % 7; // 0=Mon
+        const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+        const numRows = Math.ceil((firstDow + daysInMonth) / 7);
+
+        // build courses-by-day map
+        const byDay = {};
+        calCourses.forEach(c => { if (c.date) { if (!byDay[c.date]) byDay[c.date]=[]; byDay[c.date].push(c.title); } });
+
+        let html = calDow.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+        // Set grid rows dynamically
+        const grid = document.getElementById('calGrid');
+        grid.style.gridTemplateRows = `36px repeat(${numRows}, ${Math.max(80, Math.floor(480/numRows))}px)`;
+
+        for (let i=0; i<firstDow; i++) html += '<div class="cal-cell other-month"></div>';
+        for (let day=1; day<=daysInMonth; day++) {
+            const ds = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const isToday = ds === calToday;
+            html += `<div class="cal-cell${isToday?' today':''}">`;
+            html += isToday ? `<div class="cal-day-num"><span class="cal-circle">${day}</span></div>`
+                            : `<div class="cal-day-num">${day}</div>`;
+            (byDay[ds]||[]).forEach(title => {
+                const cls = isToday ? 'today-ev' : ds < calToday ? 'past' : 'future';
+                html += `<div class="cal-event ${cls}" title="${esc(title)}">${esc(title)}</div>`;
+            });
+            html += '</div>';
+        }
+        const trailing = (7 - ((firstDow + daysInMonth) % 7)) % 7;
+        for (let i=0; i<trailing; i++) html += '<div class="cal-cell other-month"></div>';
+        grid.innerHTML = html;
+    }
+    <?php if ($clp_ctab === 'calendar'): ?>document.addEventListener('DOMContentLoaded', calRender);<?php endif; ?>
 
     function clpFilter() {
         const q = document.getElementById('clpSearch').value.toLowerCase();

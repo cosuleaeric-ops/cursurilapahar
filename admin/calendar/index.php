@@ -1,9 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/auth_check.php';
-if (!is_authenticated()) {
-    header('Location: /admin/');
-    exit;
-}
+header('Location: /admin/?tab=cursuri&ctab=calendar');
+exit;
 
 $courses_file = dirname(__DIR__, 2) . '/data/courses.json';
 $all_courses  = file_exists($courses_file) ? (json_decode(file_get_contents($courses_file), true) ?: []) : [];
