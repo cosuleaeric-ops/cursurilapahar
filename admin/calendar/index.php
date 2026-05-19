@@ -56,7 +56,7 @@ include dirname(__DIR__) . '/statistici/layout_header.php';
 .cal-cell.today .cal-day-num { display:inline-flex; }
 .cal-day-num .today-circle { background:#1d4ed8; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
 .cal-event { display:block; border-radius:6px; overflow:hidden; margin-bottom:4px; }
-.cal-event img { width:100%; height:60px; object-fit:cover; display:block; border-radius:6px; }
+.cal-event img { width:100%; aspect-ratio:1/1; object-fit:contain; background:#f1f5f9; display:block; border-radius:6px; }
 .cal-event.past img { opacity:0.45; filter:grayscale(40%); }
 .cal-legend { display:flex; gap:16px; margin-top:12px; font-size:12px; color:#6b7280; align-items:center; flex-wrap:wrap; }
 .cal-legend span { display:flex; align-items:center; gap:6px; }
