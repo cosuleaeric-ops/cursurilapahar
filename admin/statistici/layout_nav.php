@@ -15,9 +15,7 @@
             <?php $_stat_path = $_SERVER['REQUEST_URI'] ?? ''; ?>
             <a href="/admin/"><span class="nav-icon">🏠</span> Dashboard</a>
             <div class="sidebar-section">Conținut</div>
-            <?php if (is_owner_auth()): ?>
             <a href="/admin/?tab=cursuri"><span class="nav-icon">📋</span> Cursuri</a>
-            <?php endif; ?>
             <a href="/admin/calendar/" class="<?= strpos($_stat_path, '/admin/calendar') === 0 ? 'active' : '' ?>"><span class="nav-icon">📅</span> Calendar</a>
             <a href="/admin/?tab=imagini"><span class="nav-icon">🖼️</span> Imagini</a>
             <a href="/admin/?tab=aspect"><span class="nav-icon">🎨</span> Aspect</a>

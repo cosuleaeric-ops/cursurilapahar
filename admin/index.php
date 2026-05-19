@@ -96,7 +96,7 @@ function can_access_tab(string $tab): bool {
     $user = clp_current_user();
     if (!$user) return false;
     if (($user['role'] ?? '') === 'owner') return true;
-    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'competitori', 'speakeri', 'locatii', 'colaborari', 'imagini', 'aspect']);
+    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'competitori', 'speakeri', 'locatii', 'colaborari', 'imagini', 'aspect', 'cursuri']);
 }
 function set_auth_cookie(string $username): void {
     $token = hash_hmac('sha256', 'clp_user:' . $username, get_auth_secret());
@@ -1542,11 +1542,9 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
                 <span class="nav-icon">🏠</span> Dashboard
             </a>
             <div class="sidebar-section">Conținut</div>
-            <?php if (is_owner()): ?>
             <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
                 <span class="nav-icon">📋</span> Cursuri
             </a>
-            <?php endif; ?>
             <a href="/admin/calendar/" class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/calendar') === 0 ? 'active' : '' ?>">
                 <span class="nav-icon">📅</span> Calendar
             </a>
