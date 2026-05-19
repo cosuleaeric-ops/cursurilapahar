@@ -908,7 +908,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
             'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
-            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE']) ? $_POST['sp_status'] : 'MID',
+            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
         if ($id) {
@@ -3433,7 +3433,7 @@ function spScoate(btn, id) {
             </div>
             <div class="form-group"><label>Status</label>
                 <select name="sp_status">
-                    <?php foreach (['RECURENT','MID','NOPE'] as $s): ?>
+                    <?php foreach (['RECURENT','MID','NOPE','CONTACTAT'] as $s): ?>
                     <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
                     <?php endforeach; ?>
                 </select>
