@@ -1196,6 +1196,24 @@ if (is_authenticated()) {
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 }
 
+$stat_courses = [];
+if (is_authenticated() && ($tab === 'cursuri')) {
+    $_stat_sqlite = __DIR__ . '/statistici/data/clp.sqlite';
+    if (file_exists($_stat_sqlite)) {
+        try {
+            $_sdb = new SQLite3($_stat_sqlite);
+            $_sdb->exec('PRAGMA journal_mode = WAL;');
+            $_sr = $_sdb->query("SELECT c.id, c.name, c.date,
+                (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
+                (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
+                (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
+                FROM courses c ORDER BY c.date DESC");
+            while ($_srow = $_sr->fetchArray(SQLITE3_ASSOC)) $stat_courses[] = $_srow;
+            $_sdb->close();
+        } catch (Exception $_e) { }
+    }
+}
+
 // ── Unread messages badge ─────────────────────────────────────────────────────
 $_msg_last_read_file = dirname(SETTINGS_FILE) . '/messages_last_read.txt';
 $_msg_log_file       = dirname(SETTINGS_FILE) . '/messages.log';
@@ -1989,14 +2007,44 @@ if (!empty($_ql)): ?>
         <?php else: $render_courses_table($courses_upcoming); endif; ?>
     </div>
 
-    <?php if (!empty($courses_past)): ?>
-    <!-- Courses table (past / auto-deactivated) -->
+    <!-- Statistici cursuri (from SQLite) -->
     <div class="card">
-        <div class="card-title">Cursuri trecute (<?= count($courses_past) ?>)</div>
-        <p style="color:var(--text-muted);margin:-4px 0 12px">Aceste cursuri au fost dezactivate automat după ce a trecut data evenimentului.</p>
-        <?php $render_courses_table($courses_past); ?>
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Statistici cursuri (<?= count($stat_courses) ?>)</span>
+            <a href="/admin/statistici/cursuri/" class="btn btn-secondary" style="font-size:12px">Vezi tot ↗</a>
+        </div>
+        <?php if (empty($stat_courses)): ?>
+        <p style="color:var(--text-muted)">Niciun curs în statistici încă. Se adaugă automat la importul unui curs nou.</p>
+        <?php else: ?>
+        <table class="wp-table">
+            <thead>
+                <tr>
+                    <th>Curs</th>
+                    <th>Dată</th>
+                    <th style="text-align:right">Bilete</th>
+                    <th style="text-align:center">Raport</th>
+                    <th style="text-align:center">Viză</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+            $_ro_m = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+            foreach ($stat_courses as $_sc):
+                [$_sy, $_sm, $_sd] = explode('-', $_sc['date'] . '--');
+                $_date_ro = ltrim($_sd, '0') . ' ' . ($_ro_m[(int)$_sm] ?? '') . ' ' . $_sy;
+            ?>
+                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_sc['id'] ?>'">
+                    <td style="font-weight:600"><?= h($_sc['name']) ?></td>
+                    <td style="color:var(--text-muted);white-space:nowrap"><?= h($_date_ro) ?></td>
+                    <td style="text-align:right"><?= (int)$_sc['total_tickets'] ?></td>
+                    <td style="text-align:center"><?= $_sc['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:center"><?= $_sc['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
     </div>
-    <?php endif; ?>
 
 <?php /* ======================================================= TAB: IMAGINI */ ?>
 <?php elseif ($tab === 'imagini'): ?>
