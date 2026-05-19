@@ -55,10 +55,9 @@ include dirname(__DIR__) . '/statistici/layout_header.php';
 .cal-day-num { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; line-height:1; }
 .cal-cell.today .cal-day-num { display:inline-flex; }
 .cal-day-num .today-circle { background:#1d4ed8; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
-.cal-event { font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; margin-bottom:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cal-event.future { background:#dbeafe; color:#1e40af; }
-.cal-event.past   { background:#f1f5f9; color:#9ca3af; }
-.cal-event.today-ev { background:#1d4ed8; color:#fff; }
+.cal-event { display:block; border-radius:6px; overflow:hidden; margin-bottom:4px; }
+.cal-event img { width:100%; height:60px; object-fit:cover; display:block; border-radius:6px; }
+.cal-event.past img { opacity:0.45; filter:grayscale(40%); }
 .cal-legend { display:flex; gap:16px; margin-top:12px; font-size:12px; color:#6b7280; align-items:center; flex-wrap:wrap; }
 .cal-legend span { display:flex; align-items:center; gap:6px; }
 .cal-legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
@@ -103,10 +102,15 @@ include dirname(__DIR__) . '/statistici/layout_nav.php';
             }
             if (!empty($courses_by_day[$date_str])) {
                 foreach ($courses_by_day[$date_str] as $c) {
-                    $is_past  = $date_str < $today_ymd;
-                    $ev_class = $is_today ? 'today-ev' : ($is_past ? 'past' : 'future');
-                    $title    = htmlspecialchars($c['title'] ?? '', ENT_QUOTES, 'UTF-8');
-                    echo '<div class="cal-event ' . $ev_class . '" title="' . $title . '">' . $title . '</div>';
+                    $is_past   = $date_str < $today_ymd;
+                    $ev_class  = $is_past ? 'past' : ($is_today ? 'today-ev' : 'future');
+                    $title     = htmlspecialchars($c['title'] ?? '', ENT_QUOTES, 'UTF-8');
+                    $image_url = htmlspecialchars($c['image_url'] ?? '', ENT_QUOTES, 'UTF-8');
+                    if ($image_url) {
+                        echo '<div class="cal-event ' . $ev_class . '" title="' . $title . '"><img src="' . $image_url . '" alt="' . $title . '"></div>';
+                    } else {
+                        echo '<div class="cal-event ' . $ev_class . '" title="' . $title . '" style="background:#dbeafe;color:#1e40af;padding:2px 6px;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' . $title . '</div>';
+                    }
                 }
             }
             echo '</div>';
