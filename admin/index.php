@@ -2240,7 +2240,7 @@ if (!empty($_ql)): ?>
         .cal-nav2 h3 { font-size:15px; font-weight:700; color:#111827; margin:0; flex:1; text-align:center; }
         #calGrid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
         .cal-dow  { background:#f8fafc; padding:8px 0; text-align:center; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
-        .cal-cell { background:#fff; padding:6px 8px; min-height:90px; }
+        .cal-cell { background:#fff; padding:6px 8px; overflow:hidden; }
         .cal-cell.other-month { background:#f9fafb; }
         .cal-cell.today { background:#eff6ff; }
         .cal-day-num { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; line-height:1; }
@@ -2389,9 +2389,9 @@ if (!empty($_ql)): ?>
 
         let html = calDow.map(d=>`<div class="cal-dow">${d}</div>`).join('');
 
-        // Set grid rows dynamically
         const grid = document.getElementById('calGrid');
-        grid.style.gridTemplateRows = `36px repeat(${numRows}, ${Math.max(80, Math.floor(480/numRows))}px)`;
+        grid.style.height = `calc(36px + ${numRows} * 120px)`;
+        grid.style.gridTemplateRows = `36px repeat(${numRows}, 1fr)`;
 
         for (let i=0; i<firstDow; i++) html += '<div class="cal-cell other-month"></div>';
         for (let day=1; day<=daysInMonth; day++) {
