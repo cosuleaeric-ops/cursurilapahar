@@ -2070,7 +2070,7 @@ if (!empty($_ql)): ?>
                 <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
             </div>
-            <div style="display:flex;align-items:center;gap:6px">
+            <div id="clpMonthNav" style="display:<?= $clp_ctab === 'calendar' ? 'none' : 'flex' ?>;align-items:center;gap:6px">
                 <button onclick="clpNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8592;</button>
                 <span id="clpMonthLabel" style="font-size:13px;font-weight:600;min-width:90px;text-align:center"><?= ucfirst($clp_ro_months[$clp_month ?? 1]) . ' ' . ($clp_year ?? date('Y')) ?></span>
                 <button onclick="clpNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8594;</button>
@@ -2271,6 +2271,7 @@ if (!empty($_ql)): ?>
         document.querySelectorAll('.clp-tab-panel').forEach(p => p.classList.remove('active'));
         document.getElementById('clp-panel-' + t).classList.add('active');
         e.currentTarget.classList.add('active');
+        document.getElementById('clpMonthNav').style.display = t === 'calendar' ? 'none' : 'flex';
         if (t === 'calendar') calRender();
     }
     function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
