@@ -908,7 +908,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
             'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
-            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT','MEET']) ? $_POST['sp_status'] : 'MID',
+            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
         // preserve existing meet data and merge new meet fields
@@ -938,7 +938,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save_speaker_status') {
         $id     = trim($_POST['id'] ?? '');
         $status = trim($_POST['status'] ?? '');
-        if ($id && in_array($status, ['RECURENT','MID','NOPE','CONTACTAT','MEET'])) {
+        if ($id && in_array($status, ['RECURENT','MID','NOPE','CONTACTAT'])) {
             $items = load_speakers();
             foreach ($items as &$it) {
                 if (($it['id'] ?? '') === $id) { $it['status'] = $status; break; }
@@ -3308,7 +3308,7 @@ $_competitors = [
 <?php
 $speakers    = load_speakers();
 usort($speakers, function($a, $b) {
-    $order = ['MEET' => 0, 'CONTACTAT' => 1, 'RECURENT' => 2, 'MID' => 3, 'NOPE' => 4];
+    $order = ['CONTACTAT' => 0, 'RECURENT' => 1, 'MID' => 2, 'NOPE' => 3];
     return ($order[$a['status'] ?? 'MID'] ?? 2) <=> ($order[$b['status'] ?? 'MID'] ?? 2);
 });
 $edit_sp     = null;
@@ -3318,7 +3318,7 @@ if ($edit_sp_id) {
         if (($sp['id'] ?? '') === $edit_sp_id) { $edit_sp = $sp; break; }
     }
 }
-$sp_status_colors = ['MEET' => '#7c3aed', 'RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626', 'CONTACTAT' => '#2271b1'];
+$sp_status_colors = ['CONTACTAT' => '#2271b1', 'RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626'];
 $_sp_meta = load_msg_meta();
 $_sp_log  = dirname(SETTINGS_FILE) . '/messages.log';
 $_sp_contacted = [];
@@ -3353,13 +3353,11 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 .crm-form { max-width:580px !important; }
 .sp-filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
 .sp-filter-btn { border:1px solid #e5e7eb; background:#fff; color:#374151; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:.15s; }
-.sp-filter-btn[data-status="MEET"]     { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
 .sp-filter-btn[data-status="RECURENT"] { background:#dcfce7; border-color:#86efac; color:#15803d; }
 .sp-filter-btn[data-status="MID"]      { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
 .sp-filter-btn[data-status="NOPE"]     { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
 .sp-filter-btn[data-status="CONTACTAT"]{ background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
 .sp-filter-btn[data-status="all"].active      { background:#1d4ed8; border-color:#1d4ed8; }
-.sp-filter-btn[data-status="MEET"].active     { background:#7c3aed; border-color:#7c3aed; }
 .sp-filter-btn[data-status="RECURENT"].active { background:#16a34a; border-color:#16a34a; }
 .sp-filter-btn[data-status="MID"].active      { background:#d97706; border-color:#d97706; }
 .sp-filter-btn[data-status="NOPE"].active     { background:#dc2626; border-color:#dc2626; }
@@ -3392,7 +3390,6 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
         <button class="sp-filter-btn" data-status="RECURENT" onclick="spFilter(this)">RECURENT</button>
         <button class="sp-filter-btn" data-status="MID" onclick="spFilter(this)">MID</button>
         <button class="sp-filter-btn" data-status="NOPE" onclick="spFilter(this)">NOPE</button>
-        <button class="sp-filter-btn" data-status="MEET" onclick="spFilter(this)">MEET</button>
         <button class="sp-filter-btn" data-status="CONTACTAT" onclick="spFilter(this)">CONTACTAT</button>
     </div>
     <table class="wp-table crm-table" id="sp-main-table">
@@ -3504,11 +3501,17 @@ function spScoate(btn, id) {
 
 <div id="sp-modal" style="display:<?= $edit_sp ? 'flex' : 'none' ?>;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
 <div class="card crm-form" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
-    <button type="button" onclick="document.getElementById('sp-modal').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1">×</button>
     <div class="card-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
     <form method="post" action="/admin/?tab=speakeri">
         <input type="hidden" name="action" value="save_speaker">
         <input type="hidden" name="speaker_id" value="<?= h($edit_sp['id'] ?? '') ?>">
+        <!-- Modal tabs -->
+        <div style="display:flex;gap:4px;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:20px;width:fit-content">
+            <button type="button" id="sp-tab-btn-contact" onclick="spModalTab('contact')" style="padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1)">Contact</button>
+            <button type="button" id="sp-tab-btn-meet" onclick="spModalTab('meet')" style="padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#6b7280">Meet</button>
+        </div>
+        <!-- Tab: Contact -->
+        <div id="sp-tab-contact">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
             <div class="form-group"><label>Nume *</label><input type="text" name="sp_name" value="<?= h($edit_sp['name'] ?? '') ?>" required></div>
             <div class="form-group"><label>Email</label><input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>"></div>
@@ -3543,36 +3546,47 @@ function spScoate(btn, id) {
             </div>
             <div class="form-group"><label>Status</label>
                 <select name="sp_status">
-                    <?php foreach (['MEET','CONTACTAT','RECURENT','MID','NOPE'] as $s): ?>
+                    <?php foreach (['CONTACTAT','RECURENT','MID','NOPE'] as $s): ?>
                     <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
         </div>
         <div class="form-group"><label>Note</label><textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea></div>
+        </div>
+        <!-- Tab: Meet -->
+        <div id="sp-tab-meet" style="display:none">
         <?php
         $mf = ['auzit'=>'Cum ai auzit de Cursuri la Pahar?','ocupatie'=>'Cu ce te ocupi?','pasiune'=>'Ce te pasionează cel mai mult la subiectul ăsta și crezi că ar fi valoros pentru oameni?','teme'=>'Ai mai avea alte idei de teme?','dinamica'=>'Cum vezi tu dinamica cu publicul? Cum ți-ar plăcea să arate?','experienta'=>'Unde ai mai ținut cursuri și cum s-au desfășurat? Ai vreo prezentare pe care ai folosit-o?','contract'=>'Contract (prezentare, durata, onorariu)','curiozitati'=>'Curiozități?','program'=>'Program pe perioada următoare'];
         ?>
-        <div style="border-top:1px solid var(--border);margin:20px 0 16px;padding-top:16px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:14px">Note Meet</div>
-            <?php foreach ($mf as $k => $lbl): ?>
-            <div class="form-group">
-                <label><?= h($lbl) ?></label>
-                <textarea name="meet_<?= $k ?>" rows="2"><?= h($edit_sp['meet'][$k] ?? '') ?></textarea>
-            </div>
-            <?php endforeach; ?>
+        <?php foreach ($mf as $k => $lbl): ?>
+        <div class="form-group">
+            <label><?= h($lbl) ?></label>
+            <textarea name="meet_<?= $k ?>" rows="2"><?= h($edit_sp['meet'][$k] ?? '') ?></textarea>
         </div>
-        <div style="display:flex;gap:8px">
+        <?php endforeach; ?>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px">
             <button type="submit" class="btn btn-primary btn-sm"><?= $edit_sp ? 'Salvează' : 'Adaugă speakerul' ?></button>
             <a href="/admin/?tab=speakeri" class="btn btn-secondary btn-sm">Anulează</a>
         </div>
+    </form>
+<script>
+function spModalTab(tab) {
+    document.getElementById('sp-tab-contact').style.display = tab === 'contact' ? '' : 'none';
+    document.getElementById('sp-tab-meet').style.display   = tab === 'meet'    ? '' : 'none';
+    document.getElementById('sp-tab-btn-contact').style.cssText = tab==='contact' ? 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1)' : 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#6b7280';
+    document.getElementById('sp-tab-btn-meet').style.cssText    = tab==='meet'    ? 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1)' : 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#6b7280';
+}
+</script>
+
     </form>
 </div>
 </div>
 
 <!-- Status quick-change popover -->
 <div id="sp-status-pop" class="sp-status-popover" style="display:none">
-<?php foreach (['MEET'=>'#7c3aed','CONTACTAT'=>'#2271b1','RECURENT'=>'#16a34a','MID'=>'#d97706','NOPE'=>'#dc2626'] as $_ss=>$_sc): ?>
+<?php foreach (['CONTACTAT'=>'#2271b1','RECURENT'=>'#16a34a','MID'=>'#d97706','NOPE'=>'#dc2626'] as $_ss=>$_sc): ?>
 <button onclick="spSetStatus('<?= $_ss ?>')" style="color:<?= $_sc ?>"><?= $_ss ?></button>
 <?php endforeach; ?>
 </div>
