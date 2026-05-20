@@ -3357,7 +3357,8 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 .sp-filter-btn[data-status="MID"]      { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
 .sp-filter-btn[data-status="NOPE"]     { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
 .sp-filter-btn[data-status="CONTACTAT"]{ background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
-.sp-filter-btn[data-status="all"].active      { background:#1d4ed8; border-color:#1d4ed8; }
+.sp-filter-btn[data-status="all"]             { background:#f1f5f9; border-color:#cbd5e1; color:#374151; }
+.sp-filter-btn[data-status="all"].active      { background:#374151; border-color:#374151; color:#fff; }
 .sp-filter-btn[data-status="RECURENT"].active { background:#16a34a; border-color:#16a34a; }
 .sp-filter-btn[data-status="MID"].active      { background:#d97706; border-color:#d97706; }
 .sp-filter-btn[data-status="NOPE"].active     { background:#dc2626; border-color:#dc2626; }
