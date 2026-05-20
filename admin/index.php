@@ -2262,8 +2262,8 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
 
         <!-- Tab: Calendar -->
         <style>
-        .cal-nav2 { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-        .cal-nav2 h3 { font-size:15px; font-weight:700; color:#111827; margin:0; flex:1; text-align:center; }
+        .cal-nav2 { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:16px; }
+        .cal-nav2 h3 { font-size:15px; font-weight:700; color:#111827; margin:0; }
         #calGrid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
         .cal-dow  { background:#f8fafc; padding:8px 0; text-align:center; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
         .cal-cell { background:#fff; padding:6px 8px; overflow:hidden; }
