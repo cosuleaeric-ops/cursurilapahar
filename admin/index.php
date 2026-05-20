@@ -2126,7 +2126,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
             </div>
-            <div id="clpMonthNav" style="display:<?= $clp_ctab === 'calendar' ? 'none' : 'flex' ?>;align-items:center;gap:6px">
+            <div id="clpMonthNav" style="display:flex;align-items:center;gap:6px">
                 <button onclick="clpNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8592;</button>
                 <span id="clpMonthLabel" style="font-size:13px;font-weight:600;min-width:90px;text-align:center"><?= ucfirst($clp_ro_months[$clp_month ?? 1]) . ' ' . ($clp_year ?? date('Y')) ?></span>
                 <button onclick="clpNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8594;</button>
@@ -2262,8 +2262,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
 
         <!-- Tab: Calendar -->
         <style>
-        .cal-nav2 { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:16px; }
-        .cal-nav2 h3 { font-size:15px; font-weight:700; color:#111827; margin:0; }
         #calGrid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
         .cal-dow  { background:#f8fafc; padding:8px 0; text-align:center; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
         .cal-cell { background:#fff; padding:6px 8px; overflow:hidden; }
@@ -2277,11 +2275,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         .cal-event.today-ev { background:#1d4ed8; color:#fff; }
         </style>
         <div class="clp-tab-panel <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" id="clp-panel-calendar">
-            <div class="cal-nav2">
-                <button onclick="calNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important">&#8592;</button>
-                <h3 id="calTitle"></h3>
-                <button onclick="calNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important">&#8594;</button>
-            </div>
+
             <div id="calGrid"></div>
             <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:#6b7280;flex-wrap:wrap">
                 <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#dbeafe;border:1px solid #bfdbfe;display:inline-block"></span> Curs viitor</span>
@@ -2296,7 +2290,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         document.querySelectorAll('.clp-tab-panel').forEach(p => p.classList.remove('active'));
         document.getElementById('clp-panel-' + t).classList.add('active');
         e.currentTarget.classList.add('active');
-        document.getElementById('clpMonthNav').style.display = t === 'calendar' ? 'none' : 'flex';
         if (t === 'calendar') calRender();
     }
     function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
@@ -2398,13 +2391,13 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     function calNav(dir) {
         calMonth += dir; if (calMonth<1){calMonth=12;calYear--;} if (calMonth>12){calMonth=1;calYear++;}
         clpYear = calYear; clpMonth = calMonth;
-        document.getElementById('clpMonthLabel').textContent = clpRoMonths[clpMonth].charAt(0).toUpperCase() + clpRoMonths[clpMonth].slice(1) + ' ' + clpYear;
+        clpLoadMonth();
         calRender();
     }
     function calGoToday() { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth()+1; calRender(); }
 
     function calRender() {
-        document.getElementById('calTitle').textContent = calRoMonths[calMonth] + ' ' + calYear;
+        document.getElementById('clpMonthLabel').textContent = calRoMonths[calMonth].charAt(0).toUpperCase() + calRoMonths[calMonth].slice(1) + ' ' + calYear;
         const firstDow = (new Date(calYear, calMonth-1, 1).getDay() + 6) % 7; // 0=Mon
         const daysInMonth = new Date(calYear, calMonth, 0).getDate();
         const numRows = Math.ceil((firstDow + daysInMonth) / 7);
