@@ -1891,22 +1891,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             <?php endif; ?>
         </div>
 
-        <!-- Top fideli -->
-        <div class="dash-section">
-            <div class="dash-section-title"><span>Participanti fideli</span></div>
-            <?php if (empty($_dash_top_fideli)): ?>
-                <p style="color:var(--text-muted);font-size:13px">Niciun participant recurent.</p>
-            <?php else: ?>
-                <table class="dash-table">
-                <?php foreach ($_dash_top_fideli as $_tf): ?>
-                    <tr>
-                        <td style="font-weight:600"><?= h($_tf['participant_name']) ?></td>
-                        <td style="text-align:right"><span class="fidel-badge"><?= $_tf['nr_cursuri'] ?> cursuri</span></td>
-                    </tr>
-                <?php endforeach; ?>
-                </table>
-            <?php endif; ?>
-        </div>
     </div>
 </div>
 
