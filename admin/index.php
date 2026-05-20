@@ -930,7 +930,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $items[] = $entry;
         }
         save_speakers($items);
-        header('Location: /admin/?tab=speakeri&saved=1');
+        header('Location: /admin/?tab=speakeri&edit=' . urlencode($entry['id']) . '&saved=1');
         exit;
     }
 
@@ -3543,7 +3543,7 @@ function spScoate(btn, id) {
             </div>
             <div class="form-group"><label>Status</label>
                 <select name="sp_status">
-                    <?php foreach (['RECURENT','MID','NOPE','CONTACTAT'] as $s): ?>
+                    <?php foreach (['MEET','CONTACTAT','RECURENT','MID','NOPE'] as $s): ?>
                     <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
                     <?php endforeach; ?>
                 </select>
