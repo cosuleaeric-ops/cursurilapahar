@@ -3550,7 +3550,7 @@ function spScoate(btn, id) {
             </div>
         </div>
         <div class="form-group"><label>Note</label><textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea></div>
-        <?php if ($edit_sp):
+        <?php
         $mf = ['auzit'=>'Cum ai auzit de Cursuri la Pahar?','ocupatie'=>'Cu ce te ocupi?','pasiune'=>'Ce te pasionează cel mai mult la subiectul ăsta și crezi că ar fi valoros pentru oameni?','teme'=>'Ai mai avea alte idei de teme?','dinamica'=>'Cum vezi tu dinamica cu publicul? Cum ți-ar plăcea să arate?','experienta'=>'Unde ai mai ținut cursuri și cum s-au desfășurat? Ai vreo prezentare pe care ai folosit-o?','contract'=>'Contract (prezentare, durata, onorariu)','curiozitati'=>'Curiozități?','program'=>'Program pe perioada următoare'];
         ?>
         <div style="border-top:1px solid var(--border);margin:20px 0 16px;padding-top:16px">
@@ -3562,7 +3562,6 @@ function spScoate(btn, id) {
             </div>
             <?php endforeach; ?>
         </div>
-        <?php endif; ?>
         <div style="display:flex;gap:8px">
             <button type="submit" class="btn btn-primary btn-sm"><?= $edit_sp ? 'Salvează' : 'Adaugă speakerul' ?></button>
             <a href="/admin/?tab=speakeri" class="btn btn-secondary btn-sm">Anulează</a>
