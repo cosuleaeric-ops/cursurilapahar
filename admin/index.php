@@ -3258,6 +3258,10 @@ $_competitors = [
 
 <?php
 $speakers    = load_speakers();
+usort($speakers, function($a, $b) {
+    $order = ['CONTACTAT' => 0, 'RECURENT' => 1, 'MID' => 2, 'NOPE' => 3];
+    return ($order[$a['status'] ?? 'MID'] ?? 2) <=> ($order[$b['status'] ?? 'MID'] ?? 2);
+});
 $edit_sp     = null;
 $edit_sp_id  = $_GET['edit'] ?? '';
 if ($edit_sp_id) {
