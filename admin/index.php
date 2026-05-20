@@ -908,13 +908,21 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
             'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
-            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT']) ? $_POST['sp_status'] : 'MID',
+            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT','MEET']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
+        // preserve existing meet data and merge new meet fields
+        $meet_fields = ['auzit','ocupatie','pasiune','teme','dinamica','experienta','contract','curiozitati','program'];
+        $meet = [];
+        foreach ($meet_fields as $f) $meet[$f] = trim($_POST['meet_' . $f] ?? '');
+        if (array_filter($meet)) $entry['meet'] = $meet;
         if ($id) {
             $found = false;
             foreach ($items as &$it) {
-                if (($it['id'] ?? '') === $id) { $it = $entry; $found = true; break; }
+                if (($it['id'] ?? '') === $id) {
+                    if (empty(array_filter($meet)) && !empty($it['meet'])) $entry['meet'] = $it['meet'];
+                    $it = $entry; $found = true; break;
+                }
             }
             unset($it);
             if (!$found) $items[] = $entry;
@@ -923,6 +931,22 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         save_speakers($items);
         header('Location: /admin/?tab=speakeri&saved=1');
+        exit;
+    }
+
+    // ── Quick status change
+    if ($action === 'save_speaker_status') {
+        $id     = trim($_POST['id'] ?? '');
+        $status = trim($_POST['status'] ?? '');
+        if ($id && in_array($status, ['RECURENT','MID','NOPE','CONTACTAT','MEET'])) {
+            $items = load_speakers();
+            foreach ($items as &$it) {
+                if (($it['id'] ?? '') === $id) { $it['status'] = $status; break; }
+            }
+            unset($it);
+            save_speakers($items);
+        }
+        header('Location: /admin/?tab=speakeri');
         exit;
     }
 
@@ -3284,7 +3308,7 @@ $_competitors = [
 <?php
 $speakers    = load_speakers();
 usort($speakers, function($a, $b) {
-    $order = ['CONTACTAT' => 0, 'RECURENT' => 1, 'MID' => 2, 'NOPE' => 3];
+    $order = ['MEET' => 0, 'CONTACTAT' => 1, 'RECURENT' => 2, 'MID' => 3, 'NOPE' => 4];
     return ($order[$a['status'] ?? 'MID'] ?? 2) <=> ($order[$b['status'] ?? 'MID'] ?? 2);
 });
 $edit_sp     = null;
@@ -3294,7 +3318,7 @@ if ($edit_sp_id) {
         if (($sp['id'] ?? '') === $edit_sp_id) { $edit_sp = $sp; break; }
     }
 }
-$sp_status_colors = ['RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626'];
+$sp_status_colors = ['MEET' => '#7c3aed', 'RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626', 'CONTACTAT' => '#2271b1'];
 $_sp_meta = load_msg_meta();
 $_sp_log  = dirname(SETTINGS_FILE) . '/messages.log';
 $_sp_contacted = [];
@@ -3329,16 +3353,20 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 .crm-form { max-width:580px !important; }
 .sp-filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
 .sp-filter-btn { border:1px solid #e5e7eb; background:#fff; color:#374151; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:.15s; }
+.sp-filter-btn[data-status="MEET"]     { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
 .sp-filter-btn[data-status="RECURENT"] { background:#dcfce7; border-color:#86efac; color:#15803d; }
 .sp-filter-btn[data-status="MID"]      { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
 .sp-filter-btn[data-status="NOPE"]     { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
 .sp-filter-btn[data-status="CONTACTAT"]{ background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
-.sp-filter-btn.active                  { color:#fff; box-shadow:inset 0 0 0 2px rgba(0,0,0,.15); }
 .sp-filter-btn[data-status="all"].active      { background:#1d4ed8; border-color:#1d4ed8; }
+.sp-filter-btn[data-status="MEET"].active     { background:#7c3aed; border-color:#7c3aed; }
 .sp-filter-btn[data-status="RECURENT"].active { background:#16a34a; border-color:#16a34a; }
 .sp-filter-btn[data-status="MID"].active      { background:#d97706; border-color:#d97706; }
 .sp-filter-btn[data-status="NOPE"].active     { background:#dc2626; border-color:#dc2626; }
 .sp-filter-btn[data-status="CONTACTAT"].active{ background:#2271b1; border-color:#2271b1; }
+.sp-status-popover { position:absolute; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.12); padding:6px; z-index:9999; display:flex; flex-direction:column; gap:3px; min-width:110px; }
+.sp-status-popover button { border:none; background:none; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; text-align:left; }
+.sp-status-popover button:hover { background:#f1f5f9; }
 .sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; display:inline-flex; align-items:center; line-height:1; }
 .sp-copy-btn:hover { border-color:#2271b1; color:#2271b1; }
 .crm-form .form-group { margin-bottom:8px !important; }
@@ -3364,6 +3392,7 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
         <button class="sp-filter-btn" data-status="RECURENT" onclick="spFilter(this)">RECURENT</button>
         <button class="sp-filter-btn" data-status="MID" onclick="spFilter(this)">MID</button>
         <button class="sp-filter-btn" data-status="NOPE" onclick="spFilter(this)">NOPE</button>
+        <button class="sp-filter-btn" data-status="MEET" onclick="spFilter(this)">MEET</button>
         <button class="sp-filter-btn" data-status="CONTACTAT" onclick="spFilter(this)">CONTACTAT</button>
     </div>
     <table class="wp-table crm-table" id="sp-main-table">
@@ -3417,11 +3446,10 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
             </td>
             <td>
                 <?php $sc = $sp_status_colors[$sp['status'] ?? 'MID'] ?? '#6b7280'; ?>
-                <span class="crm-status-badge" style="background:<?= $sc ?>"><?= h($sp['status'] ?? 'MID') ?></span>
+                <span class="crm-status-badge" style="background:<?= $sc ?>;cursor:pointer;user-select:none;position:relative" onclick="spStatusPop(this,'<?= h($sp['id'] ?? '') ?>')"><?= h($sp['status'] ?? 'MID') ?></span>
             </td>
             <td>
                 <div class="row-actions">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="openMeet(<?= h(json_encode(['id' => $sp['id'] ?? '', 'name' => $sp['name'] ?? '', 'meet' => $sp['meet'] ?? []])) ?>)">Meet<?= !empty($sp['meet']) && array_filter($sp['meet']) ? ' ✓' : '' ?></button>
                     <a href="/admin/?tab=speakeri&edit=<?= h($sp['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
                     <form method="post" action="/admin/?tab=speakeri" onsubmit="return confirm('Ștergi speakerul?')" style="display:inline">
                         <input type="hidden" name="action" value="delete_speaker">
@@ -3522,6 +3550,19 @@ function spScoate(btn, id) {
             </div>
         </div>
         <div class="form-group"><label>Note</label><textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea></div>
+        <?php if ($edit_sp):
+        $mf = ['auzit'=>'Cum ai auzit de Cursuri la Pahar?','ocupatie'=>'Cu ce te ocupi?','pasiune'=>'Ce te pasionează cel mai mult la subiectul ăsta și crezi că ar fi valoros pentru oameni?','teme'=>'Ai mai avea alte idei de teme?','dinamica'=>'Cum vezi tu dinamica cu publicul? Cum ți-ar plăcea să arate?','experienta'=>'Unde ai mai ținut cursuri și cum s-au desfășurat? Ai vreo prezentare pe care ai folosit-o?','contract'=>'Contract (prezentare, durata, onorariu)','curiozitati'=>'Curiozități?','program'=>'Program pe perioada următoare'];
+        ?>
+        <div style="border-top:1px solid var(--border);margin:20px 0 16px;padding-top:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:14px">Note Meet</div>
+            <?php foreach ($mf as $k => $lbl): ?>
+            <div class="form-group">
+                <label><?= h($lbl) ?></label>
+                <textarea name="meet_<?= $k ?>" rows="2"><?= h($edit_sp['meet'][$k] ?? '') ?></textarea>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
         <div style="display:flex;gap:8px">
             <button type="submit" class="btn btn-primary btn-sm"><?= $edit_sp ? 'Salvează' : 'Adaugă speakerul' ?></button>
             <a href="/admin/?tab=speakeri" class="btn btn-secondary btn-sm">Anulează</a>
@@ -3530,52 +3571,39 @@ function spScoate(btn, id) {
 </div>
 </div>
 
-<!-- Meet modal -->
-<div id="meet-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
-    <div style="background:#fff;border-radius:16px;padding:32px;width:min(640px,95vw);max-height:90vh;overflow-y:auto;position:relative">
-        <button type="button" onclick="document.getElementById('meet-modal').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1">×</button>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:4px">Meet</div>
-        <h2 id="meet-modal-name" style="font-size:18px;font-weight:700;margin-bottom:24px;color:#111827"></h2>
-        <form method="post" action="/admin/?tab=speakeri">
-            <input type="hidden" name="action" value="save_meet">
-            <input type="hidden" name="meet_speaker_id" id="meet-speaker-id">
-            <?php
-            $meet_fields = [
-                'auzit'      => 'Cum ai auzit de Cursuri la Pahar?',
-                'ocupatie'   => 'Cu ce te ocupi?',
-                'pasiune'    => 'Ce te pasionează cel mai mult la subiectul ăsta și crezi că ar fi valoros pentru oameni?',
-                'teme'       => 'Ai mai avea alte idei de teme?',
-                'dinamica'   => 'Cum vezi tu dinamica cu publicul? Cum ți-ar plăcea să arate?',
-                'experienta' => 'Unde ai mai ținut cursuri și cum s-au desfășurat? Dacă da, ai vreo prezentare pe care ai folosit-o atunci?',
-                'contract'   => 'Contract (prezentare, durata, onorariu)',
-                'curiozitati'=> 'Curiozități?',
-                'program'    => 'Program pe perioada următoare',
-            ];
-            foreach ($meet_fields as $key => $label): ?>
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em"><?= h($label) ?></label>
-                <textarea name="meet_<?= $key ?>" id="meet-<?= $key ?>" rows="2" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical"></textarea>
-            </div>
-            <?php endforeach; ?>
-            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
-                <button type="button" onclick="document.getElementById('meet-modal').style.display='none'" class="btn btn-secondary">Anulează</button>
-                <button type="submit" class="btn btn-primary">Salvează</button>
-            </div>
-        </form>
-    </div>
+<!-- Status quick-change popover -->
+<div id="sp-status-pop" class="sp-status-popover" style="display:none">
+<?php foreach (['MEET'=>'#7c3aed','CONTACTAT'=>'#2271b1','RECURENT'=>'#16a34a','MID'=>'#d97706','NOPE'=>'#dc2626'] as $_ss=>$_sc): ?>
+<button onclick="spSetStatus('<?= $_ss ?>')" style="color:<?= $_sc ?>"><?= $_ss ?></button>
+<?php endforeach; ?>
 </div>
 <script>
-function openMeet(data) {
-    document.getElementById('meet-speaker-id').value = data.id;
-    document.getElementById('meet-modal-name').textContent = data.name;
-    const fields = ['auzit','ocupatie','pasiune','teme','dinamica','experienta','contract','curiozitati','program'];
-    fields.forEach(f => {
-        const el = document.getElementById('meet-' + f);
-        if (el) el.value = (data.meet && data.meet[f]) || '';
-    });
-    document.getElementById('meet-modal').style.display = 'flex';
+let _spPopId = null, _spPopBadge = null;
+function spStatusPop(badge, id) {
+    const pop = document.getElementById('sp-status-pop');
+    if (_spPopBadge === badge && pop.style.display !== 'none') { pop.style.display='none'; _spPopBadge=null; return; }
+    _spPopId = id; _spPopBadge = badge;
+    const r = badge.getBoundingClientRect();
+    pop.style.top  = (r.bottom + window.scrollY + 4) + 'px';
+    pop.style.left = r.left + 'px';
+    pop.style.position = 'absolute';
+    pop.style.display = 'flex';
 }
+function spSetStatus(status) {
+    const pop = document.getElementById('sp-status-pop');
+    pop.style.display = 'none';
+    const fd = new FormData();
+    fd.append('action', 'save_speaker_status');
+    fd.append('id', _spPopId);
+    fd.append('status', status);
+    fetch('/admin/?tab=speakeri', {method:'POST', body:fd}).then(() => location.reload());
+}
+document.addEventListener('click', e => {
+    const pop = document.getElementById('sp-status-pop');
+    if (pop && !pop.contains(e.target) && !e.target.classList.contains('crm-status-badge')) pop.style.display = 'none';
+});
 </script>
+
 
 <?php /* ======================================================= TAB: LOCATII */ ?>
 <?php elseif ($tab === 'locatii'): ?>
