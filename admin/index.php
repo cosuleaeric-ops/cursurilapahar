@@ -2267,7 +2267,9 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         clpMonth += dir;
         if (clpMonth < 1)  { clpMonth = 12; clpYear--; }
         if (clpMonth > 12) { clpMonth = 1;  clpYear++; }
+        calYear = clpYear; calMonth = clpMonth;
         clpLoadMonth();
+        if (document.getElementById('clp-panel-calendar').classList.contains('active')) calRender();
     }
 
     async function clpLoadMonth() {
@@ -2351,7 +2353,12 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     let calYear = <?= date('Y') ?>, calMonth = <?= date('n') ?>;
     const calToday = new Date().toISOString().slice(0,10);
 
-    function calNav(dir) { calMonth += dir; if (calMonth<1){calMonth=12;calYear--;} if (calMonth>12){calMonth=1;calYear++;} calRender(); }
+    function calNav(dir) {
+        calMonth += dir; if (calMonth<1){calMonth=12;calYear--;} if (calMonth>12){calMonth=1;calYear++;}
+        clpYear = calYear; clpMonth = calMonth;
+        document.getElementById('clpMonthLabel').textContent = clpRoMonths[clpMonth].charAt(0).toUpperCase() + clpRoMonths[clpMonth].slice(1) + ' ' + clpYear;
+        calRender();
+    }
     function calGoToday() { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth()+1; calRender(); }
 
     function calRender() {
@@ -3352,6 +3359,23 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
             </tr>
         </thead>
         <tbody>
+        <?php foreach ($_sp_contacted as $c): ?>
+        <tr data-msg-id="<?= h($c['id']) ?>">
+            <td style="font-weight:600"><?= h($c['name']) ?></td>
+            <td style="font-size:13px">
+                <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
+                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
+            </td>
+            <td></td>
+            <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
+            <td>
+                <div class="row-actions">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= h(json_encode(['name'=>$c['name'],'email'=>$c['email'],'phone'=>$c['phone']])) ?>)">Editează</button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
+                </div>
+            </td>
+        </tr>
+        <?php endforeach; ?>
         <?php foreach ($speakers as $sp): ?>
         <tr>
             <td style="font-weight:600">
@@ -3385,23 +3409,6 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
                         <input type="hidden" name="id" value="<?= h($sp['id'] ?? '') ?>">
                         <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
                     </form>
-                </div>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-        <?php foreach ($_sp_contacted as $c): ?>
-        <tr data-msg-id="<?= h($c['id']) ?>">
-            <td style="font-weight:600"><?= h($c['name']) ?></td>
-            <td style="font-size:13px">
-                <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
-                <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
-            </td>
-            <td></td>
-            <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
-            <td>
-                <div class="row-actions">
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= h(json_encode(['name'=>$c['name'],'email'=>$c['email'],'phone'=>$c['phone']])) ?>)">Editează</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
                 </div>
             </td>
         </tr>
