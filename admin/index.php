@@ -1787,25 +1787,66 @@ if (!empty($_ql)): ?>
     </div>
 </div>
 
+<?php
+// Mini calendar: 3 weeks starting from Monday of current week
+$_mc_today   = new DateTime('now', new DateTimeZone('Europe/Bucharest'));
+$_mc_dow     = (int)$_mc_today->format('N'); // 1=Mon
+$_mc_start   = clone $_mc_today;
+$_mc_start->modify('-' . ($_mc_dow - 1) . ' days'); // Monday of current week
+$_mc_by_day  = [];
+foreach ($_dash_courses as $_c) {
+    $d = $_c['date_raw'] ?? '';
+    if ($d) $_mc_by_day[$d][] = $_c;
+}
+$_mc_today_str = $_mc_today->format('Y-m-d');
+?>
+
+<div class="dash-section" style="margin-bottom:20px">
+    <div class="dash-section-title" style="margin-bottom:10px">
+        <span>Urmatoarele cursuri</span>
+        <a href="?tab=cursuri" style="font-size:12px;font-weight:400;color:var(--primary);text-decoration:none;margin-left:10px">+ Adaugă</a>
+    </div>
+    <style>
+    .mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; }
+    .mini-cal-dow { background:#f8fafc; padding:5px 0; text-align:center; font-size:9px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.05em; }
+    .mini-cal-cell { background:#fff; padding:4px 5px; height:72px; overflow:hidden; }
+    .mini-cal-cell.today { background:#eff6ff; }
+    .mini-cal-cell.past  { background:#fafafa; }
+    .mini-cal-day { font-size:11px; font-weight:600; color:#9ca3af; margin-bottom:3px; line-height:1; }
+    .mini-cal-cell.today .mini-cal-day { display:inline-flex; align-items:center; justify-content:center; background:#1d4ed8; color:#fff; width:18px; height:18px; border-radius:50%; font-size:10px; }
+    .mini-cal-event { font-size:9px; font-weight:600; padding:1px 4px; border-radius:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+    .mini-cal-event.future { background:#dbeafe; color:#1e40af; }
+    .mini-cal-event.past   { background:#f1f5f9; color:#9ca3af; }
+    .mini-cal-event.today-ev { background:#1d4ed8; color:#fff; }
+    </style>
+    <div class="mini-cal">
+        <?php foreach (['Lu','Ma','Mi','Jo','Vi','Sâ','Du'] as $_dl): ?>
+        <div class="mini-cal-dow"><?= $_dl ?></div>
+        <?php endforeach; ?>
+        <?php
+        $_mc_cur = clone $_mc_start;
+        for ($i = 0; $i < 21; $i++):
+            $ds       = $_mc_cur->format('Y-m-d');
+            $day_num  = $_mc_cur->format('j');
+            $is_today = $ds === $_mc_today_str;
+            $is_past  = $ds < $_mc_today_str;
+            $cell_cls = $is_today ? 'today' : ($is_past ? 'past' : '');
+        ?>
+        <div class="mini-cal-cell <?= $cell_cls ?>">
+            <div class="mini-cal-day"><?= $day_num ?></div>
+            <?php foreach ($_mc_by_day[$ds] ?? [] as $_mc_c):
+                $ev_cls = $is_today ? 'today-ev' : ($is_past ? 'past' : 'future');
+            ?>
+            <div class="mini-cal-event <?= $ev_cls ?>" title="<?= h($_mc_c['title'] ?? '') ?>"><?= h($_mc_c['title'] ?? '') ?></div>
+            <?php endforeach; ?>
+        </div>
+        <?php $_mc_cur->modify('+1 day'); endfor; ?>
+    </div>
+</div>
+
 <div class="dash-cols">
     <!-- Left column -->
     <div>
-        <!-- Upcoming courses -->
-        <div class="dash-section">
-            <div class="dash-section-title"><span>Urmatoarele cursuri</span><a href="?tab=cursuri" style="font-size:12px;font-weight:400;color:var(--primary);text-decoration:none;margin-left:10px">+ Adaugă</a></div>
-            <?php if (empty($_dash_upcoming)): ?>
-                <p style="color:var(--text-muted);font-size:13px">Niciun curs programat.</p>
-            <?php else: ?>
-                <table class="dash-table">
-                <?php foreach ($_dash_upcoming as $_uc): ?>
-                    <tr>
-                        <td style="font-weight:600"><?= h($_uc['title'] ?? '') ?></td>
-                        <td class="muted" style="white-space:nowrap;text-align:right"><?= h($_uc['date_display'] ?? $_uc['date_raw'] ?? '') ?></td>
-                    </tr>
-                <?php endforeach; ?>
-                </table>
-            <?php endif; ?>
-        </div>
 
         <!-- Participant evolution -->
         <div class="dash-section">
