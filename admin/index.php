@@ -926,6 +926,24 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ── Save meet notes for speaker
+    if ($action === 'save_meet') {
+        $id    = trim($_POST['meet_speaker_id'] ?? '');
+        $items = load_speakers();
+        $fields = ['auzit','ocupatie','pasiune','teme','dinamica','experienta','contract','curiozitati','program'];
+        foreach ($items as &$it) {
+            if (($it['id'] ?? '') !== $id) continue;
+            $meet = [];
+            foreach ($fields as $f) $meet[$f] = trim($_POST['meet_' . $f] ?? '');
+            $it['meet'] = $meet;
+            break;
+        }
+        unset($it);
+        save_speakers($items);
+        header('Location: /admin/?tab=speakeri');
+        exit;
+    }
+
     // ── Delete speaker
     if ($action === 'delete_speaker') {
         $id    = $_POST['id'] ?? '';
@@ -3403,6 +3421,7 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
             </td>
             <td>
                 <div class="row-actions">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openMeet(<?= h(json_encode(['id' => $sp['id'] ?? '', 'name' => $sp['name'] ?? '', 'meet' => $sp['meet'] ?? []])) ?>)">Meet<?= !empty($sp['meet']) && array_filter($sp['meet']) ? ' ✓' : '' ?></button>
                     <a href="/admin/?tab=speakeri&edit=<?= h($sp['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
                     <form method="post" action="/admin/?tab=speakeri" onsubmit="return confirm('Ștergi speakerul?')" style="display:inline">
                         <input type="hidden" name="action" value="delete_speaker">
@@ -3510,6 +3529,53 @@ function spScoate(btn, id) {
     </form>
 </div>
 </div>
+
+<!-- Meet modal -->
+<div id="meet-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#fff;border-radius:16px;padding:32px;width:min(640px,95vw);max-height:90vh;overflow-y:auto;position:relative">
+        <button type="button" onclick="document.getElementById('meet-modal').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1">×</button>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:4px">Meet</div>
+        <h2 id="meet-modal-name" style="font-size:18px;font-weight:700;margin-bottom:24px;color:#111827"></h2>
+        <form method="post" action="/admin/?tab=speakeri">
+            <input type="hidden" name="action" value="save_meet">
+            <input type="hidden" name="meet_speaker_id" id="meet-speaker-id">
+            <?php
+            $meet_fields = [
+                'auzit'      => 'Cum ai auzit de Cursuri la Pahar?',
+                'ocupatie'   => 'Cu ce te ocupi?',
+                'pasiune'    => 'Ce te pasionează cel mai mult la subiectul ăsta și crezi că ar fi valoros pentru oameni?',
+                'teme'       => 'Ai mai avea alte idei de teme?',
+                'dinamica'   => 'Cum vezi tu dinamica cu publicul? Cum ți-ar plăcea să arate?',
+                'experienta' => 'Unde ai mai ținut cursuri și cum s-au desfășurat? Dacă da, ai vreo prezentare pe care ai folosit-o atunci?',
+                'contract'   => 'Contract (prezentare, durata, onorariu)',
+                'curiozitati'=> 'Curiozități?',
+                'program'    => 'Program pe perioada următoare',
+            ];
+            foreach ($meet_fields as $key => $label): ?>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em"><?= h($label) ?></label>
+                <textarea name="meet_<?= $key ?>" id="meet-<?= $key ?>" rows="2" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical"></textarea>
+            </div>
+            <?php endforeach; ?>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+                <button type="button" onclick="document.getElementById('meet-modal').style.display='none'" class="btn btn-secondary">Anulează</button>
+                <button type="submit" class="btn btn-primary">Salvează</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function openMeet(data) {
+    document.getElementById('meet-speaker-id').value = data.id;
+    document.getElementById('meet-modal-name').textContent = data.name;
+    const fields = ['auzit','ocupatie','pasiune','teme','dinamica','experienta','contract','curiozitati','program'];
+    fields.forEach(f => {
+        const el = document.getElementById('meet-' + f);
+        if (el) el.value = (data.meet && data.meet[f]) || '';
+    });
+    document.getElementById('meet-modal').style.display = 'flex';
+}
+</script>
 
 <?php /* ======================================================= TAB: LOCATII */ ?>
 <?php elseif ($tab === 'locatii'): ?>
