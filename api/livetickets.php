@@ -82,14 +82,19 @@ if (!$event || !isset($event['id'])) {
     exit;
 }
 
+// Real data is in items[0]; top-level container has null dates and no name
+$item = (is_array($event['items'] ?? null) && !empty($event['items'])) ? $event['items'][0] : $event;
+
 // Parse name
-$title = $event['name'] ?? '';
+$title = $item['name'] ?? $event['name'] ?? '';
 
 // Parse start_date → date_raw (YYYY-MM-DD) and date_display + time
 $date_raw = '';
 $date_display = '';
 $time = '';
-$start_date = $event['start_date'] ?? $event['startDate'] ?? '';
+$raw_sd = $item['start_date'] ?? $item['startDate'] ?? $event['start_date'] ?? $event['startDate'] ?? '';
+// "0001-01-01..." is the API's null placeholder
+$start_date = (str_starts_with($raw_sd, '0001-') ? '' : $raw_sd);
 if ($start_date) {
     try {
         $tz = new DateTimeZone('Europe/Bucharest');
@@ -106,29 +111,29 @@ if ($start_date) {
     } catch (Exception $e) {}
 }
 
-// Parse location (API: location.name, location.address, location.city)
+// Parse location
 $location = '';
-$loc = $event['location'] ?? [];
+$loc = $item['location'] ?? $event['location'] ?? [];
 if (is_array($loc)) {
-    $parts = array_filter([$loc['name'] ?? '', $loc['address'] ?? '', $loc['city'] ?? '']);
-    $location = implode(', ', $parts);
+    $loc_parts = array_filter([$loc['name'] ?? '', $loc['address'] ?? '', $loc['city'] ?? '']);
+    $location = implode(', ', $loc_parts);
 } elseif (is_string($loc)) {
     $location = $loc;
 }
 
-// Find Background MEDIUM image (API fields: name, size, path, token)
+// Find Background MEDIUM image
 $image_url = '';
-$images = $event['images'] ?? [];
+$images = $item['images'] ?? $event['images'] ?? [];
 $fallback_url = '';
 foreach ($images as $img) {
-    $name = $img['name'] ?? '';
-    $size = $img['size'] ?? '';
-    $path  = $img['path'] ?? '';
-    $token = $img['token'] ?? '';
-    if (!$path) continue;
-    $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path . ($token ? '?' . $token : '');
+    $img_name = $img['name'] ?? '';
+    $img_size = $img['size'] ?? '';
+    $img_path = $img['path'] ?? '';
+    $img_token = $img['token'] ?? '';
+    if (!$img_path) continue;
+    $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $img_path . ($img_token ? '?' . $img_token : '');
     if (!$fallback_url) $fallback_url = $cdn;
-    if ($name === 'Background' && $size === 'MEDIUM') {
+    if ($img_name === 'Background' && $img_size === 'MEDIUM') {
         $image_url = $cdn;
         break;
     }
@@ -145,12 +150,6 @@ echo json_encode([
         'location'       => $location,
         'image_url'      => $image_url,
         'livetickets_url' => $url,
-        '_debug_start_date' => $start_date,
-        '_debug_event_keys' => array_keys($event),
-        '_debug_items_type' => gettype($event['items'] ?? null),
-        '_debug_items_count' => is_array($event['items'] ?? null) ? count($event['items']) : -1,
-        '_debug_item0' => is_array($event['items'] ?? null) ? ($event['items'][0] ?? 'NO_INDEX_0') : 'NOT_ARRAY',
-        '_debug_slug' => $slug,
     ]
 ]);
  
