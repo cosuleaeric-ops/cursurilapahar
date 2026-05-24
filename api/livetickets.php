@@ -145,6 +145,8 @@ echo json_encode([
         'location'       => $location,
         'image_url'      => $image_url,
         'livetickets_url' => $url,
+        '_debug_start_date' => $start_date,
+        '_debug_event_keys' => array_keys($event),
     ]
 ]);
  
