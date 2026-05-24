@@ -2167,7 +2167,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     $_subs = $clp_viza_subtips[(int)$_c['id']] ?? [];
                     $_rid  = 'clpv-'.(int)$_c['id'];
                 ?>
-                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'">
+                <tr>
                     <td style="font-weight:600"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
                     <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
                     <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
@@ -2348,7 +2348,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             const name = subs.length
                 ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
                 : esc(c.name);
-            html += `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
+            html += `<tr>
                 <td style="font-weight:600">${name}</td>
                 <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
                 <td style="text-align:right">${c.total_tickets}</td>
