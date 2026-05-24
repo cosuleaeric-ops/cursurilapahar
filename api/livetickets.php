@@ -82,58 +82,54 @@ if (!$event || !isset($event['id'])) {
     exit;
 }
 
-// Real data is in items[0]; top-level container has null dates and no name
-$item = (is_array($event['items'] ?? null) && !empty($event['items'])) ? $event['items'][0] : $event;
-
 // Parse name
-$title = $item['name'] ?? $event['name'] ?? '';
+$title = $event['name'] ?? '';
 
 // Parse start_date → date_raw (YYYY-MM-DD) and date_display + time
 $date_raw = '';
 $date_display = '';
 $time = '';
-$raw_sd = $item['start_date'] ?? $item['startDate'] ?? $event['start_date'] ?? $event['startDate'] ?? '';
-// "0001-01-01..." is the API's null placeholder
-$start_date = (str_starts_with($raw_sd, '0001-') ? '' : $raw_sd);
+$start_date = $event['start_date'] ?? $event['startDate'] ?? '';
 if ($start_date) {
-    try {
-        $tz = new DateTimeZone('Europe/Bucharest');
-        $dt = new DateTime($start_date);
-        $dt->setTimezone($tz);
+    $ts = strtotime($start_date);
+    if ($ts) {
+        $date_raw = date('Y-m-d', $ts);
         $ro_months = [
             1 => 'Ianuarie', 2 => 'Februarie', 3 => 'Martie', 4 => 'Aprilie',
             5 => 'Mai', 6 => 'Iunie', 7 => 'Iulie', 8 => 'August',
             9 => 'Septembrie', 10 => 'Octombrie', 11 => 'Noiembrie', 12 => 'Decembrie'
         ];
-        $date_raw     = $dt->format('Y-m-d');
-        $date_display = $dt->format('j') . ' ' . $ro_months[(int)$dt->format('n')] . ' ' . $dt->format('Y');
-        $time         = $dt->format('H:i');
-    } catch (Exception $e) {}
+        $day   = date('j', $ts);
+        $month = $ro_months[(int)date('n', $ts)];
+        $year  = date('Y', $ts);
+        $date_display = "$day $month $year";
+        $time = date('H:i', $ts);
+    }
 }
 
-// Parse location
+// Parse location (API: location.name, location.address, location.city)
 $location = '';
-$loc = $item['location'] ?? $event['location'] ?? [];
+$loc = $event['location'] ?? [];
 if (is_array($loc)) {
-    $loc_parts = array_filter([$loc['name'] ?? '', $loc['address'] ?? '', $loc['city'] ?? '']);
-    $location = implode(', ', $loc_parts);
+    $parts = array_filter([$loc['name'] ?? '', $loc['address'] ?? '', $loc['city'] ?? '']);
+    $location = implode(', ', $parts);
 } elseif (is_string($loc)) {
     $location = $loc;
 }
 
-// Find Background MEDIUM image
+// Find Background MEDIUM image (API fields: name, size, path, token)
 $image_url = '';
-$images = $item['images'] ?? $event['images'] ?? [];
+$images = $event['images'] ?? [];
 $fallback_url = '';
 foreach ($images as $img) {
-    $img_name = $img['name'] ?? '';
-    $img_size = $img['size'] ?? '';
-    $img_path = $img['path'] ?? '';
-    $img_token = $img['token'] ?? '';
-    if (!$img_path) continue;
-    $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $img_path . ($img_token ? '?' . $img_token : '');
+    $name = $img['name'] ?? '';
+    $size = $img['size'] ?? '';
+    $path  = $img['path'] ?? '';
+    $token = $img['token'] ?? '';
+    if (!$path) continue;
+    $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path . ($token ? '?' . $token : '');
     if (!$fallback_url) $fallback_url = $cdn;
-    if ($img_name === 'Background' && $img_size === 'MEDIUM') {
+    if ($name === 'Background' && $size === 'MEDIUM') {
         $image_url = $cdn;
         break;
     }
