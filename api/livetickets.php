@@ -147,6 +147,7 @@ echo json_encode([
         'livetickets_url' => $url,
         '_debug_start_date' => $start_date,
         '_debug_event_keys' => array_keys($event),
+        '_debug_item0' => $event['items'][0] ?? null,
     ]
 ]);
  
