@@ -147,7 +147,10 @@ echo json_encode([
         'livetickets_url' => $url,
         '_debug_start_date' => $start_date,
         '_debug_event_keys' => array_keys($event),
-        '_debug_item0' => $event['items'][0] ?? null,
+        '_debug_items_type' => gettype($event['items'] ?? null),
+        '_debug_items_count' => is_array($event['items'] ?? null) ? count($event['items']) : -1,
+        '_debug_item0' => is_array($event['items'] ?? null) ? ($event['items'][0] ?? 'NO_INDEX_0') : 'NOT_ARRAY',
+        '_debug_slug' => $slug,
     ]
 ]);
  
