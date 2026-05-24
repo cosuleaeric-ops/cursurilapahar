@@ -91,20 +91,19 @@ $date_display = '';
 $time = '';
 $start_date = $event['start_date'] ?? $event['startDate'] ?? '';
 if ($start_date) {
-    $ts = strtotime($start_date);
-    if ($ts) {
-        $date_raw = date('Y-m-d', $ts);
+    try {
+        $tz = new DateTimeZone('Europe/Bucharest');
+        $dt = new DateTime($start_date);
+        $dt->setTimezone($tz);
         $ro_months = [
             1 => 'Ianuarie', 2 => 'Februarie', 3 => 'Martie', 4 => 'Aprilie',
             5 => 'Mai', 6 => 'Iunie', 7 => 'Iulie', 8 => 'August',
             9 => 'Septembrie', 10 => 'Octombrie', 11 => 'Noiembrie', 12 => 'Decembrie'
         ];
-        $day   = date('j', $ts);
-        $month = $ro_months[(int)date('n', $ts)];
-        $year  = date('Y', $ts);
-        $date_display = "$day $month $year";
-        $time = date('H:i', $ts);
-    }
+        $date_raw     = $dt->format('Y-m-d');
+        $date_display = $dt->format('j') . ' ' . $ro_months[(int)$dt->format('n')] . ' ' . $dt->format('Y');
+        $time         = $dt->format('H:i');
+    } catch (Exception $e) {}
 }
 
 // Parse location (API: location.name, location.address, location.city)
