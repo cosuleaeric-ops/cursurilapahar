@@ -208,6 +208,35 @@ function save_speakers(array $items): void {
     file_put_contents(SPEAKERS_FILE, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
+function clp_allowed_course_times(): array {
+    return ['17:00', '17:30', '18:00', '18:30'];
+}
+
+function clp_date_display_from_raw(string $date_raw): string {
+    $ts = strtotime($date_raw);
+    if (!$ts) {
+        return '';
+    }
+    $ro_months = [
+        1 => 'Ianuarie', 2 => 'Februarie', 3 => 'Martie', 4 => 'Aprilie',
+        5 => 'Mai', 6 => 'Iunie', 7 => 'Iulie', 8 => 'August',
+        9 => 'Septembrie', 10 => 'Octombrie', 11 => 'Noiembrie', 12 => 'Decembrie',
+    ];
+    $day   = date('j', $ts);
+    $month = $ro_months[(int)date('n', $ts)];
+    $year  = date('Y', $ts);
+    return "$day $month $year";
+}
+
+function clp_find_speaker_by_id(string $speaker_id): ?array {
+    foreach (load_speakers() as $sp) {
+        if (($sp['id'] ?? '') === $speaker_id) {
+            return $sp;
+        }
+    }
+    return null;
+}
+
 function load_locations(): array {
     if (!file_exists(LOCATIONS_FILE)) return [];
     return json_decode(file_get_contents(LOCATIONS_FILE), true) ?: [];
@@ -383,25 +412,68 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Save course
     if ($action === 'save_course') {
+        require_once dirname(__DIR__) . '/lib/livetickets.php';
+
         $id = trim($_POST['course_id'] ?? '');
+        $title = trim($_POST['title'] ?? '');
+        $date_raw = trim($_POST['date_raw'] ?? '');
+        $time = trim($_POST['time'] ?? '');
+        $speaker_id = trim($_POST['speaker_id'] ?? '');
+        $livetickets_url = trim($_POST['livetickets_url'] ?? '');
+        $image_url = trim($_POST['image_url'] ?? '');
+        $location = trim($_POST['location'] ?? '');
+
+        $err = '';
+        if ($title === '') {
+            $err = 'Completează numele cursului.';
+        } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_raw) || !strtotime($date_raw)) {
+            $err = 'Alege o dată validă.';
+        } elseif (!in_array($time, clp_allowed_course_times(), true)) {
+            $err = 'Alege ora din listă (17:00, 17:30, 18:00 sau 18:30).';
+        } else {
+            $speaker = clp_find_speaker_by_id($speaker_id);
+            if (!$speaker) {
+                $err = 'Alege un speaker din listă.';
+            }
+        }
+
+        if ($err !== '') {
+            header('Location: /admin/?tab=cursuri&course_error=' . urlencode($err));
+            exit;
+        }
+
+        if ($livetickets_url !== '' && $image_url === '') {
+            $lt = lt_fetch_event_by_url($livetickets_url);
+            if (!empty($lt['success']) && !empty($lt['data']['image_url'])) {
+                $image_url = $lt['data']['image_url'];
+                if ($location === '' && !empty($lt['data']['location'])) {
+                    $location = $lt['data']['location'];
+                }
+            }
+        }
+
         $courses = load_courses();
         $entry = [
             'id'              => $id ?: uniqid('c', true),
-            'title'           => trim($_POST['title'] ?? ''),
-            'date_display'    => trim($_POST['date_display'] ?? ''),
-            'date_raw'        => trim($_POST['date_raw'] ?? ''),
-            'time'            => trim($_POST['time'] ?? ''),
-            'location'        => trim($_POST['location'] ?? ''),
-            'livetickets_url' => trim($_POST['livetickets_url'] ?? ''),
-            'image_url'       => trim($_POST['image_url'] ?? ''),
+            'title'           => $title,
+            'date_display'    => clp_date_display_from_raw($date_raw),
+            'date_raw'        => $date_raw,
+            'time'            => $time,
+            'speaker_id'      => $speaker_id,
+            'speaker_name'    => trim($speaker['name'] ?? ''),
+            'location'        => $location,
+            'livetickets_url' => $livetickets_url,
+            'image_url'       => $image_url,
             'active'          => !empty($_POST['active']),
         ];
         if ($id) {
             $found = false;
             foreach ($courses as &$c) {
                 if (($c['id'] ?? '') === $id) {
-                    foreach (['discount_percent', 'discount_ends_at'] as $k) {
-                        if (isset($c[$k])) $entry[$k] = $c[$k];
+                    foreach (['discount_percent', 'discount_ends_at', 'speaker_id', 'speaker_name', 'location'] as $k) {
+                        if (isset($c[$k]) && !isset($entry[$k])) {
+                            $entry[$k] = $c[$k];
+                        }
                     }
                     $c = $entry;
                     $found = true;
@@ -1432,10 +1504,10 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,.1); }
 .form-group textarea { resize: vertical; min-height: 80px; }
 .form-desc { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-.import-row { display: flex; gap: 8px; }
-.import-row input { flex: 1; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; color: #1f2937; background: #fff; }
-.import-row input:focus { outline: none; border-color: #1d4ed8; }
 #importMsg { margin-top: 8px; font-size: 13px; }
+.course-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 4px; }
+.course-add-grid .form-group--full { grid-column: 1 / -1; }
+@media (max-width: 640px) { .course-add-grid { grid-template-columns: 1fr; } }
 
 /* ── Course preview ── */
 .course-preview { display: flex; gap: 14px; align-items: flex-start; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin: 14px 0; }
@@ -1939,30 +2011,63 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
 
 <?php /* ======================================================= TAB: CURSURI */ ?>
 <?php elseif ($tab === 'cursuri'): ?>
+    <?php
+    $course_speakers = load_speakers();
+    usort($course_speakers, fn($a, $b) => strcasecmp($a['name'] ?? '', $b['name'] ?? ''));
+    $course_times = clp_allowed_course_times();
+    $course_form_error = trim($_GET['course_error'] ?? '');
+    ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
 
-    <!-- Import section -->
     <div class="card">
-        <div class="card-title">Importă curs din LiveTickets</div>
-        <div class="import-row">
-            <input type="url" id="ltUrl" placeholder="https://www.livetickets.ro/bilete/slug-eveniment">
-            <button class="btn btn-primary" onclick="importLT()">Importă</button>
-        </div>
-        <div id="importMsg"></div>
-
-        <!-- Hidden form — shown after import -->
-        <form method="post" action="/admin/?tab=cursuri" id="courseForm" style="display:none;margin-top:14px;">
+        <div class="card-title">Adaugă curs</div>
+        <?php if ($course_form_error): ?>
+        <p style="color:var(--danger);font-size:13px;margin:0 0 12px"><?= h($course_form_error) ?></p>
+        <?php endif; ?>
+        <?php if (empty($course_speakers)): ?>
+        <p style="color:var(--text-muted);margin:0">Adaugă mai întâi speakeri în tab-ul <a href="/admin/?tab=speakeri">Speakeri</a>.</p>
+        <?php else: ?>
+        <form method="post" action="/admin/?tab=cursuri" id="courseForm" class="course-add-form" onsubmit="return validateCourseForm()">
             <input type="hidden" name="action" value="save_course">
-            <input type="hidden" name="course_id"        id="f_id">
-            <input type="hidden" name="title"            id="f_title">
-            <input type="hidden" name="date_display"     id="f_date_display">
-            <input type="hidden" name="date_raw"         id="f_date_raw">
-            <input type="hidden" name="time"             id="f_time">
-            <input type="hidden" name="location"         id="f_location">
-            <input type="hidden" name="livetickets_url"  id="f_lt_url">
-            <input type="hidden" name="image_url"        id="f_image_url">
-            <input type="hidden" name="active"           value="1">
+            <input type="hidden" name="image_url" id="f_image_url" value="">
+            <input type="hidden" name="location" id="f_location" value="">
+            <input type="hidden" name="active" value="1">
+
+            <div class="course-add-grid">
+                <div class="form-group form-group--full">
+                    <label for="f_title">Nume curs</label>
+                    <input type="text" name="title" id="f_title" required placeholder="ex. Curs la Pahar - PUBLIC SPEAKING // 26 mai">
+                </div>
+                <div class="form-group">
+                    <label for="f_date_raw">Dată</label>
+                    <input type="date" name="date_raw" id="f_date_raw" required onchange="updateCoursePreview()">
+                </div>
+                <div class="form-group">
+                    <label for="f_time">Oră</label>
+                    <select name="time" id="f_time" required onchange="updateCoursePreview()">
+                        <option value="">Alege ora</option>
+                        <?php foreach ($course_times as $t): ?>
+                        <option value="<?= h($t) ?>"><?= h($t) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group form-group--full">
+                    <label for="f_speaker_id">Speaker</label>
+                    <select name="speaker_id" id="f_speaker_id" required onchange="updateCoursePreview()">
+                        <option value="">Alege speakerul</option>
+                        <?php foreach ($course_speakers as $sp): ?>
+                        <option value="<?= h($sp['id'] ?? '') ?>"><?= h($sp['name'] ?? '') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group form-group--full">
+                    <label for="f_lt_url">Link LiveTickets <span class="form-desc">(opțional — fără link, cardul nu duce la bilete)</span></label>
+                    <input type="url" name="livetickets_url" id="f_lt_url" placeholder="https://www.livetickets.ro/bilete/..." onblur="fetchLTImage()">
+                </div>
+            </div>
+
+            <div id="importMsg"></div>
 
             <div class="course-preview" id="coursePreview" style="display:none">
                 <img id="prev_img" src="" alt="" style="display:none">
@@ -1972,8 +2077,9 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Adaugă cursul</button>
+            <button type="submit" class="btn btn-primary" style="margin-top:14px">Adaugă cursul</button>
         </form>
+        <?php endif; ?>
     </div>
 
     <?php
@@ -2026,6 +2132,9 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     </td>
                     <td style="font-weight:600">
                         <?= h($c['title'] ?? '') ?>
+                        <?php if (!empty($c['speaker_name'])): ?>
+                        <div style="font-size:12px;font-weight:400;color:var(--text-muted);margin-top:2px"><?= h($c['speaker_name']) ?></div>
+                        <?php endif; ?>
                         <?php if ($has_disc): ?>
                             <span class="discount-tag <?= $disc_active_now ? 'discount-tag--active' : 'discount-tag--expired' ?>">
                                 −<?= (int)$c['discount_percent'] ?>%<?= $disc_active_now ? '' : ' (expirată)' ?>
@@ -3921,54 +4030,103 @@ function toggleDiscountRow(id) {
     if (!row) return;
     row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
 }
-async function importLT() {
-    const url = document.getElementById('ltUrl').value.trim();
-    const msg = document.getElementById('importMsg');
-    if (!url) { msg.style.cssText = 'color:var(--danger);margin-top:8px;font-size:13px'; msg.textContent = 'Introdu un URL.'; return; }
+const CLP_RO_MONTHS = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+const CLP_ALLOWED_TIMES = ['17:00','17:30','18:00','18:30'];
 
-    msg.style.cssText = 'color:var(--text-muted);margin-top:8px;font-size:13px';
-    msg.textContent = 'Se importă…';
-
-    try {
-        const res  = await fetch('/api/livetickets.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url })
-        });
-        const data = await res.json();
-
-        if (data.success && data.data) {
-            const d = data.data;
-            document.getElementById('f_id').value           = '';
-            document.getElementById('f_title').value        = d.title || '';
-            document.getElementById('f_date_display').value = d.date_display || '';
-            document.getElementById('f_date_raw').value     = d.date_raw || '';
-            document.getElementById('f_time').value         = d.time || '';
-            document.getElementById('f_location').value     = d.location || '';
-            document.getElementById('f_lt_url').value       = d.livetickets_url || '';
-            document.getElementById('f_image_url').value    = d.image_url || '';
-
-            // Update preview
-            document.getElementById('prev_title').textContent = d.title || '';
-            document.getElementById('prev_meta').textContent  =
-                [d.date_display, d.time, d.location].filter(Boolean).join(' · ');
-            const img = document.getElementById('prev_img');
-            if (d.image_url) { img.src = d.image_url; img.style.display = 'block'; }
-
-            document.getElementById('coursePreview').style.display = 'flex';
-            document.getElementById('courseForm').style.display    = 'block';
-
-            msg.style.color = 'var(--success)';
-            msg.textContent = '✓ Import reușit! Verifică detaliile și apasă "Adaugă cursul".';
-        } else {
-            msg.style.color = 'var(--danger)';
-            msg.textContent = data.message || 'Eroare la import.';
-        }
-    } catch (err) {
-        msg.style.color = 'var(--danger)';
-        msg.textContent = 'Eroare: ' + err.message;
-    }
+function clpFormatDateRo(ymd) {
+    if (!ymd) return '';
+    const p = ymd.split('-');
+    if (p.length !== 3) return ymd;
+    const d = parseInt(p[2], 10);
+    const m = parseInt(p[1], 10);
+    return d + ' ' + (CLP_RO_MONTHS[m] ? CLP_RO_MONTHS[m].charAt(0).toUpperCase() + CLP_RO_MONTHS[m].slice(1) : '') + ' ' + p[0];
 }
+
+function updateCoursePreview() {
+    const title = document.getElementById('f_title')?.value.trim() || '';
+    const dateRaw = document.getElementById('f_date_raw')?.value || '';
+    const time = document.getElementById('f_time')?.value || '';
+    const speakerSel = document.getElementById('f_speaker_id');
+    const speaker = speakerSel?.selectedOptions[0]?.textContent?.trim() || '';
+    const preview = document.getElementById('coursePreview');
+    if (!preview || !title) {
+        if (preview) preview.style.display = 'none';
+        return;
+    }
+    document.getElementById('prev_title').textContent = title;
+    document.getElementById('prev_meta').textContent =
+        [clpFormatDateRo(dateRaw), time, speaker].filter(Boolean).join(' · ');
+    preview.style.display = 'flex';
+}
+
+function validateCourseForm() {
+    const speaker = document.getElementById('f_speaker_id')?.value || '';
+    const time = document.getElementById('f_time')?.value || '';
+    if (!speaker) {
+        alert('Alege un speaker din listă.');
+        return false;
+    }
+    if (!CLP_ALLOWED_TIMES.includes(time)) {
+        alert('Alege ora din listă (17:00, 17:30, 18:00 sau 18:30).');
+        return false;
+    }
+    return true;
+}
+
+let ltFetchTimer = null;
+async function fetchLTImage() {
+    const urlInput = document.getElementById('f_lt_url');
+    const msg = document.getElementById('importMsg');
+    if (!urlInput || !msg) return;
+
+    const url = urlInput.value.trim();
+    document.getElementById('f_image_url').value = '';
+    document.getElementById('f_location').value = '';
+    const img = document.getElementById('prev_img');
+    if (img) { img.src = ''; img.style.display = 'none'; }
+
+    if (!url) {
+        msg.textContent = '';
+        updateCoursePreview();
+        return;
+    }
+
+    clearTimeout(ltFetchTimer);
+    ltFetchTimer = setTimeout(async () => {
+        msg.style.cssText = 'color:var(--text-muted);margin-top:8px;font-size:13px';
+        msg.textContent = 'Se preia imaginea de pe LiveTickets…';
+
+        try {
+            const res = await fetch('/api/livetickets.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                const d = data.data;
+                document.getElementById('f_image_url').value = d.image_url || '';
+                document.getElementById('f_location').value = d.location || '';
+                if (d.image_url && img) {
+                    img.src = d.image_url;
+                    img.style.display = 'block';
+                }
+                msg.style.color = 'var(--success)';
+                msg.textContent = d.image_url ? '✓ Imagine preluată de pe LiveTickets.' : 'Link valid, dar nu s-a găsit imagine.';
+            } else {
+                msg.style.color = 'var(--danger)';
+                msg.textContent = data.message || 'Eroare la preluarea imaginii.';
+            }
+        } catch (err) {
+            msg.style.color = 'var(--danger)';
+            msg.textContent = 'Eroare: ' + err.message;
+        }
+        updateCoursePreview();
+    }, 400);
+}
+
+document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);
 </script>
 
 <?php endif; ?>
