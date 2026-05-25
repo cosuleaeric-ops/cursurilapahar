@@ -1328,8 +1328,17 @@ $clp_viza_subtips = []; $clp_report_by_price = [];
 $clp_ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 if (is_authenticated() && $tab === 'cursuri') {
     $clp_now        = new DateTimeImmutable();
-    $clp_year       = (int)($_GET['year']  ?? $clp_now->format('Y'));
-    $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
+    $clp_year       = isset($_GET['year']) ? (int)$_GET['year'] : null;
+    $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : null;
+    if ($clp_year === null || $clp_month === null) {
+        $_clp_latest = clp_latest_statistici_year_month();
+        if ($_clp_latest) {
+            $clp_year  = $clp_year ?? $_clp_latest['year'];
+            $clp_month = $clp_month ?? $_clp_latest['month'];
+        }
+    }
+    $clp_year  = $clp_year ?? (int)$clp_now->format('Y');
+    $clp_month = $clp_month ?? (int)$clp_now->format('n');
     $_ctab_raw      = $_GET['ctab'] ?? 'cursuri';
     $clp_ctab       = in_array($_ctab_raw, ['cursuri','participanti','calendar']) ? $_ctab_raw : 'cursuri';
     $clp_prefix     = $clp_month > 0 ? $clp_year . '-' . str_pad((string)$clp_month, 2, '0', STR_PAD_LEFT) : (string)$clp_year;

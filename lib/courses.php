@@ -261,31 +261,96 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
     }
 }
 
+/** @param array<int, array<string, mixed>> $rows */
+function clp_dedupe_statistici_course_rows(array $rows): array
+{
+    $by_date = [];
+    $score = static function (array $r): int {
+        $s = !empty($r['external_id']) ? 8 : 0;
+        if (!empty($r['has_report'])) {
+            $s += 4;
+        }
+        if (!empty($r['has_viza'])) {
+            $s += 2;
+        }
+        $s += min(3, (int)($r['total_tickets'] ?? 0) > 0 ? 3 : 0);
+        return $s;
+    };
+    foreach ($rows as $row) {
+        $d = $row['date'] ?? '';
+        if ($d === '') {
+            continue;
+        }
+        if (!isset($by_date[$d]) || $score($row) > $score($by_date[$d])) {
+            $by_date[$d] = $row;
+        }
+    }
+    $out = array_values($by_date);
+    usort($out, fn($a, $b) => strcmp($b['date'] ?? '', $a['date'] ?? ''));
+    return $out;
+}
+
+/** Ultima lună cu cursuri în SQLite (pentru navigare implicită). */
+function clp_latest_statistici_year_month(): ?array
+{
+    try {
+        $db = clp_get_statistici_db();
+        $row = $db->querySingle(
+            "SELECT CAST(strftime('%Y', date) AS INTEGER) AS y,
+                    CAST(strftime('%m', date) AS INTEGER) AS m
+             FROM courses ORDER BY date DESC LIMIT 1",
+            true
+        );
+        if (!$row) {
+            return null;
+        }
+        return ['year' => (int)$row['y'], 'month' => (int)$row['m']];
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
 /**
  * Cursuri pentru tabelul de statistici (lună).
- * Afișează cursurile din courses.json (legate prin external_id), nu importurile
- * vechi LiveTickets din SQLite fără external_id.
+ * - din courses.json (external_id)
+ * - plus cursuri încărcate lunar în SQLite (viza / raport / bilete), fără duplicate pe dată
  *
  * @return array<int, array<string, mixed>>
  */
 function clp_fetch_statistici_courses_for_month(int $year, int $month): array
 {
     $json_ids = clp_json_course_external_ids();
-    if ($json_ids === []) {
-        return [];
+    if ($json_ids !== []) {
+        clp_sync_json_courses_for_month($year, $month);
     }
 
-    clp_sync_json_courses_for_month($year, $month);
-
     $prefix = clp_month_date_prefix($year, $month);
+    $has_stats = "(
+        EXISTS (SELECT 1 FROM course_reports r WHERE r.course_id = c.id)
+        OR EXISTS (SELECT 1 FROM tickets t WHERE t.course_id = c.id)
+        OR EXISTS (SELECT 1 FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza')
+    )";
 
     $courses = [];
     try {
         $db = clp_get_statistici_db();
-        $in_list = implode(',', array_map(
-            fn(string $id) => "'" . $db->escapeString($id) . "'",
-            $json_ids
-        ));
+        $visibility = [];
+        if ($json_ids !== []) {
+            $in_list = implode(',', array_map(
+                fn(string $id) => "'" . $db->escapeString($id) . "'",
+                $json_ids
+            ));
+            $visibility[] = "c.external_id IN (" . $in_list . ")";
+            $hide_legacy = "NOT EXISTS (
+                SELECT 1 FROM courses c2
+                WHERE c2.date = c.date AND c2.external_id IN (" . $in_list . ")
+            )";
+        } else {
+            $in_list = '';
+            $hide_legacy = '1=1';
+        }
+        $visibility[] = "((c.external_id IS NULL OR c.external_id = '') AND {$has_stats} AND {$hide_legacy})";
+
         $sql = "SELECT c.id, c.external_id, c.name, c.date,
             (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
             (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
@@ -293,7 +358,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
             (SELECT r.total_incasari FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as total_incasari
             FROM courses c
             WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
-            AND c.external_id IN (" . $in_list . ")
+            AND (" . implode(' OR ', $visibility) . ")
             ORDER BY c.date DESC";
         $r = $db->query($sql);
         if ($r === false) {
@@ -301,7 +366,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
                 0 as total_tickets, NULL as viza_filename, 0 as has_report, NULL as total_incasari
                 FROM courses c
                 WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
-                AND c.external_id IN (" . $in_list . ")
+                AND (" . implode(' OR ', $visibility) . ")
                 ORDER BY c.date DESC");
         }
         if ($r !== false) {
@@ -316,7 +381,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
         return [];
     }
 
-    return $courses;
+    return clp_dedupe_statistici_course_rows($courses);
 }
 
 /** @param array<int, array<string, mixed>> $courses */
