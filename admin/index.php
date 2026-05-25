@@ -515,6 +515,13 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $courses[] = $entry;
         }
         clp_normalize_course($entry);
+        foreach ($courses as &$c) {
+            if (($c['id'] ?? '') === $entry['id']) {
+                $c = $entry;
+                break;
+            }
+        }
+        unset($c);
         save_courses($courses);
         clp_sync_course_to_statistici_db($entry);
 
@@ -1319,24 +1326,18 @@ $clp_by_month = []; $clp_sum_bilete = 0; $clp_sum_incasari = 0;
 $clp_viza_subtips = []; $clp_report_by_price = [];
 $clp_ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 if (is_authenticated() && $tab === 'cursuri') {
-    clp_sync_all_courses_to_statistici_db(load_courses());
     $clp_now        = new DateTimeImmutable();
     $clp_year       = (int)($_GET['year']  ?? $clp_now->format('Y'));
     $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
     $_ctab_raw      = $_GET['ctab'] ?? 'cursuri';
     $clp_ctab       = in_array($_ctab_raw, ['cursuri','participanti','calendar']) ? $_ctab_raw : 'cursuri';
     $clp_prefix     = $clp_month > 0 ? $clp_year . '-' . str_pad((string)$clp_month, 2, '0', STR_PAD_LEFT) : (string)$clp_year;
+    $clp_courses    = clp_fetch_statistici_courses_for_month($clp_year, $clp_month);
     $_clp_db_path   = __DIR__ . '/statistici/data/clp.sqlite';
     if (file_exists($_clp_db_path)) {
         try {
             $_clp_db = new SQLite3($_clp_db_path);
             $_clp_db->exec('PRAGMA journal_mode = WAL;');
-            $_r = $_clp_db->query("SELECT c.id, c.external_id, c.name, c.date,
-                (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
-                (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
-                (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
-                FROM courses c WHERE c.date LIKE '" . $clp_prefix . "%' ORDER BY c.date DESC");
-            while ($_row = $_r->fetchArray(SQLITE3_ASSOC)) $clp_courses[] = $_row;
             $_dr = $_clp_db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
                 FROM courses c JOIN course_reports r ON r.course_id = c.id
                 WHERE c.date LIKE '" . $clp_prefix . "%' ORDER BY c.date DESC");
@@ -2272,6 +2273,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     </div>
 
     <!-- ── Statistici cursuri (full merge) ─────────────────────────────── -->
+    <div class="card" id="clp-stats-card">
     <style>
     .clp-tabs { display:flex; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
     .clp-tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }
@@ -2301,7 +2303,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     .clp-seria { background:#EAF5EF; border:1px solid #b2d9c0; border-radius:4px; padding:1px 6px; font-weight:700; font-size:11px; }
     </style>
 
-    <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div class="clp-tabs">
                 <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
@@ -2354,7 +2355,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
                     <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
                     <td style="text-align:center"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:center"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:center"><?= !empty($_c['has_viza']) ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
                     <td style="text-align:right;font-variant-numeric:tabular-nums"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
                     <td style="text-align:right;font-variant-numeric:tabular-nums" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
                 </tr>
@@ -2465,6 +2466,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#f1f5f9;border:1px solid #e5e7eb;display:inline-block"></span> Curs trecut</span>
             </div>
         </div>
+    </div>
 
     <script>
     function clpSwitchTab(e, t) {
@@ -2612,6 +2614,11 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         grid.innerHTML = html;
     }
     <?php if ($clp_ctab === 'calendar'): ?>document.addEventListener('DOMContentLoaded', calRender);<?php endif; ?>
+    <?php if (isset($_GET['saved'])): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('clp-stats-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    <?php endif; ?>
 
     function clpFilter() {
         const q = document.getElementById('clpSearch').value.toLowerCase();

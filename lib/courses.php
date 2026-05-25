@@ -98,13 +98,37 @@ function clp_statistici_db_path(): string
     return dirname(__DIR__) . '/admin/statistici/data/clp.sqlite';
 }
 
+/** @return array<int, array<string, mixed>> */
+function clp_load_courses_from_json(): array
+{
+    $file = dirname(__DIR__) . '/data/courses.json';
+    if (!file_exists($file)) {
+        return [];
+    }
+    return json_decode((string)file_get_contents($file), true) ?: [];
+}
+
+function clp_ensure_statistici_db(SQLite3 $sdb): void
+{
+    $sdb->exec('PRAGMA foreign_keys = ON;');
+    $sdb->exec('PRAGMA journal_mode = WAL;');
+    $sdb->exec('CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, date TEXT NOT NULL, created_at TEXT NOT NULL);');
+    @$sdb->exec('ALTER TABLE courses ADD COLUMN external_id TEXT;');
+    @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
+}
+
 /** Sincronizează un curs din courses.json în SQLite (tabelul de statistici). */
 function clp_sync_course_to_statistici_db(array $entry): ?int
 {
     $path = clp_statistici_db_path();
-    if (!file_exists(dirname($path))) {
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    if (!is_dir($dir)) {
         return null;
     }
+
     $ext_id = trim($entry['id'] ?? '');
     $title = trim($entry['title'] ?? '');
     $date_raw = trim($entry['date_raw'] ?? '');
@@ -114,21 +138,26 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
 
     try {
         $sdb = new SQLite3($path);
-        $sdb->exec('PRAGMA foreign_keys = ON;');
-        $sdb->exec('PRAGMA journal_mode = WAL;');
-        $sdb->exec('CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, date TEXT NOT NULL, created_at TEXT NOT NULL);');
-        @$sdb->exec('ALTER TABLE courses ADD COLUMN external_id TEXT;');
-        @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
+        clp_ensure_statistici_db($sdb);
 
         $existing = $sdb->querySingle(
             "SELECT id FROM courses WHERE external_id = '" . $sdb->escapeString($ext_id) . "' LIMIT 1",
             true
         );
+        if (!$existing) {
+            $existing = $sdb->querySingle(
+                "SELECT id FROM courses WHERE date = '" . $sdb->escapeString($date_raw) . "'"
+                . " AND name = '" . $sdb->escapeString($title) . "' LIMIT 1",
+                true
+            );
+        }
+
         if ($existing) {
-            $stmt = $sdb->prepare('UPDATE courses SET name = :name, date = :date WHERE external_id = :ext');
+            $stmt = $sdb->prepare('UPDATE courses SET name = :name, date = :date, external_id = :ext WHERE id = :id');
             $stmt->bindValue(':name', $title, SQLITE3_TEXT);
             $stmt->bindValue(':date', $date_raw, SQLITE3_TEXT);
             $stmt->bindValue(':ext', $ext_id, SQLITE3_TEXT);
+            $stmt->bindValue(':id', (int)$existing['id'], SQLITE3_INTEGER);
             $stmt->execute();
             $sqlite_id = (int)$existing['id'];
         } else {
@@ -145,6 +174,47 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
     } catch (Exception $e) {
         return null;
     }
+}
+
+/**
+ * Cursuri pentru tabelul de statistici (lună) — sync din JSON apoi citire SQLite.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function clp_fetch_statistici_courses_for_month(int $year, int $month): array
+{
+    clp_sync_all_courses_to_statistici_db(clp_load_courses_from_json());
+
+    $prefix = $month > 0
+        ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
+        : (string)$year;
+
+    $path = clp_statistici_db_path();
+    if (!file_exists($path)) {
+        return [];
+    }
+
+    $courses = [];
+    try {
+        $db = new SQLite3($path);
+        $db->exec('PRAGMA journal_mode = WAL;');
+        $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
+            (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
+            (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
+            (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
+            FROM courses c WHERE c.date LIKE '" . $db->escapeString($prefix) . "%' ORDER BY c.date DESC");
+        while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
+            $row['has_report'] = (bool)$row['has_report'];
+            $row['has_viza'] = (bool)($row['viza_filename'] ?? '');
+            unset($row['viza_filename']);
+            $courses[] = $row;
+        }
+        $db->close();
+    } catch (Exception $e) {
+        return [];
+    }
+
+    return $courses;
 }
 
 /** @param array<int, array<string, mixed>> $courses */

@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once dirname(__DIR__) . '/admin/auth_check.php';
+require_once dirname(__DIR__) . '/lib/courses.php';
 if (!is_authenticated()) { http_response_code(403); echo json_encode(['error' => 'Unauthorized']); exit; }
 
 $year  = (int)($_GET['year']  ?? date('Y'));
@@ -20,25 +21,17 @@ function ro_date_str(string $d, array $m): string {
 }
 
 $db_path = dirname(__DIR__) . '/admin/statistici/data/clp.sqlite';
-$courses = $ditl_rows = $viza_subtips = [];
+$courses = clp_fetch_statistici_courses_for_month($year, $month);
+foreach ($courses as &$row) {
+    $row['date_ro'] = ro_date_str($row['date'], $ro_months);
+}
+unset($row);
+$ditl_rows = $viza_subtips = [];
 $sum_incasari = 0.0;
 
 if (file_exists($db_path)) {
     $db = new SQLite3($db_path);
     $db->exec('PRAGMA journal_mode = WAL;');
-
-    $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
-        (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
-        (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
-        (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
-        FROM courses c WHERE c.date LIKE '" . $db->escapeString($prefix) . "%' ORDER BY c.date DESC");
-    while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
-        $row['date_ro'] = ro_date_str($row['date'], $ro_months);
-        $row['has_report'] = (bool)$row['has_report'];
-        $row['has_viza'] = (bool)$row['viza_filename'];
-        unset($row['viza_filename']);
-        $courses[] = $row;
-    }
 
     $dr = $db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
         FROM courses c JOIN course_reports r ON r.course_id = c.id
