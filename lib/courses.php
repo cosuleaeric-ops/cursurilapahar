@@ -117,34 +117,37 @@ function clp_ensure_statistici_db(SQLite3 $sdb): void
     @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
 }
 
-/** Curs adăugat/editat manual din admin — singurele care apar în tabelul de statistici. */
-function clp_course_has_admin_stats(array $course): bool
-{
-    return !empty($course['admin_stats']);
-}
-
-/** @return list<string> */
-function clp_admin_stats_external_ids(): array
+/** @return list<string> ID-uri cursuri din courses.json (site + admin). */
+function clp_json_course_external_ids(): array
 {
     $ids = [];
     foreach (clp_load_courses_from_json() as $c) {
-        if (clp_course_has_admin_stats($c)) {
-            $id = trim($c['id'] ?? '');
-            if ($id !== '') {
-                $ids[] = $id;
-            }
+        $id = trim($c['id'] ?? '');
+        if ($id !== '') {
+            $ids[] = $id;
         }
     }
     return $ids;
 }
 
+/** Sincronizează cursurile din JSON pentru luna selectată în SQLite. */
+function clp_sync_json_courses_for_month(int $year, int $month): void
+{
+    $prefix = $month > 0
+        ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
+        : (string)$year;
+
+    foreach (clp_load_courses_from_json() as $c) {
+        $date_raw = trim($c['date_raw'] ?? '');
+        if ($date_raw !== '' && str_starts_with($date_raw, $prefix)) {
+            clp_sync_course_to_statistici_db($c);
+        }
+    }
+}
+
 /** Sincronizează un curs din courses.json în SQLite (tabelul de statistici). */
 function clp_sync_course_to_statistici_db(array $entry): ?int
 {
-    if (!clp_course_has_admin_stats($entry)) {
-        return null;
-    }
-
     $path = clp_statistici_db_path();
     $dir = dirname($path);
     if (!is_dir($dir)) {
@@ -195,16 +198,20 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
 }
 
 /**
- * Cursuri pentru tabelul de statistici (lună) — doar cele adăugate manual din admin.
+ * Cursuri pentru tabelul de statistici (lună).
+ * Afișează cursurile din courses.json (legate prin external_id), nu importurile
+ * vechi LiveTickets din SQLite fără external_id.
  *
  * @return array<int, array<string, mixed>>
  */
 function clp_fetch_statistici_courses_for_month(int $year, int $month): array
 {
-    $admin_ids = clp_admin_stats_external_ids();
-    if ($admin_ids === []) {
+    $json_ids = clp_json_course_external_ids();
+    if ($json_ids === []) {
         return [];
     }
+
+    clp_sync_json_courses_for_month($year, $month);
 
     $prefix = $month > 0
         ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
@@ -221,7 +228,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
         $db->exec('PRAGMA journal_mode = WAL;');
         $in_list = implode(',', array_map(
             fn(string $id) => "'" . $db->escapeString($id) . "'",
-            $admin_ids
+            $json_ids
         ));
         $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
             (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
@@ -249,9 +256,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
 function clp_sync_all_courses_to_statistici_db(array $courses): void
 {
     foreach ($courses as $c) {
-        if (clp_course_has_admin_stats($c)) {
-            clp_sync_course_to_statistici_db($c);
-        }
+        clp_sync_course_to_statistici_db($c);
     }
 }
 
