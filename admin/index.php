@@ -1525,12 +1525,16 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .form-group textarea { resize: vertical; min-height: 80px; }
 .form-desc { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 #importMsg { margin-top: 8px; font-size: 13px; }
+.course-add-form { max-width: 820px; }
 .course-add-form .form-group { margin-bottom: 0; }
-.course-add-form .form-group label { margin-bottom: 4px; font-size: 10px; }
+.course-add-form .form-group label { margin-bottom: 2px; font-size: 9px; letter-spacing: .05em; }
 .course-add-form .form-group input,
-.course-add-form .form-group select { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
-.course-add-row1 { display: grid; grid-template-columns: minmax(0, 1fr) 150px 108px; gap: 10px; align-items: end; }
-.course-add-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: end; margin-top: 10px; }
+.course-add-form .form-group select {
+  padding: 4px 8px; font-size: 11px; border-radius: 5px;
+  min-height: 28px; height: 28px; line-height: 1.2;
+}
+.course-add-row1 { display: grid; grid-template-columns: minmax(0, 1fr) 128px 88px; gap: 8px; align-items: end; }
+.course-add-row2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: end; margin-top: 8px; }
 .speaker-combobox { position: relative; }
 .speaker-suggestions {
   position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 50;
@@ -2068,7 +2072,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         <form method="post" action="/admin/?tab=cursuri" id="courseForm" class="course-add-form" onsubmit="return validateCourseForm()">
             <input type="hidden" name="action" value="save_course">
             <input type="hidden" name="image_url" id="f_image_url" value="">
-            <input type="hidden" name="location" id="f_location" value="">
             <div class="course-add-row1">
                 <div class="form-group">
                     <label for="f_title">Nume curs</label>
@@ -2096,6 +2099,10 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     <div id="f_speaker_suggestions" class="speaker-suggestions" hidden></div>
                 </div>
                 <div class="form-group">
+                    <label for="f_location">Locație</label>
+                    <input type="text" name="location" id="f_location" oninput="updateCoursePreview()">
+                </div>
+                <div class="form-group">
                     <label for="f_lt_url">Link LiveTickets</label>
                     <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()">
                 </div>
@@ -2118,7 +2125,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="margin-top:14px">Adaugă cursul</button>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px">Adaugă cursul</button>
         </form>
         <?php endif; ?>
     </div>
@@ -4169,8 +4176,9 @@ function updateCoursePreview() {
         return;
     }
     document.getElementById('prev_title').textContent = title;
+    const location = document.getElementById('f_location')?.value.trim() || '';
     document.getElementById('prev_meta').textContent =
-        [clpFormatDateRo(dateRaw), time, speaker].filter(Boolean).join(' · ');
+        [clpFormatDateRo(dateRaw), time, speaker, location].filter(Boolean).join(' · ');
     preview.style.display = 'flex';
 }
 
@@ -4197,7 +4205,6 @@ async function fetchLTImage() {
 
     const url = urlInput.value.trim();
     document.getElementById('f_image_url').value = '';
-    document.getElementById('f_location').value = '';
     const img = document.getElementById('prev_img');
     if (img) { img.src = ''; img.style.display = 'none'; }
 
@@ -4223,7 +4230,9 @@ async function fetchLTImage() {
             if (data.success && data.data) {
                 const d = data.data;
                 document.getElementById('f_image_url').value = d.image_url || '';
-                document.getElementById('f_location').value = d.location || '';
+                if (d.location) {
+                    document.getElementById('f_location').value = d.location;
+                }
                 if (d.image_url && img) {
                     img.src = d.image_url;
                     img.style.display = 'block';
