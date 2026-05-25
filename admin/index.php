@@ -2340,7 +2340,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     <th style="text-align:center">Viză</th>
                     <th style="text-align:right">Încasări</th>
                     <th style="text-align:right">DITL (2%)</th>
-                    <th style="width:200px">Acțiuni</th>
                 </tr></thead>
                 <tbody>
                 <?php foreach ($clp_courses as $_c):
@@ -2350,26 +2349,18 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     $_subs = $clp_viza_subtips[(int)$_c['id']] ?? [];
                     $_rid  = 'clpv-'.(int)$_c['id'];
                 ?>
-                <tr>
-                    <td style="font-weight:600;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
-                    <td style="color:var(--text-muted);white-space:nowrap;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= h($_dro) ?></td>
-                    <td style="text-align:right;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= (int)$_c['total_tickets'] ?></td>
-                    <td style="text-align:center;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:center;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums;cursor:pointer" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
-                    <td>
-                        <div class="row-actions">
-                            <?php if (!empty($_c['external_id'])): ?>
-                            <a href="/admin/?tab=cursuri&year=<?= (int)$clp_year ?>&month=<?= (int)$clp_month ?>&ctab=cursuri&edit=<?= h($_c['external_id']) ?>" class="btn btn-sm btn-secondary">Editează</a>
-                            <?php endif; ?>
-                            <a href="/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>" class="btn btn-sm btn-secondary">Documente</a>
-                        </div>
-                    </td>
+                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'">
+                    <td style="font-weight:600"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
+                    <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
+                    <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
+                    <td style="text-align:center"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:center"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
                 </tr>
                 <?php if (!empty($_subs)): $_bp = $clp_report_by_price[(int)$_c['id']] ?? []; ?>
                 <tr class="clp-viza-row" id="<?= $_rid ?>">
-                    <td colspan="8" style="padding:0;background:#f8fafc">
+                    <td colspan="7" style="padding:0;background:#f8fafc">
                         <div style="padding:6px 16px 12px 32px">
                             <table style="width:100%;border-collapse:collapse;font-size:12px">
                                 <thead><tr>
@@ -2528,11 +2519,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             <th style="text-align:center">Viță</th>
             <th style="text-align:right">Încasări</th>
             <th style="text-align:right">DITL (2%)</th>
-            <th style="width:200px">Acțiuni</th>
         </tr></thead><tbody>`;
-
-        const docUrl = id => `/admin/statistici/cursuri/view.php?id=${id}`;
-        const goDoc = id => `onclick="location.href='${docUrl(id)}'" style="cursor:pointer"`;
 
         data.courses.forEach(c => {
             const dr   = ditlById[c.id];
@@ -2543,21 +2530,17 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             const name = subs.length
                 ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
                 : esc(c.name);
-            const editBtn = c.external_id
-                ? `<a href="/admin/?tab=cursuri&year=${data.year}&month=${data.month}&ctab=cursuri&edit=${encodeURIComponent(c.external_id)}" class="btn btn-sm btn-secondary">Editează</a> `
-                : '';
-            html += `<tr>
-                <td style="font-weight:600" ${goDoc(c.id)}>${name}</td>
-                <td style="color:var(--text-muted);white-space:nowrap" ${goDoc(c.id)}>${esc(c.date_ro)}</td>
-                <td style="text-align:right" ${goDoc(c.id)}>${c.total_tickets}</td>
-                <td style="text-align:center" ${goDoc(c.id)}>${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:center" ${goDoc(c.id)}>${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:right;font-variant-numeric:tabular-nums" ${goDoc(c.id)}>${inc}</td>
-                <td style="text-align:right;font-variant-numeric:tabular-nums" ${goDoc(c.id)}>${ditl}</td>
-                <td><div class="row-actions">${editBtn}<a href="${docUrl(c.id)}" class="btn btn-sm btn-secondary">Documente</a></div></td>
+            html += `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
+                <td style="font-weight:600">${name}</td>
+                <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
+                <td style="text-align:right">${c.total_tickets}</td>
+                <td style="text-align:center">${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:center">${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
             </tr>`;
             if (subs.length) {
-                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="8" style="padding:0;background:#f8fafc">
+                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="7" style="padding:0;background:#f8fafc">
                 <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
                 <thead><tr>${['Seria','De la','Până la','Total','Tarif'].map(h=>`<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h==='Seria'?'left':'right'}">${h}</th>`).join('')}</tr></thead>
                 <tbody>${subs.map(s=>`<tr>
