@@ -409,6 +409,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Delete course
     if ($action === 'delete_course') {
         $id = $_POST['id'] ?? '';
+        clp_delete_statistici_course_by_external_id($id);
         $courses = load_courses();
         $courses = array_filter($courses, fn($c) => ($c['id'] ?? '') !== $id);
         save_courses($courses);
@@ -496,8 +497,8 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $found = false;
             foreach ($courses as &$c) {
                 if (($c['id'] ?? '') === $id) {
-                    foreach (['discount_percent', 'discount_ends_at', 'speaker_id', 'speaker_name', 'location'] as $k) {
-                        if (isset($c[$k]) && !isset($entry[$k])) {
+                    foreach (['discount_percent', 'discount_ends_at'] as $k) {
+                        if (isset($c[$k])) {
                             $entry[$k] = $c[$k];
                         }
                     }
@@ -507,44 +508,19 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             unset($c);
-            if (!$found) $courses[] = $entry;
+            if (!$found) {
+                $courses[] = $entry;
+            }
         } else {
             $courses[] = $entry;
         }
         clp_normalize_course($entry);
         save_courses($courses);
+        clp_sync_course_to_statistici_db($entry);
 
-        // Auto-sync to SQLite statistics DB (name + date, no participants)
-        $sqlite_path = __DIR__ . '/statistici/data/clp.sqlite';
-        if (file_exists(dirname($sqlite_path))) {
-            try {
-                $sdb = new SQLite3($sqlite_path);
-                $sdb->exec('PRAGMA foreign_keys = ON;');
-                $sdb->exec('PRAGMA journal_mode = WAL;');
-                $sdb->exec('CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, date TEXT NOT NULL, created_at TEXT NOT NULL);');
-                @$sdb->exec('ALTER TABLE courses ADD COLUMN external_id TEXT;');
-                @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
-                $ext_id = $entry['id'];
-                $existing = $sdb->querySingle("SELECT id FROM courses WHERE external_id = '" . $sdb->escapeString($ext_id) . "' LIMIT 1", true);
-                if ($existing) {
-                    $stmt = $sdb->prepare('UPDATE courses SET name = :name, date = :date WHERE external_id = :ext');
-                    $stmt->bindValue(':name', $entry['title'], SQLITE3_TEXT);
-                    $stmt->bindValue(':date', $entry['date_raw'], SQLITE3_TEXT);
-                    $stmt->bindValue(':ext', $ext_id, SQLITE3_TEXT);
-                    $stmt->execute();
-                } else {
-                    $stmt = $sdb->prepare('INSERT INTO courses (name, date, created_at, external_id) VALUES (:name, :date, :created_at, :ext)');
-                    $stmt->bindValue(':name', $entry['title'], SQLITE3_TEXT);
-                    $stmt->bindValue(':date', $entry['date_raw'], SQLITE3_TEXT);
-                    $stmt->bindValue(':created_at', date('Y-m-d H:i:s'), SQLITE3_TEXT);
-                    $stmt->bindValue(':ext', $ext_id, SQLITE3_TEXT);
-                    $stmt->execute();
-                }
-                $sdb->close();
-            } catch (Exception $e) { /* silently skip if DB not ready */ }
-        }
-
-        header('Location: /admin/?tab=cursuri');
+        [$redirect_year, $redirect_month] = array_pad(explode('-', $entry['date_raw']), 2, '');
+        $redirect = '/admin/?tab=cursuri&year=' . (int)$redirect_year . '&month=' . (int)$redirect_month . '&ctab=cursuri&saved=1&edit=' . urlencode($entry['id']);
+        header('Location: ' . $redirect);
         exit;
     }
 
@@ -1343,6 +1319,7 @@ $clp_by_month = []; $clp_sum_bilete = 0; $clp_sum_incasari = 0;
 $clp_viza_subtips = []; $clp_report_by_price = [];
 $clp_ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 if (is_authenticated() && $tab === 'cursuri') {
+    clp_sync_all_courses_to_statistici_db(load_courses());
     $clp_now        = new DateTimeImmutable();
     $clp_year       = (int)($_GET['year']  ?? $clp_now->format('Y'));
     $clp_month      = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
@@ -1354,7 +1331,7 @@ if (is_authenticated() && $tab === 'cursuri') {
         try {
             $_clp_db = new SQLite3($_clp_db_path);
             $_clp_db->exec('PRAGMA journal_mode = WAL;');
-            $_r = $_clp_db->query("SELECT c.id, c.name, c.date,
+            $_r = $_clp_db->query("SELECT c.id, c.external_id, c.name, c.date,
                 (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
                 (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
                 (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
@@ -2077,12 +2054,26 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     $course_locations = load_locations_for_picker();
     $course_times = clp_allowed_course_times();
     $course_form_error = trim($_GET['course_error'] ?? '');
+    $edit_course = null;
+    $edit_course_id = trim($_GET['edit'] ?? '');
+    if ($edit_course_id !== '') {
+        foreach ($courses as $c) {
+            if (($c['id'] ?? '') === $edit_course_id) {
+                $edit_course = $c;
+                break;
+            }
+        }
+    }
     ?>
 
     <h1 class="wp-page-title">Cursuri</h1>
 
-    <div class="card">
-        <div class="card-title">Adaugă curs</div>
+    <?php if (isset($_GET['saved'])): ?>
+    <div class="notice notice-success">Curs salvat.</div>
+    <?php endif; ?>
+
+    <div class="card" id="course-form-card">
+        <div class="card-title"><?= $edit_course ? 'Editează curs' : 'Adaugă curs' ?></div>
         <?php if ($course_form_error): ?>
         <p style="color:var(--danger);font-size:13px;margin:0 0 12px"><?= h($course_form_error) ?></p>
         <?php endif; ?>
@@ -2091,39 +2082,40 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         <?php else: ?>
         <form method="post" action="/admin/?tab=cursuri" id="courseForm" class="course-add-form" onsubmit="return validateCourseForm()">
             <input type="hidden" name="action" value="save_course">
-            <input type="hidden" name="image_url" id="f_image_url" value="">
+            <input type="hidden" name="course_id" id="f_course_id" value="<?= h($edit_course['id'] ?? '') ?>">
+            <input type="hidden" name="image_url" id="f_image_url" value="<?= h($edit_course['image_url'] ?? '') ?>">
             <div class="course-add-fields">
                 <div class="form-group">
                     <label for="f_title">Nume curs</label>
-                    <input type="text" name="title" id="f_title" required oninput="updateCoursePreview()">
+                    <input type="text" name="title" id="f_title" required oninput="updateCoursePreview()" value="<?= h($edit_course['title'] ?? '') ?>">
                 </div>
                 <div class="form-group">
                     <label for="f_date_raw">Dată</label>
-                    <input type="date" name="date_raw" id="f_date_raw" required onchange="updateCoursePreview()">
+                    <input type="date" name="date_raw" id="f_date_raw" required onchange="updateCoursePreview()" value="<?= h($edit_course['date_raw'] ?? '') ?>">
                 </div>
                 <div class="form-group">
                     <label for="f_time">Oră</label>
                     <select name="time" id="f_time" required onchange="updateCoursePreview()">
                         <option value=""></option>
                         <?php foreach ($course_times as $t): ?>
-                        <option value="<?= h($t) ?>"><?= h($t) ?></option>
+                        <option value="<?= h($t) ?>" <?= ($edit_course['time'] ?? '') === $t ? 'selected' : '' ?>><?= h($t) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group speaker-combobox">
                     <label for="f_speaker_input">Speaker</label>
-                    <input type="text" id="f_speaker_input" autocomplete="off" required>
-                    <input type="hidden" name="speaker_id" id="f_speaker_id" value="">
+                    <input type="text" id="f_speaker_input" autocomplete="off" required value="<?= h($edit_course ? clp_course_speaker_name($edit_course) : '') ?>">
+                    <input type="hidden" name="speaker_id" id="f_speaker_id" value="<?= h($edit_course['speaker_id'] ?? '') ?>">
                     <div id="f_speaker_suggestions" class="speaker-suggestions" hidden></div>
                 </div>
                 <div class="form-group location-combobox">
                     <label for="f_location_input">Locație</label>
-                    <input type="text" name="location" id="f_location_input" autocomplete="off" oninput="updateCoursePreview()">
+                    <input type="text" name="location" id="f_location_input" autocomplete="off" oninput="updateCoursePreview()" value="<?= h($edit_course['location'] ?? '') ?>">
                     <div id="f_location_suggestions" class="location-suggestions" hidden></div>
                 </div>
                 <div class="form-group">
                     <label for="f_lt_url">Link LiveTickets</label>
-                    <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()">
+                    <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()" value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
                 </div>
             </div>
             <script>
@@ -2148,7 +2140,12 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px">Adaugă cursul</button>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                <button type="submit" class="btn btn-primary btn-sm"><?= $edit_course ? 'Salvează' : 'Adaugă cursul' ?></button>
+                <?php if ($edit_course): ?>
+                <a href="/admin/?tab=cursuri&year=<?= (int)$clp_year ?>&month=<?= (int)$clp_month ?>&ctab=cursuri" class="btn btn-secondary btn-sm">Anulează</a>
+                <?php endif; ?>
+            </div>
         </form>
         <?php endif; ?>
     </div>
@@ -2175,7 +2172,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     <th>Titlu</th>
                     <th>Dată</th>
                     <th style="width:100px">Status</th>
-                    <th style="width:180px">Acțiuni</th>
+                    <th style="width:240px">Acțiuni</th>
                 </tr>
             </thead>
             <tbody>
@@ -2228,6 +2225,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     </td>
                     <td>
                         <div class="row-actions">
+                            <a href="/admin/?tab=cursuri&edit=<?= h($cid) ?>" class="btn btn-sm btn-secondary">Editează</a>
                             <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDiscountRow('<?= h($cid) ?>')">Reducere ▾</button>
                             <form method="post" action="/admin/?tab=cursuri" onsubmit="return confirm('Ștergi cursul?')" style="display:inline">
                                 <input type="hidden" name="action" value="delete_course">
@@ -2342,6 +2340,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     <th style="text-align:center">Viză</th>
                     <th style="text-align:right">Încasări</th>
                     <th style="text-align:right">DITL (2%)</th>
+                    <th style="width:200px">Acțiuni</th>
                 </tr></thead>
                 <tbody>
                 <?php foreach ($clp_courses as $_c):
@@ -2351,18 +2350,26 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     $_subs = $clp_viza_subtips[(int)$_c['id']] ?? [];
                     $_rid  = 'clpv-'.(int)$_c['id'];
                 ?>
-                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'">
-                    <td style="font-weight:600"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
-                    <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
-                    <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
-                    <td style="text-align:center"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:center"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
+                <tr>
+                    <td style="font-weight:600;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
+                    <td style="color:var(--text-muted);white-space:nowrap;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= h($_dro) ?></td>
+                    <td style="text-align:right;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= (int)$_c['total_tickets'] ?></td>
+                    <td style="text-align:center;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:center;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_c['viza_filename'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums;cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums;cursor:pointer" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
+                    <td>
+                        <div class="row-actions">
+                            <?php if (!empty($_c['external_id'])): ?>
+                            <a href="/admin/?tab=cursuri&year=<?= (int)$clp_year ?>&month=<?= (int)$clp_month ?>&ctab=cursuri&edit=<?= h($_c['external_id']) ?>" class="btn btn-sm btn-secondary">Editează</a>
+                            <?php endif; ?>
+                            <a href="/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>" class="btn btn-sm btn-secondary">Documente</a>
+                        </div>
+                    </td>
                 </tr>
                 <?php if (!empty($_subs)): $_bp = $clp_report_by_price[(int)$_c['id']] ?? []; ?>
                 <tr class="clp-viza-row" id="<?= $_rid ?>">
-                    <td colspan="7" style="padding:0;background:#f8fafc">
+                    <td colspan="8" style="padding:0;background:#f8fafc">
                         <div style="padding:6px 16px 12px 32px">
                             <table style="width:100%;border-collapse:collapse;font-size:12px">
                                 <thead><tr>
@@ -2521,7 +2528,11 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             <th style="text-align:center">Viță</th>
             <th style="text-align:right">Încasări</th>
             <th style="text-align:right">DITL (2%)</th>
+            <th style="width:200px">Acțiuni</th>
         </tr></thead><tbody>`;
+
+        const docUrl = id => `/admin/statistici/cursuri/view.php?id=${id}`;
+        const goDoc = id => `onclick="location.href='${docUrl(id)}'" style="cursor:pointer"`;
 
         data.courses.forEach(c => {
             const dr   = ditlById[c.id];
@@ -2532,17 +2543,21 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             const name = subs.length
                 ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
                 : esc(c.name);
-            html += `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
-                <td style="font-weight:600">${name}</td>
-                <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
-                <td style="text-align:right">${c.total_tickets}</td>
-                <td style="text-align:center">${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:center">${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
-                <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
+            const editBtn = c.external_id
+                ? `<a href="/admin/?tab=cursuri&year=${data.year}&month=${data.month}&ctab=cursuri&edit=${encodeURIComponent(c.external_id)}" class="btn btn-sm btn-secondary">Editează</a> `
+                : '';
+            html += `<tr>
+                <td style="font-weight:600" ${goDoc(c.id)}>${name}</td>
+                <td style="color:var(--text-muted);white-space:nowrap" ${goDoc(c.id)}>${esc(c.date_ro)}</td>
+                <td style="text-align:right" ${goDoc(c.id)}>${c.total_tickets}</td>
+                <td style="text-align:center" ${goDoc(c.id)}>${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:center" ${goDoc(c.id)}>${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums" ${goDoc(c.id)}>${inc}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums" ${goDoc(c.id)}>${ditl}</td>
+                <td><div class="row-actions">${editBtn}<a href="${docUrl(c.id)}" class="btn btn-sm btn-secondary">Documente</a></div></td>
             </tr>`;
             if (subs.length) {
-                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="7" style="padding:0;background:#f8fafc">
+                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="8" style="padding:0;background:#f8fafc">
                 <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
                 <thead><tr>${['Seria','De la','Până la','Total','Tarif'].map(h=>`<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h==='Seria'?'left':'right'}">${h}</th>`).join('')}</tr></thead>
                 <tbody>${subs.map(s=>`<tr>
@@ -4318,6 +4333,16 @@ async function fetchLTImage() {
 document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);
 clpInitSpeakerCombobox();
 clpInitLocationCombobox();
+(function initCourseFormEdit() {
+    if (document.getElementById('f_course_id')?.value) {
+        updateCoursePreview();
+        const imgUrl = document.getElementById('f_image_url')?.value;
+        const prev = document.getElementById('prev_img');
+        if (imgUrl && prev) { prev.src = imgUrl; prev.style.display = 'block'; }
+        document.getElementById('coursePreview')?.style.setProperty('display', 'flex');
+        document.getElementById('course-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+})();
 </script>
 
 <?php endif; ?>

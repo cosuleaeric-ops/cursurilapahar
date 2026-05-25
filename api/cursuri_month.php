@@ -27,7 +27,7 @@ if (file_exists($db_path)) {
     $db = new SQLite3($db_path);
     $db->exec('PRAGMA journal_mode = WAL;');
 
-    $r = $db->query("SELECT c.id, c.name, c.date,
+    $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
         (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
         (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
         (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
