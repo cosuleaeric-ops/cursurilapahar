@@ -2288,7 +2288,8 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     <!-- ── Statistici cursuri (full merge) ─────────────────────────────── -->
     <div class="card" id="clp-stats-card">
     <style>
-    .clp-tabs { display:flex; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
+    .clp-tabs { display:flex; align-items:center; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
+    .clp-tabs-sep { width:1px; align-self:stretch; margin:4px 2px; background:var(--border); flex-shrink:0; }
     .clp-tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }
     .clp-tab-btn.active { background:#f1f5f9; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.1); }
     .clp-tab-panel { display:none; }
@@ -2316,17 +2317,16 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     .clp-seria { background:#EAF5EF; border:1px solid #b2d9c0; border-radius:4px; padding:1px 6px; font-weight:700; font-size:11px; }
     </style>
 
-        <div class="clp-toolbar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-            <div class="clp-tabs">
-                <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
-                <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
-                <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
-            </div>
-            <div id="clpMonthNav" class="clp-tabs" style="display:flex;align-items:center;gap:4px">
+        <div class="clp-tabs" style="margin-bottom:16px">
+            <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
+            <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
+            <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
+            <span class="clp-tabs-sep" aria-hidden="true"></span>
+            <span id="clpMonthNav" style="display:contents">
                 <button type="button" onclick="clpNav(-1)" class="clp-tab-btn" style="padding:7px 12px!important;line-height:1" aria-label="Luna anterioară">&#8592;</button>
                 <span id="clpMonthLabel" class="clp-tab-btn active" style="cursor:default;min-width:96px;text-align:center;pointer-events:none"><?= ucfirst($clp_ro_months[$clp_month ?? 1]) . ' ' . ($clp_year ?? date('Y')) ?></span>
                 <button type="button" onclick="clpNav(+1)" class="clp-tab-btn" style="padding:7px 12px!important;line-height:1" aria-label="Luna următoare">&#8594;</button>
-            </div>
+            </span>
         </div>
 
         <!-- Tab: Cursuri -->
