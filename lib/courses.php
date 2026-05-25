@@ -117,9 +117,34 @@ function clp_ensure_statistici_db(SQLite3 $sdb): void
     @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
 }
 
+/** Curs adăugat/editat manual din admin — singurele care apar în tabelul de statistici. */
+function clp_course_has_admin_stats(array $course): bool
+{
+    return !empty($course['admin_stats']);
+}
+
+/** @return list<string> */
+function clp_admin_stats_external_ids(): array
+{
+    $ids = [];
+    foreach (clp_load_courses_from_json() as $c) {
+        if (clp_course_has_admin_stats($c)) {
+            $id = trim($c['id'] ?? '');
+            if ($id !== '') {
+                $ids[] = $id;
+            }
+        }
+    }
+    return $ids;
+}
+
 /** Sincronizează un curs din courses.json în SQLite (tabelul de statistici). */
 function clp_sync_course_to_statistici_db(array $entry): ?int
 {
+    if (!clp_course_has_admin_stats($entry)) {
+        return null;
+    }
+
     $path = clp_statistici_db_path();
     $dir = dirname($path);
     if (!is_dir($dir)) {
@@ -144,13 +169,6 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
             "SELECT id FROM courses WHERE external_id = '" . $sdb->escapeString($ext_id) . "' LIMIT 1",
             true
         );
-        if (!$existing) {
-            $existing = $sdb->querySingle(
-                "SELECT id FROM courses WHERE date = '" . $sdb->escapeString($date_raw) . "'"
-                . " AND name = '" . $sdb->escapeString($title) . "' LIMIT 1",
-                true
-            );
-        }
 
         if ($existing) {
             $stmt = $sdb->prepare('UPDATE courses SET name = :name, date = :date, external_id = :ext WHERE id = :id');
@@ -177,13 +195,16 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
 }
 
 /**
- * Cursuri pentru tabelul de statistici (lună) — sync din JSON apoi citire SQLite.
+ * Cursuri pentru tabelul de statistici (lună) — doar cele adăugate manual din admin.
  *
  * @return array<int, array<string, mixed>>
  */
 function clp_fetch_statistici_courses_for_month(int $year, int $month): array
 {
-    clp_sync_all_courses_to_statistici_db(clp_load_courses_from_json());
+    $admin_ids = clp_admin_stats_external_ids();
+    if ($admin_ids === []) {
+        return [];
+    }
 
     $prefix = $month > 0
         ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
@@ -198,11 +219,18 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
     try {
         $db = new SQLite3($path);
         $db->exec('PRAGMA journal_mode = WAL;');
+        $in_list = implode(',', array_map(
+            fn(string $id) => "'" . $db->escapeString($id) . "'",
+            $admin_ids
+        ));
         $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
             (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
             (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
             (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
-            FROM courses c WHERE c.date LIKE '" . $db->escapeString($prefix) . "%' ORDER BY c.date DESC");
+            FROM courses c
+            WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
+            AND c.external_id IN (" . $in_list . ")
+            ORDER BY c.date DESC");
         while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
             $row['has_report'] = (bool)$row['has_report'];
             $row['has_viza'] = (bool)($row['viza_filename'] ?? '');
@@ -221,7 +249,9 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
 function clp_sync_all_courses_to_statistici_db(array $courses): void
 {
     foreach ($courses as $c) {
-        clp_sync_course_to_statistici_db($c);
+        if (clp_course_has_admin_stats($c)) {
+            clp_sync_course_to_statistici_db($c);
+        }
     }
 }
 

@@ -492,6 +492,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'livetickets_url' => $livetickets_url,
             'image_url'       => $image_url,
             'active'          => $livetickets_url !== '',
+            'admin_stats'     => true,
         ];
         if ($id) {
             $found = false;
