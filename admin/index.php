@@ -2316,16 +2316,16 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     .clp-seria { background:#EAF5EF; border:1px solid #b2d9c0; border-radius:4px; padding:1px 6px; font-weight:700; font-size:11px; }
     </style>
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="clp-toolbar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
             <div class="clp-tabs">
                 <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'calendar')">Calendar</button>
                 <button class="clp-tab-btn <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'participanti')">Participanți</button>
             </div>
-            <div id="clpMonthNav" style="display:flex;align-items:center;gap:6px">
-                <button onclick="clpNav(-1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8592;</button>
-                <span id="clpMonthLabel" style="font-size:13px;font-weight:600;min-width:90px;text-align:center"><?= ucfirst($clp_ro_months[$clp_month ?? 1]) . ' ' . ($clp_year ?? date('Y')) ?></span>
-                <button onclick="clpNav(+1)" class="btn btn-secondary" style="padding:6px 10px!important;font-size:16px!important;line-height:1">&#8594;</button>
+            <div id="clpMonthNav" class="clp-tabs" style="display:flex;align-items:center;gap:4px">
+                <button type="button" onclick="clpNav(-1)" class="clp-tab-btn" style="padding:7px 12px!important;line-height:1" aria-label="Luna anterioară">&#8592;</button>
+                <span id="clpMonthLabel" class="clp-tab-btn active" style="cursor:default;min-width:96px;text-align:center;pointer-events:none"><?= ucfirst($clp_ro_months[$clp_month ?? 1]) . ' ' . ($clp_year ?? date('Y')) ?></span>
+                <button type="button" onclick="clpNav(+1)" class="clp-tab-btn" style="padding:7px 12px!important;line-height:1" aria-label="Luna următoare">&#8594;</button>
             </div>
         </div>
 
