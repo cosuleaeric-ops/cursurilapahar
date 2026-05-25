@@ -252,6 +252,13 @@ function load_speakers_for_picker(): array {
     return array_values(array_filter($speakers, fn($s) => trim($s['id'] ?? '') !== '' && trim($s['name'] ?? '') !== ''));
 }
 
+/** Lista din tab-ul Locații (data/locations.json) */
+function load_locations_for_picker(): array {
+    $locations = load_locations();
+    usort($locations, fn($a, $b) => strcasecmp($a['name'] ?? '', $b['name'] ?? ''));
+    return array_values(array_filter($locations, fn($l) => trim($l['name'] ?? '') !== ''));
+}
+
 function load_locations(): array {
     if (!file_exists(LOCATIONS_FILE)) return [];
     return json_decode(file_get_contents(LOCATIONS_FILE), true) ?: [];
@@ -1540,18 +1547,22 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
   gap: 8px;
   align-items: end;
 }
-.speaker-combobox { position: relative; }
-.speaker-suggestions {
+.speaker-combobox,
+.location-combobox { position: relative; }
+.speaker-suggestions,
+.location-suggestions {
   position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 50;
   background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,.1); max-height: 200px; overflow-y: auto;
 }
-.speaker-suggestions button {
+.speaker-suggestions button,
+.location-suggestions button {
   display: block; width: 100%; text-align: left; border: 0; background: #fff;
   padding: 8px 12px; font-size: 12px; cursor: pointer; color: #374151;
 }
 .speaker-suggestions button:hover,
-.speaker-suggestions button.is-active { background: #eff6ff; color: #1d4ed8; }
+.speaker-suggestions button.is-active,
+.location-suggestions button:hover { background: #eff6ff; color: #1d4ed8; }
 @media (max-width: 960px) {
   .course-add-fields { grid-template-columns: 1fr 1fr; }
 }
@@ -2063,6 +2074,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
 <?php elseif ($tab === 'cursuri'): ?>
     <?php
     $course_speakers = load_speakers_for_picker();
+    $course_locations = load_locations_for_picker();
     $course_times = clp_allowed_course_times();
     $course_form_error = trim($_GET['course_error'] ?? '');
     ?>
@@ -2104,9 +2116,10 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     <input type="hidden" name="speaker_id" id="f_speaker_id" value="">
                     <div id="f_speaker_suggestions" class="speaker-suggestions" hidden></div>
                 </div>
-                <div class="form-group">
-                    <label for="f_location">Locație</label>
-                    <input type="text" name="location" id="f_location" oninput="updateCoursePreview()">
+                <div class="form-group location-combobox">
+                    <label for="f_location_input">Locație</label>
+                    <input type="text" name="location" id="f_location_input" autocomplete="off" oninput="updateCoursePreview()">
+                    <div id="f_location_suggestions" class="location-suggestions" hidden></div>
                 </div>
                 <div class="form-group">
                     <label for="f_lt_url">Link LiveTickets</label>
@@ -2119,6 +2132,10 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 'name' => $s['name'] ?? '',
                 'status' => $s['status'] ?? '',
             ], $course_speakers), JSON_UNESCAPED_UNICODE) ?>;
+            window.CLP_LOCATIONS_PICKER = <?= json_encode(array_map(fn($l) => [
+                'id' => $l['id'] ?? '',
+                'name' => $l['name'] ?? '',
+            ], $course_locations), JSON_UNESCAPED_UNICODE) ?>;
             </script>
 
             <div id="importMsg"></div>
@@ -4152,6 +4169,46 @@ function clpRenderSpeakerSuggestions(filter) {
     box.hidden = false;
 }
 
+function clpRenderLocationSuggestions(filter) {
+    const box = document.getElementById('f_location_suggestions');
+    if (!box) return;
+    const q = (filter || '').trim().toLowerCase();
+    const list = (window.CLP_LOCATIONS_PICKER || []).filter(l => !q || l.name.toLowerCase().includes(q));
+    if (!list.length) {
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+    }
+    box.innerHTML = '';
+    list.forEach(l => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = l.name;
+        btn.addEventListener('mousedown', e => {
+            e.preventDefault();
+            document.getElementById('f_location_input').value = l.name;
+            box.hidden = true;
+            updateCoursePreview();
+        });
+        box.appendChild(btn);
+    });
+    box.hidden = false;
+}
+
+function clpInitLocationCombobox() {
+    const input = document.getElementById('f_location_input');
+    const box = document.getElementById('f_location_suggestions');
+    if (!input || !box) return;
+    input.addEventListener('focus', () => clpRenderLocationSuggestions(input.value));
+    input.addEventListener('input', () => {
+        clpRenderLocationSuggestions(input.value);
+        updateCoursePreview();
+    });
+    input.addEventListener('blur', () => {
+        setTimeout(() => { box.hidden = true; }, 150);
+    });
+}
+
 function clpInitSpeakerCombobox() {
     const input = document.getElementById('f_speaker_input');
     const box = document.getElementById('f_speaker_suggestions');
@@ -4182,7 +4239,7 @@ function updateCoursePreview() {
         return;
     }
     document.getElementById('prev_title').textContent = title;
-    const location = document.getElementById('f_location')?.value.trim() || '';
+    const location = document.getElementById('f_location_input')?.value.trim() || '';
     document.getElementById('prev_meta').textContent =
         [clpFormatDateRo(dateRaw), time, speaker, location].filter(Boolean).join(' · ');
     preview.style.display = 'flex';
@@ -4237,7 +4294,8 @@ async function fetchLTImage() {
                 const d = data.data;
                 document.getElementById('f_image_url').value = d.image_url || '';
                 if (d.location) {
-                    document.getElementById('f_location').value = d.location;
+                    const locIn = document.getElementById('f_location_input');
+                    if (locIn && !locIn.value.trim()) locIn.value = d.location;
                 }
                 if (d.image_url && img) {
                     img.src = d.image_url;
@@ -4259,6 +4317,7 @@ async function fetchLTImage() {
 
 document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);
 clpInitSpeakerCombobox();
+clpInitLocationCombobox();
 </script>
 
 <?php endif; ?>
