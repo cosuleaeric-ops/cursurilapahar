@@ -1525,16 +1525,21 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .form-group textarea { resize: vertical; min-height: 80px; }
 .form-desc { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 #importMsg { margin-top: 8px; font-size: 13px; }
-.course-add-form { max-width: 820px; }
-.course-add-form .form-group { margin-bottom: 0; }
+.course-add-form { width: 100%; }
+.course-add-form .form-group { margin-bottom: 0; min-width: 0; }
 .course-add-form .form-group label { margin-bottom: 2px; font-size: 9px; letter-spacing: .05em; }
 .course-add-form .form-group input,
 .course-add-form .form-group select {
-  padding: 4px 8px; font-size: 11px; border-radius: 5px;
-  min-height: 28px; height: 28px; line-height: 1.2;
+  width: 100%; padding: 4px 8px; font-size: 11px; border-radius: 5px;
+  min-height: 28px; height: 28px; line-height: 1.2; box-sizing: border-box;
 }
-.course-add-row1 { display: grid; grid-template-columns: minmax(0, 1fr) 128px 88px; gap: 8px; align-items: end; }
-.course-add-row2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: end; margin-top: 8px; }
+.course-add-fields {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 2fr) 118px 76px minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1.25fr);
+  gap: 8px;
+  align-items: end;
+}
 .speaker-combobox { position: relative; }
 .speaker-suggestions {
   position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 50;
@@ -1547,8 +1552,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 }
 .speaker-suggestions button:hover,
 .speaker-suggestions button.is-active { background: #eff6ff; color: #1d4ed8; }
-@media (max-width: 720px) {
-  .course-add-row1, .course-add-row2 { grid-template-columns: 1fr; }
+@media (max-width: 960px) {
+  .course-add-fields { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .course-add-fields { grid-template-columns: 1fr; }
 }
 
 /* ── Course preview ── */
@@ -2072,7 +2080,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         <form method="post" action="/admin/?tab=cursuri" id="courseForm" class="course-add-form" onsubmit="return validateCourseForm()">
             <input type="hidden" name="action" value="save_course">
             <input type="hidden" name="image_url" id="f_image_url" value="">
-            <div class="course-add-row1">
+            <div class="course-add-fields">
                 <div class="form-group">
                     <label for="f_title">Nume curs</label>
                     <input type="text" name="title" id="f_title" required oninput="updateCoursePreview()">
@@ -2090,8 +2098,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                         <?php endforeach; ?>
                     </select>
                 </div>
-            </div>
-            <div class="course-add-row2">
                 <div class="form-group speaker-combobox">
                     <label for="f_speaker_input">Speaker</label>
                     <input type="text" id="f_speaker_input" autocomplete="off" required>
