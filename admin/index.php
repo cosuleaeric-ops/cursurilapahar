@@ -9,6 +9,7 @@ define('COURSES_FILE',        dirname(__DIR__) . '/data/courses.json');
 define('VOTE_COURSES_FILE',   dirname(__DIR__) . '/data/vote_courses.json');
 define('SETTINGS_FILE',       dirname(__DIR__) . '/data/settings.json');
 define('SPEAKERS_FILE',       dirname(__DIR__) . '/data/speakers.json');
+require_once dirname(__DIR__) . '/lib/courses.php';
 define('LOCATIONS_FILE',      dirname(__DIR__) . '/data/locations.json');
 define('COLLABORATIONS_FILE', dirname(__DIR__) . '/data/collaborations.json');
 define('UPLOADS_DIR',         dirname(__DIR__) . '/assets/images/uploads');
@@ -169,9 +170,8 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 function load_courses(): array {
     if (!file_exists(COURSES_FILE)) return [];
     $courses = json_decode(file_get_contents(COURSES_FILE), true) ?: [];
-    // Auto-deactivate courses whose date has passed
     $today = date('Y-m-d');
-    $changed = false;
+    $changed = clp_enforce_course_rules($courses);
     foreach ($courses as &$c) {
         if (!empty($c['date_raw']) && $c['date_raw'] < $today && !empty($c['active'])) {
             $c['active'] = false;
@@ -179,10 +179,14 @@ function load_courses(): array {
         }
     }
     unset($c);
-    if ($changed) save_courses($courses);
+    if ($changed) {
+        clp_enforce_course_rules($courses);
+        save_courses($courses);
+    }
     return $courses;
 }
 function save_courses(array $courses): void {
+    clp_enforce_course_rules($courses);
     $dir = dirname(COURSES_FILE);
     if (!is_dir($dir)) mkdir($dir, 0755, true);
     file_put_contents(COURSES_FILE, json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
@@ -394,13 +398,17 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ── Toggle course active
+    // ── Toggle course active (doar cu link LiveTickets apare pe site)
     if ($action === 'toggle_course') {
         $id = $_POST['id'] ?? '';
         $courses = load_courses();
         foreach ($courses as &$c) {
             if (($c['id'] ?? '') === $id) {
-                $c['active'] = !($c['active'] ?? false);
+                if (trim($c['livetickets_url'] ?? '') === '') {
+                    $c['active'] = false;
+                } else {
+                    $c['active'] = !($c['active'] ?? false);
+                }
                 break;
             }
         }
@@ -464,7 +472,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'location'        => $location,
             'livetickets_url' => $livetickets_url,
             'image_url'       => $image_url,
-            'active'          => !empty($_POST['active']),
+            'active'          => $livetickets_url !== '',
         ];
         if ($id) {
             $found = false;
@@ -485,6 +493,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $courses[] = $entry;
         }
+        clp_normalize_course($entry);
         save_courses($courses);
 
         // Auto-sync to SQLite statistics DB (name + date, no participants)
@@ -1704,11 +1713,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 <?php
 // ── Dashboard data ───────────────────────────────────────────────────────────
 $_dash_courses = load_courses();
-$_dash_active  = count(array_filter($_dash_courses, fn($c) => !empty($c['active'])));
+$_dash_active  = count(clp_filter_public_courses($_dash_courses));
 
 // Upcoming courses (future, sorted by date)
 $_dash_today = date('Y-m-d');
-$_dash_upcoming = array_filter($_dash_courses, fn($c) => !empty($c['active']) && ($c['date_raw'] ?? '') >= $_dash_today);
+$_dash_upcoming = array_filter(clp_filter_public_courses($_dash_courses), fn($c) => ($c['date_raw'] ?? '') >= $_dash_today);
 usort($_dash_upcoming, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 $_dash_upcoming = array_slice($_dash_upcoming, 0, 5);
 
@@ -2032,8 +2041,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             <input type="hidden" name="action" value="save_course">
             <input type="hidden" name="image_url" id="f_image_url" value="">
             <input type="hidden" name="location" id="f_location" value="">
-            <input type="hidden" name="active" value="1">
-
             <div class="course-add-grid">
                 <div class="form-group form-group--full">
                     <label for="f_title">Nume curs</label>
@@ -2062,7 +2069,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     </select>
                 </div>
                 <div class="form-group form-group--full">
-                    <label for="f_lt_url">Link LiveTickets <span class="form-desc">(opțional — fără link, cardul nu duce la bilete)</span></label>
+                    <label for="f_lt_url">Link LiveTickets <span class="form-desc">(opțional — fără link, cursul rămâne draft și nu apare pe site)</span></label>
                     <input type="url" name="livetickets_url" id="f_lt_url" placeholder="https://www.livetickets.ro/bilete/..." onblur="fetchLTImage()">
                 </div>
             </div>
@@ -2132,8 +2139,8 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     </td>
                     <td style="font-weight:600">
                         <?= h($c['title'] ?? '') ?>
-                        <?php if (!empty($c['speaker_name'])): ?>
-                        <div style="font-size:12px;font-weight:400;color:var(--text-muted);margin-top:2px"><?= h($c['speaker_name']) ?></div>
+                        <?php $sp_name = clp_course_speaker_name($c); if ($sp_name !== ''): ?>
+                        <div style="font-size:12px;font-weight:400;color:var(--text-muted);margin-top:2px"><?= h($sp_name) ?></div>
                         <?php endif; ?>
                         <?php if ($has_disc): ?>
                             <span class="discount-tag <?= $disc_active_now ? 'discount-tag--active' : 'discount-tag--expired' ?>">
@@ -2143,6 +2150,9 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                     </td>
                     <td style="color:var(--text-muted)"><?= h($c['date_display'] ?? $c['date_raw'] ?? '') ?></td>
                     <td>
+                        <?php if (empty($c['livetickets_url'])): ?>
+                        <span class="btn btn-sm status-inactive" style="cursor:default;opacity:.85" title="Adaugă link LiveTickets ca să apară pe site">Draft</span>
+                        <?php else: ?>
                         <form method="post" action="/admin/?tab=cursuri" style="display:inline">
                             <input type="hidden" name="action" value="toggle_course">
                             <input type="hidden" name="id" value="<?= h($cid) ?>">
@@ -2150,6 +2160,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                                 <?= !empty($c['active']) ? 'Activ' : 'Inactiv' ?>
                             </button>
                         </form>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <div class="row-actions">

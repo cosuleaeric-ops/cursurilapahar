@@ -564,6 +564,13 @@ ul { list-style: none; }
   flex-shrink: 0;
   color: var(--accent);
 }
+.meta-item--speaker {
+  font-weight: 600;
+  color: var(--text);
+}
+.meta-item--speaker .meta-item-speaker-name {
+  color: var(--text);
+}
 .event-card-body .btn-secondary { align-self: flex-start; margin-top: auto; }
 
 .no-events {

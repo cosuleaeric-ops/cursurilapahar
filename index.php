@@ -74,13 +74,15 @@ function clp_section_bg(string $id, array $settings, string $default_img = ''): 
 }
 
 // ── Load and filter courses ───────────────────────────────────────────────────
+require_once __DIR__ . '/lib/courses.php';
+
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
 if (file_exists($json_file)) {
     $courses = json_decode(file_get_contents($json_file), true) ?: [];
 }
-// Filter active, sort by date_raw ASC
-$courses = array_filter($courses, fn($c) => !empty($c['active']));
+clp_enforce_course_rules($courses);
+$courses = clp_filter_public_courses($courses);
 usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 
 // ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
@@ -296,9 +298,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $date_raw = $course['date_raw'] ?? '';
                 $badge_day = $date_raw ? date('d', strtotime($date_raw)) : '';
                 $badge_month = $date_raw ? strtoupper(date('M', strtotime($date_raw))) : '';
-                $has_ticket_link = !empty($course['livetickets_url']);
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
-                $card_clickable = $has_ticket_link && !$is_sold_out;
+                $speaker_label = clp_course_speaker_name($course);
                 $discount_active = false;
                 $discount_pct = 0;
                 $discount_ends = '';
@@ -311,7 +312,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     }
                 }
             ?>
-            <?php if ($card_clickable): ?><a href="<?= htmlspecialchars($course['livetickets_url']) ?>" target="_blank" rel="noopener"<?php else: ?><div<?php endif; ?> class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?><?= $card_clickable ? '' : ' event-card--static' ?>">
+            <a <?= $is_sold_out ? '' : 'href="' . htmlspecialchars($course['livetickets_url']) . '" target="_blank" rel="noopener"' ?> class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
                 <?php if ($is_sold_out): ?>
                 <div class="sold-out-badge">SOLD OUT</div>
                 <?php endif; ?>
@@ -334,10 +335,10 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 <div class="event-card-body">
                     <h3 class="event-card-title"><?= htmlspecialchars($course['title'] ?? '') ?></h3>
                     <div class="event-card-meta">
-                        <?php if (!empty($course['speaker_name'])): ?>
-                        <span class="meta-item">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <?= htmlspecialchars($course['speaker_name']) ?>
+                        <?php if ($speaker_label !== ''): ?>
+                        <span class="meta-item meta-item--speaker">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span class="meta-item-speaker-name"><?= htmlspecialchars($speaker_label) ?></span>
                         </span>
                         <?php endif; ?>
                         <?php if (!empty($course['time'])): ?>
@@ -360,7 +361,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     </div>
                     <?php endif; ?>
                 </div>
-            <?php if ($card_clickable): ?></a><?php else: ?></div><?php endif; ?>
+            </a>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
