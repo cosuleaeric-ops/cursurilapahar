@@ -241,6 +241,17 @@ function clp_find_speaker_by_id(string $speaker_id): ?array {
     return null;
 }
 
+/** Aceeași listă și ordine ca în tab-ul Speakeri (din data/speakers.json) */
+function load_speakers_for_picker(): array {
+    $speakers = load_speakers();
+    usort($speakers, function ($a, $b) {
+        $order = ['CONTACTAT' => 0, 'RECURENT' => 1, 'MID' => 2, 'NOPE' => 3];
+        $cmp = ($order[$a['status'] ?? 'MID'] ?? 2) <=> ($order[$b['status'] ?? 'MID'] ?? 2);
+        return $cmp !== 0 ? $cmp : strcasecmp($a['name'] ?? '', $b['name'] ?? '');
+    });
+    return array_values(array_filter($speakers, fn($s) => trim($s['id'] ?? '') !== '' && trim($s['name'] ?? '') !== ''));
+}
+
 function load_locations(): array {
     if (!file_exists(LOCATIONS_FILE)) return [];
     return json_decode(file_get_contents(LOCATIONS_FILE), true) ?: [];
@@ -1514,9 +1525,27 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .form-group textarea { resize: vertical; min-height: 80px; }
 .form-desc { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 #importMsg { margin-top: 8px; font-size: 13px; }
-.course-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 4px; }
-.course-add-grid .form-group--full { grid-column: 1 / -1; }
-@media (max-width: 640px) { .course-add-grid { grid-template-columns: 1fr; } }
+.course-add-form .form-group { margin-bottom: 0; }
+.course-add-form .form-group label { margin-bottom: 4px; font-size: 10px; }
+.course-add-form .form-group input,
+.course-add-form .form-group select { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+.course-add-row1 { display: grid; grid-template-columns: minmax(0, 1fr) 150px 108px; gap: 10px; align-items: end; }
+.course-add-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: end; margin-top: 10px; }
+.speaker-combobox { position: relative; }
+.speaker-suggestions {
+  position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 50;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.1); max-height: 200px; overflow-y: auto;
+}
+.speaker-suggestions button {
+  display: block; width: 100%; text-align: left; border: 0; background: #fff;
+  padding: 8px 12px; font-size: 12px; cursor: pointer; color: #374151;
+}
+.speaker-suggestions button:hover,
+.speaker-suggestions button.is-active { background: #eff6ff; color: #1d4ed8; }
+@media (max-width: 720px) {
+  .course-add-row1, .course-add-row2 { grid-template-columns: 1fr; }
+}
 
 /* ── Course preview ── */
 .course-preview { display: flex; gap: 14px; align-items: flex-start; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin: 14px 0; }
@@ -2021,8 +2050,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
 <?php /* ======================================================= TAB: CURSURI */ ?>
 <?php elseif ($tab === 'cursuri'): ?>
     <?php
-    $course_speakers = load_speakers();
-    usort($course_speakers, fn($a, $b) => strcasecmp($a['name'] ?? '', $b['name'] ?? ''));
+    $course_speakers = load_speakers_for_picker();
     $course_times = clp_allowed_course_times();
     $course_form_error = trim($_GET['course_error'] ?? '');
     ?>
@@ -2041,10 +2069,10 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             <input type="hidden" name="action" value="save_course">
             <input type="hidden" name="image_url" id="f_image_url" value="">
             <input type="hidden" name="location" id="f_location" value="">
-            <div class="course-add-grid">
-                <div class="form-group form-group--full">
+            <div class="course-add-row1">
+                <div class="form-group">
                     <label for="f_title">Nume curs</label>
-                    <input type="text" name="title" id="f_title" required placeholder="ex. Curs la Pahar - PUBLIC SPEAKING // 26 mai">
+                    <input type="text" name="title" id="f_title" required oninput="updateCoursePreview()">
                 </div>
                 <div class="form-group">
                     <label for="f_date_raw">Dată</label>
@@ -2053,26 +2081,32 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 <div class="form-group">
                     <label for="f_time">Oră</label>
                     <select name="time" id="f_time" required onchange="updateCoursePreview()">
-                        <option value="">Alege ora</option>
+                        <option value=""></option>
                         <?php foreach ($course_times as $t): ?>
                         <option value="<?= h($t) ?>"><?= h($t) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="form-group form-group--full">
-                    <label for="f_speaker_id">Speaker</label>
-                    <select name="speaker_id" id="f_speaker_id" required onchange="updateCoursePreview()">
-                        <option value="">Alege speakerul</option>
-                        <?php foreach ($course_speakers as $sp): ?>
-                        <option value="<?= h($sp['id'] ?? '') ?>"><?= h($sp['name'] ?? '') ?></option>
-                        <?php endforeach; ?>
-                    </select>
+            </div>
+            <div class="course-add-row2">
+                <div class="form-group speaker-combobox">
+                    <label for="f_speaker_input">Speaker</label>
+                    <input type="text" id="f_speaker_input" autocomplete="off" required>
+                    <input type="hidden" name="speaker_id" id="f_speaker_id" value="">
+                    <div id="f_speaker_suggestions" class="speaker-suggestions" hidden></div>
                 </div>
-                <div class="form-group form-group--full">
-                    <label for="f_lt_url">Link LiveTickets <span class="form-desc">(opțional — fără link, cursul rămâne draft și nu apare pe site)</span></label>
-                    <input type="url" name="livetickets_url" id="f_lt_url" placeholder="https://www.livetickets.ro/bilete/..." onblur="fetchLTImage()">
+                <div class="form-group">
+                    <label for="f_lt_url">Link LiveTickets</label>
+                    <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()">
                 </div>
             </div>
+            <script>
+            window.CLP_SPEAKERS_PICKER = <?= json_encode(array_map(fn($s) => [
+                'id' => $s['id'] ?? '',
+                'name' => $s['name'] ?? '',
+                'status' => $s['status'] ?? '',
+            ], $course_speakers), JSON_UNESCAPED_UNICODE) ?>;
+            </script>
 
             <div id="importMsg"></div>
 
@@ -4053,12 +4087,82 @@ function clpFormatDateRo(ymd) {
     return d + ' ' + (CLP_RO_MONTHS[m] ? CLP_RO_MONTHS[m].charAt(0).toUpperCase() + CLP_RO_MONTHS[m].slice(1) : '') + ' ' + p[0];
 }
 
+function clpSpeakerDisplayName() {
+    const id = document.getElementById('f_speaker_id')?.value || '';
+    const hit = (window.CLP_SPEAKERS_PICKER || []).find(s => s.id === id);
+    return hit ? hit.name : (document.getElementById('f_speaker_input')?.value.trim() || '');
+}
+
+function clpResolveSpeakerFromInput() {
+    const input = document.getElementById('f_speaker_input');
+    const hidden = document.getElementById('f_speaker_id');
+    if (!input || !hidden) return false;
+    const q = input.value.trim().toLowerCase();
+    if (!q) { hidden.value = ''; return false; }
+    const list = window.CLP_SPEAKERS_PICKER || [];
+    const exact = list.find(s => s.name.toLowerCase() === q);
+    if (exact) { hidden.value = exact.id; return true; }
+    const partial = list.filter(s => s.name.toLowerCase().includes(q));
+    if (partial.length === 1) {
+        hidden.value = partial[0].id;
+        input.value = partial[0].name;
+        return true;
+    }
+    hidden.value = '';
+    return false;
+}
+
+function clpRenderSpeakerSuggestions(filter) {
+    const box = document.getElementById('f_speaker_suggestions');
+    if (!box) return;
+    const q = (filter || '').trim().toLowerCase();
+    const list = (window.CLP_SPEAKERS_PICKER || []).filter(s => !q || s.name.toLowerCase().includes(q));
+    if (!list.length) {
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+    }
+    box.innerHTML = '';
+    list.forEach(s => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = s.name + (s.status ? ' (' + s.status + ')' : '');
+        btn.addEventListener('mousedown', e => {
+            e.preventDefault();
+            document.getElementById('f_speaker_id').value = s.id;
+            document.getElementById('f_speaker_input').value = s.name;
+            box.hidden = true;
+            updateCoursePreview();
+        });
+        box.appendChild(btn);
+    });
+    box.hidden = false;
+}
+
+function clpInitSpeakerCombobox() {
+    const input = document.getElementById('f_speaker_input');
+    const box = document.getElementById('f_speaker_suggestions');
+    if (!input || !box) return;
+    input.addEventListener('focus', () => clpRenderSpeakerSuggestions(input.value));
+    input.addEventListener('input', () => {
+        document.getElementById('f_speaker_id').value = '';
+        clpRenderSpeakerSuggestions(input.value);
+        updateCoursePreview();
+    });
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            box.hidden = true;
+            clpResolveSpeakerFromInput();
+            updateCoursePreview();
+        }, 150);
+    });
+}
+
 function updateCoursePreview() {
     const title = document.getElementById('f_title')?.value.trim() || '';
     const dateRaw = document.getElementById('f_date_raw')?.value || '';
     const time = document.getElementById('f_time')?.value || '';
-    const speakerSel = document.getElementById('f_speaker_id');
-    const speaker = speakerSel?.selectedOptions[0]?.textContent?.trim() || '';
+    const speaker = clpSpeakerDisplayName();
     const preview = document.getElementById('coursePreview');
     if (!preview || !title) {
         if (preview) preview.style.display = 'none';
@@ -4071,10 +4175,11 @@ function updateCoursePreview() {
 }
 
 function validateCourseForm() {
+    clpResolveSpeakerFromInput();
     const speaker = document.getElementById('f_speaker_id')?.value || '';
     const time = document.getElementById('f_time')?.value || '';
     if (!speaker) {
-        alert('Alege un speaker din listă.');
+        alert('Alege un speaker din lista de pe tab-ul Speakeri (nume exact).');
         return false;
     }
     if (!CLP_ALLOWED_TIMES.includes(time)) {
@@ -4138,6 +4243,7 @@ async function fetchLTImage() {
 }
 
 document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);
+clpInitSpeakerCombobox();
 </script>
 
 <?php endif; ?>
