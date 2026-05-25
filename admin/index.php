@@ -1339,10 +1339,13 @@ if (is_authenticated() && $tab === 'cursuri') {
         try {
             $_clp_db = new SQLite3($_clp_db_path);
             $_clp_db->exec('PRAGMA journal_mode = WAL;');
-            $_dr = $_clp_db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
-                FROM courses c JOIN course_reports r ON r.course_id = c.id
-                WHERE c.date LIKE '" . $clp_prefix . "%' ORDER BY c.date DESC");
-            while ($_row = $_dr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_rows[] = $_row;
+            if (!empty($clp_courses)) {
+                $_course_ids = implode(',', array_map(fn($c) => (int)$c['id'], $clp_courses));
+                $_dr = $_clp_db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
+                    FROM courses c JOIN course_reports r ON r.course_id = c.id
+                    WHERE c.id IN ({$_course_ids}) ORDER BY c.date DESC");
+                while ($_row = $_dr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_rows[] = $_row;
+            }
             $_yr = $_clp_db->query("SELECT DISTINCT strftime('%Y', c.date) AS y FROM courses c JOIN course_reports r ON r.course_id = c.id ORDER BY y DESC");
             while ($_row = $_yr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_years[] = $_row['y'];
             if (!in_array((string)$clp_year, $clp_ditl_years)) $clp_ditl_years[] = (string)$clp_year;

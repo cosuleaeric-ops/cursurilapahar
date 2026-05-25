@@ -29,13 +29,14 @@ unset($row);
 $ditl_rows = $viza_subtips = [];
 $sum_incasari = 0.0;
 
-if (file_exists($db_path)) {
+if (file_exists($db_path) && !empty($courses)) {
     $db = new SQLite3($db_path);
     $db->exec('PRAGMA journal_mode = WAL;');
 
+    $course_ids = implode(',', array_map(fn($c) => (int)$c['id'], $courses));
     $dr = $db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
         FROM courses c JOIN course_reports r ON r.course_id = c.id
-        WHERE c.date LIKE '" . $db->escapeString($prefix) . "%' ORDER BY c.date DESC");
+        WHERE c.id IN ({$course_ids}) ORDER BY c.date DESC");
     while ($row = $dr->fetchArray(SQLITE3_ASSOC)) {
         $row['date_ro'] = ro_date_str($row['date'], $ro_months);
         $row['types'] = json_decode($row['types_json'] ?? '[]', true) ?: [];

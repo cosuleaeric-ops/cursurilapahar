@@ -98,6 +98,12 @@ function clp_statistici_db_path(): string
     return dirname(__DIR__) . '/admin/statistici/data/clp.sqlite';
 }
 
+function clp_get_statistici_db(): SQLite3
+{
+    require_once dirname(__DIR__) . '/admin/statistici/db.php';
+    return get_clp_db();
+}
+
 /** @return array<int, array<string, mixed>> */
 function clp_load_courses_from_json(): array
 {
@@ -108,13 +114,27 @@ function clp_load_courses_from_json(): array
     return json_decode((string)file_get_contents($file), true) ?: [];
 }
 
-function clp_ensure_statistici_db(SQLite3 $sdb): void
+function clp_resolve_course_date_raw(array $course): string
 {
-    $sdb->exec('PRAGMA foreign_keys = ON;');
-    $sdb->exec('PRAGMA journal_mode = WAL;');
-    $sdb->exec('CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, date TEXT NOT NULL, created_at TEXT NOT NULL);');
-    @$sdb->exec('ALTER TABLE courses ADD COLUMN external_id TEXT;');
-    @$sdb->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_courses_external_id ON courses(external_id) WHERE external_id IS NOT NULL;');
+    $raw = trim($course['date_raw'] ?? '');
+    if ($raw !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+        return $raw;
+    }
+    $display = trim($course['date_display'] ?? '');
+    if ($display !== '') {
+        $ts = strtotime($display);
+        if ($ts !== false) {
+            return date('Y-m-d', $ts);
+        }
+    }
+    return '';
+}
+
+function clp_month_date_prefix(int $year, int $month): string
+{
+    return $month > 0
+        ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
+        : (string)$year;
 }
 
 /** @return list<string> ID-uri cursuri din courses.json (site + admin). */
@@ -133,54 +153,97 @@ function clp_json_course_external_ids(): array
 /** Sincronizează cursurile din JSON pentru luna selectată în SQLite. */
 function clp_sync_json_courses_for_month(int $year, int $month): void
 {
-    $prefix = $month > 0
-        ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
-        : (string)$year;
+    $prefix = clp_month_date_prefix($year, $month);
 
     foreach (clp_load_courses_from_json() as $c) {
-        $date_raw = trim($c['date_raw'] ?? '');
+        $date_raw = clp_resolve_course_date_raw($c);
         if ($date_raw !== '' && str_starts_with($date_raw, $prefix)) {
+            $c['date_raw'] = $date_raw;
             clp_sync_course_to_statistici_db($c);
         }
     }
 }
 
+/** Rând vechi din SQLite (aceeași dată) care are bilete/raport/viză — păstrăm statisticile. */
+function clp_find_legacy_statistici_course_id(SQLite3 $sdb, string $date_raw, string $exclude_ext_id): ?int
+{
+    $sql = "SELECT c.id FROM courses c
+        WHERE c.date = '" . $sdb->escapeString($date_raw) . "'
+        AND (c.external_id IS NULL OR c.external_id = '' OR c.external_id != '" . $sdb->escapeString($exclude_ext_id) . "')
+        AND (
+            EXISTS (SELECT 1 FROM course_reports r WHERE r.course_id = c.id)
+            OR EXISTS (SELECT 1 FROM tickets t WHERE t.course_id = c.id)
+            OR EXISTS (SELECT 1 FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza')
+        )
+        ORDER BY c.id ASC LIMIT 1";
+    $row = $sdb->querySingle($sql, true);
+    return $row ? (int)$row['id'] : null;
+}
+
+function clp_statistici_course_has_data(SQLite3 $sdb, int $course_id): bool
+{
+    $n = (int)$sdb->querySingle(
+        "SELECT (
+            (SELECT COUNT(*) FROM course_reports r WHERE r.course_id = " . (int)$course_id . ")
+            + (SELECT COUNT(*) FROM tickets t WHERE t.course_id = " . (int)$course_id . ")
+            + (SELECT COUNT(*) FROM course_files f WHERE f.course_id = " . (int)$course_id . " AND f.file_type = 'viza')
+        )"
+    );
+    return $n > 0;
+}
+
+/** Șterge duplicate goale (fără bilete/raport/viză) lăsate de sync-uri vechi. */
+function clp_remove_empty_statistici_duplicates(SQLite3 $sdb, int $keep_id, string $ext_id, string $date_raw): void
+{
+    $sdb->exec("DELETE FROM courses WHERE id != " . (int)$keep_id . "
+        AND NOT EXISTS (SELECT 1 FROM course_reports r WHERE r.course_id = courses.id)
+        AND NOT EXISTS (SELECT 1 FROM tickets t WHERE t.course_id = courses.id)
+        AND NOT EXISTS (SELECT 1 FROM course_files f WHERE f.course_id = courses.id)
+        AND (
+            external_id = '" . $sdb->escapeString($ext_id) . "'
+            OR (date = '" . $sdb->escapeString($date_raw) . "' AND (external_id IS NULL OR external_id = ''))
+        )");
+}
+
 /** Sincronizează un curs din courses.json în SQLite (tabelul de statistici). */
 function clp_sync_course_to_statistici_db(array $entry): ?int
 {
-    $path = clp_statistici_db_path();
-    $dir = dirname($path);
-    if (!is_dir($dir)) {
-        @mkdir($dir, 0755, true);
-    }
-    if (!is_dir($dir)) {
-        return null;
-    }
-
     $ext_id = trim($entry['id'] ?? '');
     $title = trim($entry['title'] ?? '');
-    $date_raw = trim($entry['date_raw'] ?? '');
+    $date_raw = clp_resolve_course_date_raw($entry);
     if ($ext_id === '' || $title === '' || $date_raw === '') {
         return null;
     }
 
     try {
-        $sdb = new SQLite3($path);
-        clp_ensure_statistici_db($sdb);
+        $sdb = clp_get_statistici_db();
 
         $existing = $sdb->querySingle(
             "SELECT id FROM courses WHERE external_id = '" . $sdb->escapeString($ext_id) . "' LIMIT 1",
             true
         );
+        $sqlite_id = $existing ? (int)$existing['id'] : null;
 
-        if ($existing) {
+        if ($sqlite_id === null) {
+            $legacy_id = clp_find_legacy_statistici_course_id($sdb, $date_raw, $ext_id);
+            if ($legacy_id !== null) {
+                $sqlite_id = $legacy_id;
+            }
+        } elseif (!clp_statistici_course_has_data($sdb, $sqlite_id)) {
+            $legacy_id = clp_find_legacy_statistici_course_id($sdb, $date_raw, $ext_id);
+            if ($legacy_id !== null && $legacy_id !== $sqlite_id) {
+                $sdb->exec("UPDATE courses SET external_id = NULL WHERE id = " . (int)$sqlite_id);
+                $sqlite_id = $legacy_id;
+            }
+        }
+
+        if ($sqlite_id !== null) {
             $stmt = $sdb->prepare('UPDATE courses SET name = :name, date = :date, external_id = :ext WHERE id = :id');
             $stmt->bindValue(':name', $title, SQLITE3_TEXT);
             $stmt->bindValue(':date', $date_raw, SQLITE3_TEXT);
             $stmt->bindValue(':ext', $ext_id, SQLITE3_TEXT);
-            $stmt->bindValue(':id', (int)$existing['id'], SQLITE3_INTEGER);
+            $stmt->bindValue(':id', $sqlite_id, SQLITE3_INTEGER);
             $stmt->execute();
-            $sqlite_id = (int)$existing['id'];
         } else {
             $stmt = $sdb->prepare('INSERT INTO courses (name, date, created_at, external_id) VALUES (:name, :date, :created_at, :ext)');
             $stmt->bindValue(':name', $title, SQLITE3_TEXT);
@@ -190,7 +253,8 @@ function clp_sync_course_to_statistici_db(array $entry): ?int
             $stmt->execute();
             $sqlite_id = (int)$sdb->lastInsertRowID();
         }
-        $sdb->close();
+
+        clp_remove_empty_statistici_duplicates($sdb, $sqlite_id, $ext_id, $date_raw);
         return $sqlite_id;
     } catch (Exception $e) {
         return null;
@@ -213,38 +277,41 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
 
     clp_sync_json_courses_for_month($year, $month);
 
-    $prefix = $month > 0
-        ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
-        : (string)$year;
-
-    $path = clp_statistici_db_path();
-    if (!file_exists($path)) {
-        return [];
-    }
+    $prefix = clp_month_date_prefix($year, $month);
 
     $courses = [];
     try {
-        $db = new SQLite3($path);
-        $db->exec('PRAGMA journal_mode = WAL;');
+        $db = clp_get_statistici_db();
         $in_list = implode(',', array_map(
             fn(string $id) => "'" . $db->escapeString($id) . "'",
             $json_ids
         ));
-        $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
+        $sql = "SELECT c.id, c.external_id, c.name, c.date,
             (SELECT COUNT(*) FROM tickets t WHERE t.course_id = c.id) as total_tickets,
             (SELECT filename FROM course_files f WHERE f.course_id = c.id AND f.file_type = 'viza' ORDER BY f.uploaded_at DESC LIMIT 1) as viza_filename,
-            (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report
+            (SELECT 1 FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as has_report,
+            (SELECT r.total_incasari FROM course_reports r WHERE r.course_id = c.id LIMIT 1) as total_incasari
             FROM courses c
             WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
             AND c.external_id IN (" . $in_list . ")
-            ORDER BY c.date DESC");
-        while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
-            $row['has_report'] = (bool)$row['has_report'];
-            $row['has_viza'] = (bool)($row['viza_filename'] ?? '');
-            unset($row['viza_filename']);
-            $courses[] = $row;
+            ORDER BY c.date DESC";
+        $r = $db->query($sql);
+        if ($r === false) {
+            $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
+                0 as total_tickets, NULL as viza_filename, 0 as has_report, NULL as total_incasari
+                FROM courses c
+                WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
+                AND c.external_id IN (" . $in_list . ")
+                ORDER BY c.date DESC");
         }
-        $db->close();
+        if ($r !== false) {
+            while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
+                $row['has_report'] = (bool)$row['has_report'];
+                $row['has_viza'] = (bool)($row['viza_filename'] ?? '');
+                unset($row['viza_filename']);
+                $courses[] = $row;
+            }
+        }
     } catch (Exception $e) {
         return [];
     }
@@ -263,14 +330,12 @@ function clp_sync_all_courses_to_statistici_db(array $courses): void
 function clp_delete_statistici_course_by_external_id(string $external_id): void
 {
     $external_id = trim($external_id);
-    if ($external_id === '' || !file_exists(clp_statistici_db_path())) {
+    if ($external_id === '') {
         return;
     }
     try {
-        $sdb = new SQLite3(clp_statistici_db_path());
-        $sdb->exec('PRAGMA foreign_keys = ON;');
+        $sdb = clp_get_statistici_db();
         $sdb->exec("DELETE FROM courses WHERE external_id = '" . $sdb->escapeString($external_id) . "'");
-        $sdb->close();
     } catch (Exception $e) {
         /* ignore */
     }
