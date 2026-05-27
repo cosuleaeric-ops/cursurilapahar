@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 require_once dirname(__DIR__) . '/admin/auth_check.php';
 require_once dirname(__DIR__) . '/lib/courses.php';
 require_once dirname(__DIR__) . '/lib/dates.php';
+require_once dirname(__DIR__) . '/lib/statistici.php';
 if (!is_authenticated()) { http_response_code(403); echo json_encode(['error' => 'Unauthorized']); exit; }
 
 $year  = (int)($_GET['year']  ?? date('Y'));
@@ -59,7 +60,14 @@ foreach ($ditl_rows as $r) {
         $by_month[$mk] = ['label' => clp_ro_month_label($mn, $year), 'incasari' => 0, 'rows' => []];
     }
     $by_month[$mk]['incasari'] += (float)$r['total_incasari'];
-    $r['subtips'] = $viza_subtips[(int)$r['id']] ?? [];
+    $types = $r['types'] ?? [];
+    unset($r['types']);
+    $subtips = $viza_subtips[(int)$r['id']] ?? [];
+    foreach ($subtips as &$sub) {
+        $sub['vandute'] = clp_vandute_for_tarif($types, (float)$sub['tarif']);
+    }
+    unset($sub);
+    $r['subtips'] = $subtips;
     $by_month[$mk]['rows'][] = $r;
 }
 

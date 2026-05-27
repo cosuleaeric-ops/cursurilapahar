@@ -3,6 +3,8 @@
  * Cursuri la Pahar – Main Page
  */
 
+require_once __DIR__ . '/lib/settings.php';
+
 // ── Serve WebP when available ─────────────────────────────────────────────────
 function img_webp(string $path): string {
     $webp = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $path);
@@ -10,52 +12,7 @@ function img_webp(string $path): string {
     return (str_starts_with($path, '/assets/') && file_exists($file)) ? $webp : $path;
 }
 
-// ── Load settings ─────────────────────────────────────────────────────────────
-function clp_default_settings(): array {
-    return [
-        'announcement'     => '🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?',
-        'hero_title'       => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
-        'hero_btn'         => 'Vezi următoarele cursuri',
-        'courses_title'    => 'Următoarele cursuri',
-        'newsletter_title' => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
-        'newsletter_desc'  => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar.',
-        'collab_title'     => 'Colaborare',
-        'collab_subtitle'  => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
-        'contact_title'    => 'Contact',
-        'contact_subtitle' => 'Ai o întrebare sau o idee? Scrie-ne.',
-        'hero_images'      => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
-        'logo_path'        => '/assets/images/logo.webp',
-        'favicon_path'     => '',
-        'nav_brand_text'   => 'Cursuri la Pahar',
-        'nav_links'        => [
-            ['label' => 'Cursuri',            'url' => '/#cursuri'],
-            ['label' => 'FAQ',                'url' => '/#faq'],
-            ['label' => 'Colaborare',         'url' => '/#colaborare'],
-            ['label' => 'Contact',            'url' => '/#contact'],
-        ],
-        'steps' => [
-            ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
-            ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
-            ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
-            ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
-        ],
-        'faq_items' => [
-            ['q' => 'Ce este Cursuri la Pahar?',          'a' => 'Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul.'],
-            ['q' => 'Cât durează un eveniment?',           'a' => 'Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&A, unde poți pune orice fel de întrebări.'],
-            ['q' => 'Cât costă un bilet?',                 'a' => 'Biletul standard costă 50 de lei, iar biletul pentru studenți costă 30 de lei.'],
-            ['q' => 'Despre ce sunt cursurile?',           'a' => 'Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie. Practic, încercăm să transformăm subiectele „grele" în povești numai bune de ascultat la un pahar.'],
-            ['q' => 'Unde au loc evenimentele?',           'a' => 'Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan). Alegem locații unde atmosfera este caldă și unde poți savura o băutură în timp ce asculți ceva interesant.'],
-            ['q' => 'Cine poate participa?',               'a' => 'Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu; evenimentul este creat pentru toți cei care vor să îmbine socializarea cu o doză de cunoaștere.'],
-            ['q' => 'Când va avea loc următorul eveniment?','a' => 'Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru. Pe lângă asta, poți vedea calendarul și pe pagina noastră de Instagram.'],
-        ],
-    ];
-}
-$settings_file = __DIR__ . '/data/settings.json';
-$settings = clp_default_settings();
-if (file_exists($settings_file)) {
-    $loaded = json_decode(file_get_contents($settings_file), true) ?: [];
-    $settings = array_merge($settings, $loaded);
-}
+$settings = clp_load_settings();
 
 function clp_e(string $key, array $settings): string {
     return '';

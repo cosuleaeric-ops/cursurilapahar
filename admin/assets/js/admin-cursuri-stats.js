@@ -4,12 +4,26 @@
     const calRoMonths = ['', 'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
     const calDow = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
     const calCourses = cfg.calCourses || [];
+    const vizaHeaders = ['Seria', 'De la', 'Până la', 'Vândute', 'Total', 'Tarif'];
 
     let clpYear = cfg.year || new Date().getFullYear();
     let clpMonth = cfg.month || (new Date().getMonth() + 1);
     let calYear = cfg.calYear || clpYear;
     let calMonth = cfg.calMonth || clpMonth;
     const calToday = new Date().toISOString().slice(0, 10);
+    let participantsLoaded = false;
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmtCourseTag(raw) {
+        const parts = String(raw).split(' (');
+        const name = esc(parts[0].trim());
+        if (parts.length < 2) return name;
+        const datePart = parts[1].replace(/\)$/, '').slice(0, 7);
+        return name + ' <span style="opacity:.6">(' + esc(datePart) + ')</span>';
+    }
 
     window.clpSwitchTab = function (e, t) {
         document.querySelectorAll('.clp-tab-btn').forEach(b => b.classList.remove('active'));
@@ -17,6 +31,7 @@
         document.getElementById('clp-panel-' + t).classList.add('active');
         e.currentTarget.classList.add('active');
         if (t === 'calendar') calRender();
+        if (t === 'participanti' && !participantsLoaded) clpLoadParticipants();
     };
 
     window.clpToggleViza = function (id) {
@@ -33,8 +48,26 @@
         if (document.getElementById('clp-panel-calendar')?.classList.contains('active')) calRender();
     };
 
-    function esc(s) {
-        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function renderVizaRows(subs, rid) {
+        if (!subs.length) return '';
+        const head = vizaHeaders.map(h =>
+            `<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h === 'Seria' ? 'left' : 'right'}">${h}</th>`
+        ).join('');
+        const body = subs.map(s => {
+            const vandute = s.vandute != null ? `<strong>${s.vandute}</strong>` : '—';
+            return `<tr>
+                <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria">${esc(s.seria)}</span></td>
+                <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.de_la)}</td>
+                <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.pana_la)}</td>
+                <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${vandute}</td>
+                <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${s.nr_unitati}</td>
+                <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${Number(s.tarif).toLocaleString('ro-RO', { maximumFractionDigits: 0 })} RON</td>
+            </tr>`;
+        }).join('');
+        return `<tr class="clp-viza-row" id="${rid}"><td colspan="7" style="padding:0;background:#f8fafc">
+            <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>${head}</tr></thead><tbody>${body}</tbody>
+            </table></div></td></tr>`;
     }
 
     async function clpLoadMonth() {
@@ -90,23 +123,59 @@
                 <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
                 <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
             </tr>`;
-            if (subs.length) {
-                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="7" style="padding:0;background:#f8fafc">
-                <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
-                <thead><tr>${['Seria', 'De la', 'Până la', 'Total', 'Tarif'].map(h => `<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h === 'Seria' ? 'left' : 'right'}">${h}</th>`).join('')}</tr></thead>
-                <tbody>${subs.map(s => `<tr>
-                    <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria">${esc(s.seria)}</span></td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.de_la)}</td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.pana_la)}</td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${s.nr_unitati}</td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${Number(s.tarif).toLocaleString('ro-RO', { maximumFractionDigits: 0 })} RON</td>
-                </tr>`).join('')}</tbody>
-                </table></div></td></tr>`;
-            }
+            html += renderVizaRows(subs, rid);
         });
 
         html += '</tbody></table>';
         cursPanel.innerHTML = html;
+    }
+
+    async function clpLoadParticipants() {
+        const panel = document.getElementById('clp-panel-participanti');
+        if (!panel) return;
+        try {
+            const res = await fetch('/api/participanti.php');
+            const data = await res.json();
+            participantsLoaded = true;
+            const stats = data.stats || {};
+            const list = data.participants || [];
+            if (!list.length) {
+                panel.innerHTML = '<p style="color:var(--text-muted)">Niciun participant înregistrat încă.</p>';
+                return;
+            }
+            let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+                <div class="clp-stat-box"><div class="lbl">Participanți unici</div><div class="val">${stats.unique || 0}</div></div>
+                <div class="clp-stat-box"><div class="lbl">Revin la 2+ cursuri</div><div class="val" style="color:#16a34a">${stats.returning || 0}</div></div>
+                <div class="clp-stat-box"><div class="lbl">Total bilete vândute</div><div class="val">${stats.tickets || 0}</div></div>
+            </div>
+            <div style="margin-bottom:12px">
+                <input type="text" id="clpSearch" placeholder="Caută participant…" oninput="clpFilter()" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff">
+            </div>
+            <table class="wp-table" id="clpParticipantsTable"><thead><tr>
+                <th>Participant</th>
+                <th style="text-align:right;width:90px"># Cursuri</th>
+                <th style="text-align:right;width:90px"># Bilete</th>
+                <th>Cursuri</th>
+            </tr></thead><tbody>`;
+            list.forEach(p => {
+                const badge = (p.num_courses || 0) > 1
+                    ? ' <span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">revine</span>'
+                    : '';
+                const tags = (p.courses || []).filter(Boolean).map(c =>
+                    `<span style="background:#f1f5f9;border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text-muted);padding:2px 6px">${fmtCourseTag(c)}</span>`
+                ).join('');
+                html += `<tr>
+                    <td><strong>${esc(p.participant_name)}</strong>${badge}</td>
+                    <td style="text-align:right">${p.num_courses}</td>
+                    <td style="text-align:right">${p.total_tickets}</td>
+                    <td><div style="display:flex;flex-wrap:wrap;gap:4px">${tags}</div></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            panel.innerHTML = html;
+        } catch (err) {
+            panel.innerHTML = '<p style="color:var(--danger)">Eroare la încărcarea participanților.</p>';
+        }
     }
 
     function calRender() {
@@ -152,18 +221,18 @@
     }
 
     window.clpFilter = function () {
-        const q = document.getElementById('clpSearch').value.toLowerCase();
+        const q = document.getElementById('clpSearch')?.value.toLowerCase() || '';
         document.querySelectorAll('#clpParticipantsTable tbody tr').forEach(tr => {
             tr.style.display = (tr.querySelector('strong')?.textContent.toLowerCase() || '').includes(q) ? '' : 'none';
         });
     };
 
-    if (cfg.initCalendar) {
-        document.addEventListener('DOMContentLoaded', calRender);
-    }
-    if (cfg.scrollToStats) {
-        document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        clpLoadMonth();
+        if (cfg.activeTab === 'participanti') clpLoadParticipants();
+        if (cfg.initCalendar) calRender();
+        if (cfg.scrollToStats) {
             document.getElementById('clp-stats-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    }
+        }
+    });
 })();

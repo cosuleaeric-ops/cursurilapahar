@@ -10,6 +10,7 @@ define('VOTE_COURSES_FILE',   dirname(__DIR__) . '/data/vote_courses.json');
 define('SETTINGS_FILE',       dirname(__DIR__) . '/data/settings.json');
 define('SPEAKERS_FILE',       dirname(__DIR__) . '/data/speakers.json');
 require_once dirname(__DIR__) . '/lib/courses.php';
+require_once dirname(__DIR__) . '/lib/settings.php';
 require_once dirname(__DIR__) . '/lib/dates.php';
 define('LOCATIONS_FILE',      dirname(__DIR__) . '/data/locations.json');
 define('COLLABORATIONS_FILE', dirname(__DIR__) . '/data/collaborations.json');
@@ -239,109 +240,8 @@ function save_collaborations(array $items): void {
     file_put_contents(COLLABORATIONS_FILE, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
-function default_settings(): array {
-    return [
-        'announcement'      => '🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?',
-        'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
-        'hero_btn'          => 'Vezi următoarele cursuri',
-        'courses_title'     => 'Următoarele cursuri',
-        'gallery_title'     => 'Galerie',
-        'newsletter_title'  => 'Fii primul care află când au loc evenimentele Cursuri la Pahar',
-        'newsletter_desc'   => 'Vei primi în exclusivitate data și tema viitoarelor evenimente Cursuri la Pahar.',
-        'collab_title'      => 'Colaborare',
-        'collab_subtitle'   => 'Vrei să faci parte din comunitatea Cursuri la Pahar? Hai să construim ceva frumos împreună.',
-        'contact_title'     => 'Contact',
-        'contact_subtitle'  => 'Ai o întrebare sau o idee? Scrie-ne.',
-        'hero_images'       => ['/assets/images/hero1.jpg', '/assets/images/hero2.jpg', '/assets/images/hero3.jpg', '/assets/images/hero4.jpg', '/assets/images/hero5.jpg'],
-        'logo_path'         => '/assets/images/logo.webp',
-        'favicon_path'      => '',
-        'nav_brand_text'    => 'Cursuri la Pahar',
-        'nav_links'         => [
-            ['label' => 'Cursuri',            'url' => '/#cursuri'],
-            ['label' => 'FAQ',                'url' => '/#faq'],
-            ['label' => 'Colaborare',         'url' => '/#colaborare'],
-            ['label' => 'Contact',            'url' => '/#contact'],
-        ],
-        'steps' => [
-            ['title' => 'Verifici calendarul',  'text' => 'Răsfoiești cursurile disponibile și găsești tema care te stârnește curiozitatea.'],
-            ['title' => 'Cumperi biletul',       'text' => 'Achiziționezi biletul online prin LiveTickets, simplu și rapid, de pe orice dispozitiv.'],
-            ['title' => 'Vii la eveniment',      'text' => 'Te prezinți la locație, îți iei o băutură preferată și ocupi un loc confortabil.'],
-            ['title' => 'Înveți & socializezi',  'text' => 'Asculți expertul, pui orice întrebare la Q&A și cunoști oameni faini cu aceleași interese.'],
-        ],
-        'faq_items' => [
-            ['q' => 'Ce este Cursuri la Pahar?',           'a' => 'Cursuri la Pahar este un eveniment care scoate educația din amfiteatre și o aduce în baruri. Experți și profesori vin să discute teme complexe într-un cadru relaxat, la un pahar cu publicul.'],
-            ['q' => 'Cât durează un eveniment?',            'a' => 'Rezervăm cam 2 ore pentru întreaga experiență. Primele 60–90 de minute sunt dedicate prezentării, iar restul timpului îl petrecem la un Q&A, unde poți pune orice fel de întrebări.'],
-            ['q' => 'Cât costă un bilet?',                  'a' => 'Biletul standard costă 50 de lei, iar biletul pentru studenți costă 30 de lei.'],
-            ['q' => 'Despre ce sunt cursurile?',            'a' => 'Alegem teme care stârnesc curiozitatea oricui: de la psihologie și misterele istoriei, până la univers și tehnologie.'],
-            ['q' => 'Unde au loc evenimentele?',            'a' => 'Ne vedem în baruri, pub-uri și alte spații relaxate din București (momentan).'],
-            ['q' => 'Cine poate participa?',                'a' => 'Oricine este curios și are peste 16 ani. Nu ai nevoie de pregătire specială sau studii în domeniu.'],
-            ['q' => 'Când va avea loc următorul eveniment?', 'a' => 'Dacă vrei să te anunțăm direct pe email când punem biletele la vânzare, abonează-te la newsletter-ul nostru.'],
-        ],
-        'kit_api_key'       => '',
-        'kit_form_id'       => '',
-        'color_bg'          => '#0D0D0D',
-        'color_accent'      => '#C9A84C',
-        'color_text'        => '#E8E4DC',
-        'color_text_muted'  => '#9CA3AF',
-        'color_surface'     => '#161616',
-        'color_btn_hover'   => '#b8922e',
-        'color_banner'      => '#FFB000',
-        'font_heading'      => 'Nunito',
-        'font_body'         => 'Inter',
-        'head_scripts'      => '',
-        'pages'             => [
-            'sustine' => [
-                'title'       => 'Prezintă un curs',
-                'subtitle'    => 'Împărtășește-ți expertiza cu comunitatea noastră.',
-                'description' => 'Ești expert într-un domeniu care te pasionează? Vino să susții un curs în fața unei comunități curioase, într-un cadru relaxat, la un pahar.',
-            ],
-            'gazduieste' => [
-                'title'       => 'Găzduiește un curs',
-                'subtitle'    => 'Transformă-ți locația în spațiul unde se nasc conexiunile.',
-                'description' => 'Ai o locație cu atmosferă? Bar, café, spațiu cultural sau altceva? Hai să aducem un curs la tine și să umpleam locul de oameni curioși.',
-            ],
-            'parteneriat' => [
-                'title'       => 'Propune un parteneriat',
-                'subtitle'    => 'Construim ceva frumos împreună.',
-                'description' => 'Reprezinți un brand, o platformă media sau o organizație? Explorăm împreună oportunități de colaborare care aduc valoare comunității noastre.',
-            ],
-        ],
-        'section_bgs' => [
-            'cursuri'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-            'newsletter'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-            'faq'              => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-            'colaborare'       => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-            'contact'          => ['image' => '', 'blur' => 6, 'overlay' => 0.72],
-        ],
-        'quick_links' => [
-            ['label' => 'Drive',               'url' => 'https://drive.google.com/drive/u/2/folders/1eXWzwb1KiDPTH1nNjl0wu3B0w0zqZKNV', 'icon' => '📁'],
-            ['label' => 'Foto-video',          'url' => 'https://drive.google.com/drive/u/3/folders/1ix1WBuvRAk7EfEJhdc_9qHU2D8MwjxNF', 'icon' => '📷'],
-            ['label' => 'Centralizator',       'url' => 'https://docs.google.com/spreadsheets/d/11Ch00q2d10JlW16nByLJE9LKXww77dEsSFOVYeTkr-c/edit?gid=548786879#gid=548786879', 'icon' => '📊'],
-            ['label' => 'Platforma ticketing', 'url' => 'https://admin.livetickets.ro/', 'icon' => '🎟️'],
-            ['label' => 'Tutorial LiveTickets','url' => 'https://payvent.notion.site/Organizer-Help-Center-b79f9086bbc9451087c7accdf6c9818e', 'icon' => '📖'],
-            ['label' => 'Newsletter',          'url' => 'https://app.kit.com/dashboard', 'icon' => '📧'],
-            ['label' => 'Afis IG',             'url' => 'https://www.canva.com/design/DAHBqjH01CA/r5YqP_oEent4GsU7aL1wZw/edit', 'icon' => '🖼️'],
-            ['label' => 'Afis 1:1',            'url' => 'https://www.canva.com/design/DAHCF25PYEg/LlXrH9lP-x4U-JYciu5ILw/edit', 'icon' => '📋'],
-            ['label' => 'Badge',               'url' => 'https://www.canva.com/design/DAHCdELFiuE/ZGLv9HI6NnX_8VFYvPUdVg/edit', 'icon' => '🏷️'],
-            ['label' => 'Invitatie',           'url' => 'https://www.canva.com/design/DAHAEaZYZHE/akhj1g2nUiwthNTGEyo0dQ/edit', 'icon' => '✉️'],
-            ['label' => 'Logo',                'url' => 'https://www.canva.com/design/DAG_I_HdOsQ/eAuL52PZe88j8KLMVSAaQw/edit', 'icon' => '🎨'],
-        ],
-    ];
-}
-function load_settings(): array {
-    if (!file_exists(SETTINGS_FILE)) return default_settings();
-    $data = json_decode(file_get_contents(SETTINGS_FILE), true) ?: [];
-    return array_merge(default_settings(), $data);
-}
-function save_settings(array $settings): bool {
-    $dir = dirname(SETTINGS_FILE);
-    if (!is_dir($dir)) {
-        if (!mkdir($dir, 0755, true)) return false;
-    }
-    if (file_exists(SETTINGS_FILE) && !is_writable(SETTINGS_FILE)) return false;
-    $result = file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-    return $result !== false;
-}
+function load_settings(): array { return clp_load_settings(); }
+function save_settings(array $settings): bool { return clp_save_settings($settings); }
 
 // ── Actions (only when authenticated) ────────────────────────────────────────
 if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -1281,58 +1181,17 @@ if (is_authenticated()) {
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 }
 
-// ── Statistici cursuri data (loaded when on cursuri tab) ─────────────────────
-$clp_courses = []; $clp_ditl_rows = []; $clp_ditl_years = []; $clp_participants = [];
-$clp_by_month = []; $clp_sum_bilete = 0; $clp_sum_incasari = 0;
-$clp_viza_subtips = []; $clp_report_by_price = [];
+// ── Statistici cursuri (tab Cursuri: lună + sub-tab) ─────────────────────────
+$clp_year = (int)date('Y');
+$clp_month = (int)date('n');
+$clp_ctab = 'cursuri';
 $clp_ro_months = clp_ro_months_list(false);
 if (is_authenticated() && $tab === 'cursuri') {
-    $clp_now        = new DateTimeImmutable();
-    // Default: luna curenta (nu "ultima luna cu cursuri"), ca sa vezi mereu ce e relevant acum.
-    $clp_year  = isset($_GET['year']) ? (int)$_GET['year'] : (int)$clp_now->format('Y');
+    $clp_now = new DateTimeImmutable();
+    $clp_year = isset($_GET['year']) ? (int)$_GET['year'] : (int)$clp_now->format('Y');
     $clp_month = isset($_GET['month']) ? (int)$_GET['month'] : (int)$clp_now->format('n');
-    $_ctab_raw      = $_GET['ctab'] ?? 'cursuri';
-    $clp_ctab       = in_array($_ctab_raw, ['cursuri','participanti','calendar']) ? $_ctab_raw : 'cursuri';
-    $clp_prefix     = $clp_month > 0 ? $clp_year . '-' . str_pad((string)$clp_month, 2, '0', STR_PAD_LEFT) : (string)$clp_year;
-    $clp_courses    = clp_fetch_statistici_courses_for_month($clp_year, $clp_month);
-    $_clp_db_path   = __DIR__ . '/statistici/data/clp.sqlite';
-    if (file_exists($_clp_db_path)) {
-        try {
-            $_clp_db = new SQLite3($_clp_db_path);
-            $_clp_db->exec('PRAGMA journal_mode = WAL;');
-            if (!empty($clp_courses)) {
-                $_course_ids = implode(',', array_map(fn($c) => (int)$c['id'], $clp_courses));
-                $_dr = $_clp_db->query("SELECT c.id, c.name, c.date, r.total_bilete, r.total_incasari, r.types_json
-                    FROM courses c JOIN course_reports r ON r.course_id = c.id
-                    WHERE c.id IN ({$_course_ids}) ORDER BY c.date DESC");
-                while ($_row = $_dr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_rows[] = $_row;
-            }
-            $_yr = $_clp_db->query("SELECT DISTINCT strftime('%Y', c.date) AS y FROM courses c JOIN course_reports r ON r.course_id = c.id ORDER BY y DESC");
-            while ($_row = $_yr->fetchArray(SQLITE3_ASSOC)) $clp_ditl_years[] = $_row['y'];
-            if (!in_array((string)$clp_year, $clp_ditl_years)) $clp_ditl_years[] = (string)$clp_year;
-            if (!empty($clp_ditl_rows)) {
-                $_ids = implode(',', array_map(fn($r) => (int)$r['id'], $clp_ditl_rows));
-                $_vs = $_clp_db->query("SELECT * FROM viza_subtips WHERE course_id IN ({$_ids}) ORDER BY course_id, tarif DESC");
-                while ($_row = $_vs->fetchArray(SQLITE3_ASSOC)) $clp_viza_subtips[(int)$_row['course_id']][] = $_row;
-                foreach ($clp_ditl_rows as $_dr2) {
-                    $_types = json_decode($_dr2['types_json'] ?? '[]', true) ?: [];
-                    $_bp = [];
-                    foreach ($_types as $_t) $_bp[(string)(float)($_t['pret'] ?? 0)] = $_t;
-                    $clp_report_by_price[(int)$_dr2['id']] = $_bp;
-                }
-            }
-            // Participanți
-            $_pr = $_clp_db->query("SELECT t.participant_name, COUNT(DISTINCT t.course_id) AS num_courses, COUNT(*) AS total_tickets, GROUP_CONCAT(c.name || ' (' || c.date || ')', '|') AS course_list FROM tickets t JOIN courses c ON c.id = t.course_id GROUP BY LOWER(TRIM(t.participant_name)) ORDER BY num_courses DESC, total_tickets DESC, t.participant_name ASC");
-            while ($_prow = $_pr->fetchArray(SQLITE3_ASSOC)) {
-                $_prow['courses'] = array_unique(explode('|', $_prow['course_list'] ?? ''));
-                $clp_participants[] = $_prow;
-            }
-            $_clp_db->close();
-        } catch (Exception $_e) { }
-    }
-    foreach ($clp_ditl_rows as $_r2) $clp_by_month[substr($_r2['date'], 0, 7)][] = $_r2;
-    $clp_sum_bilete   = array_sum(array_column($clp_ditl_rows, 'total_bilete'));
-    $clp_sum_incasari = array_sum(array_column($clp_ditl_rows, 'total_incasari'));
+    $_ctab_raw = $_GET['ctab'] ?? 'cursuri';
+    $clp_ctab = in_array($_ctab_raw, ['cursuri', 'participanti', 'calendar'], true) ? $_ctab_raw : 'cursuri';
 }
 
 // ── Unread messages badge ─────────────────────────────────────────────────────
@@ -2027,130 +1886,14 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             </span>
         </div>
 
-        <!-- Tab: Cursuri -->
+        <!-- Tab: Cursuri (statistici — încărcat via API) -->
         <div class="clp-tab-panel <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" id="clp-panel-cursuri">
-        <?php
-        // Build DITL lookup by course id
-        $_ditl_by_id = [];
-        foreach ($clp_ditl_rows as $_dr) $_ditl_by_id[(int)$_dr['id']] = $_dr;
-        ?>
-        <?php if (empty($clp_courses)): ?>
-            <p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>
-        <?php else: ?>
-            <?php if ($clp_sum_incasari > 0): ?>
-            <div class="clp-summary-grid" style="margin-bottom:16px">
-                <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val"><?= number_format($clp_sum_incasari, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
-                <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl"><?= number_format($clp_sum_incasari * 0.02, 2, ',', '.') ?> <small style="font-size:14px;font-weight:400">RON</small></div></div>
-            </div>
-            <?php endif; ?>
-            <table class="wp-table">
-                <thead><tr>
-                    <th>Curs</th>
-                    <th>Dată</th>
-                    <th style="text-align:right">Bilete</th>
-                    <th style="text-align:center">Raport</th>
-                    <th style="text-align:center">Viză</th>
-                    <th style="text-align:right">Încasări</th>
-                    <th style="text-align:right">DITL (2%)</th>
-                </tr></thead>
-                <tbody>
-                <?php foreach ($clp_courses as $_c):
-                    $_dro = clp_format_date_ro($_c['date'], true, false);
-                    $_dr  = $_ditl_by_id[(int)$_c['id']] ?? null;
-                    $_subs = $clp_viza_subtips[(int)$_c['id']] ?? [];
-                    $_rid  = 'clpv-'.(int)$_c['id'];
-                ?>
-                <tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=<?= (int)$_c['id'] ?>'">
-                    <td style="font-weight:600"><?= !empty($_subs) ? '<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza(\''.$_rid.'\')">' . h($_c['name']) . '</span>' : h($_c['name']) ?></td>
-                    <td style="color:var(--text-muted);white-space:nowrap"><?= h($_dro) ?></td>
-                    <td style="text-align:right"><?= (int)$_c['total_tickets'] ?></td>
-                    <td style="text-align:center"><?= $_c['has_report'] ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:center"><?= !empty($_c['has_viza']) ? '<span style="color:#16a34a;font-size:16px">✓</span>' : '<span style="color:#d1d5db;font-size:16px">—</span>' ?></td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums"><?= $_dr ? number_format((float)$_dr['total_incasari'], 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
-                    <td style="text-align:right;font-variant-numeric:tabular-nums" class="<?= $_dr ? 'clp-ditl-cell' : '' ?>"><?= $_dr ? number_format((float)$_dr['total_incasari'] * 0.02, 2, ',', '.') . ' RON' : '<span style="color:#d1d5db">—</span>' ?></td>
-                </tr>
-                <?php if (!empty($_subs)): $_bp = $clp_report_by_price[(int)$_c['id']] ?? []; ?>
-                <tr class="clp-viza-row" id="<?= $_rid ?>">
-                    <td colspan="7" style="padding:0;background:#f8fafc">
-                        <div style="padding:6px 16px 12px 32px">
-                            <table style="width:100%;border-collapse:collapse;font-size:12px">
-                                <thead><tr>
-                                    <?php foreach (['Seria','De la','Până la','Vândute','Total','Tarif'] as $_th): ?>
-                                    <th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:<?= $_th==='Seria'?'left':'right' ?>"><?= $_th ?></th>
-                                    <?php endforeach; ?>
-                                </tr></thead>
-                                <tbody>
-                                <?php foreach ($_subs as $_sub):
-                                    $_vk = (string)(float)$_sub['tarif'];
-                                    $_vandute = isset($_bp[$_vk]) ? (int)$_bp[$_vk]['vandute'] : null;
-                                ?>
-                                <tr>
-                                    <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria"><?= h($_sub['seria']) ?></span></td>
-                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['de_la']) ?></td>
-                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= h($_sub['pana_la']) ?></td>
-                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= $_vandute !== null ? '<strong>'.$_vandute.'</strong>' : '—' ?></td>
-                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= (int)$_sub['nr_unitati'] ?></td>
-                                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9"><?= number_format((float)$_sub['tarif'], 0, ',', '.') ?> RON</td>
-                                </tr>
-                                <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </td>
-                </tr>
-                <?php endif; ?>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+            <p style="color:var(--text-muted)">Se încarcă…</p>
         </div>
 
-        <!-- Tab: Participanți -->
+        <!-- Tab: Participanți (încărcat via API) -->
         <div class="clp-tab-panel <?= $clp_ctab === 'participanti' ? 'active' : '' ?>" id="clp-panel-participanti">
-        <?php
-        $clp_p_unique  = count($clp_participants);
-        $clp_p_return  = count(array_filter($clp_participants, fn($p) => $p['num_courses'] > 1));
-        $clp_p_tickets = array_sum(array_column($clp_participants, 'total_tickets'));
-        ?>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
-            <div class="clp-stat-box"><div class="lbl">Participanți unici</div><div class="val"><?= $clp_p_unique ?></div></div>
-            <div class="clp-stat-box"><div class="lbl">Revin la 2+ cursuri</div><div class="val" style="color:#16a34a"><?= $clp_p_return ?></div></div>
-            <div class="clp-stat-box"><div class="lbl">Total bilete vândute</div><div class="val"><?= $clp_p_tickets ?></div></div>
-        </div>
-        <?php if (empty($clp_participants)): ?>
-            <p style="color:var(--text-muted)">Niciun participant înregistrat încă.</p>
-        <?php else: ?>
-            <div style="margin-bottom:12px">
-                <input type="text" id="clpSearch" placeholder="Caută participant…" oninput="clpFilter()" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff">
-            </div>
-            <table class="wp-table" id="clpParticipantsTable">
-                <thead><tr>
-                    <th>Participant</th>
-                    <th style="text-align:right;width:90px"># Cursuri</th>
-                    <th style="text-align:right;width:90px"># Bilete</th>
-                    <th>Cursuri</th>
-                </tr></thead>
-                <tbody>
-                <?php foreach ($clp_participants as $_p): ?>
-                <tr>
-                    <td><strong><?= h($_p['participant_name']) ?></strong><?php if ($_p['num_courses'] > 1): ?> <span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">revine</span><?php endif; ?></td>
-                    <td style="text-align:right"><?= (int)$_p['num_courses'] ?></td>
-                    <td style="text-align:right"><?= (int)$_p['total_tickets'] ?></td>
-                    <td>
-                        <div style="display:flex;flex-wrap:wrap;gap:4px">
-                        <?php foreach ($_p['courses'] as $_pc): if (!trim($_pc)) continue;
-                            $_pp = explode(' (', $_pc);
-                            $_pdate = isset($_pp[1]) ? ' <span style="opacity:.6">('.h(substr(rtrim($_pp[1],')'),0,7)).')</span>' : '';
-                        ?>
-                            <span style="background:#f1f5f9;border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text-muted);padding:2px 6px"><?= h(trim($_pp[0])) . $_pdate ?></span>
-                        <?php endforeach; ?>
-                        </div>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+            <p style="color:var(--text-muted)">Se încarcă…</p>
         </div>
 
         <!-- Tab: Calendar -->
@@ -2174,9 +1917,10 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         'calCourses' => array_map(fn($c) => ['date' => $c['date_raw'] ?? '', 'title' => $c['title'] ?? ''], $courses),
         'initCalendar' => ($clp_ctab ?? '') === 'calendar',
         'scrollToStats' => isset($_GET['saved']),
+        'activeTab' => $clp_ctab ?? 'cursuri',
     ], JSON_UNESCAPED_UNICODE) ?>;
     </script>
-    <script src="/admin/assets/js/admin-cursuri-stats.js?v=1"></script>
+    <script src="/admin/assets/js/admin-cursuri-stats.js?v=2"></script>
 
 <?php /* ======================================================= TAB: IMAGINI */ ?>
 <?php elseif ($tab === 'imagini'): ?>
