@@ -1,0 +1,29 @@
+<?php
+
+function clp_get_all_images(string $public_html, string $uploads_dir, string $uploads_url): array {
+    $imgs = [];
+    $collect = function (string $dir, string $url_prefix, bool $deletable) use (&$imgs) {
+        if (!is_dir($dir)) return;
+        $files = scandir($dir);
+        $names = array_map(fn($f) => strtolower($f), $files);
+        foreach ($files as $f) {
+            if ($f === '.' || $f === '..') continue;
+            if (!is_file($dir . '/' . $f)) continue;
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'])) continue;
+            if ($ext === 'webp') {
+                $base = strtolower(pathinfo($f, PATHINFO_FILENAME));
+                if (in_array($base . '.jpg', $names) || in_array($base . '.jpeg', $names) || in_array($base . '.png', $names)) continue;
+            }
+            $imgs[] = ['url' => $url_prefix . $f, 'name' => $f, 'deletable' => $deletable];
+        }
+    };
+    $collect($public_html . '/assets/images/', '/assets/images/', false);
+    $collect($public_html . '/assets/images/gallery/', '/assets/images/gallery/', true);
+    $collect($uploads_dir, $uploads_url . '/', true);
+    return $imgs;
+}
+
+function get_all_images(): array {
+    return clp_get_all_images(PUBLIC_HTML, UPLOADS_DIR, UPLOADS_URL);
+}
