@@ -1249,7 +1249,7 @@ function get_all_images(): array {
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/coloris.min.css">
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=1">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=3">
 </head>
 <body>
 
@@ -2099,14 +2099,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         <button type="submit" class="btn btn-primary">Salvează design</button>
     </div>
 </form>
-<script src="/assets/js/coloris.min.js"></script>
-<script>
-Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: false, selectInput: true, clearButton: false,
-    swatches: ['#0D0D0D','#161616','#1A1A1A','#ffffff','#C9A84C','#b8922e','#FFB000','#E8E4DC','#9CA3AF'],
-});
-</script>
 
-<?php /* KIT tab redirects to config */ ?>
 <?php elseif ($tab === 'kit'): ?>
 <?php header('Location: /admin/?tab=config'); exit; ?>
 
@@ -2116,96 +2109,6 @@ Coloris({ el: '[data-coloris]', format: 'hex', forceAlpha: false, focusInput: fa
 <?php if (isset($_GET['deleted'])): ?>
 <div class="notice notice-success">Mesajul a fost șters.</div>
 <?php endif; ?>
-<style>
-.msg-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
-.msg-tab .msg-count { display:inline-block; background:rgba(255,255,255,.2); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:5px; }
-.msg-panel { display:none; }
-.msg-panel.active { display:block; }
-.msg-cards { display:grid; grid-template-columns:1fr; gap:12px; }
-.msg-card { background:var(--surface, #fff); border:1px solid var(--border); border-radius:10px; cursor:pointer; overflow:hidden; transition:background .15s, opacity .15s; }
-.msg-card:hover { background:rgba(0,0,0,.02); }
-.msg-card.is-read { background:#f3f4f6; opacity:.72; }
-.msg-card.eval-nope { border-left:4px solid #e74c3c; }
-.msg-card.eval-meh  { border-left:4px solid #f5a623; }
-.msg-card.eval-top  { border-left:4px solid #16a34a; }
-.msg-delete-btn { background:transparent; border:1px solid var(--danger, #e74c3c); color:var(--danger, #e74c3c); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:.15s; }
-.msg-delete-btn:hover { background:var(--danger, #e74c3c); color:#fff; }
-.msg-card-head { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
-.msg-card-name { font-size:14px; font-weight:600; color:var(--text); }
-.msg-card-course { font-weight:400; color:var(--text-muted); }
-.msg-card-date { font-size:11px; color:var(--text-muted); white-space:nowrap; }
-.msg-card-preview { padding:0 16px 14px; font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.msg-detail { display:none; padding:16px; border-top:1px solid var(--border); background:var(--bg-surface); }
-.msg-detail.open { display:block; }
-.msg-detail-row { display:flex; gap:10px; font-size:13px; line-height:1.6; }
-.msg-detail-row + .msg-detail-row { margin-top:4px; }
-.msg-detail-lbl { color:var(--text-muted); min-width:110px; flex-shrink:0; display:inline-flex; align-items:center; gap:4px; }
-.msg-detail-val { color:var(--text); flex:1; min-width:0; overflow-wrap:break-word; }
-.msg-detail-actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-.msg-empty { color:var(--text-muted); font-size:13px; padding:12px 0; }
-.msg-copy-btn { margin-left:6px; background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; display:inline-flex; align-items:center; line-height:1; }
-.msg-copy-btn:hover { border-color:var(--primary,#333); color:var(--primary,#333); }
-.msg-copy-btn.copied { border-color:#27ae60; color:#27ae60; }
-.msg-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:10px; font-weight:700; cursor:help; user-select:none; flex-shrink:0; }
-.msg-info:hover { background:#d1d5db; color:#1f2937; }
-.msg-info::after {
-    content: attr(data-tooltip);
-    position:absolute; left:0; bottom:calc(100% + 6px);
-    background:#1f2937; color:#fff; padding:6px 10px; border-radius:6px;
-    font-size:12px; font-weight:400; line-height:1.35; white-space:normal;
-    width:max-content; max-width:280px; text-align:left;
-    opacity:0; pointer-events:none; transition:opacity .12s; z-index:50;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-}
-.msg-info::before {
-    content:''; position:absolute; left:50%; bottom:100%; transform:translateX(-50%);
-    border:5px solid transparent; border-top-color:#1f2937;
-    opacity:0; pointer-events:none; transition:opacity .12s; z-index:50;
-}
-.msg-info:hover::after, .msg-info:hover::before { opacity:1; }
-.msg-read-btn, .msg-eval-btn, .msg-comment-btn {
-    border:1px solid var(--border); background:#fff; color:var(--text);
-    border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500;
-    cursor:pointer; transition:.15s;
-}
-.msg-read-btn:hover { border-color:#16a34a; color:#16a34a; }
-.msg-read-btn.is-active { background:#16a34a; color:#fff; border-color:#16a34a; }
-.msg-eval-btn { color:#fff; border:none; }
-.msg-eval-btn[data-eval=nope]                  { background:#e74c3c; }
-.msg-eval-btn[data-eval=nope]:hover            { background:#c0392b; }
-.msg-eval-btn[data-eval=nope].is-active        { background:#c0392b; box-shadow:inset 0 0 0 2px rgba(0,0,0,.25); }
-.msg-eval-btn[data-eval=meh]                   { background:#f5a623; }
-.msg-eval-btn[data-eval=meh]:hover             { background:#d4901c; }
-.msg-eval-btn[data-eval=meh].is-active         { background:#d4901c; box-shadow:inset 0 0 0 2px rgba(0,0,0,.25); }
-.msg-eval-btn[data-eval=top]                   { background:#16a34a; }
-.msg-eval-btn[data-eval=top]:hover             { background:#0f7a37; }
-.msg-eval-btn[data-eval=top].is-active         { background:#0f7a37; box-shadow:inset 0 0 0 2px rgba(0,0,0,.25); }
-.msg-comment-btn:hover { border-color:#2271b1; color:#2271b1; }
-.msg-comments { margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); }
-.msg-comments-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px; }
-.msg-comment-item { position:relative; background:#f9fafb; border-radius:6px; padding:8px 30px 8px 10px; margin-bottom:6px; font-size:13px; line-height:1.5; }
-.msg-comment-item .msg-comment-when { display:block; font-size:11px; color:var(--text-muted); margin-bottom:2px; }
-.msg-comment-del { position:absolute; top:6px; right:8px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px; opacity:0; transition:opacity .15s, color .15s; }
-.msg-comment-item:hover .msg-comment-del { opacity:1; }
-.msg-comment-del:hover { color:var(--danger,#e74c3c); }
-.msg-comment-form { display:flex; gap:6px; margin-top:8px; }
-.msg-comment-form textarea { flex:1; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; resize:vertical; min-height:34px; }
-.msg-comment-form button { padding:6px 14px; border:none; background:#2271b1; color:#fff; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; }
-.msg-comment-form button:hover { background:#135e96; }
-.msg-section-title { font-size:13px; font-weight:600; color:var(--text); margin:0 0 10px; padding:6px 0; }
-.msg-section + .msg-section { margin-top:24px; }
-.msg-eval-filter { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
-.msg-eval-filter-btn { border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; padding:4px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
-.msg-eval-filter-btn[data-filter="all"].active { background:#6b7280; border-color:#6b7280; color:#fff; }
-.msg-eval-filter-btn[data-filter="nope"].active { background:#e74c3c; border-color:#e74c3c; color:#fff; }
-.msg-eval-filter-btn[data-filter="meh"].active  { background:#f5a623; border-color:#f5a623; color:#fff; }
-.msg-eval-filter-btn[data-filter="top"].active  { background:#16a34a; border-color:#16a34a; color:#fff; }
-.msg-eval-filter-btn[data-filter="contactat"].active { background:#2271b1; border-color:#2271b1; color:#fff; }
-.msg-card.is-contacted { border-left:4px solid #2271b1; }
-.msg-contact-btn { border:1px solid #2271b1; background:#2271b1; color:#fff; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:500; cursor:pointer; transition:.15s; }
-.msg-contact-btn:hover { background:#135e96; border-color:#135e96; }
-.msg-contact-btn.is-active { background:#135e96; border-color:#135e96; box-shadow:inset 0 0 0 2px rgba(0,0,0,.2); }
-</style>
 
 <?php
 $log_file = dirname(SETTINGS_FILE) . '/messages.log';
@@ -2415,189 +2318,7 @@ $render_card = function(string $key, int $i, array $msg) use ($sustine_questions
 <?php endforeach; ?>
 
 
-<script>
-window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;
-function filterEval(btn) {
-    const filter = btn.dataset.filter;
-    btn.closest('.msg-section').querySelectorAll('.msg-eval-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    btn.closest('.msg-section').querySelectorAll('.msg-card').forEach(card => {
-        let show;
-        if (filter === 'all') show = true;
-        else if (filter === 'contactat') show = card.classList.contains('is-contacted');
-        else show = card.classList.contains('eval-' + filter);
-        card.style.display = show ? '' : 'none';
-    });
-}
-function showMsgTab(key) {
-    document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById('msg-panel-' + key).classList.add('active');
-}
-function deleteComment(btn) {
-    if (!confirm('Ștergi comentariul?')) return;
-    const item = btn.closest('.msg-comment-item');
-    const card = btn.closest('.msg-card');
-    const fd = new FormData();
-    fd.append('action', 'delete_message_comment');
-    fd.append('msg_id', card.dataset.msgId);
-    fd.append('idx',    item.dataset.commentIdx);
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => {
-            if (!d.ok) return;
-            const list = item.parentElement;
-            item.remove();
-            list.querySelectorAll('.msg-comment-item').forEach((el, i) => el.dataset.commentIdx = i);
-        });
-}
-function toggleMsg(uid) {
-    const el = document.getElementById('msg-' + uid);
-    el.classList.toggle('open');
-}
-const _COPY_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-const _CHECK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-function copyField(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
-        btn.innerHTML = _CHECK_SVG;
-        btn.classList.add('copied');
-        setTimeout(() => { btn.innerHTML = _COPY_SVG; btn.classList.remove('copied'); }, 2000);
-    });
-}
-function deleteMsg(btn, type, idx) {
-    if (!confirm('Sigur vrei să ștergi acest mesaj?')) return;
-    const card = btn.closest('.msg-card');
-    const fd = new FormData();
-    fd.append('action', 'delete_message');
-    fd.append('msg_type', type);
-    fd.append('msg_index', idx);
-    fetch('/admin/?tab=mesaje', { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}, body: fd })
-        .then(r => r.json())
-        .then(d => { if (d.ok) { updateBadgeAfterRemoval(card, type); card.remove(); } });
-}
-function updateBadge(tabKey, delta) {
-    const tab = document.querySelector('.msg-tab[data-key="' + tabKey + '"]');
-    if (!tab) return;
-    const span = tab.querySelector('.msg-count');
-    let n = parseInt(span.textContent, 10) || 0;
-    n = Math.max(0, n + delta);
-    span.textContent = n;
-    span.style.display = n > 0 ? '' : 'none';
-}
-function updateBadgeAfterRemoval(card, type) {
-    if (type === 'sustine') {
-        if (!card.className.match(/eval-(nope|meh|top)/)) updateBadge('sustine', -1);
-    } else {
-        if (!card.classList.contains('is-read')) updateBadge(type, -1);
-    }
-}
-function markRead(btn) {
-    const card  = btn.closest('.msg-card');
-    const panel = card.closest('.msg-panel');
-    const type  = panel ? panel.id.replace('msg-panel-', '') : 'contact';
-    const id = card.dataset.msgId;
-    const wasRead = card.classList.contains('is-read');
-    const now = !wasRead;
-    const fd = new FormData();
-    fd.append('action', 'mark_read_message');
-    fd.append('msg_id', id);
-    if (now) fd.append('read', '1');
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => {
-            if (!d.ok) return;
-            card.classList.toggle('is-read', now);
-            btn.classList.toggle('is-active', now);
-            btn.textContent = now ? '✓ Citit' : 'Citit';
-            updateBadge(type, now ? -1 : 1);
-            if (now) card.querySelector('.msg-detail').classList.remove('open');
-        });
-}
-function markContacted(btn) {
-    const card = btn.closest('.msg-card');
-    const id = card.dataset.msgId;
-    const wasContacted = card.classList.contains('is-contacted');
-    const now = !wasContacted;
-    const fd = new FormData();
-    fd.append('action', 'mark_contacted_message');
-    fd.append('msg_id', id);
-    if (now) fd.append('contacted', '1');
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => {
-            if (!d.ok) return;
-            card.classList.toggle('is-contacted', now);
-            btn.classList.toggle('is-active', now);
-            btn.textContent = now ? '✓ Contactat' : 'Contactat';
-        });
-}
-function evalMsg(btn, value) {
-    const card = btn.closest('.msg-card');
-    const id   = card.dataset.msgId;
-    const cur  = (card.className.match(/eval-(nope|meh|top)/) || [,''])[1];
-    const next = cur === value ? '' : value; // toggle off if same button pressed twice
-    const fd = new FormData();
-    fd.append('action', 'eval_message');
-    fd.append('msg_id', id);
-    fd.append('eval',   next);
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => {
-            if (!d.ok) return;
-            card.classList.remove('eval-nope','eval-meh','eval-top');
-            if (next) card.classList.add('eval-' + next);
-            card.querySelectorAll('.msg-eval-btn').forEach(b =>
-                b.classList.toggle('is-active', b.dataset.eval === next)
-            );
-            // badge: pending count = unevaluated; cur was unset → -1; cur was set & next='' → +1
-            if (!cur && next) updateBadge('sustine', -1);
-            if (cur && !next) updateBadge('sustine', +1);
-        });
-}
-function toggleCommentForm(btn) {
-    const form = btn.closest('.msg-detail-actions').nextElementSibling.querySelector('.msg-comment-form');
-    const visible = form.style.display !== 'none';
-    form.style.display = visible ? 'none' : 'flex';
-    if (!visible) form.querySelector('textarea').focus();
-}
-function saveComment(btn) {
-    const form = btn.closest('.msg-comment-form');
-    const card = btn.closest('.msg-card');
-    const ta   = form.querySelector('textarea');
-    const text = ta.value.trim();
-    if (!text) return;
-    const id = card.dataset.msgId;
-    const fd = new FormData();
-    fd.append('action', 'add_message_comment');
-    fd.append('msg_id', id);
-    fd.append('text',   text);
-    btn.disabled = true;
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => {
-            btn.disabled = false;
-            if (!d.ok) return;
-            const list = card.querySelector('.msg-comments-list');
-            const item = document.createElement('div');
-            item.className = 'msg-comment-item';
-            item.dataset.commentIdx = list.querySelectorAll('.msg-comment-item').length;
-            item.innerHTML = '<span class="msg-comment-when"></span>';
-            item.querySelector('.msg-comment-when').textContent =
-                d.comment.at + (d.comment.by ? ' · ' + d.comment.by : '');
-            item.appendChild(document.createTextNode(d.comment.text));
-            if (window.CLP_IS_OWNER) {
-                const del = document.createElement('button');
-                del.type = 'button';
-                del.className = 'msg-comment-del';
-                del.title = 'Șterge comentariu';
-                del.textContent = '×';
-                del.onclick = function(e) { e.stopPropagation(); deleteComment(this); };
-                item.appendChild(del);
-            }
-            list.appendChild(item);
-            ta.value = '';
-            form.style.display = 'none';
-        });
-}
-</script>
 
-<?php /* ======================================================= TAB: VOT CURSURI */ ?>
 <?php elseif ($tab === 'vot'): ?>
 
 <?php
@@ -2618,15 +2339,7 @@ usort($vote_courses, function($a, $b) {
 });
 ?>
 
-<style>
-.vc-table .likes-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: #fce8e8; color: #8c1415;
-    padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 700;
-}
-</style>
 
-<h1 class="wp-page-title">Vot cursuri</h1>
 
 <?php if (isset($_GET['saved'])): ?>
 <div class="notice notice-success">Cursul a fost salvat.</div>
@@ -2726,36 +2439,7 @@ usort($vote_courses, function($a, $b) {
 
 <h1 class="wp-page-title">Competitori</h1>
 
-<?php
-$_competitors = [
-    ['name' => 'Nota de Subsol',          'ig' => 'https://www.instagram.com/notadesubsol.live/', 'tt' => 'https://www.tiktok.com/@notadesubsol.live', 'web' => ''],
-    ['name' => 'Lectures on Tap',         'ig' => 'https://www.instagram.com/lecturesontap/',     'tt' => 'https://www.tiktok.com/@lecturesontap',     'web' => 'https://lecturesontap.com/'],
-    ['name' => 'Boozy Lectures',          'ig' => 'https://www.instagram.com/boozylectures/',     'tt' => 'https://www.tiktok.com/@boozylecturesyyc',  'web' => 'https://www.boozylectures.com/'],
-    ['name' => 'Brewing Minds',           'ig' => 'https://www.instagram.com/brewingminds_lectures/', 'tt' => 'https://www.tiktok.com/@brewingminds',  'web' => 'https://www.brewing-minds.com/'],
-    ['name' => 'Brains and Barstools',    'ig' => 'https://www.instagram.com/brainsandbarstools/', 'tt' => 'https://www.tiktok.com/@brainsandbarstools', 'web' => 'http://brainsandbarstools.com/'],
-    ['name' => 'The Social Study',        'ig' => 'https://www.instagram.com/thesocial.study/',   'tt' => 'https://www.tiktok.com/@thesocial.study',   'web' => 'https://www.thesocial.study/'],
-    ['name' => 'Sip and Learn Toronto',   'ig' => 'https://www.instagram.com/sip_and_learn_toronto/', 'tt' => 'https://www.tiktok.com/@sip_and_learn', 'web' => 'https://www.sipandlearn.ca'],
-    ['name' => 'The Unlecture',           'ig' => 'https://www.instagram.com/theunlecture/',     'tt' => '',                                          'web' => ''],
-    ['name' => 'Sip and Scholar',         'ig' => 'https://www.instagram.com/sipandscholar/',     'tt' => '',                                          'web' => 'https://www.sipandscholar.com/'],
-    ['name' => 'Pint of View',            'ig' => 'https://www.instagram.com/pintofview.club/',   'tt' => '',                                          'web' => 'https://pintofview.club/'],
-    ['name' => 'Big Brain SF',            'ig' => 'https://www.instagram.com/bigbrainsf/',         'tt' => 'https://www.tiktok.com/@bigbrainsf',        'web' => ''],
-    ['name' => 'Society of Intellectuals','ig' => 'https://www.instagram.com/societyofintellectuals/', 'tt' => '',                                     'web' => 'https://societyofintellectuals.org/'],
-    ['name' => 'Off-Campus',              'ig' => 'https://www.instagram.com/offcampus_fr/',      'tt' => '',                                          'web' => 'https://www.offcampus.fr/'],
-    ['name' => 'Cursuri la Bar',          'ig' => 'https://www.instagram.com/cursurilabar',       'tt' => 'https://www.tiktok.com/@cursurilabar',      'web' => 'https://cursurilabar.ro/'],
-];
-?>
-<style>
-.comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-.comp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.comp-card-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
-.comp-card-name { font-size: 15px; font-weight: 700; color: var(--text); }
-.comp-card-links { display: flex; gap: 8px; padding: 14px 20px; flex-wrap: wrap; }
-.comp-link { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
-.comp-link:hover { opacity: .75; }
-.comp-link-ig  { background: #fce7f3; color: #be185d; }
-.comp-link-tt  { background: #f0fdf4; color: #166534; }
-.comp-link-web { background: #eff6ff; color: #1d4ed8; }
-</style>
+<?php require_once dirname(__DIR__) . '/lib/competitors.php'; $_competitors = clp_competitors_list(); ?>
 
 <div class="comp-grid">
 <?php foreach ($_competitors as $_c): ?>
@@ -2823,32 +2507,6 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
 }
 ?>
 
-<style>
-.crm-status-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; }
-.crm-table td { vertical-align:top; }
-.crm-form { max-width:580px !important; }
-.sp-filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-.sp-filter-btn { border:1px solid #e5e7eb; background:#fff; color:#374151; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:.15s; }
-.sp-filter-btn[data-status="RECURENT"] { background:#dcfce7; border-color:#86efac; color:#15803d; }
-.sp-filter-btn[data-status="MID"]      { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
-.sp-filter-btn[data-status="NOPE"]     { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
-.sp-filter-btn[data-status="CONTACTAT"]{ background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
-.sp-filter-btn[data-status="all"]             { background:#f1f5f9; border-color:#cbd5e1; color:#374151; }
-.sp-filter-btn[data-status="all"].active      { background:#374151; border-color:#374151; color:#fff; }
-.sp-filter-btn[data-status="RECURENT"].active { background:#16a34a; border-color:#16a34a; }
-.sp-filter-btn[data-status="MID"].active      { background:#d97706; border-color:#d97706; }
-.sp-filter-btn[data-status="NOPE"].active     { background:#dc2626; border-color:#dc2626; }
-.sp-filter-btn[data-status="CONTACTAT"].active{ background:#2271b1; border-color:#2271b1; }
-.sp-status-popover { position:absolute; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.12); padding:6px; z-index:9999; display:flex; flex-direction:column; gap:3px; min-width:110px; }
-.sp-status-popover button { border:none; background:none; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; text-align:left; }
-.sp-status-popover button:hover { background:#f1f5f9; }
-.sp-copy-btn { background:transparent; border:1px solid #e5e7eb; color:#6b7280; border-radius:5px; padding:3px 5px; cursor:pointer; transition:.15s; vertical-align:middle; margin-left:4px; display:inline-flex; align-items:center; line-height:1; }
-.sp-copy-btn:hover { border-color:#2271b1; color:#2271b1; }
-.crm-form .form-group { margin-bottom:8px !important; }
-.crm-form .form-group label { margin-bottom:3px !important; }
-.crm-form input[type="text"],.crm-form input[type="email"],.crm-form input[type="url"],.crm-form select { padding:5px 9px !important; font-size:12px !important; }
-.crm-form textarea { padding:5px 9px !important; font-size:12px !important; min-height:60px !important; }
-</style>
 
 <?php if (isset($_GET['saved'])): ?>
 <div class="notice notice-success">Speakerul a fost salvat.</div>
@@ -2939,42 +2597,6 @@ if (file_exists($_sp_log) && filesize($_sp_log)) {
     <?php endif; ?>
 </div>
 
-<script>
-function spCopy(btn) {
-    const copySvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-    const checkSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    navigator.clipboard.writeText(btn.dataset.copy).then(() => {
-        btn.innerHTML = checkSvg;
-        btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
-        setTimeout(() => { btn.innerHTML = copySvg; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
-    });
-}
-function spFilter(btn) {
-    document.querySelectorAll('.sp-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const status = btn.dataset.status;
-    document.querySelectorAll('#sp-main-table tbody tr').forEach(row => {
-        if (status === 'all') { row.style.display = ''; return; }
-        const badge = row.querySelector('.crm-status-badge');
-        row.style.display = (badge && badge.textContent.trim() === status) ? '' : 'none';
-    });
-}
-function spContactatEdit(data) {
-    const modal = document.getElementById('sp-modal');
-    modal.querySelector('[name="speaker_id"]').value = '';
-    modal.querySelector('[name="sp_name"]').value = data.name || '';
-    modal.querySelector('[name="sp_email"]').value = data.email || '';
-    modal.querySelector('[name="sp_phone"]').value = data.phone || '';
-    modal.style.display = 'flex';
-}
-function spScoate(btn, id) {
-    const fd = new FormData();
-    fd.append('action', 'mark_contacted_message');
-    fd.append('msg_id', id);
-    fetch('/admin/?tab=mesaje', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body: fd })
-        .then(r => r.json()).then(d => { if (d.ok) btn.closest('tr').remove(); });
-}
-</script>
 
 <div id="sp-modal" style="display:<?= $edit_sp ? 'flex' : 'none' ?>;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
 <div class="card crm-form" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
@@ -3011,16 +2633,7 @@ function spScoate(btn, id) {
                 <?php endforeach; ?>
                 </div>
                 <button type="button" onclick="spAddCourse()" style="margin-top:4px;background:none;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:#6b7280">+ curs</button>
-                <script>
-                function spAddCourse() {
-                    var wrap = document.createElement('div');
-                    wrap.style.cssText = 'display:flex;gap:4px;align-items:center';
-                    wrap.innerHTML = '<input type="text" name="sp_courses[]" style="flex:1;padding:5px 9px;font-size:12px;border:1px solid #e5e7eb;border-radius:8px"><button type="button" onclick="this.closest(\'div\').remove()" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0 7px;height:28px;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1">×</button>';
-                    document.getElementById('sp-courses-list').appendChild(wrap);
-                    wrap.querySelector('input').focus();
-                }
-                </script>
-            </div>
+                            </div>
             <div class="form-group"><label>Status</label>
                 <select name="sp_status">
                     <?php foreach (['CONTACTAT','RECURENT','MID','NOPE'] as $s): ?>
@@ -3048,16 +2661,6 @@ function spScoate(btn, id) {
             <a href="/admin/?tab=speakeri" class="btn btn-secondary btn-sm">Anulează</a>
         </div>
     </form>
-<script>
-function spModalTab(tab) {
-    document.getElementById('sp-tab-contact').style.display = tab === 'contact' ? '' : 'none';
-    document.getElementById('sp-tab-meet').style.display   = tab === 'meet'    ? '' : 'none';
-    document.getElementById('sp-tab-btn-contact').style.cssText = tab==='contact' ? 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1)' : 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#6b7280';
-    document.getElementById('sp-tab-btn-meet').style.cssText    = tab==='meet'    ? 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1)' : 'padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#6b7280';
-}
-</script>
-
-    </form>
 </div>
 </div>
 
@@ -3067,32 +2670,6 @@ function spModalTab(tab) {
 <button onclick="spSetStatus('<?= $_ss ?>')" style="color:<?= $_sc ?>"><?= $_ss ?></button>
 <?php endforeach; ?>
 </div>
-<script>
-let _spPopId = null, _spPopBadge = null;
-function spStatusPop(badge, id) {
-    const pop = document.getElementById('sp-status-pop');
-    if (_spPopBadge === badge && pop.style.display !== 'none') { pop.style.display='none'; _spPopBadge=null; return; }
-    _spPopId = id; _spPopBadge = badge;
-    const r = badge.getBoundingClientRect();
-    pop.style.top  = (r.bottom + window.scrollY + 4) + 'px';
-    pop.style.left = r.left + 'px';
-    pop.style.position = 'absolute';
-    pop.style.display = 'flex';
-}
-function spSetStatus(status) {
-    const pop = document.getElementById('sp-status-pop');
-    pop.style.display = 'none';
-    const fd = new FormData();
-    fd.append('action', 'save_speaker_status');
-    fd.append('id', _spPopId);
-    fd.append('status', status);
-    fetch('/admin/?tab=speakeri', {method:'POST', body:fd}).then(() => location.reload());
-}
-document.addEventListener('click', e => {
-    const pop = document.getElementById('sp-status-pop');
-    if (pop && !pop.contains(e.target) && !e.target.classList.contains('crm-status-badge')) pop.style.display = 'none';
-});
-</script>
 
 
 <?php /* ======================================================= TAB: LOCATII */ ?>
@@ -3297,20 +2874,7 @@ if ($edit_col_id) {
     </form>
 </div>
 
-<script>
-function addQlRow() {
-    const row = document.createElement('div');
-    row.className = 'ql-row';
-    row.style.cssText = 'display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center';
-    row.innerHTML = '<input type="text" name="ql_icon[]" value="🔗" style="text-align:center;font-size:18px">'
-        + '<input type="text" name="ql_label[]" value="">'
-        + '<input type="text" name="ql_url[]" value="">'
-        + '<button type="button" onclick="this.closest(\'.ql-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>';
-    document.getElementById('qlRows').appendChild(row);
-}
-</script>
 
-<!-- Kit (Email) -->
 <form method="post" action="/admin/?tab=config">
     <input type="hidden" name="action" value="save_kit">
     <div class="card">
@@ -3390,8 +2954,18 @@ SYNC_TOKEN=<?= h($settings['sync_token'] ?? '') ?></pre>
     </main>
 </div><!-- /wp-layout -->
 
-<script src="/admin/assets/js/admin-common.js?v=1"></script>
-<?php if ($tab === 'cursuri'): ?><script src="/admin/assets/js/admin-course-form.js?v=1"></script><?php endif; ?>
+<script src="/admin/assets/js/admin-common.js?v=2"></script>
+<?php if ($tab === 'cursuri'): ?>
+<script src="/admin/assets/js/admin-course-form.js?v=1"></script>
+<?php elseif ($tab === 'mesaje'): ?>
+<script>window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;</script>
+<script src="/admin/assets/js/admin-mesaje.js?v=1"></script>
+<?php elseif ($tab === 'speakeri'): ?>
+<script src="/admin/assets/js/admin-speakeri.js?v=1"></script>
+<?php elseif ($tab === 'aspect'): ?>
+<script src="/assets/js/coloris.min.js"></script>
+<script src="/admin/assets/js/admin-aspect.js?v=1"></script>
+<?php endif; ?>
 
 <?php endif; ?>
 </body>

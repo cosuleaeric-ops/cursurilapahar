@@ -15,3 +15,14 @@ function copySyncToken() {
     inp.select();
     navigator.clipboard.writeText(inp.value);
 }
+
+function addQlRow() {
+    const row = document.createElement('div');
+    row.className = 'ql-row';
+    row.style.cssText = 'display:grid;grid-template-columns:60px 1fr 3fr auto;gap:8px;align-items:center';
+    row.innerHTML = '<input type="text" name="ql_icon[]" value="🔗" style="text-align:center;font-size:18px">'
+        + '<input type="text" name="ql_label[]" value="">'
+        + '<input type="text" name="ql_url[]" value="">'
+        + '<button type="button" onclick="this.closest(\'.ql-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>';
+    document.getElementById('qlRows').appendChild(row);
+}
