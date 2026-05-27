@@ -75,6 +75,7 @@ function clp_section_bg(string $id, array $settings, string $default_img = ''): 
 
 // ── Load and filter courses ───────────────────────────────────────────────────
 require_once __DIR__ . '/lib/courses.php';
+require_once __DIR__ . '/lib/livetickets.php';
 
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
@@ -85,45 +86,22 @@ clp_enforce_course_rules($courses);
 $courses = clp_filter_public_courses($courses);
 usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 
+// Dacă lipsește imaginea salvată, o preluăm la afișare din LiveTickets
+foreach ($courses as &$course) {
+    if (!empty($course['image_url']) || empty($course['livetickets_url'])) {
+        continue;
+    }
+    $ev = lt_get_event_by_url($course['livetickets_url']);
+    if ($ev) {
+        $img = lt_image_url_from_event($ev);
+        if ($img !== '') {
+            $course['image_url'] = $img;
+        }
+    }
+}
+unset($course);
+
 // ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
-function lt_http_get(string $url) {
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>5,CURLOPT_FOLLOWLOCATION=>1,CURLOPT_HTTPHEADER=>['Accept: application/json']]);
-        return curl_exec($ch);
-    }
-    $ctx = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true, 'header' => 'Accept: application/json']]);
-    return @file_get_contents($url, false, $ctx);
-}
-function lt_slug_from_url(string $url): string {
-    $path  = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
-    $parts = array_values(array_filter(explode('/', $path), 'strlen'));
-    $idx   = array_search('bilete', $parts);
-    if ($idx !== false && isset($parts[$idx + 1])) return $parts[$idx + 1];
-    // /e/<code> short URL: resolve via API
-    $idx = array_search('e', $parts);
-    if ($idx !== false && isset($parts[$idx + 1])) {
-        $resp = lt_http_get('https://api.livetickets.ro/public/events/get-url?code=' . urlencode($parts[$idx + 1]));
-        if ($resp) {
-            $j = json_decode($resp, true);
-            return $j['url'] ?? '';
-        }
-    }
-    return '';
-}
-function lt_is_sold_out(array $event): bool {
-    // Primary: check items[] - all must have soldout=true
-    if (!empty($event['items']) && is_array($event['items'])) {
-        foreach ($event['items'] as $item) {
-            if (empty($item['soldout'])) return false;
-        }
-        return true;
-    }
-    // Fallback: remaining_count at event level
-    if (isset($event['remaining_count']) && $event['remaining_count'] === 0
-        && isset($event['ticket_count'])) return true;
-    return false;
-}
 $soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
 $soldout_cache = file_exists($soldout_cache_file)
     ? (json_decode(file_get_contents($soldout_cache_file), true) ?: []) : [];
@@ -139,12 +117,8 @@ foreach ($courses as $course) {
         $course_soldout[$course['id'] ?? ''] = $soldout_cache[$slug]['sold_out'];
         continue;
     }
-    $resp = lt_http_get('https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug));
-    $sold = false;
-    if ($resp) {
-        $ev = json_decode($resp, true);
-        if ($ev) $sold = lt_is_sold_out($ev);
-    }
+    $ev = lt_get_event_by_url($course['livetickets_url'] ?? '');
+    $sold = $ev ? lt_is_sold_out($ev) : false;
     $soldout_cache[$slug] = ['sold_out' => $sold, 'at' => $now];
     $course_soldout[$course['id'] ?? ''] = $sold;
     $cache_dirty = true;

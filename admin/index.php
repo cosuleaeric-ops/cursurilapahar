@@ -4277,11 +4277,11 @@ async function fetchLTImage() {
     if (!urlInput || !msg) return;
 
     const url = urlInput.value.trim();
-    document.getElementById('f_image_url').value = '';
     const img = document.getElementById('prev_img');
-    if (img) { img.src = ''; img.style.display = 'none'; }
 
     if (!url) {
+        document.getElementById('f_image_url').value = '';
+        if (img) { img.src = ''; img.style.display = 'none'; }
         msg.textContent = '';
         updateCoursePreview();
         return;
@@ -4329,13 +4329,17 @@ document.getElementById('f_title')?.addEventListener('input', updateCoursePrevie
 clpInitSpeakerCombobox();
 clpInitLocationCombobox();
 (function initCourseFormEdit() {
+    const ltUrl = document.getElementById('f_lt_url')?.value.trim();
+    const imgUrl = document.getElementById('f_image_url')?.value.trim();
     if (document.getElementById('f_course_id')?.value) {
         updateCoursePreview();
-        const imgUrl = document.getElementById('f_image_url')?.value;
         const prev = document.getElementById('prev_img');
         if (imgUrl && prev) { prev.src = imgUrl; prev.style.display = 'block'; }
         document.getElementById('coursePreview')?.style.setProperty('display', 'flex');
         document.getElementById('course-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (ltUrl && !imgUrl) {
+        fetchLTImage();
     }
 })();
 </script>

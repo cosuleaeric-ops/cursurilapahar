@@ -1,6 +1,119 @@
 <?php
 declare(strict_types=1);
 
+function lt_http_get(string $url): ?string
+{
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 12,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+        ]);
+        $resp = curl_exec($ch);
+        curl_close($ch);
+        return ($resp !== false && $resp !== '') ? $resp : null;
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout'       => 12,
+            'ignore_errors' => true,
+            'header'        => "Accept: application/json\r\n",
+        ],
+    ]);
+    $resp = @file_get_contents($url, false, $ctx);
+    return ($resp !== false && $resp !== '') ? $resp : null;
+}
+
+function lt_slug_from_url(string $url): string
+{
+    $path  = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
+    $parts = array_values(array_filter(explode('/', $path), 'strlen'));
+
+    $idx = array_search('bilete', $parts, true);
+    if ($idx !== false && isset($parts[$idx + 1])) {
+        return $parts[$idx + 1];
+    }
+
+    $idx = array_search('e', $parts, true);
+    if ($idx !== false && isset($parts[$idx + 1])) {
+        $resp = lt_http_get('https://api.livetickets.ro/public/events/get-url?code=' . urlencode($parts[$idx + 1]));
+        if ($resp) {
+            $j = json_decode($resp, true);
+            return is_array($j) ? (string)($j['url'] ?? '') : '';
+        }
+    }
+
+    return '';
+}
+
+function lt_get_event_by_url(string $url): ?array
+{
+    $slug = lt_slug_from_url($url);
+    if ($slug === '') {
+        return null;
+    }
+
+    $resp = lt_http_get('https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug));
+    if (!$resp) {
+        return null;
+    }
+
+    $event = json_decode($resp, true);
+    return (is_array($event) && isset($event['id'])) ? $event : null;
+}
+
+function lt_image_url_from_event(array $event): string
+{
+    $image_url = '';
+    $fallback_url = '';
+    foreach ($event['images'] ?? [] as $img) {
+        if (!is_array($img)) {
+            continue;
+        }
+        $path = $img['path'] ?? '';
+        if ($path === '') {
+            continue;
+        }
+        $token = $img['token'] ?? '';
+        $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path . ($token ? '?' . $token : '');
+        if ($fallback_url === '') {
+            $fallback_url = $cdn;
+        }
+        if (($img['name'] ?? '') === 'Background' && ($img['size'] ?? '') === 'MEDIUM') {
+            $image_url = $cdn;
+            break;
+        }
+    }
+
+    return $image_url !== '' ? $image_url : $fallback_url;
+}
+
+function lt_is_sold_out(array $event): bool
+{
+    if (!empty($event['items']) && is_array($event['items'])) {
+        foreach ($event['items'] as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            if (empty($item['soldout'])) {
+                return false;
+            }
+        }
+        return count($event['items']) > 0;
+    }
+
+    $remaining = $event['remaining_count'] ?? null;
+    $total     = $event['ticket_count'] ?? null;
+    if ($remaining === 0 && is_numeric($total) && (int)$total > 0) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * Fetch event metadata from LiveTickets by public URL.
  *
@@ -13,51 +126,8 @@ function lt_fetch_event_by_url(string $url): array
         return ['success' => false, 'message' => 'URL lipsă.'];
     }
 
-    $path  = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
-    $parts = explode('/', $path);
-    $slug = '';
-    $event_id = '';
-    $bilete_idx = array_search('bilete', $parts);
-    $e_idx = array_search('e', $parts);
-    if ($bilete_idx !== false && isset($parts[$bilete_idx + 1])) {
-        $slug = $parts[$bilete_idx + 1];
-    } elseif ($e_idx !== false && isset($parts[$e_idx + 1])) {
-        $event_id = $parts[$e_idx + 1];
-    }
-
-    if (!$slug && !$event_id) {
-        return ['success' => false, 'message' => 'URL invalid. Folosește un link de tip livetickets.ro/bilete/... sau livetickets.ro/e/...'];
-    }
-
-    if ($event_id && !$slug) {
-        $resolve = file_get_contents(
-            'https://api.livetickets.ro/public/events/get-url?code=' . urlencode($event_id),
-            false,
-            stream_context_create(['http' => ['timeout' => 10, 'ignore_errors' => true]])
-        );
-        $resolved = $resolve ? json_decode($resolve, true) : null;
-        $slug = $resolved['url'] ?? '';
-        if (!$slug) {
-            return ['success' => false, 'message' => 'Nu am putut rezolva linkul scurt LiveTickets.'];
-        }
-    }
-
-    $api_url = 'https://api.livetickets.ro/public/events/getbyurl?url=' . urlencode($slug);
-    $response = file_get_contents($api_url, false, stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'header' => "Accept: application/json\r\n",
-            'ignore_errors' => true,
-            'timeout' => 15,
-        ],
-    ]));
-
-    if ($response === false) {
-        return ['success' => false, 'message' => 'Eroare la apelul API LiveTickets.'];
-    }
-
-    $event = json_decode($response, true);
-    if (!$event || !isset($event['id'])) {
+    $event = lt_get_event_by_url($url);
+    if (!$event) {
         return ['success' => false, 'message' => 'Evenimentul nu a fost găsit în LiveTickets.'];
     }
 
@@ -92,30 +162,6 @@ function lt_fetch_event_by_url(string $url): array
         $location = $loc;
     }
 
-    $image_url = '';
-    $images = $event['images'] ?? [];
-    $fallback_url = '';
-    foreach ($images as $img) {
-        $name = $img['name'] ?? '';
-        $size = $img['size'] ?? '';
-        $path  = $img['path'] ?? '';
-        $token = $img['token'] ?? '';
-        if (!$path) {
-            continue;
-        }
-        $cdn = 'https://livetickets-cdn.azureedge.net/itemimages/' . $path . ($token ? '?' . $token : '');
-        if (!$fallback_url) {
-            $fallback_url = $cdn;
-        }
-        if ($name === 'Background' && $size === 'MEDIUM') {
-            $image_url = $cdn;
-            break;
-        }
-    }
-    if (!$image_url) {
-        $image_url = $fallback_url;
-    }
-
     return [
         'success' => true,
         'data' => [
@@ -124,7 +170,7 @@ function lt_fetch_event_by_url(string $url): array
             'date_raw'        => $date_raw,
             'time'            => $time,
             'location'        => $location,
-            'image_url'       => $image_url,
+            'image_url'       => lt_image_url_from_event($event),
             'livetickets_url' => $url,
         ],
     ];
