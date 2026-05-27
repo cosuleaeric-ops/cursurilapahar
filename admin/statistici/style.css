@@ -53,7 +53,13 @@
 /* ── Charts ─�� */
 .charts-row { display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-bottom: 16px; }
 .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; box-shadow: var(--shadow); }
+.chart-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.chart-card-header h3 { font-family: 'Crimson Pro', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--text); margin: 0; }
 .chart-card h3 { font-family: 'Crimson Pro', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.pnl-modal-wide { max-width: 560px; }
+.pnl-modal-sub { margin: -12px 0 0; font-size: 13px; color: var(--muted); }
+.cat-list-table td.suma-muted { color: var(--muted); font-weight: 400; }
 .chart-wrap { position: relative; height: 240px; }
 .chart-wrap-donut { position: relative; height: 240px; display: flex; align-items: center; justify-content: center; }
 .cumulative-card { margin-bottom: 28px; }
