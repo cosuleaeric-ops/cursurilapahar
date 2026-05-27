@@ -2523,7 +2523,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
             <th>Curs</th><th>Dată</th>
             <th style="text-align:right">Bilete</th>
             <th style="text-align:center">Raport</th>
-            <th style="text-align:center">Viță</th>
+            <th style="text-align:center">Viză</th>
             <th style="text-align:right">Încasări</th>
             <th style="text-align:right">DITL (2%)</th>
         </tr></thead><tbody>`;

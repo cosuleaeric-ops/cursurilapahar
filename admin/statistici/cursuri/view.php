@@ -512,7 +512,7 @@ include __DIR__ . '/../layout_header.php';
       </form>
     </div>
 
-    <!-- Actiuni: Raport / Participanti / Viza -->
+    <!-- Actiuni: Raport / Participanti / Viză -->
     <div class="actions-grid">
 
       <!-- Raport eveniment -->
@@ -521,16 +521,16 @@ include __DIR__ . '/../layout_header.php';
         <?php include __DIR__ . '/../raport_upload_form.inc.php'; ?>
       </div>
 
-      <!-- Viza bilete -->
+      <!-- Viză bilete -->
       <div class="section-card" style="margin-bottom:0">
-        <h3>Viza bilete</h3>
+        <h3>Viză bilete</h3>
         <form method="post" enctype="multipart/form-data" id="vizaUploadForm">
           <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
           <input type="hidden" name="action" value="upload_viza">
           <input type="hidden" name="viza_text" id="vizaTextInput">
           <div class="upload-zone" id="vizaUploadZone">
             <input type="file" name="viza" accept=".pdf" onchange="handleVizaUpload(this)">
-            <p id="vizaUploadLabel"><?php echo empty($vizaFiles) ? 'Trage sau apasa pentru a incarca Viza PDF' : 'Inlocuieste viza'; ?></p>
+            <p id="vizaUploadLabel"><?php echo empty($vizaFiles) ? 'Trage sau apasa pentru a incarca Viză PDF' : 'Inlocuieste viză'; ?></p>
           </div>
         </form>
       </div>
@@ -538,7 +538,7 @@ include __DIR__ . '/../layout_header.php';
     </div>
 
     <?php if (!empty($vizaFiles)): $vf = $vizaFiles[0]; ?>
-    <!-- Viza bilete — detalii (full width) -->
+    <!-- Viză bilete — detalii (full width) -->
     <div class="section-card">
       <div class="viza-file" style="margin-bottom:12px">
         <div>
@@ -558,7 +558,7 @@ include __DIR__ . '/../layout_header.php';
                 title="Extrage date din PDF">&#8635; Extrage date</button>
             </form>
           <?php endif; ?>
-          <form method="post" onsubmit="return confirm('Stergi viza?');" style="margin:0">
+          <form method="post" onsubmit="return confirm('Stergi viză?');" style="margin:0">
             <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
             <input type="hidden" name="action" value="delete_viza">
             <input type="hidden" name="file_id" value="<?php echo (int)$vf['id']; ?>">
@@ -722,7 +722,7 @@ include __DIR__ . '/../layout_header.php';
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 })();
 
-// ── Viță PDF upload + text extraction ────────────────────────────────────────
+// ── Viză PDF upload + text extraction ────────────────────────────────────────
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/admin/statistici/js/pdf.worker.min.js';
 
 // Butonul "Extrage date" — fetch PDF de pe server, extrage text, submit

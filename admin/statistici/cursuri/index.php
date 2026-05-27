@@ -39,7 +39,7 @@ $ditlYears = [];
 while ($yr = $yearsRes->fetchArray(SQLITE3_ASSOC)) $ditlYears[] = $yr['y'];
 if (!in_array((string)$ditlYear, $ditlYears)) $ditlYears[] = (string)$ditlYear;
 
-// Subtipuri viță + vândute
+// Subtipuri viză + vândute
 $vizaSubtipsByCourse   = [];
 $reportByPriceByCourse = [];
 if (!empty($ditlRows)) {
@@ -169,7 +169,7 @@ include __DIR__ . '/../layout_header.php';
                 <th style="white-space:nowrap">Data</th>
                 <th class="right" style="white-space:nowrap">Bilete</th>
                 <th style="white-space:nowrap;text-align:center">Raport</th>
-                <th style="white-space:nowrap;text-align:center">Viza</th>
+                <th style="white-space:nowrap;text-align:center">Viză</th>
               </tr>
             </thead>
             <tbody>

@@ -40,7 +40,7 @@ include __DIR__ . '/layout_header.php';
             <a class="tool-card" href="/admin/statistici/cursuri/">
                 <div class="tool-icon">📋</div>
                 <div class="tool-name">Cursuri</div>
-                <div class="tool-desc">toate cursurile, participanti, distributie bilete si viza</div>
+                <div class="tool-desc">toate cursurile, participanti, distributie bilete si viză</div>
             </a>
             <a class="tool-card" href="/admin/statistici/participanti/">
                 <div class="tool-icon">👥</div>
