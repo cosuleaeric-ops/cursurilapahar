@@ -55,6 +55,11 @@ foreach (['Onorariu curs','Service fee','Impozit curs','Avans','Decont personal'
     $s->bindValue(':n', $cat); $s->execute();
 }
 
+// Elimină categoria duplicată „Impozit” — păstrăm doar „Impozit curs”
+$db->exec("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES ('Impozit curs')");
+$db->exec("UPDATE cheltuieli SET categorie = 'Impozit curs', descriere = 'Impozit curs' WHERE lower(trim(categorie)) = 'impozit'");
+$db->exec("DELETE FROM cheltuiala_categorii WHERE lower(trim(nume)) = 'impozit'");
+
 $action = $_GET['action'] ?? '';
 
 try {
