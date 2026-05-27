@@ -311,6 +311,7 @@ async function loadLastEntry() {
 async function init() {
   const periods = await api('periods');
   const sel = document.getElementById('yearSelect');
+  const roMonths = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 
   periods.forEach(p => {
     const opt = document.createElement('option');
@@ -320,10 +321,16 @@ async function init() {
     sel.appendChild(opt);
   });
 
-  // Default to current year-month
-  sel.value = currentYear + '-' + currentMonth;
-  if (!sel.value) sel.value = String(currentYear);
-  if (!sel.value && periods.length) sel.value = periods[0].value;
+  // Default to current year-month, chiar daca perioada nu exista in lista din API.
+  const currentPeriod = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+  const hasCurrentPeriod = Array.from(sel.options).some(o => o.value === currentPeriod);
+  if (!hasCurrentPeriod) {
+    const opt = document.createElement('option');
+    opt.value = currentPeriod;
+    opt.textContent = `${roMonths[currentMonth - 1]} ${currentYear}`;
+    sel.insertBefore(opt, sel.firstChild);
+  }
+  sel.value = currentPeriod;
 
   sel.addEventListener('change', () => {
     const parts = sel.value.split('-');
