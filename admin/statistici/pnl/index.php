@@ -313,11 +313,11 @@ async function init() {
   const sel = document.getElementById('yearSelect');
   const roMonths = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 
-  periods.forEach(p => {
+  periods.filter(p => !!p.month).forEach(p => {
     const opt = document.createElement('option');
     opt.value = p.value;
-    opt.textContent = p.month ? '\u00A0\u00A0' + p.label : p.label;
-    if (p.month) opt.style.color = 'var(--muted)';
+    opt.textContent = p.label;
+    opt.style.color = 'var(--muted)';
     sel.appendChild(opt);
   });
 
