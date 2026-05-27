@@ -9,7 +9,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=2">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -38,11 +38,11 @@ include __DIR__ . '/../layout_header.php';
 
   <!-- Quick Add Bar -->
   <div class="quick-add-bar">
-    <button class="quick-add-btn quick-add-cheltuiala" id="topBtnCheltuiala">
+    <button type="button" class="quick-add-btn quick-add-cheltuiala" id="topBtnCheltuiala">
       <span class="qab-icon">&#8722;</span>
       <span class="qab-text">Adaug&#x103; cheltuial&#x103;</span>
     </button>
-    <button class="quick-add-btn quick-add-venit" id="topBtnVenit">
+    <button type="button" class="quick-add-btn quick-add-venit" id="topBtnVenit">
       <span class="qab-icon">+</span>
       <span class="qab-text">Adaug&#x103; venit</span>
     </button>
@@ -121,9 +121,9 @@ include __DIR__ . '/../layout_header.php';
   </div><!-- /tx-section -->
 
 <!-- Modal: Adaug&#x103; / Editeaz&#x103; Venit -->
-<div class="modal-overlay" id="modalVenit">
-  <div class="modal">
-    <button class="modal-close" data-close="modalVenit">&times;</button>
+<div class="pnl-modal-overlay" id="modalVenit">
+  <div class="pnl-modal">
+    <button type="button" class="pnl-modal-close" data-close="modalVenit">&times;</button>
     <h2 id="modalVenitTitle">Adaug&#x103; venit</h2>
     <div class="error-msg" id="errorVenit"></div>
     <form id="formVenit">
@@ -146,7 +146,7 @@ include __DIR__ . '/../layout_header.php';
         <label>Sum&#x103; (lei)</label>
         <input type="number" name="suma" id="venitSuma" step="0.01" min="0.01" required />
       </div>
-      <div class="modal-actions">
+      <div class="pnl-modal-actions">
         <button type="button" class="btn btn-ghost" data-close="modalVenit">Anuleaz&#x103;</button>
         <button type="submit" class="btn btn-green" id="venitSubmit">Salveaz&#x103;</button>
       </div>
@@ -155,9 +155,9 @@ include __DIR__ . '/../layout_header.php';
 </div>
 
 <!-- Modal: Adaug&#x103; / Editeaz&#x103; Cheltuiala -->
-<div class="modal-overlay" id="modalCheltuiala">
-  <div class="modal">
-    <button class="modal-close" data-close="modalCheltuiala">&times;</button>
+<div class="pnl-modal-overlay" id="modalCheltuiala">
+  <div class="pnl-modal">
+    <button type="button" class="pnl-modal-close" data-close="modalCheltuiala">&times;</button>
     <h2 id="modalCheltuialaTitle">Adaug&#x103; cheltuiala</h2>
     <div class="error-msg" id="errorCheltuiala"></div>
     <form id="formCheltuiala">
@@ -184,7 +184,7 @@ include __DIR__ . '/../layout_header.php';
         <label>Service fee</label>
         <input type="number" id="cheltuialaServiceFee" step="0.01" min="0.01" placeholder="ex: 0,45" />
       </div>
-      <div class="modal-actions">
+      <div class="pnl-modal-actions">
         <button type="button" class="btn btn-ghost" data-close="modalCheltuiala">Anuleaz&#x103;</button>
         <button type="submit" class="btn btn-red" id="cheltuialaSubmit">Salveaz&#x103;</button>
       </div>
@@ -194,8 +194,16 @@ include __DIR__ . '/../layout_header.php';
 
 <script>
 // ── Helpers ─────────────────────────────────────────────────────────────────
-const api = (action, params = '') =>
-  fetch(`${window.PNL.api}?action=${action}${params ? '&' + params : ''}`).then(r => r.json());
+const api = async (action, params = '') => {
+  try {
+    const res = await fetch(`${window.PNL.api}?action=${action}${params ? '&' + params : ''}`);
+    const data = await res.json();
+    if (data && data.error) return null;
+    return data;
+  } catch (e) {
+    return null;
+  }
+};
 
 const post = (action, body) => {
   body.csrf_token = window.PNL.csrf;
@@ -242,8 +250,8 @@ async function loadCategories() {
     api('categorii_venituri'),
     api('categorii_cheltuieli'),
   ]);
-  populateSelect('venitCategorieSelect',      vc, 'add_categorie_venit');
-  populateSelect('cheltuialaCategorieSelect', cc, 'add_categorie_cheltuiala');
+  populateSelect('venitCategorieSelect',      vc || [], 'add_categorie_venit');
+  populateSelect('cheltuialaCategorieSelect', cc || [], 'add_categorie_cheltuiala');
 }
 
 function populateSelect(selectId, cats, addAction) {
@@ -308,41 +316,36 @@ async function loadLastEntry() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+function applyPeriodFromSelect() {
+  const sel = document.getElementById('yearSelect');
+  const parts = sel.value.split('-');
+  currentYear  = parseInt(parts[0], 10);
+  currentMonth = parts[1] ? parseInt(parts[1], 10) : null;
+}
+
 async function init() {
   const periods = await api('periods');
   const sel = document.getElementById('yearSelect');
-  const roMonths = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+  sel.innerHTML = '';
 
-  const yearOptions = [];
-  periods.forEach(p => {
+  (Array.isArray(periods) ? periods : []).forEach(p => {
     const opt = document.createElement('option');
     opt.value = p.value;
-    if (p.month) {
-      opt.textContent = p.label;
-      opt.style.color = 'var(--muted)';
-      sel.appendChild(opt);
-    } else {
-      opt.textContent = p.label;
-      yearOptions.push(opt);
-    }
+    opt.textContent = p.label;
+    if (p.month) opt.style.color = 'var(--muted)';
+    sel.appendChild(opt);
   });
-  yearOptions.forEach(opt => sel.appendChild(opt));
 
-  // Default to current year-month, chiar daca perioada nu exista in lista din API.
   const currentPeriod = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-  const hasCurrentPeriod = Array.from(sel.options).some(o => o.value === currentPeriod);
-  if (!hasCurrentPeriod) {
-    const opt = document.createElement('option');
-    opt.value = currentPeriod;
-    opt.textContent = `${roMonths[currentMonth - 1]} ${currentYear}`;
-    sel.insertBefore(opt, sel.firstChild);
+  if (Array.from(sel.options).some(o => o.value === currentPeriod)) {
+    sel.value = currentPeriod;
+  } else if (sel.options.length) {
+    sel.selectedIndex = 0;
   }
-  sel.value = currentPeriod;
+  applyPeriodFromSelect();
 
   sel.addEventListener('change', () => {
-    const parts = sel.value.split('-');
-    currentYear  = parseInt(parts[0]);
-    currentMonth = parts[1] ? parseInt(parts[1]) : null;
+    applyPeriodFromSelect();
     refresh();
   });
 
@@ -358,8 +361,14 @@ async function refresh() {
     api('cheltuieli', `year=${currentYear}${mParam}`),
   ]);
 
-  allVenituri   = venituri;
-  allCheltuieli = cheltuieli;
+  allVenituri   = Array.isArray(venituri) ? venituri : [];
+  allCheltuieli = Array.isArray(cheltuieli) ? cheltuieli : [];
+
+  if (!stats || !Array.isArray(stats.monthly)) {
+    renderStats({ total_venituri: 0, total_cheltuieli: 0, profit_net: 0, marja: 0 });
+    renderTable();
+    return;
+  }
 
   renderStats(stats);
   renderCharts(stats);
@@ -398,6 +407,7 @@ const CAT_COLORS = [
 ];
 
 function renderCharts(s) {
+  if (!s || !Array.isArray(s.monthly)) return;
   const labels = s.monthly.map(m => currentMonth ? m.luna.slice(8) + '.' : monthLabel(m.luna));
 
   if (chartMonthly) chartMonthly.destroy();
@@ -442,7 +452,7 @@ function renderCharts(s) {
 
   if (chartTopCat) chartTopCat.destroy();
   const topCatCard = document.getElementById('topCatCard');
-  if (s.categorii_cheltuieli.length) {
+  if (s.categorii_cheltuieli && s.categorii_cheltuieli.length) {
     topCatCard.style.display = '';
     const topData = s.categorii_cheltuieli.slice(0, 10);
     const topCatWrap = document.getElementById('topCatWrap');
@@ -558,7 +568,7 @@ document.querySelectorAll('[data-close]').forEach(el => {
   el.addEventListener('click', () => closeModal(el.dataset.close));
 });
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
+document.querySelectorAll('.pnl-modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) closeModal(overlay.id);
   });
@@ -730,7 +740,7 @@ document.getElementById('topBtnVenit').addEventListener('click', () => {
 // ── Keyboard shortcuts (C = cheltuiala, V = venit) ───────────────────────────
 document.addEventListener('keydown', e => {
   if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
-  if (document.querySelector('.modal-overlay.open')) return;
+  if (document.querySelector('.pnl-modal-overlay.open')) return;
   if (e.key === 'c' || e.key === 'C') document.getElementById('btnAddCheltuiala').click();
   if (e.key === 'v' || e.key === 'V') document.getElementById('btnAddVenit').click();
 });
@@ -750,7 +760,7 @@ function navigateMonth(delta) {
   m += delta;
   if (m < 1) { m = 12; y--; }
   if (m > 12) { m = 1;  y++; }
-  const val = `${y}-${m}`;
+  const val = `${y}-${String(m).padStart(2, '0')}`;
   const sel = document.getElementById('yearSelect');
   const opt = Array.from(sel.options).find(o => o.value === val);
   if (opt) { sel.value = val; sel.dispatchEvent(new Event('change')); }
@@ -771,7 +781,7 @@ document.getElementById('venitDataPrev').addEventListener('click', () => shiftDa
 document.getElementById('venitDataNext').addEventListener('click', () => shiftDate('venitData', +1));
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-init();
+init().catch(() => {});
 </script>
 
     </div><!-- /max-width -->

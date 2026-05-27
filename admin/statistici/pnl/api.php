@@ -205,19 +205,34 @@ function handlePeriods(SQLite3 $db): void
 
     $by_year = [];
     while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
-        $by_year[(int)$row['an']][] = (int)$row['luna'];
+        $by_year[(int)$row['an']][(int)$row['luna']] = true;
     }
 
-    if (empty($by_year)) {
-        $by_year[(int)date('Y')] = [];
-    }
+    $nowY = (int)date('Y');
+    $nowM = (int)date('n');
+    $by_year[$nowY][$nowM] = true;
+
+    krsort($by_year);
 
     $periods = [];
-    foreach ($by_year as $year => $months) {
-        $periods[] = ['value' => (string)$year, 'label' => (string)$year, 'year' => $year, 'month' => null];
+    foreach ($by_year as $year => $months_map) {
+        $months = array_keys($months_map);
+        rsort($months);
         foreach ($months as $m) {
-            $periods[] = ['value' => "$year-$m", 'label' => $month_names[$m] . ' ' . $year, 'year' => $year, 'month' => $m];
+            $periods[] = [
+                'value' => sprintf('%d-%02d', $year, $m),
+                'label' => $month_names[$m] . ' ' . $year,
+                'year'  => $year,
+                'month' => $m,
+            ];
         }
+        // Anul intreg — ultimul din lista fiecarui an
+        $periods[] = [
+            'value' => (string)$year,
+            'label' => (string)$year,
+            'year'  => $year,
+            'month' => null,
+        ];
     }
 
     echo json_encode($periods);

@@ -98,24 +98,24 @@ td.suma-red   { color: var(--red);   font-weight: 600; font-variant-numeric: tab
 .icon-btn.danger:hover { color: var(--red); border-color: #f5c6c7; background: var(--red-light); }
 .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
 
-/* ── Modal ── */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; align-items: center; justify-content: center; }
-.modal-overlay.open { display: flex; }
-.modal { background: var(--card); border-radius: var(--radius); padding: 28px 32px; width: 100%; max-width: 440px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
-.modal h2 { font-family: 'Crimson Pro', Georgia, serif; font-size: 21px; font-weight: 600; margin-bottom: 24px; }
-.modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; line-height: 1; }
-.modal-close:hover { color: var(--text); }
+/* ── Modal (prefix pnl- avoids daisyUI .modal conflict) ── */
+.pnl-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; }
+.pnl-modal-overlay.open { display: flex; }
+.pnl-modal { background: var(--card); border-radius: var(--radius); padding: 28px 32px; width: 100%; max-width: 440px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
+.pnl-modal h2 { font-family: 'Crimson Pro', Georgia, serif; font-size: 21px; font-weight: 600; margin-bottom: 24px; }
+.pnl-modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; line-height: 1; }
+.pnl-modal-close:hover { color: var(--text); }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
 .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: #fff; transition: border-color 0.15s; }
 .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green); background: #fff; }
-.modal-actions { display: flex; gap: 10px; margin-top: 24px; }
-.modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
+.pnl-modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+.pnl-modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
 .error-msg { background: var(--red-light); border: 1px solid #f5b5b6; border-radius: var(--radius-sm); padding: 10px 14px; color: var(--red); font-size: 13px; margin-bottom: 16px; display: none; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .container { padding: 16px; } .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .stat-card .value { font-size: 20px; } .section-header { flex-wrap: wrap; } .add-btns { width: 100%; } .add-btns .btn { flex: 1; justify-content: center; } .modal { padding: 22px 20px; margin: 16px; } }
+@media (max-width: 600px) { .container { padding: 16px; } .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .stat-card .value { font-size: 20px; } .section-header { flex-wrap: wrap; } .add-btns { width: 100%; } .add-btns .btn { flex: 1; justify-content: center; } .pnl-modal { padding: 22px 20px; margin: 16px; } }
 
 /* ── Last entry badge ── */
 .last-entry-badge { font-size: 12px; color: var(--muted); }
