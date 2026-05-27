@@ -415,8 +415,8 @@
 
     // ── Export all data as download
     if ($action === 'export_settings') {
-        $data_dir = dirname(SETTINGS_FILE);
-        $export_settings = file_exists(SETTINGS_FILE) ? json_decode(file_get_contents(SETTINGS_FILE), true) : [];
+        $data_dir = dirname(clp_settings_file());
+        $export_settings = file_exists(clp_settings_file()) ? json_decode(file_get_contents(clp_settings_file()), true) : [];
         // Strip secrets from export
         foreach (['admin_password','auth_secret','webhook_secret','sync_token'] as $k) {
             unset($export_settings[$k]);
@@ -439,7 +439,7 @@
             $json   = file_get_contents($_FILES['settings_file']['tmp_name']);
             $bundle = json_decode($json, true);
             if ($bundle) {
-                $data_dir = dirname(SETTINGS_FILE);
+                $data_dir = dirname(clp_settings_file());
                 // Support both old format (plain settings) and new bundle format
                 $imported = $bundle['settings'] ?? $bundle;
 
@@ -753,7 +753,7 @@
     if ($action === 'delete_message') {
         $idx  = (int)($_POST['msg_index'] ?? -1);
         $type = preg_replace('/[^a-z]/', '', $_POST['msg_type'] ?? '');
-        $log_file = dirname(SETTINGS_FILE) . '/messages.log';
+        $log_file = clp_messages_log_file();
         if ($idx >= 0 && $type && file_exists($log_file)) {
             $raw    = file_get_contents($log_file);
             $blocks = preg_split('/(?=^===)/m', $raw);
@@ -871,3 +871,52 @@
         echo json_encode(['ok' => true, 'comment' => $entry]);
         exit;
     }
+
+// ── Navbar live (from live site editor) ──────────────────────────────────────
+if ($action === 'save_navbar_live') {
+    header('Content-Type: application/json');
+    $s = load_settings();
+    $color_keys = ['nav_bg','nav_brand_color','nav_link_color'];
+    $num_keys   = ['nav_brand_size','nav_brand_weight','nav_link_size','nav_link_weight','nav_logo_h'];
+    $font_keys  = ['nav_brand_font'];
+    $allowed_fonts = clp_design_heading_fonts();
+    foreach ($color_keys as $k) {
+        $v = trim($_POST[$k] ?? '');
+        if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) $s[$k] = $v;
+    }
+    foreach ($num_keys as $k) {
+        $v = (int)($_POST[$k] ?? 0);
+        if ($v > 0) $s[$k] = (string)$v;
+    }
+    foreach ($font_keys as $k) {
+        $v = trim($_POST[$k] ?? '');
+        if ($v && in_array($v, $allowed_fonts, true)) $s[$k] = $v;
+    }
+    save_settings($s);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ── Global fonts (from live site editor) ─────────────────────────────────────
+if ($action === 'save_global_fonts') {
+    $allowed_h = clp_design_heading_fonts();
+    $allowed_b = clp_design_body_fonts();
+    header('Content-Type: application/json');
+    $s  = load_settings();
+    $fh = trim($_POST['font_heading'] ?? '');
+    $fb = trim($_POST['font_body']    ?? '');
+    if ($fh && in_array($fh, $allowed_h, true)) $s['font_heading'] = $fh;
+    if ($fb && in_array($fb, $allowed_b, true)) $s['font_body']    = $fb;
+    foreach (['fh_weight','fb_weight'] as $k) {
+        $v = (int)($_POST[$k] ?? 0);
+        $s[$k] = ($v >= 100 && $v <= 900) ? (string)$v : '';
+    }
+    $s['fh_italic'] = !empty($_POST['fh_italic']) ? '1' : '';
+    foreach (['fh_size_lg','fh_size_md','fh_size_sm','fb_size_lg','fb_size_md','fb_size_sm'] as $k) {
+        $v = (int)($_POST[$k] ?? 0);
+        $s[$k] = $v > 0 ? (string)$v : '';
+    }
+    save_settings($s);
+    echo json_encode(['ok' => true]);
+    exit;
+}
