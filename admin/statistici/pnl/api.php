@@ -50,7 +50,7 @@ foreach (['Curs', 'Depunere capital social'] as $cat) {
     $s = $db->prepare("INSERT OR IGNORE INTO venit_categorii (nume) VALUES (:n)");
     $s->bindValue(':n', $cat); $s->execute();
 }
-foreach (['Onorariu curs','Service fee','Impozit curs','Avans','Decont personal','Echipament','Contabilitate','Google Workspace','Hosting','Altele'] as $cat) {
+foreach (['Onorariu curs','Service fee','Impozit curs','Avans','Decont personal','Echipament','Contabilitate','Google Workspace','Hosting','AI','Altele'] as $cat) {
     $s = $db->prepare("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES (:n)");
     $s->bindValue(':n', $cat); $s->execute();
 }
@@ -59,6 +59,11 @@ foreach (['Onorariu curs','Service fee','Impozit curs','Avans','Decont personal'
 $db->exec("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES ('Impozit curs')");
 $db->exec("UPDATE cheltuieli SET categorie = 'Impozit curs', descriere = 'Impozit curs' WHERE lower(trim(categorie)) = 'impozit'");
 $db->exec("DELETE FROM cheltuiala_categorii WHERE lower(trim(nume)) = 'impozit'");
+
+// Redenumește categoria „Claude” în „AI”
+$db->exec("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES ('AI')");
+$db->exec("UPDATE cheltuieli SET categorie = 'AI', descriere = 'AI' WHERE lower(trim(categorie)) = 'claude'");
+$db->exec("DELETE FROM cheltuiala_categorii WHERE lower(trim(nume)) = 'claude'");
 
 $action = $_GET['action'] ?? '';
 
