@@ -28,6 +28,36 @@ if (!hash_equals($sync_token, (string)$provided)) {
     exit;
 }
 
+// Temporary probe user for automated QA (action=probe_create | probe_delete)
+$probe_action = $_GET['action'] ?? '';
+if ($probe_action === 'probe_create' || $probe_action === 'probe_delete') {
+    require_once dirname(__DIR__) . '/lib/auth.php';
+    $probe_user = 'clp_probe';
+    if ($probe_action === 'probe_create') {
+        $pass  = bin2hex(random_bytes(8));
+        $users = array_values(array_filter(
+            load_users(),
+            fn($u) => ($u['username'] ?? '') !== $probe_user
+        ));
+        $users[] = [
+            'username'      => $probe_user,
+            'password_hash' => password_hash($pass, PASSWORD_DEFAULT),
+            'role'          => 'city_manager',
+        ];
+        save_users($users);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['username' => $probe_user, 'password' => $pass], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    save_users(array_values(array_filter(
+        load_users(),
+        fn($u) => ($u['username'] ?? '') !== $probe_user
+    )));
+    header('Content-Type: text/plain; charset=utf-8');
+    echo 'deleted';
+    exit;
+}
+
 $files = [
     'settings'        => 'settings.json',
     'courses'         => 'courses.json',
