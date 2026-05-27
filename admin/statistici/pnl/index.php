@@ -9,7 +9,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=4">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=5">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -138,9 +138,10 @@ include __DIR__ . '/../layout_header.php';
       </div>
       <div class="form-group">
         <label>Categorie</label>
-        <select id="venitCategorieSelect"></select>
-        <input type="text" id="venitCategorieNoua" placeholder="Nume categorie nou&#x103;"
-               style="display:none; margin-top:8px; width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--bg);" />
+        <div class="categorie-combobox">
+          <input type="text" id="venitCategorie" autocomplete="off" placeholder="Scrie sau alege categoria..." />
+          <div id="venitCategorieSuggestions" class="categorie-suggestions" hidden></div>
+        </div>
       </div>
       <div class="form-group">
         <label>Sum&#x103; (lei)</label>
@@ -172,9 +173,10 @@ include __DIR__ . '/../layout_header.php';
       </div>
       <div class="form-group">
         <label>Categorie</label>
-        <select id="cheltuialaCategorieSelect"></select>
-        <input type="text" id="cheltuialaCategorieNoua" placeholder="Nume categorie nou&#x103;"
-               style="display:none; margin-top:8px; width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--bg);" />
+        <div class="categorie-combobox">
+          <input type="text" id="cheltuialaCategorie" autocomplete="off" placeholder="Scrie sau alege categoria..." />
+          <div id="cheltuialaCategorieSuggestions" class="categorie-suggestions" hidden></div>
+        </div>
       </div>
       <div class="form-group">
         <label>Sum&#x103; (lei)</label>
@@ -245,55 +247,87 @@ const getLastDate = () => localStorage.getItem(lastDateKey) || todayStr();
 const setLastDate = d => localStorage.setItem(lastDateKey, d);
 
 // ── Categories ───────────────────────────────────────────────────────────────
+let venitCategories = [];
+let cheltuialaCategories = [];
+
 async function loadCategories() {
   const [vc, cc] = await Promise.all([
     api('categorii_venituri'),
     api('categorii_cheltuieli'),
   ]);
-  populateSelect('venitCategorieSelect',      vc || [], 'add_categorie_venit');
-  populateSelect('cheltuialaCategorieSelect', cc || [], 'add_categorie_cheltuiala');
+  venitCategories = vc || [];
+  cheltuialaCategories = cc || [];
 }
 
-function populateSelect(selectId, cats, addAction) {
-  const sel = document.getElementById(selectId);
-  const current = sel.value;
-  sel.innerHTML = '';
+function renderCategorieSuggestions(inputId, boxId, cats) {
+  const input = document.getElementById(inputId);
+  const box = document.getElementById(boxId);
+  if (!input || !box) return;
 
-  cats.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    sel.appendChild(opt);
+  const typed = input.value.trim();
+  const q = typed.toLowerCase();
+  const list = cats.filter(c => !q || c.toLowerCase().includes(q));
+  const exact = typed && cats.some(c => c.toLowerCase() === q);
+
+  box.innerHTML = '';
+  if (!list.length && !typed) {
+    box.hidden = true;
+    return;
+  }
+
+  list.forEach(c => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = c;
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault();
+      input.value = c;
+      box.hidden = true;
+    });
+    box.appendChild(btn);
   });
 
-  const newOpt = document.createElement('option');
-  newOpt.value = '__new__';
-  newOpt.textContent = '+ Categorie nouă...';
-  sel.appendChild(newOpt);
+  if (typed && !exact) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'is-new';
+    btn.textContent = `+ Categorie nouă: „${typed}"`;
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault();
+      input.value = typed;
+      box.hidden = true;
+    });
+    box.appendChild(btn);
+  }
 
-  if (current && current !== '__new__') sel.value = current;
-
-  // Wire up the "new category" input toggle
-  const inputId = selectId.replace('Select', 'Noua');
-  const inp = document.getElementById(inputId);
-  sel.onchange = () => {
-    inp.style.display = sel.value === '__new__' ? 'block' : 'none';
-    if (sel.value === '__new__') inp.focus();
-  };
+  box.hidden = false;
 }
 
-async function resolveCategorie(selectId, inputId, addAction) {
-  const sel = document.getElementById(selectId);
-  const inp = document.getElementById(inputId);
+function initCategorieCombobox(inputId, boxId, getCats) {
+  const input = document.getElementById(inputId);
+  const box = document.getElementById(boxId);
+  if (!input || !box || input.dataset.comboboxInit) return;
+  input.dataset.comboboxInit = '1';
 
-  if (sel.value === '__new__') {
-    const nome = inp.value.trim();
-    if (!nome) return null;
-    await post(addAction, { nume: nome });
-    await loadCategories();
-    document.getElementById(selectId).value = nome;
-    return nome;
+  input.addEventListener('focus', () => renderCategorieSuggestions(inputId, boxId, getCats()));
+  input.addEventListener('input', () => renderCategorieSuggestions(inputId, boxId, getCats()));
+  input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 150));
+}
+
+async function resolveCategorie(inputId, addAction, cats) {
+  const input = document.getElementById(inputId);
+  const nome = input.value.trim();
+  if (!nome) return null;
+
+  const exact = cats.find(c => c.toLowerCase() === nome.toLowerCase());
+  if (exact) {
+    input.value = exact;
+    return exact;
   }
-  return sel.value || null;
+
+  await post(addAction, { nume: nome });
+  await loadCategories();
+  return nome;
 }
 
 // ── Last entry badge ─────────────────────────────────────────────────────────
@@ -350,6 +384,8 @@ async function init() {
   });
 
   await loadCategories();
+  initCategorieCombobox('venitCategorie', 'venitCategorieSuggestions', () => venitCategories);
+  initCategorieCombobox('cheltuialaCategorie', 'cheltuialaCategorieSuggestions', () => cheltuialaCategories);
   await Promise.all([refresh(), loadLastEntry()]);
 }
 
@@ -581,7 +617,7 @@ document.getElementById('btnAddVenit').addEventListener('click', () => {
   document.getElementById('formVenit').reset();
   document.getElementById('venitId').value = '';
   document.getElementById('venitData').value = getLastDate();
-  document.getElementById('venitCategorieNoua').style.display = 'none';
+  document.getElementById('venitCategorie').value = '';
   document.getElementById('errorVenit').style.display = 'none';
   openModal('modalVenit');
 });
@@ -592,7 +628,7 @@ document.getElementById('btnAddCheltuiala').addEventListener('click', () => {
   document.getElementById('formCheltuiala').reset();
   document.getElementById('cheltuialaId').value = '';
   document.getElementById('cheltuialaData').value = getLastDate();
-  document.getElementById('cheltuialaCategorieNoua').style.display = 'none';
+  document.getElementById('cheltuialaCategorie').value = '';
   document.getElementById('cheltuialaServiceFee').value = '';
   document.getElementById('serviceFeeGroup').style.display = '';
   document.getElementById('errorCheltuiala').style.display = 'none';
@@ -611,9 +647,8 @@ function openEdit(row) {
     document.getElementById('venitId').value   = row.id;
     document.getElementById('venitData').value = row.data;
     document.getElementById('venitSuma').value = row.suma;
-    document.getElementById('venitCategorieNoua').style.display = 'none';
     document.getElementById('errorVenit').style.display = 'none';
-    document.getElementById('venitCategorieSelect').value = row.descriere;
+    document.getElementById('venitCategorie').value = row.descriere;
     openModal('modalVenit');
   } else {
     document.getElementById('modalCheltuialaTitle').textContent = 'Editează cheltuiala';
@@ -621,11 +656,10 @@ function openEdit(row) {
     document.getElementById('cheltuialaId').value   = row.id;
     document.getElementById('cheltuialaData').value = row.data;
     document.getElementById('cheltuialaSuma').value = row.suma;
-    document.getElementById('cheltuialaCategorieNoua').style.display = 'none';
     document.getElementById('cheltuialaServiceFee').value = '';
     document.getElementById('serviceFeeGroup').style.display = 'none';
     document.getElementById('errorCheltuiala').style.display = 'none';
-    document.getElementById('cheltuialaCategorieSelect').value = row.categorie;
+    document.getElementById('cheltuialaCategorie').value = row.categorie;
     openModal('modalCheltuiala');
   }
 }
@@ -654,7 +688,7 @@ document.getElementById('formVenit').addEventListener('submit', async e => {
   const errEl = document.getElementById('errorVenit');
   errEl.style.display = 'none';
 
-  const categorie = await resolveCategorie('venitCategorieSelect', 'venitCategorieNoua', 'add_categorie_venit');
+  const categorie = await resolveCategorie('venitCategorie', 'add_categorie_venit', venitCategories);
   if (!categorie) {
     errEl.textContent = 'Selectează sau creează o categorie.';
     errEl.style.display = 'block';
@@ -692,7 +726,7 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
   const errEl = document.getElementById('errorCheltuiala');
   errEl.style.display = 'none';
 
-  const categorie = await resolveCategorie('cheltuialaCategorieSelect', 'cheltuialaCategorieNoua', 'add_categorie_cheltuiala');
+  const categorie = await resolveCategorie('cheltuialaCategorie', 'add_categorie_cheltuiala', cheltuialaCategories);
   if (!categorie) {
     errEl.textContent = 'Selectează sau creează o categorie.';
     errEl.style.display = 'block';

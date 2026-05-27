@@ -109,6 +109,19 @@ td.suma-red   { color: var(--red);   font-weight: 600; font-variant-numeric: tab
 .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
 .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: #fff; transition: border-color 0.15s; }
 .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green); background: #fff; }
+.categorie-combobox { position: relative; }
+.categorie-suggestions {
+  position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 1100;
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); max-height: 220px; overflow-y: auto;
+}
+.categorie-suggestions button {
+  display: block; width: 100%; text-align: left; border: 0; background: #fff;
+  padding: 9px 12px; font-size: 14px; cursor: pointer; color: var(--text);
+}
+.categorie-suggestions button:hover,
+.categorie-suggestions button.is-active { background: #eff6ff; color: #1d4ed8; }
+.categorie-suggestions button.is-new { color: var(--green); font-weight: 600; }
 .pnl-modal-actions { display: flex; gap: 10px; margin-top: 24px; }
 .pnl-modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
 .error-msg { background: var(--red-light); border: 1px solid #f5b5b6; border-radius: var(--radius-sm); padding: 10px 14px; color: var(--red); font-size: 13px; margin-bottom: 16px; display: none; }
