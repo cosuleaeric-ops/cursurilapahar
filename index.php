@@ -273,6 +273,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $badge_day = $date_raw ? date('d', strtotime($date_raw)) : '';
                 $badge_month = $date_raw ? strtoupper(date('M', strtotime($date_raw))) : '';
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
+                $datetime_label = clp_course_datetime_label($course);
+                $card_title = clp_course_title_for_card($course);
                 $discount_active = false;
                 $discount_pct = 0;
                 $discount_ends = '';
@@ -291,7 +293,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 <?php endif; ?>
                 <div class="event-card-img">
                     <?php if (!empty($course['image_url'])): ?>
-                    <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($course['title'] ?? '') ?>" loading="lazy">
+                    <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($card_title) ?>" loading="lazy">
                     <?php else: ?>
                     <div class="event-card-img-placeholder"></div>
                     <?php endif; ?>
@@ -306,12 +308,12 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     <?php endif; ?>
                 </div>
                 <div class="event-card-body">
-                    <h3 class="event-card-title"><?= htmlspecialchars($course['title'] ?? '') ?></h3>
+                    <h3 class="event-card-title"><?= htmlspecialchars($card_title) ?></h3>
                     <div class="event-card-meta">
-                        <?php if (!empty($course['time'])): ?>
+                        <?php if ($datetime_label !== ''): ?>
                         <span class="meta-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                            <?= htmlspecialchars($course['time']) ?>
+                            <?= htmlspecialchars($datetime_label) ?>
                         </span>
                         <?php endif; ?>
                         <?php if (!empty($course['location'])): ?>

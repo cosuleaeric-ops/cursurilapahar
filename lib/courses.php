@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Reguli cursuri (obligatorii):
  * - Fără link LiveTickets → nu e activ, nu apare pe site.
  * - Pe site: doar active + link.
- * - Speaker: denormalizat în speaker_name; afișat în meta card.
+ * - Speaker: denormalizat în speaker_name (admin / statistici).
  */
 
 function clp_speakers_by_id(): array
@@ -128,6 +128,46 @@ function clp_resolve_course_date_raw(array $course): string
         }
     }
     return '';
+}
+
+function clp_course_date_short(array $course): string
+{
+    $raw = clp_resolve_course_date_raw($course);
+    if ($raw === '') {
+        return '';
+    }
+    $ts = strtotime($raw);
+    if ($ts === false) {
+        return '';
+    }
+    $ro_months = [
+        1 => 'ianuarie', 2 => 'februarie', 3 => 'martie', 4 => 'aprilie',
+        5 => 'mai', 6 => 'iunie', 7 => 'iulie', 8 => 'august',
+        9 => 'septembrie', 10 => 'octombrie', 11 => 'noiembrie', 12 => 'decembrie',
+    ];
+    $day = date('j', $ts);
+    $month = $ro_months[(int)date('n', $ts)] ?? '';
+    return $month !== '' ? "$day $month" : '';
+}
+
+function clp_course_datetime_label(array $course): string
+{
+    $date = clp_course_date_short($course);
+    $time = trim($course['time'] ?? '');
+    if ($date !== '' && $time !== '') {
+        return "$date, $time";
+    }
+    return $date !== '' ? $date : $time;
+}
+
+function clp_course_title_for_card(array $course): string
+{
+    $title = trim($course['title'] ?? '');
+    if ($title === '') {
+        return '';
+    }
+    $stripped = preg_replace('/\s+\/\/\s+.+$/u', '', $title);
+    return is_string($stripped) && $stripped !== '' ? $stripped : $title;
 }
 
 function clp_month_date_prefix(int $year, int $month): string
