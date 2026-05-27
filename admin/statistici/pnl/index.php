@@ -313,17 +313,20 @@ async function init() {
   const sel = document.getElementById('yearSelect');
   const roMonths = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
 
+  const yearOptions = [];
   periods.forEach(p => {
     const opt = document.createElement('option');
     opt.value = p.value;
     if (p.month) {
       opt.textContent = p.label;
       opt.style.color = 'var(--muted)';
+      sel.appendChild(opt);
     } else {
-      opt.textContent = `Tot anul ${p.label}`;
+      opt.textContent = p.label;
+      yearOptions.push(opt);
     }
-    sel.appendChild(opt);
   });
+  yearOptions.forEach(opt => sel.appendChild(opt));
 
   // Default to current year-month, chiar daca perioada nu exista in lista din API.
   const currentPeriod = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
