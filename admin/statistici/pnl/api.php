@@ -50,7 +50,7 @@ foreach (['Curs', 'Depunere capital social'] as $cat) {
     $s = $db->prepare("INSERT OR IGNORE INTO venit_categorii (nume) VALUES (:n)");
     $s->bindValue(':n', $cat); $s->execute();
 }
-foreach (['Onorariu curs','Service fee','Impozit curs','Avans','Decont personal','Echipament','Contabilitate','Google Workspace','Hosting','AI','Altele'] as $cat) {
+foreach (['Onorariu curs','Service fee','Impozit curs','Avans','Decont personal','Echipament','Contabilitate','Google Workspace','Hosting','AI','Salariu','Altele'] as $cat) {
     $s = $db->prepare("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES (:n)");
     $s->bindValue(':n', $cat); $s->execute();
 }
@@ -64,6 +64,11 @@ $db->exec("DELETE FROM cheltuiala_categorii WHERE lower(trim(nume)) = 'impozit'"
 $db->exec("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES ('AI')");
 $db->exec("UPDATE cheltuieli SET categorie = 'AI', descriere = 'AI' WHERE lower(trim(categorie)) = 'claude'");
 $db->exec("DELETE FROM cheltuiala_categorii WHERE lower(trim(nume)) = 'claude'");
+
+// Unifică „Salariu Eric” și „Salariu Sara” în „Salariu”
+$db->exec("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES ('Salariu')");
+$db->exec("UPDATE cheltuieli SET categorie = 'Salariu', descriere = 'Salariu' WHERE lower(trim(categorie)) IN ('salariu eric', 'salariu sara')");
+$db->exec("DELETE FROM cheltuiala_categorii WHERE lower(trim(nume)) IN ('salariu eric', 'salariu sara')");
 
 $action = $_GET['action'] ?? '';
 
