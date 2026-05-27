@@ -26,3 +26,14 @@ function addQlRow() {
         + '<button type="button" onclick="this.closest(\'.ql-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>';
     document.getElementById('qlRows').appendChild(row);
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('user-switcher-btn');
+    var menu = document.getElementById('user-switcher-menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', function () { menu.style.display = 'none'; });
+});
