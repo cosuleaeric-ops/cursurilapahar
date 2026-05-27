@@ -5,7 +5,7 @@
         <a href="/" class="wp-header-site-link">🌐 Vezi site</a>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:12px;color:#a0aec0"><?= htmlspecialchars(ucfirst(_auth_current_user()['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+        <span style="font-size:12px;color:#a0aec0"><?= htmlspecialchars(ucfirst(clp_current_user()['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
         <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
     </div>
 </header>
