@@ -12,7 +12,6 @@ function lt_http_get(string $url): ?string
             CURLOPT_HTTPHEADER     => ['Accept: application/json'],
         ]);
         $resp = curl_exec($ch);
-        curl_close($ch);
         return ($resp !== false && $resp !== '') ? $resp : null;
     }
 
