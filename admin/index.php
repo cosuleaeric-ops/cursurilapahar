@@ -168,31 +168,6 @@ if (isset($_GET['logout'])) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
-function load_courses(): array {
-    if (!file_exists(COURSES_FILE)) return [];
-    $courses = json_decode(file_get_contents(COURSES_FILE), true) ?: [];
-    $today = date('Y-m-d');
-    $changed = clp_enforce_course_rules($courses);
-    foreach ($courses as &$c) {
-        if (!empty($c['date_raw']) && $c['date_raw'] < $today && !empty($c['active'])) {
-            $c['active'] = false;
-            $changed = true;
-        }
-    }
-    unset($c);
-    if ($changed) {
-        clp_enforce_course_rules($courses);
-        save_courses($courses);
-    }
-    return $courses;
-}
-function save_courses(array $courses): void {
-    clp_enforce_course_rules($courses);
-    $dir = dirname(COURSES_FILE);
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents(COURSES_FILE, json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-}
-
 function load_vote_courses(): array {
     if (!file_exists(VOTE_COURSES_FILE)) return [];
     return json_decode(file_get_contents(VOTE_COURSES_FILE), true) ?: [];
@@ -395,9 +370,9 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete_course') {
         $id = $_POST['id'] ?? '';
         clp_delete_statistici_course_by_external_id($id);
-        $courses = load_courses();
+        $courses = clp_load_courses_for_admin();
         $courses = array_filter($courses, fn($c) => ($c['id'] ?? '') !== $id);
-        save_courses($courses);
+        clp_save_courses($courses);
         header('Location: /admin/?tab=cursuri');
         exit;
     }
@@ -405,7 +380,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Toggle course active (doar cu link LiveTickets apare pe site)
     if ($action === 'toggle_course') {
         $id = $_POST['id'] ?? '';
-        $courses = load_courses();
+        $courses = clp_load_courses_for_admin();
         foreach ($courses as &$c) {
             if (($c['id'] ?? '') === $id) {
                 if (trim($c['livetickets_url'] ?? '') === '') {
@@ -417,7 +392,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         unset($c);
-        save_courses($courses);
+        clp_save_courses($courses);
         header('Location: /admin/?tab=cursuri');
         exit;
     }
@@ -464,7 +439,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $courses = load_courses();
+        $courses = clp_load_courses_for_admin();
         $entry = [
             'id'              => $id ?: uniqid('c', true),
             'title'           => $title,
@@ -508,7 +483,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         unset($c);
-        save_courses($courses);
+        clp_save_courses($courses);
         clp_sync_course_to_statistici_db($entry);
 
         [$redirect_year, $redirect_month] = array_pad(explode('-', $entry['date_raw']), 2, '');
@@ -521,7 +496,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save_discount') {
         $id = trim($_POST['id'] ?? '');
         $clear = !empty($_POST['clear']);
-        $courses = load_courses();
+        $courses = clp_load_courses_for_admin();
         foreach ($courses as &$c) {
             if (($c['id'] ?? '') !== $id) continue;
             if ($clear) {
@@ -543,7 +518,7 @@ if (is_authenticated() && $_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
         }
         unset($c);
-        save_courses($courses);
+        clp_save_courses($courses);
         header('Location: /admin/?tab=cursuri');
         exit;
     }
@@ -1302,7 +1277,7 @@ if (!in_array($tab, ['dashboard','cursuri','imagini','aspect','kit','mesaje','vo
 if (is_authenticated() && !can_access_tab($tab)) $tab = 'dashboard';
 
 if (is_authenticated()) {
-    $courses = load_courses();
+    $courses = clp_load_courses_for_admin();
     usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 }
 
@@ -1415,186 +1390,7 @@ function get_all_images(): array {
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/coloris.min.css">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --danger: #dc2626;
-    --success: #16a34a;
-    --accent: #1d4ed8;
-    --surface: #ffffff;
-    --bg: #f1f5f9;
-    --text: #1f2937;
-}
-body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; line-height: 1.5; min-height: 100vh; }
-
-/* ── Login ── */
-.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-.login-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 40px; width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,.08); }
-.login-box h1 { font-size: 20px; font-weight: 700; margin-bottom: 24px; text-align: center; color: #111827; }
-.login-box input[type="password"], .login-box input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 12px; background: #fff; color: #1f2937; transition: border-color .15s, box-shadow .15s; box-sizing: border-box; }
-.login-box input[type="password"]:focus, .login-box input[type="text"]:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
-.login-error { color: #dc2626; font-size: 13px; margin-bottom: 10px; }
-
-/* ── Top bar ── */
-.wp-header { background: #1d232a; color: #fff; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
-.wp-header .brand { font-size: 14px; font-weight: 700; color: #fff; text-decoration: none; }
-.wp-header .brand span { opacity: .5; font-weight: 400; }
-.wp-header-site-link { color: rgba(255,255,255,.65); font-size: 12px; text-decoration: none; padding: 5px 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; transition: background .15s, color .15s; }
-.wp-header-site-link:hover { background: rgba(255,255,255,.1); color: #fff; }
-
-/* ── Layout ── */
-.wp-layout { display: flex; min-height: calc(100vh - 52px); margin-top: 52px; }
-
-/* ── Sidebar ── */
-.wp-sidebar { width: 220px; background: #1d232a; flex-shrink: 0; padding-top: 8px; position: fixed; top: 52px; left: 0; height: calc(100vh - 52px); overflow-y: auto; z-index: 99; }
-.wp-sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 9px 16px; color: #a6adba; text-decoration: none; font-size: 13px; font-weight: 500; border-left: 3px solid transparent; transition: background .15s, color .15s; }
-.wp-sidebar nav a:hover { color: #fff; background: rgba(255,255,255,.06); }
-.wp-sidebar nav a.active { color: #fff; background: #1d4ed8; border-left-color: #93c5fd; }
-.wp-sidebar nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-.sidebar-section { padding: 18px 16px 4px; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #4a5568; font-weight: 700; }
-.sidebar-section.collapsible { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding-right: 14px; }
-.sidebar-section.collapsible::after { content: '▾'; font-size: 11px; transition: transform .2s; }
-.sidebar-section.collapsible.collapsed::after { transform: rotate(-90deg); }
-.sidebar-collapse-content { overflow: hidden; transition: max-height .25s ease; max-height: 400px; }
-.sidebar-collapse-content.collapsed { max-height: 0; }
-.nav-new-badge { margin-left: auto; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; white-space: nowrap; }
-
-/* ── Main content ── */
-.wp-main { flex: 1; padding: 24px 28px; min-width: 0; margin-left: 220px; }
-.wp-page-title { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 20px; }
-
-/* ── Cards ── */
-.card { background: #fff !important; border: 1px solid #e5e7eb !important; border-radius: 12px !important; padding: 20px !important; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.04); display: block !important; flex-direction: unset !important; }
-.card-title { font-size: 11px; font-weight: 700; color: #6b7280; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: .06em; }
-
-/* ── Buttons ── */
-.btn { display: inline-flex !important; align-items: center !important; gap: 5px; padding: 7px 16px !important; border-radius: 8px !important; border: 1px solid transparent; cursor: pointer; font-size: 13px !important; font-weight: 600; text-decoration: none; line-height: 1.4 !important; height: auto !important; min-height: auto !important; transition: background .15s, opacity .15s; }
-.btn-primary { background: #1d4ed8 !important; border-color: #1d4ed8 !important; color: #fff !important; }
-.btn-primary:hover { background: #1e40af !important; }
-.btn-secondary { background: #f8fafc; border: 1px solid #e5e7eb !important; color: #374151 !important; }
-.btn-secondary:hover { background: #f1f5f9; }
-.btn-danger { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; }
-.btn-danger:hover { background: #b91c1c !important; }
-.btn-sm { padding: 3px 10px !important; font-size: 12px !important; }
-.btn-link { background: transparent !important; border: none !important; color: #1d4ed8; padding: 0 !important; height: auto !important; min-height: auto !important; font-weight: 500; }
-.btn-link:hover { text-decoration: underline; }
-.status-active { background: #dcfce7 !important; border-color: #16a34a !important; color: #15803d !important; }
-.status-active:hover { background: #bbf7d0 !important; }
-.status-inactive { background: #f8fafc !important; border-color: #e5e7eb !important; color: #9ca3af !important; }
-.btn-logout { background: transparent; border: 1px solid rgba(255,255,255,.25); color: rgba(255,255,255,.75); padding: 5px 12px; font-size: 12px; border-radius: 8px; cursor: pointer; text-decoration: none; transition: background .15s; }
-.btn-logout:hover { background: rgba(255,255,255,.1); color: #fff; }
-
-/* ── Forms ── */
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
-.form-group input[type="text"],
-.form-group input[type="url"],
-.form-group input[type="email"],
-.form-group input[type="password"],
-.form-group input[type="number"],
-.form-group textarea,
-.form-group select { width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-family: inherit; color: #1f2937; background: #fff; transition: border-color .15s, box-shadow .15s; }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,.1); }
-.form-group textarea { resize: vertical; min-height: 80px; }
-.form-desc { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-#importMsg { margin-top: 8px; font-size: 13px; }
-.course-add-form { width: 100%; }
-.course-add-form .form-group { margin-bottom: 0; min-width: 0; }
-.course-add-form .form-group label { margin-bottom: 2px; font-size: 9px; letter-spacing: .05em; }
-.course-add-form .form-group input,
-.course-add-form .form-group select {
-  width: 100%; padding: 4px 8px; font-size: 11px; border-radius: 5px;
-  min-height: 28px; height: 28px; line-height: 1.2; box-sizing: border-box;
-}
-.course-add-fields {
-  display: grid;
-  width: 100%;
-  grid-template-columns: minmax(0, 2fr) 118px 76px minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1.25fr);
-  gap: 8px;
-  align-items: end;
-}
-.speaker-combobox,
-.location-combobox { position: relative; }
-.speaker-suggestions,
-.location-suggestions {
-  position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 50;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.1); max-height: 200px; overflow-y: auto;
-}
-.speaker-suggestions button,
-.location-suggestions button {
-  display: block; width: 100%; text-align: left; border: 0; background: #fff;
-  padding: 8px 12px; font-size: 12px; cursor: pointer; color: #374151;
-}
-.speaker-suggestions button:hover,
-.speaker-suggestions button.is-active,
-.location-suggestions button:hover { background: #eff6ff; color: #1d4ed8; }
-@media (max-width: 960px) {
-  .course-add-fields { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 520px) {
-  .course-add-fields { grid-template-columns: 1fr; }
-}
-
-/* ── Course preview ── */
-.course-preview { display: flex; gap: 14px; align-items: flex-start; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin: 14px 0; }
-.course-preview img { width: 90px; height: 56px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-.course-preview-body { flex: 1; min-width: 0; }
-.course-preview-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-.course-preview-meta { font-size: 12px; color: #9ca3af; }
-
-/* ── Table ── */
-.wp-table { width: 100%; border-collapse: collapse; }
-.wp-table th { text-align: left; padding: 9px 12px; font-size: 10px; font-weight: 700; color: #9ca3af; background: #f8fafc; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: .06em; }
-.wp-table td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 13px; color: #374151; }
-.wp-table tbody tr:last-child td { border-bottom: none; }
-.wp-table tbody tr:hover td { background: #f8fafc; }
-.course-thumb { width: 60px; height: 40px; object-fit: cover; border-radius: 6px; display: block; }
-.course-thumb-empty { width: 60px; height: 40px; background: #f1f5f9; border: 1px solid #e5e7eb; border-radius: 6px; }
-.row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.discount-tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: middle; }
-.discount-tag--active { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-.discount-tag--expired { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-.discount-edit-row > td { background: #fafafa !important; padding: 14px 16px !important; }
-.discount-form { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; }
-.discount-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #475569; font-weight: 600; }
-.discount-form input { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
-
-/* ── Notices ── */
-.notice { padding: 12px 16px; border-radius: 8px; border-left: 4px solid; margin-bottom: 16px; font-size: 13px; }
-.notice-success { background: #f0fdf4; border-left-color: #16a34a; color: #15803d; }
-.notice-error { background: #fef2f2; border-left-color: #dc2626; color: #991b1b; }
-
-/* ── Images ── */
-.images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-.image-item { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #fff; }
-.image-item img { width: 100%; height: 100px; object-fit: cover; display: block; }
-.image-item-body { padding: 8px; }
-.image-item-name { font-size: 11px; color: #9ca3af; word-break: break-all; margin-bottom: 6px; }
-.image-item-actions { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.hero-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #374151; cursor: pointer; }
-.hero-check input { accent-color: #1d4ed8; width: 14px; height: 14px; cursor: pointer; }
-
-/* ── CRM ── */
-.crm-status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }
-.crm-table td { vertical-align: top; }
-
-/* ── Messages tabs ── */
-.msg-tab { padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer; color: #374151; transition: background .15s; }
-.msg-tab:hover { background: #f1f5f9; }
-.msg-tab.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
-
-/* ── Coloris ── */
-.clr-field { width: 100%; }
-.clr-field input { width: 100%; padding: 9px 48px 9px 12px !important; border: 1px solid #e5e7eb; border-radius: 8px; font-family: monospace; font-size: 13px; background: #fff; color: #1f2937; cursor: pointer; box-sizing: border-box; }
-.clr-field button { width: 36px; height: calc(100% - 2px); border-radius: 0 7px 7px 0; right: 1px; left: auto; top: 1px; transform: none; }
-.clr-picker { width: 320px !important; }
-#clr-color-area { height: 240px !important; }
-#clr-format { display: none !important; }
-.clr-alpha { display: none !important; }
-</style>
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=1">
 </head>
 <body>
 
@@ -1732,7 +1528,7 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 
 <?php
 // ── Dashboard data ───────────────────────────────────────────────────────────
-$_dash_courses = load_courses();
+$_dash_courses = clp_load_courses_for_admin();
 $_dash_active  = count(clp_filter_public_courses($_dash_courses));
 
 // Upcoming courses (future, sorted by date)
@@ -1853,12 +1649,6 @@ foreach ($_ql as $_ql_item) {
     else $_ql_general[] = $_ql_item;
 }
 if (!empty($_ql)): ?>
-<style>
-.ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:#fff;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
-.ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
-.ql-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px; }
-@media (max-width: 900px) { .ql-grid { grid-template-columns:1fr; } }
-</style>
 <div class="ql-grid">
     <?php if (!empty($_ql_general)): ?>
     <div class="dash-section" style="margin:0">
@@ -1888,33 +1678,6 @@ if (!empty($_ql)): ?>
     <?php endif; ?>
 </div>
 <?php endif; ?>
-
-<style>
-.dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-.dash-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
-.dash-card .dash-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-.dash-card .dash-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
-.dash-card .dash-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-.dash-card.accent-green { border-top: 3px solid var(--success); }
-.dash-card.accent-blue { border-top: 3px solid #2271b1; }
-.dash-card.accent-gold { border-top: 3px solid #B8860B; }
-.dash-card.accent-red { border-top: 3px solid var(--danger); }
-.dash-value.positive { color: var(--success); }
-.dash-value.negative { color: var(--danger); }
-.dash-section { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 20px; }
-.dash-section-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.dash-section-title a { color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 400; }
-.dash-section-title a:hover { text-decoration: underline; }
-.dash-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.dash-table td { padding: 8px 0; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
-.dash-table tr:last-child td { border-bottom: none; }
-.dash-table .muted { color: var(--text-muted); }
-.dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.dash-chart-wrap { position: relative; height: 200px; }
-.fidel-badge { background: #e8f4fd; color: #2271b1; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr 1fr; } .dash-cols { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr; } }
-</style>
 
 <!-- Stats cards -->
 <div class="dash-grid">
@@ -1949,19 +1712,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         <span>Urmatoarele cursuri</span>
         <a href="?tab=cursuri" style="font-size:12px;font-weight:400;color:var(--primary);text-decoration:none;margin-left:10px">+ Adaugă</a>
     </div>
-    <style>
-    .mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; }
-    .mini-cal-dow { background:#f8fafc; padding:5px 0; text-align:center; font-size:9px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.05em; }
-    .mini-cal-cell { background:#fff; padding:4px 5px; height:72px; overflow:hidden; }
-    .mini-cal-cell.today { background:#eff6ff; }
-    .mini-cal-cell.past  { background:#fafafa; }
-    .mini-cal-day { font-size:11px; font-weight:600; color:#9ca3af; margin-bottom:3px; line-height:1; }
-    .mini-cal-cell.today .mini-cal-day { display:inline-flex; align-items:center; justify-content:center; background:#1d4ed8; color:#fff; width:18px; height:18px; border-radius:50%; font-size:10px; }
-    .mini-cal-event { font-size:9px; font-weight:600; padding:1px 4px; border-radius:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
-    .mini-cal-event.future { background:#dbeafe; color:#1e40af; }
-    .mini-cal-event.past   { background:#f1f5f9; color:#9ca3af; }
-    .mini-cal-event.today-ev { background:#1d4ed8; color:#fff; }
-    </style>
     <div class="mini-cal">
         <?php foreach (['Lu','Ma','Mi','Jo','Vi','Sâ','Du'] as $_dl): ?>
         <div class="mini-cal-dow"><?= $_dl ?></div>
@@ -2264,35 +2014,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
 
     <!-- ── Statistici cursuri (full merge) ─────────────────────────────── -->
     <div class="card" id="clp-stats-card">
-    <style>
-    .clp-tabs { display:flex; align-items:center; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
-    .clp-tabs-sep { width:1px; align-self:stretch; margin:4px 2px; background:var(--border); flex-shrink:0; }
-    .clp-tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }
-    .clp-tab-btn.active { background:#f1f5f9; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.1); }
-    .clp-tab-panel { display:none; }
-    .clp-tab-panel.active { display:block; }
-    .clp-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px; }
-    .clp-stat-box { background:#fff; border:1px solid var(--border); border-radius:8px; padding:18px 20px; }
-    .clp-stat-box .lbl { font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; }
-    .clp-stat-box .val { font-size:26px; font-weight:600; }
-    .clp-stat-box .val.ditl { color:#c0392b; }
-    .clp-month-heading { font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted); padding:8px 16px; background:#f8fafc; border:1px solid var(--border); border-bottom:none; border-radius:8px 8px 0 0; }
-    .clp-month-card { background:#fff; border:1px solid var(--border); border-radius:0 0 8px 8px; overflow:hidden; margin-bottom:20px; }
-    .clp-month-card table { width:100%; border-collapse:collapse; font-size:13px; }
-    .clp-month-card thead th { padding:9px 12px; text-align:left; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid #f1f5f9; background:#f8fafc; }
-    .clp-month-card thead th:not(:first-child) { text-align:right; }
-    .clp-month-card tbody td { padding:11px 12px; border-bottom:1px solid #f1f5f9; }
-    .clp-month-card tbody td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
-    .clp-month-card tbody tr:last-child td { border-bottom:none; }
-    .clp-month-card tfoot td { padding:10px 12px; font-weight:700; border-top:2px solid var(--border); }
-    .clp-month-card tfoot td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
-    .clp-ditl-cell { color:#c0392b; font-weight:600; }
-    .clp-toggle { cursor:pointer; }
-    .clp-toggle:hover { color:var(--primary,#1d4ed8); }
-    .clp-viza-row { display:none; }
-    .clp-viza-row.open { display:table-row; }
-    .clp-seria { background:#EAF5EF; border:1px solid #b2d9c0; border-radius:4px; padding:1px 6px; font-weight:700; font-size:11px; }
-    </style>
 
         <div class="clp-tabs" style="margin-bottom:16px">
             <button class="clp-tab-btn <?= $clp_ctab === 'cursuri' ? 'active' : '' ?>" onclick="clpSwitchTab(event,'cursuri')">Cursuri</button>
@@ -2334,8 +2055,7 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
                 </tr></thead>
                 <tbody>
                 <?php foreach ($clp_courses as $_c):
-                    [$_cy,$_cm,$_cd] = explode('-', $_c['date'] . '--');
-                    $_dro = ltrim($_cd,'0').' '.($clp_ro_months[(int)$_cm] ?? '').' '.$_cy;
+                    $_dro = clp_format_date_ro($_c['date'], true, false);
                     $_dr  = $_ditl_by_id[(int)$_c['id']] ?? null;
                     $_subs = $clp_viza_subtips[(int)$_c['id']] ?? [];
                     $_rid  = 'clpv-'.(int)$_c['id'];
@@ -2434,19 +2154,6 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
         </div>
 
         <!-- Tab: Calendar -->
-        <style>
-        #calGrid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
-        .cal-dow  { background:#f8fafc; padding:8px 0; text-align:center; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
-        .cal-cell { background:#fff; padding:6px 8px; overflow:hidden; }
-        .cal-cell.other-month { background:#f9fafb; }
-        .cal-cell.today { background:#eff6ff; }
-        .cal-day-num { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:4px; line-height:1; }
-        .cal-circle { background:#1d4ed8; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
-        .cal-event { font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; margin-bottom:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .cal-event.future { background:#dbeafe; color:#1e40af; }
-        .cal-event.past   { background:#f1f5f9; color:#9ca3af; }
-        .cal-event.today-ev { background:#1d4ed8; color:#fff; }
-        </style>
         <div class="clp-tab-panel <?= $clp_ctab === 'calendar' ? 'active' : '' ?>" id="clp-panel-calendar">
 
             <div id="calGrid"></div>
@@ -2459,164 +2166,17 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     </div>
 
     <script>
-    function clpSwitchTab(e, t) {
-        document.querySelectorAll('.clp-tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.clp-tab-panel').forEach(p => p.classList.remove('active'));
-        document.getElementById('clp-panel-' + t).classList.add('active');
-        e.currentTarget.classList.add('active');
-        if (t === 'calendar') calRender();
-    }
-    function clpToggleViza(id) { document.getElementById(id).classList.toggle('open'); }
-
-    let clpYear = <?= (int)($clp_year ?? date('Y')) ?>;
-    let clpMonth = <?= (int)($clp_month ?? date('n')) ?>;
-    const clpRoMonths = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
-
-    function clpNav(dir) {
-        clpMonth += dir;
-        if (clpMonth < 1)  { clpMonth = 12; clpYear--; }
-        if (clpMonth > 12) { clpMonth = 1;  clpYear++; }
-        calYear = clpYear; calMonth = clpMonth;
-        clpLoadMonth();
-        if (document.getElementById('clp-panel-calendar').classList.contains('active')) calRender();
-    }
-
-    async function clpLoadMonth() {
-        const res  = await fetch('/api/cursuri_month.php?year=' + clpYear + '&month=' + clpMonth);
-        const data = await res.json();
-        const fmtRON = v => Number(v).toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
-
-        document.getElementById('clpMonthLabel').textContent =
-            clpRoMonths[data.month].charAt(0).toUpperCase() + clpRoMonths[data.month].slice(1) + ' ' + data.year;
-
-        const cursPanel = document.getElementById('clp-panel-cursuri');
-        if (!data.courses.length) {
-            cursPanel.innerHTML = '<p style="color:var(--text-muted)">Niciun curs pentru perioada selectată.</p>';
-            return;
-        }
-
-        const ditlById = {};
-        data.by_month.forEach(grp => grp.rows.forEach(r => { ditlById[r.id] = r; }));
-
-        const sumInc = data.sum_incasari;
-        let html = sumInc > 0 ? `<div class="clp-summary-grid" style="margin-bottom:16px">
-            <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(sumInc)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-            <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(sumInc*0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-        </div>` : '';
-
-        html += `<table class="wp-table"><thead><tr>
-            <th>Curs</th><th>Dată</th>
-            <th style="text-align:right">Bilete</th>
-            <th style="text-align:center">Raport</th>
-            <th style="text-align:center">Viză</th>
-            <th style="text-align:right">Încasări</th>
-            <th style="text-align:right">DITL (2%)</th>
-        </tr></thead><tbody>`;
-
-        data.courses.forEach(c => {
-            const dr   = ditlById[c.id];
-            const rid  = 'clpv-' + c.id;
-            const subs = dr && dr.subtips && dr.subtips.length ? dr.subtips : [];
-            const inc  = dr ? fmtRON(dr.total_incasari) + ' RON' : '<span style="color:#d1d5db">—</span>';
-            const ditl = dr ? `<span class="clp-ditl-cell">${fmtRON(dr.total_incasari*0.02)} RON</span>` : '<span style="color:#d1d5db">—</span>';
-            const name = subs.length
-                ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
-                : esc(c.name);
-            html += `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
-                <td style="font-weight:600">${name}</td>
-                <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
-                <td style="text-align:right">${c.total_tickets}</td>
-                <td style="text-align:center">${c.has_report?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:center">${c.has_viza?'<span style="color:#16a34a;font-size:16px">✓</span>':'<span style="color:#d1d5db;font-size:16px">—</span>'}</td>
-                <td style="text-align:right;font-variant-numeric:tabular-nums">${inc}</td>
-                <td style="text-align:right;font-variant-numeric:tabular-nums">${ditl}</td>
-            </tr>`;
-            if (subs.length) {
-                html += `<tr class="clp-viza-row" id="${rid}"><td colspan="7" style="padding:0;background:#f8fafc">
-                <div style="padding:6px 16px 12px 32px"><table style="width:100%;border-collapse:collapse;font-size:12px">
-                <thead><tr>${['Seria','De la','Până la','Total','Tarif'].map(h=>`<th style="padding:5px 10px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);text-align:${h==='Seria'?'left':'right'}">${h}</th>`).join('')}</tr></thead>
-                <tbody>${subs.map(s=>`<tr>
-                    <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9"><span class="clp-seria">${esc(s.seria)}</span></td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.de_la)}</td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${esc(s.pana_la)}</td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${s.nr_unitati}</td>
-                    <td style="padding:5px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${Number(s.tarif).toLocaleString('ro-RO',{maximumFractionDigits:0})} RON</td>
-                </tr>`).join('')}</tbody>
-                </table></div></td></tr>`;
-            }
-        });
-
-        html += '</tbody></table>';
-        cursPanel.innerHTML = html;
-    }
-
-
-    function esc(s) {
-        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // ── Calendar ──────────────────────────────────────────────────────────────
-    const calCourses = <?= json_encode(array_map(fn($c) => ['date' => $c['date_raw'] ?? '', 'title' => $c['title'] ?? ''], $courses)) ?>;
-    const calRoMonths = ['','Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
-    const calDow = ['Lu','Ma','Mi','Jo','Vi','Sâ','Du'];
-    let calYear = <?= date('Y') ?>, calMonth = <?= date('n') ?>;
-    const calToday = new Date().toISOString().slice(0,10);
-
-    function calNav(dir) {
-        calMonth += dir; if (calMonth<1){calMonth=12;calYear--;} if (calMonth>12){calMonth=1;calYear++;}
-        clpYear = calYear; clpMonth = calMonth;
-        clpLoadMonth();
-        calRender();
-    }
-    function calGoToday() { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth()+1; calRender(); }
-
-    function calRender() {
-        document.getElementById('clpMonthLabel').textContent = calRoMonths[calMonth].charAt(0).toUpperCase() + calRoMonths[calMonth].slice(1) + ' ' + calYear;
-        const firstDow = (new Date(calYear, calMonth-1, 1).getDay() + 6) % 7; // 0=Mon
-        const daysInMonth = new Date(calYear, calMonth, 0).getDate();
-        const numRows = Math.ceil((firstDow + daysInMonth) / 7);
-
-        // build courses-by-day map
-        const byDay = {};
-        calCourses.forEach(c => { if (c.date) { if (!byDay[c.date]) byDay[c.date]=[]; byDay[c.date].push(c.title); } });
-
-        let html = calDow.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-
-        const grid = document.getElementById('calGrid');
-        grid.style.height = `calc(36px + ${numRows} * 120px)`;
-        grid.style.gridTemplateRows = `36px repeat(${numRows}, 1fr)`;
-
-        for (let i=0; i<firstDow; i++) html += '<div class="cal-cell other-month"></div>';
-        for (let day=1; day<=daysInMonth; day++) {
-            const ds = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const isToday = ds === calToday;
-            html += `<div class="cal-cell${isToday?' today':''}">`;
-            html += isToday ? `<div class="cal-day-num"><span class="cal-circle">${day}</span></div>`
-                            : `<div class="cal-day-num">${day}</div>`;
-            (byDay[ds]||[]).forEach(title => {
-                const cls = isToday ? 'today-ev' : ds < calToday ? 'past' : 'future';
-                html += `<div class="cal-event ${cls}" title="${esc(title)}">${esc(title)}</div>`;
-            });
-            html += '</div>';
-        }
-        const trailing = (7 - ((firstDow + daysInMonth) % 7)) % 7;
-        for (let i=0; i<trailing; i++) html += '<div class="cal-cell other-month"></div>';
-        grid.innerHTML = html;
-    }
-    <?php if ($clp_ctab === 'calendar'): ?>document.addEventListener('DOMContentLoaded', calRender);<?php endif; ?>
-    <?php if (isset($_GET['saved'])): ?>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('clp-stats-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    <?php endif; ?>
-
-    function clpFilter() {
-        const q = document.getElementById('clpSearch').value.toLowerCase();
-        document.querySelectorAll('#clpParticipantsTable tbody tr').forEach(tr => {
-            tr.style.display = (tr.querySelector('strong')?.textContent.toLowerCase() || '').includes(q) ? '' : 'none';
-        });
-    }
+    window.CLP_STATS = <?= json_encode([
+        'year' => (int)($clp_year ?? date('Y')),
+        'month' => (int)($clp_month ?? date('n')),
+        'calYear' => (int)date('Y'),
+        'calMonth' => (int)date('n'),
+        'calCourses' => array_map(fn($c) => ['date' => $c['date_raw'] ?? '', 'title' => $c['title'] ?? ''], $courses),
+        'initCalendar' => ($clp_ctab ?? '') === 'calendar',
+        'scrollToStats' => isset($_GET['saved']),
+    ], JSON_UNESCAPED_UNICODE) ?>;
     </script>
+    <script src="/admin/assets/js/admin-cursuri-stats.js?v=1"></script>
 
 <?php /* ======================================================= TAB: IMAGINI */ ?>
 <?php elseif ($tab === 'imagini'): ?>
@@ -4081,260 +3641,14 @@ function addQlRow() {
 SYNC_TOKEN=<?= h($settings['sync_token'] ?? '') ?></pre>
 </div>
 
-<script>
-function copySyncToken() {
-    const inp = document.getElementById('sync_token_input');
-    inp.select();
-    navigator.clipboard.writeText(inp.value);
-}
-</script>
-
 <?php endif; ?>
 
     </main>
 </div><!-- /wp-layout -->
 
-<script>
-function toggleDiscountRow(id) {
-    const row = document.getElementById('discount-row-' + id);
-    if (!row) return;
-    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-}
-const CLP_RO_MONTHS = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
-const CLP_ALLOWED_TIMES = ['17:00','17:30','18:00','18:30'];
-
-function clpFormatDateRo(ymd) {
-    if (!ymd) return '';
-    const p = ymd.split('-');
-    if (p.length !== 3) return ymd;
-    const d = parseInt(p[2], 10);
-    const m = parseInt(p[1], 10);
-    return d + ' ' + (CLP_RO_MONTHS[m] ? CLP_RO_MONTHS[m].charAt(0).toUpperCase() + CLP_RO_MONTHS[m].slice(1) : '') + ' ' + p[0];
-}
-
-function clpSpeakerDisplayName() {
-    const id = document.getElementById('f_speaker_id')?.value || '';
-    const hit = (window.CLP_SPEAKERS_PICKER || []).find(s => s.id === id);
-    return hit ? hit.name : (document.getElementById('f_speaker_input')?.value.trim() || '');
-}
-
-function clpResolveSpeakerFromInput() {
-    const input = document.getElementById('f_speaker_input');
-    const hidden = document.getElementById('f_speaker_id');
-    if (!input || !hidden) return false;
-    const q = input.value.trim().toLowerCase();
-    if (!q) { hidden.value = ''; return false; }
-    const list = window.CLP_SPEAKERS_PICKER || [];
-    const exact = list.find(s => s.name.toLowerCase() === q);
-    if (exact) { hidden.value = exact.id; return true; }
-    const partial = list.filter(s => s.name.toLowerCase().includes(q));
-    if (partial.length === 1) {
-        hidden.value = partial[0].id;
-        input.value = partial[0].name;
-        return true;
-    }
-    hidden.value = '';
-    return false;
-}
-
-function clpRenderSpeakerSuggestions(filter) {
-    const box = document.getElementById('f_speaker_suggestions');
-    if (!box) return;
-    const q = (filter || '').trim().toLowerCase();
-    const list = (window.CLP_SPEAKERS_PICKER || []).filter(s => !q || s.name.toLowerCase().includes(q));
-    if (!list.length) {
-        box.hidden = true;
-        box.innerHTML = '';
-        return;
-    }
-    box.innerHTML = '';
-    list.forEach(s => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = s.name + (s.status ? ' (' + s.status + ')' : '');
-        btn.addEventListener('mousedown', e => {
-            e.preventDefault();
-            document.getElementById('f_speaker_id').value = s.id;
-            document.getElementById('f_speaker_input').value = s.name;
-            box.hidden = true;
-            updateCoursePreview();
-        });
-        box.appendChild(btn);
-    });
-    box.hidden = false;
-}
-
-function clpRenderLocationSuggestions(filter) {
-    const box = document.getElementById('f_location_suggestions');
-    if (!box) return;
-    const q = (filter || '').trim().toLowerCase();
-    const list = (window.CLP_LOCATIONS_PICKER || []).filter(l => !q || l.name.toLowerCase().includes(q));
-    if (!list.length) {
-        box.hidden = true;
-        box.innerHTML = '';
-        return;
-    }
-    box.innerHTML = '';
-    list.forEach(l => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = l.name;
-        btn.addEventListener('mousedown', e => {
-            e.preventDefault();
-            document.getElementById('f_location_input').value = l.name;
-            box.hidden = true;
-            updateCoursePreview();
-        });
-        box.appendChild(btn);
-    });
-    box.hidden = false;
-}
-
-function clpInitLocationCombobox() {
-    const input = document.getElementById('f_location_input');
-    const box = document.getElementById('f_location_suggestions');
-    if (!input || !box) return;
-    input.addEventListener('focus', () => clpRenderLocationSuggestions(input.value));
-    input.addEventListener('input', () => {
-        clpRenderLocationSuggestions(input.value);
-        updateCoursePreview();
-    });
-    input.addEventListener('blur', () => {
-        setTimeout(() => { box.hidden = true; }, 150);
-    });
-}
-
-function clpInitSpeakerCombobox() {
-    const input = document.getElementById('f_speaker_input');
-    const box = document.getElementById('f_speaker_suggestions');
-    if (!input || !box) return;
-    input.addEventListener('focus', () => clpRenderSpeakerSuggestions(input.value));
-    input.addEventListener('input', () => {
-        document.getElementById('f_speaker_id').value = '';
-        clpRenderSpeakerSuggestions(input.value);
-        updateCoursePreview();
-    });
-    input.addEventListener('blur', () => {
-        setTimeout(() => {
-            box.hidden = true;
-            clpResolveSpeakerFromInput();
-            updateCoursePreview();
-        }, 150);
-    });
-}
-
-function updateCoursePreview() {
-    const title = document.getElementById('f_title')?.value.trim() || '';
-    const dateRaw = document.getElementById('f_date_raw')?.value || '';
-    const time = document.getElementById('f_time')?.value || '';
-    const speaker = clpSpeakerDisplayName();
-    const preview = document.getElementById('coursePreview');
-    if (!preview || !title) {
-        if (preview) preview.style.display = 'none';
-        return;
-    }
-    document.getElementById('prev_title').textContent = title;
-    const location = document.getElementById('f_location_input')?.value.trim() || '';
-    document.getElementById('prev_meta').textContent =
-        [clpFormatDateRo(dateRaw), time, speaker, location].filter(Boolean).join(' · ');
-    preview.style.display = 'flex';
-}
-
-function validateCourseForm() {
-    clpResolveSpeakerFromInput();
-    const speaker = document.getElementById('f_speaker_id')?.value || '';
-    const time = document.getElementById('f_time')?.value || '';
-    if (!speaker) {
-        alert('Alege un speaker din lista de pe tab-ul Speakeri (nume exact).');
-        return false;
-    }
-    if (!CLP_ALLOWED_TIMES.includes(time)) {
-        alert('Alege ora din listă (17:00, 17:30, 18:00 sau 18:30).');
-        return false;
-    }
-    return true;
-}
-
-let ltFetchTimer = null;
-async function fetchLTImage() {
-    const urlInput = document.getElementById('f_lt_url');
-    const msg = document.getElementById('importMsg');
-    if (!urlInput || !msg) return;
-
-    const url = urlInput.value.trim();
-    const img = document.getElementById('prev_img');
-
-    if (!url) {
-        document.getElementById('f_image_url').value = '';
-        if (img) { img.src = ''; img.style.display = 'none'; }
-        msg.textContent = '';
-        updateCoursePreview();
-        return;
-    }
-
-    clearTimeout(ltFetchTimer);
-    ltFetchTimer = setTimeout(async () => {
-        msg.style.cssText = 'color:var(--text-muted);margin-top:8px;font-size:13px';
-        msg.textContent = 'Se preia imaginea de pe LiveTickets…';
-
-        try {
-            const res = await fetch('/api/livetickets.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await res.json();
-
-            if (data.success && data.data) {
-                const d = data.data;
-                document.getElementById('f_image_url').value = d.image_url || '';
-                if (d.location) {
-                    const locIn = document.getElementById('f_location_input');
-                    if (locIn && !locIn.value.trim()) locIn.value = d.location;
-                }
-                if (d.image_url && img) {
-                    img.src = d.image_url;
-                    img.style.display = 'block';
-                }
-                msg.style.color = 'var(--success)';
-                msg.textContent = d.image_url ? '✓ Imagine preluată de pe LiveTickets.' : 'Link valid, dar nu s-a găsit imagine.';
-            } else {
-                msg.style.color = 'var(--danger)';
-                msg.textContent = data.message || 'Eroare la preluarea imaginii.';
-            }
-        } catch (err) {
-            msg.style.color = 'var(--danger)';
-            msg.textContent = 'Eroare: ' + err.message;
-        }
-        updateCoursePreview();
-    }, 400);
-}
-
-document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);
-clpInitSpeakerCombobox();
-clpInitLocationCombobox();
-(function initCourseFormEdit() {
-    const ltUrl = document.getElementById('f_lt_url')?.value.trim();
-    const imgUrl = document.getElementById('f_image_url')?.value.trim();
-    if (document.getElementById('f_course_id')?.value) {
-        updateCoursePreview();
-        const prev = document.getElementById('prev_img');
-        if (imgUrl && prev) { prev.src = imgUrl; prev.style.display = 'block'; }
-        document.getElementById('coursePreview')?.style.setProperty('display', 'flex');
-        document.getElementById('course-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    if (ltUrl && !imgUrl) {
-        fetchLTImage();
-    }
-})();
-</script>
+<script src="/admin/assets/js/admin-common.js?v=1"></script>
+<?php if ($tab === 'cursuri'): ?><script src="/admin/assets/js/admin-course-form.js?v=1"></script><?php endif; ?>
 
 <?php endif; ?>
-<script>
-function clpToggleSidebarSection(header, id) {
-    header.classList.toggle('collapsed');
-    document.getElementById('sidebar-' + id).classList.toggle('collapsed');
-}
-</script>
 </body>
 </html>

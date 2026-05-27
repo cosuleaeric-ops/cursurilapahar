@@ -106,14 +106,58 @@ function clp_get_statistici_db(): SQLite3
     return get_clp_db();
 }
 
+function clp_courses_json_file(): string
+{
+    return dirname(__DIR__) . '/data/courses.json';
+}
+
 /** @return array<int, array<string, mixed>> */
 function clp_load_courses_from_json(): array
 {
-    $file = dirname(__DIR__) . '/data/courses.json';
+    $file = clp_courses_json_file();
     if (!file_exists($file)) {
         return [];
     }
     return json_decode((string)file_get_contents($file), true) ?: [];
+}
+
+function clp_save_courses(array $courses): void
+{
+    clp_enforce_course_rules($courses);
+    $file = clp_courses_json_file();
+    $dir = dirname($file);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    file_put_contents(
+        $file,
+        json_encode(array_values($courses), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        LOCK_EX
+    );
+}
+
+/** Cursuri pentru admin: reguli + dezactivare automată după dată. */
+function clp_load_courses_for_admin(): array
+{
+    $file = clp_courses_json_file();
+    if (!file_exists($file)) {
+        return [];
+    }
+    $courses = json_decode((string)file_get_contents($file), true) ?: [];
+    $today = date('Y-m-d');
+    $changed = clp_enforce_course_rules($courses);
+    foreach ($courses as &$course) {
+        if (!empty($course['date_raw']) && $course['date_raw'] < $today && !empty($course['active'])) {
+            $course['active'] = false;
+            $changed = true;
+        }
+    }
+    unset($course);
+    if ($changed) {
+        clp_enforce_course_rules($courses);
+        clp_save_courses($courses);
+    }
+    return $courses;
 }
 
 function clp_resolve_course_date_raw(array $course): string
