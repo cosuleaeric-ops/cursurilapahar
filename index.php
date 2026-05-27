@@ -273,7 +273,6 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $badge_day = $date_raw ? date('d', strtotime($date_raw)) : '';
                 $badge_month = $date_raw ? strtoupper(date('M', strtotime($date_raw))) : '';
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
-                $speaker_label = clp_course_speaker_name($course);
                 $discount_active = false;
                 $discount_pct = 0;
                 $discount_ends = '';
@@ -309,12 +308,6 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 <div class="event-card-body">
                     <h3 class="event-card-title"><?= htmlspecialchars($course['title'] ?? '') ?></h3>
                     <div class="event-card-meta">
-                        <?php if ($speaker_label !== ''): ?>
-                        <span class="meta-item meta-item--speaker">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <span class="meta-item-speaker-name"><?= htmlspecialchars($speaker_label) ?></span>
-                        </span>
-                        <?php endif; ?>
                         <?php if (!empty($course['time'])): ?>
                         <span class="meta-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
