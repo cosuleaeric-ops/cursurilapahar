@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require_once dirname(__DIR__) . '/admin/auth_check.php';
 require_once dirname(__DIR__) . '/lib/courses.php';
+require_once dirname(__DIR__) . '/lib/dates.php';
 if (!is_authenticated()) { http_response_code(403); echo json_encode(['error' => 'Unauthorized']); exit; }
 
 $year  = (int)($_GET['year']  ?? date('Y'));
@@ -9,21 +10,15 @@ $month = (int)($_GET['month'] ?? date('n'));
 if ($month < 1)  { $month = 12; $year--; }
 if ($month > 12) { $month = 1;  $year++; }
 
-$ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+$ro_months = clp_ro_months_list(false);
 $prefix = $month > 0
     ? $year . '-' . str_pad((string)$month, 2, '0', STR_PAD_LEFT)
     : (string)$year;
 
-function ro_date_str(string $d, array $m): string {
-    if (!$d) return '';
-    [$y, $mo, $day] = explode('-', $d . '--');
-    return ltrim($day, '0') . ' ' . ($m[(int)$mo] ?? '') . ' ' . $y;
-}
-
 $db_path = dirname(__DIR__) . '/admin/statistici/data/clp.sqlite';
 $courses = clp_fetch_statistici_courses_for_month($year, $month);
 foreach ($courses as &$row) {
-    $row['date_ro'] = ro_date_str($row['date'], $ro_months);
+    $row['date_ro'] = clp_format_date_ro($row['date'], true, false);
 }
 unset($row);
 $ditl_rows = $viza_subtips = [];
@@ -38,7 +33,7 @@ if (file_exists($db_path) && !empty($courses)) {
         FROM courses c JOIN course_reports r ON r.course_id = c.id
         WHERE c.id IN ({$course_ids}) ORDER BY c.date DESC");
     while ($row = $dr->fetchArray(SQLITE3_ASSOC)) {
-        $row['date_ro'] = ro_date_str($row['date'], $ro_months);
+        $row['date_ro'] = clp_format_date_ro($row['date'], true, false);
         $row['types'] = json_decode($row['types_json'] ?? '[]', true) ?: [];
         unset($row['types_json']);
         $ditl_rows[] = $row;
@@ -61,7 +56,7 @@ foreach ($ditl_rows as $r) {
     $mk = substr($r['date'], 0, 7);
     $mn = (int)substr($mk, 5, 2);
     if (!isset($by_month[$mk])) {
-        $by_month[$mk] = ['label' => ucfirst($ro_months[$mn]) . ' ' . $year, 'incasari' => 0, 'rows' => []];
+        $by_month[$mk] = ['label' => clp_ro_month_label($mn, $year), 'incasari' => 0, 'rows' => []];
     }
     $by_month[$mk]['incasari'] += (float)$r['total_incasari'];
     $r['subtips'] = $viza_subtips[(int)$r['id']] ?? [];
@@ -71,7 +66,7 @@ foreach ($ditl_rows as $r) {
 echo json_encode([
     'year'         => $year,
     'month'        => $month,
-    'month_label'  => ucfirst($ro_months[$month]) . ' ' . $year,
+    'month_label'  => clp_ro_month_label($month, $year),
     'courses'      => $courses,
     'sum_incasari' => $sum_incasari,
     'by_month'     => array_values($by_month),

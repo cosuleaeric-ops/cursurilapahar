@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/dates.php';
+
 /**
  * Reguli cursuri (obligatorii):
  * - Fără link LiveTickets → nu e activ, nu apare pe site.
@@ -132,22 +134,7 @@ function clp_resolve_course_date_raw(array $course): string
 
 function clp_course_date_short(array $course): string
 {
-    $raw = clp_resolve_course_date_raw($course);
-    if ($raw === '') {
-        return '';
-    }
-    $ts = strtotime($raw);
-    if ($ts === false) {
-        return '';
-    }
-    $ro_months = [
-        1 => 'ianuarie', 2 => 'februarie', 3 => 'martie', 4 => 'aprilie',
-        5 => 'mai', 6 => 'iunie', 7 => 'iulie', 8 => 'august',
-        9 => 'septembrie', 10 => 'octombrie', 11 => 'noiembrie', 12 => 'decembrie',
-    ];
-    $day = date('j', $ts);
-    $month = $ro_months[(int)date('n', $ts)] ?? '';
-    return $month !== '' ? "$day $month" : '';
+    return clp_format_date_ro(clp_resolve_course_date_raw($course), false, false);
 }
 
 function clp_course_datetime_label(array $course): string

@@ -10,6 +10,7 @@ define('VOTE_COURSES_FILE',   dirname(__DIR__) . '/data/vote_courses.json');
 define('SETTINGS_FILE',       dirname(__DIR__) . '/data/settings.json');
 define('SPEAKERS_FILE',       dirname(__DIR__) . '/data/speakers.json');
 require_once dirname(__DIR__) . '/lib/courses.php';
+require_once dirname(__DIR__) . '/lib/dates.php';
 define('LOCATIONS_FILE',      dirname(__DIR__) . '/data/locations.json');
 define('COLLABORATIONS_FILE', dirname(__DIR__) . '/data/collaborations.json');
 define('UPLOADS_DIR',         dirname(__DIR__) . '/assets/images/uploads');
@@ -214,22 +215,6 @@ function save_speakers(array $items): void {
 
 function clp_allowed_course_times(): array {
     return ['17:00', '17:30', '18:00', '18:30'];
-}
-
-function clp_date_display_from_raw(string $date_raw): string {
-    $ts = strtotime($date_raw);
-    if (!$ts) {
-        return '';
-    }
-    $ro_months = [
-        1 => 'Ianuarie', 2 => 'Februarie', 3 => 'Martie', 4 => 'Aprilie',
-        5 => 'Mai', 6 => 'Iunie', 7 => 'Iulie', 8 => 'August',
-        9 => 'Septembrie', 10 => 'Octombrie', 11 => 'Noiembrie', 12 => 'Decembrie',
-    ];
-    $day   = date('j', $ts);
-    $month = $ro_months[(int)date('n', $ts)];
-    $year  = date('Y', $ts);
-    return "$day $month $year";
 }
 
 function clp_find_speaker_by_id(string $speaker_id): ?array {
@@ -1325,7 +1310,7 @@ if (is_authenticated()) {
 $clp_courses = []; $clp_ditl_rows = []; $clp_ditl_years = []; $clp_participants = [];
 $clp_by_month = []; $clp_sum_bilete = 0; $clp_sum_incasari = 0;
 $clp_viza_subtips = []; $clp_report_by_price = [];
-$clp_ro_months = ['','ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+$clp_ro_months = clp_ro_months_list(false);
 if (is_authenticated() && $tab === 'cursuri') {
     $clp_now        = new DateTimeImmutable();
     // Default: luna curenta (nu "ultima luna cu cursuri"), ca sa vezi mereu ce e relevant acum.

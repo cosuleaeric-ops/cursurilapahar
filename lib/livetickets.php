@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/dates.php';
+
 function lt_http_get(string $url): ?string
 {
     if (function_exists('curl_init')) {
@@ -139,15 +141,7 @@ function lt_fetch_event_by_url(string $url): array
         $ts = strtotime($start_date);
         if ($ts) {
             $date_raw = date('Y-m-d', $ts);
-            $ro_months = [
-                1 => 'Ianuarie', 2 => 'Februarie', 3 => 'Martie', 4 => 'Aprilie',
-                5 => 'Mai', 6 => 'Iunie', 7 => 'Iulie', 8 => 'August',
-                9 => 'Septembrie', 10 => 'Octombrie', 11 => 'Noiembrie', 12 => 'Decembrie',
-            ];
-            $day   = date('j', $ts);
-            $month = $ro_months[(int)date('n', $ts)];
-            $year  = date('Y', $ts);
-            $date_display = "$day $month $year";
+            $date_display = clp_date_display_from_raw($date_raw);
             $time = date('H:i', $ts);
         }
     }

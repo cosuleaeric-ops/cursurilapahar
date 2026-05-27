@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/lib/dates.php';
+
 function get_clp_db(): SQLite3 {
     $path = __DIR__ . '/data/clp.sqlite';
     $dir  = dirname($path);
@@ -58,11 +60,7 @@ if (!function_exists('h')) {
 }
 
 function ro_date(string $date): string {
-    if (!$date) return '';
-    $months = ['', 'ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie',
-               'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
-    [$y, $m, $d] = explode('-', $date);
-    return ltrim($d, '0') . ' ' . $months[(int)$m] . ' ' . $y;
+    return clp_format_date_ro($date, true, false);
 }
 
 function parse_viza_subtips(string $text): array {
