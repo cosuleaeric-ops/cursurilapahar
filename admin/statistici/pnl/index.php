@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/../../auth_check.php';
+require_once dirname(__DIR__, 3) . '/lib/pnl_cheltuiala_emoji.php';
 if (!is_authenticated()) { header('Location: /admin/'); exit; }
 $csrf = csrf_token();
 header('X-Robots-Tag: noindex, nofollow');
@@ -14,7 +15,9 @@ include __DIR__ . '/../layout_header.php';
 <script>
     window.PNL = {
       csrf: <?php echo json_encode($csrf); ?>,
-      api:  '/admin/statistici/pnl/api.php'
+      api:  '/admin/statistici/pnl/api.php',
+      cheltuialaEmoji: <?php echo json_encode(clp_cheltuiala_emoji_map(), JSON_UNESCAPED_UNICODE); ?>,
+      cheltuialaEmojiKeywords: <?php echo json_encode(clp_cheltuiala_emoji_keywords(), JSON_UNESCAPED_UNICODE); ?>,
     };
 </script>
 <?php include __DIR__ . '/../layout_nav.php'; ?>
@@ -235,6 +238,25 @@ const fmtDate = s => {
   return `${d}.${m}.${y}`;
 };
 
+function cheltuialaEmojiFor(name) {
+  if (!name) return '💸';
+  if (window.PNL.cheltuialaEmoji[name]) return window.PNL.cheltuialaEmoji[name];
+  const n = name.toLowerCase();
+  for (const [key, emoji] of Object.entries(window.PNL.cheltuialaEmojiKeywords || {})) {
+    if (n.includes(key)) return emoji;
+  }
+  return '💸';
+}
+
+function cheltuialaCatLabel(name) {
+  if (!name || name === '—') return '—';
+  return `${cheltuialaEmojiFor(name)} ${name}`;
+}
+
+function escCheltuialaCat(name) {
+  return esc(cheltuialaCatLabel(name));
+}
+
 const monthLabel = s => {
   if (!s) return '';
   const months = ['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
@@ -272,7 +294,7 @@ async function loadCategories() {
   cheltuialaCategories = cc || [];
 }
 
-function renderCategorieSuggestions(inputId, boxId, cats) {
+function renderCategorieSuggestions(inputId, boxId, cats, withEmoji = false) {
   const input = document.getElementById(inputId);
   const box = document.getElementById(boxId);
   if (!input || !box) return;
@@ -291,7 +313,7 @@ function renderCategorieSuggestions(inputId, boxId, cats) {
   list.forEach(c => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = c;
+    btn.textContent = withEmoji ? cheltuialaCatLabel(c) : c;
     btn.addEventListener('mousedown', e => {
       e.preventDefault();
       input.value = c;
@@ -322,8 +344,8 @@ function initCategorieCombobox(inputId, boxId, getCats) {
   if (!input || !box || input.dataset.comboboxInit) return;
   input.dataset.comboboxInit = '1';
 
-  input.addEventListener('focus', () => renderCategorieSuggestions(inputId, boxId, getCats()));
-  input.addEventListener('input', () => renderCategorieSuggestions(inputId, boxId, getCats()));
+  input.addEventListener('focus', () => renderCategorieSuggestions(inputId, boxId, getCats(), inputId === 'cheltuialaCategorie'));
+  input.addEventListener('input', () => renderCategorieSuggestions(inputId, boxId, getCats(), inputId === 'cheltuialaCategorie'));
   input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 150));
 }
 
@@ -530,7 +552,7 @@ function renderTopCatChart(withExpenses) {
   chartTopCat = new Chart(document.getElementById('chartTopCat'), {
     type: 'bar',
     data: {
-      labels: displayData.map(c => c.categorie),
+      labels: displayData.map(c => cheltuialaCatLabel(c.categorie)),
       datasets: [{ data: displayData.map(c => c.suma), backgroundColor: CAT_COLORS.slice(0, displayData.length) }],
     },
     options: {
@@ -593,7 +615,7 @@ function renderCatFilters() {
   let html = `<button type="button" class="tx-cat-chip${!cheltuialaCatFilter ? ' active' : ''}" data-cat="">Toate</button>`;
   visible.forEach(c => {
     const active = cheltuialaCatFilter === c.categorie ? ' active' : '';
-    html += `<button type="button" class="tx-cat-chip${active}" data-cat="${escAttr(c.categorie)}">${esc(c.categorie)} <span class="tx-cat-chip-n">${c.count}</span></button>`;
+    html += `<button type="button" class="tx-cat-chip${active}" data-cat="${escAttr(c.categorie)}">${escCheltuialaCat(c.categorie)} <span class="tx-cat-chip-n">${c.count}</span></button>`;
   });
   list.innerHTML = html;
 
@@ -629,7 +651,7 @@ function renderTable() {
   if (!rows.length) {
     const periodLabel = document.getElementById('yearSelect').options[document.getElementById('yearSelect').selectedIndex]?.textContent.trim() || currentYear;
     const emptyMsg = cheltuialaCatFilter
-      ? `Nicio tranzacție în categoria „${esc(cheltuialaCatFilter)}”`
+      ? `Nicio tranzacție în categoria ${escCheltuialaCat(cheltuialaCatFilter)}`
       : `Nicio tranzacție în ${periodLabel}`;
     body.innerHTML = `<tr><td colspan="4"><div class="empty-state">${emptyMsg}</div></td></tr>`;
     return;
@@ -647,9 +669,11 @@ function renderTable() {
       const dot = isVenit
         ? '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2A7D4F;margin-right:7px;vertical-align:middle"></span>'
         : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#C1444A;margin-right:7px;vertical-align:middle"></span>';
-      catHtml = dot + esc(cat);
-    } else {
+      catHtml = dot + (isVenit ? esc(cat) : escCheltuialaCat(cat));
+    } else if (isVenit) {
       catHtml = esc(cat);
+    } else {
+      catHtml = escCheltuialaCat(cat);
     }
 
     const tr = document.createElement('tr');
