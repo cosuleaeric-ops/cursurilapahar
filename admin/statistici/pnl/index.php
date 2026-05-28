@@ -9,7 +9,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=6">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=7">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -82,12 +82,12 @@ include __DIR__ . '/../layout_header.php';
 
   <!-- Top Categories -->
   <div class="chart-card" id="topCatCard" style="display:none;margin-bottom:28px">
-    <div class="chart-card-header">
-      <h3>Top categorii</h3>
-      <button type="button" class="btn btn-ghost btn-sm" id="btnAllCategories">Vezi toate categoriile</button>
-    </div>
+    <h3>Top categorii</h3>
     <div id="topCatWrap" style="position:relative">
       <canvas id="chartTopCat"></canvas>
+    </div>
+    <div class="chart-card-footer" id="topCatFooter" style="display:none">
+      <button type="button" class="btn btn-ghost btn-sm" id="btnAllCategories">Vezi toate categoriile</button>
     </div>
   </div>
 
@@ -122,32 +122,6 @@ include __DIR__ . '/../layout_header.php';
     </div>
   </div>
   </div><!-- /tx-section -->
-
-<!-- Modal: Toate categoriile -->
-<div class="pnl-modal-overlay" id="modalCategorii">
-  <div class="pnl-modal pnl-modal-wide">
-    <button type="button" class="pnl-modal-close" data-close="modalCategorii">&times;</button>
-    <h2 id="modalCategoriiTitle">Toate categoriile</h2>
-    <p class="pnl-modal-sub" id="modalCategoriiPeriod"></p>
-    <div class="table-card" style="margin-top:16px">
-      <div class="table-scroll">
-        <table class="cat-list-table" id="allCategoriesTable">
-          <thead>
-            <tr>
-              <th>Categorie</th>
-              <th class="right">Sumă (lei)</th>
-              <th class="right">% cheltuieli</th>
-            </tr>
-          </thead>
-          <tbody id="allCategoriesBody"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="pnl-modal-actions" style="margin-top:20px">
-      <button type="button" class="btn btn-ghost" data-close="modalCategorii">Închide</button>
-    </div>
-  </div>
-</div>
 
 <!-- Modal: Adaug&#x103; / Editeaz&#x103; Venit -->
 <div class="pnl-modal-overlay" id="modalVenit">
@@ -269,6 +243,7 @@ let allVenituri = [];
 let allCheltuieli = [];
 let chartMonthly, chartTopCat;
 let lastStats = null;
+let showAllCategories = false;
 let amountsHidden = false;
 const rowStore = new Map(); // 'venit-id' / 'cheltuiala-id' → row object
 const lastDateKey = 'pnl_last_date';
@@ -419,6 +394,7 @@ async function init() {
 }
 
 async function refresh() {
+  showAllCategories = false;
   const mParam = currentMonth ? `&month=${currentMonth}` : '';
   const [stats, venituri, cheltuieli] = await Promise.all([
     api('stats',      `year=${currentYear}${mParam}`),
@@ -517,115 +493,56 @@ function renderCharts(s) {
 
   if (chartTopCat) chartTopCat.destroy();
   const topCatCard = document.getElementById('topCatCard');
-  const topCatWrap = document.getElementById('topCatWrap');
-  const hasCatData = s.categorii_cheltuieli && s.categorii_cheltuieli.length;
-  const hasCatDefs = cheltuialaCategories.length > 0;
+  const withExpenses = (s.categorii_cheltuieli || []).filter(c => c.suma > 0);
 
-  if (hasCatData || hasCatDefs) {
+  if (withExpenses.length) {
     topCatCard.style.display = '';
-    if (hasCatData) {
-      topCatWrap.style.display = '';
-      const topData = s.categorii_cheltuieli.slice(0, 10);
-      topCatWrap.style.height = (topData.length * 40 + 40) + 'px';
-      chartTopCat = new Chart(document.getElementById('chartTopCat'), {
-        type: 'bar',
-        data: {
-          labels: topData.map(c => c.categorie),
-          datasets: [{ data: topData.map(c => c.suma), backgroundColor: CAT_COLORS.slice(0, topData.length) }],
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed.x)} lei` } },
-          },
-          scales: {
-            x: { beginAtZero: true, grid: { color: '#e0e0e0' }, ticks: { callback: v => fmt(v) + ' lei', font: { size: 11 } } },
-            y: { grid: { display: false }, ticks: { font: { size: 12 } } },
-          },
-        },
-      });
-    } else {
-      topCatWrap.style.display = 'none';
-    }
+    renderTopCatChart(withExpenses);
   } else {
     topCatCard.style.display = 'none';
   }
-
-  updateAllCategoriesButton(s);
 }
 
-function updateAllCategoriesButton(s) {
+function renderTopCatChart(withExpenses) {
+  const topCatWrap = document.getElementById('topCatWrap');
+  const footer = document.getElementById('topCatFooter');
   const btn = document.getElementById('btnAllCategories');
-  if (!btn) return;
-  const count = Math.max(
-    cheltuialaCategories.length,
-    (s?.categorii_cheltuieli || []).length
-  );
-  btn.style.display = count ? '' : 'none';
-  btn.textContent = count > 10
-    ? `Vezi toate categoriile (${count})`
-    : 'Vezi toate categoriile';
-}
 
-function buildAllCategoriesRows() {
-  const sums = new Map();
-  (lastStats?.categorii_cheltuieli || []).forEach(c => {
-    sums.set(c.categorie, c.suma);
+  if (chartTopCat) chartTopCat.destroy();
+
+  const displayData = showAllCategories ? withExpenses : withExpenses.slice(0, 10);
+  topCatWrap.style.display = '';
+  topCatWrap.style.height = (displayData.length * 40 + 40) + 'px';
+
+  chartTopCat = new Chart(document.getElementById('chartTopCat'), {
+    type: 'bar',
+    data: {
+      labels: displayData.map(c => c.categorie),
+      datasets: [{ data: displayData.map(c => c.suma), backgroundColor: CAT_COLORS.slice(0, displayData.length) }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed.x)} lei` } },
+      },
+      scales: {
+        x: { beginAtZero: true, grid: { color: '#e0e0e0' }, ticks: { callback: v => fmt(v) + ' lei', font: { size: 11 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 12 } } },
+      },
+    },
   });
 
-  const names = new Set([...cheltuialaCategories, ...sums.keys()]);
-  const rows = [...names].map(name => ({
-    categorie: name,
-    suma: sums.get(name) || 0,
-  }));
-
-  rows.sort((a, b) => b.suma - a.suma || a.categorie.localeCompare(b.categorie, 'ro'));
-  return rows;
-}
-
-function renderAllCategoriesModal() {
-  const rows = buildAllCategoriesRows();
-  const total = lastStats?.total_cheltuieli || rows.reduce((n, r) => n + r.suma, 0);
-  const body = document.getElementById('allCategoriesBody');
-  const table = document.getElementById('allCategoriesTable');
-  const periodLabel = document.getElementById('yearSelect').options[document.getElementById('yearSelect').selectedIndex]?.textContent.trim() || '';
-
-  document.getElementById('modalCategoriiPeriod').textContent = periodLabel
-    ? `Perioada: ${periodLabel}`
-    : '';
-
-  table.classList.toggle('amounts-hidden', amountsHidden);
-
-  if (!rows.length) {
-    body.innerHTML = '<tr><td colspan="3"><div class="empty-state">Nicio categorie definită</div></td></tr>';
-    return;
+  if (withExpenses.length <= 10) {
+    footer.style.display = 'none';
+  } else {
+    footer.style.display = '';
+    btn.textContent = showAllCategories
+      ? 'Arată top 10'
+      : `Vezi toate categoriile (${withExpenses.length})`;
   }
-
-  body.innerHTML = rows.map(r => {
-    const pct = total > 0 ? (r.suma / total * 100).toFixed(1) : '0,0';
-    const sumClass = r.suma > 0 ? 'suma-red' : 'suma-muted';
-    return `<tr>
-      <td>${escapeHtml(r.categorie)}</td>
-      <td class="right ${sumClass}">${r.suma > 0 ? '− ' + fmt(r.suma) : '—'}</td>
-      <td class="right ${sumClass}">${r.suma > 0 ? pct.replace('.', ',') + '%' : '—'}</td>
-    </tr>`;
-  }).join('');
-}
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function openAllCategoriesModal() {
-  renderAllCategoriesModal();
-  openModal('modalCategorii');
 }
 
 // ── Table ────────────────────────────────────────────────────────────────────
@@ -872,7 +789,12 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
   }
 });
 
-document.getElementById('btnAllCategories').addEventListener('click', openAllCategoriesModal);
+document.getElementById('btnAllCategories').addEventListener('click', () => {
+  if (!lastStats) return;
+  showAllCategories = !showAllCategories;
+  const withExpenses = (lastStats.categorii_cheltuieli || []).filter(c => c.suma > 0);
+  renderTopCatChart(withExpenses);
+});
 
 // ── Quick Add Bar ─────────────────────────────────────────────────────────────
 document.getElementById('topBtnCheltuiala').addEventListener('click', () => {
@@ -896,9 +818,6 @@ document.getElementById('btnHide').addEventListener('click', () => {
   document.getElementById('btnHide').textContent = amountsHidden ? '🙈' : '👁';
   if (lastStats) renderStats(lastStats);
   renderTable();
-  if (document.getElementById('modalCategorii').classList.contains('open')) {
-    renderAllCategoriesModal();
-  }
 });
 
 // ── Month navigation arrows ───────────────────────────────────────────────────
