@@ -3,7 +3,7 @@
 /** @return array<string, mixed> Variables for admin/partials/dashboard-tab.php */
 function clp_dashboard_data(string $admin_dir): array {
     $_dash_courses = clp_load_courses_for_admin();
-    $_dash_active  = count(clp_filter_public_courses($_dash_courses));
+    $_dash_total_courses = 0;
 
     $_dash_today = date('Y-m-d');
 
@@ -31,6 +31,7 @@ function clp_dashboard_data(string $admin_dir): array {
         try {
             $_cdb = new SQLite3($_dash_clp_db_path);
             $_cdb->exec('PRAGMA journal_mode=WAL');
+            $_dash_total_courses = (int) $_cdb->querySingle('SELECT COUNT(*) FROM courses');
             $_dash_participants = (int)$_cdb->querySingle("SELECT COUNT(DISTINCT LOWER(TRIM(participant_name))) FROM tickets");
             $_dash_total_tickets = (int)$_cdb->querySingle("SELECT COUNT(*) FROM tickets");
             $_cdb->close();
@@ -90,7 +91,7 @@ function clp_dashboard_data(string $admin_dir): array {
     }
 
     return compact(
-        '_dash_courses', '_dash_active',
+        '_dash_courses', '_dash_total_courses',
         '_dash_pnl_profit', '_dash_pnl_venituri', '_dash_pnl_cheltuieli',
         '_dash_participants', '_dash_total_tickets',
         '_dash_pnl_monthly', '_dash_participant_months',

@@ -42,9 +42,9 @@ if (!empty($_ql)): ?>
 <!-- Stats cards -->
 <div class="dash-grid">
     <div class="dash-card accent-blue">
-        <div class="dash-label">Cursuri active</div>
-        <div class="dash-value"><?= $_dash_active ?></div>
-        <div class="dash-sub">din <?= count($_dash_courses) ?> total</div>
+        <div class="dash-label">Cursuri totale</div>
+        <div class="dash-value"><?= number_format($_dash_total_courses, 0, ',', '.') ?></div>
+        <div class="dash-sub">în statistici</div>
     </div>
     <div class="dash-card accent-green">
         <div class="dash-label">Participanti unici</div>
