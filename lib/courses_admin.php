@@ -85,15 +85,24 @@ function clp_render_admin_courses_table(array $list): void {
                     <?php endif; ?>
                 </td>
                 <td style="font-weight:600">
-                    <?= h($c['title'] ?? '') ?>
-                    <?php $sp_name = clp_course_speaker_name($c); if ($sp_name !== ''): ?>
-                    <div style="font-size:12px;font-weight:400;color:var(--text-muted);margin-top:2px"><?= h($sp_name) ?></div>
-                    <?php endif; ?>
-                    <?php if ($has_disc): ?>
-                        <span class="discount-tag <?= $disc_active_now ? 'discount-tag--active' : 'discount-tag--expired' ?>">
-                            −<?= (int)$c['discount_percent'] ?>%<?= $disc_active_now ? '' : ' (expirată)' ?>
-                        </span>
-                    <?php endif; ?>
+                    <div class="course-title-cell">
+                        <div class="course-title-row">
+                            <span class="course-title-text"><?= h($c['title'] ?? '') ?></span>
+                            <?php if (!empty($c['livetickets_url'])): ?>
+                            <a href="<?= h($c['livetickets_url']) ?>" target="_blank" rel="noopener" class="course-lt-link" title="Deschide în LiveTickets" aria-label="Deschide în LiveTickets">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                        <?php $sp_name = clp_course_speaker_name($c); if ($sp_name !== ''): ?>
+                        <div style="font-size:12px;font-weight:400;color:var(--text-muted);margin-top:2px"><?= h($sp_name) ?></div>
+                        <?php endif; ?>
+                        <?php if ($has_disc): ?>
+                            <span class="discount-tag <?= $disc_active_now ? 'discount-tag--active' : 'discount-tag--expired' ?>">
+                                −<?= (int)$c['discount_percent'] ?>%<?= $disc_active_now ? '' : ' (expirată)' ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
                 </td>
                 <td style="color:var(--text-muted)"><?= h($c['date_display'] ?? $c['date_raw'] ?? '') ?></td>
                 <td>
@@ -121,9 +130,6 @@ function clp_render_admin_courses_table(array $list): void {
                             <input type="hidden" name="id" value="<?= h($cid) ?>">
                             <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
                         </form>
-                        <?php if (!empty($c['livetickets_url'])): ?>
-                        <a href="<?= h($c['livetickets_url']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">LT ↗</a>
-                        <?php endif; ?>
                     </div>
                 </td>
             </tr>

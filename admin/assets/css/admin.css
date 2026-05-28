@@ -135,6 +135,16 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .wp-table tbody tr:hover td { background: #f8fafc; }
 .course-thumb { width: 60px; height: 40px; object-fit: cover; border-radius: 6px; display: block; }
 .course-thumb-empty { width: 60px; height: 40px; background: #f1f5f9; border: 1px solid #e5e7eb; border-radius: 6px; }
+.course-title-row { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
+.course-title-text { flex: 1; min-width: 0; line-height: 1.35; }
+.course-lt-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    color: #6b7280; border: 1px solid #e5e7eb; border-radius: 5px;
+    text-decoration: none; transition: color .15s, border-color .15s, background .15s;
+}
+.course-lt-link:hover { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+.course-lt-link svg { width: 12px; height: 12px; display: block; }
 .row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .discount-tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: middle; }
 .discount-tag--active { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
