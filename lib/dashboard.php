@@ -8,7 +8,7 @@ function clp_dashboard_data(string $admin_dir): array {
     $_dash_today = date('Y-m-d');
     $_dash_upcoming = array_filter(clp_filter_public_courses($_dash_courses), fn($c) => ($c['date_raw'] ?? '') >= $_dash_today);
     usort($_dash_upcoming, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
-    $_dash_upcoming = array_slice($_dash_upcoming, 0, 5);
+    $_dash_upcoming = array_slice($_dash_upcoming, 0, 6);
 
     $_dash_pnl_profit = 0;
     $_dash_pnl_venituri = 0;
@@ -72,19 +72,6 @@ function clp_dashboard_data(string $admin_dir): array {
         } catch (Exception $e) {}
     }
 
-    $_dash_top_fideli = [];
-    if (file_exists($_dash_clp_db_path)) {
-        try {
-            $_cdb3 = new SQLite3($_dash_clp_db_path);
-            $_cdb3->exec('PRAGMA journal_mode=WAL');
-            $r = $_cdb3->query("SELECT participant_name, COUNT(DISTINCT course_id) as nr_cursuri, COUNT(*) as nr_bilete
-                FROM tickets GROUP BY LOWER(TRIM(participant_name)) HAVING nr_cursuri > 1
-                ORDER BY nr_cursuri DESC, nr_bilete DESC LIMIT 5");
-            while ($row = $r->fetchArray(SQLITE3_ASSOC)) $_dash_top_fideli[] = $row;
-            $_cdb3->close();
-        } catch (Exception $e) {}
-    }
-
     $_dash_ditl_year = 0;
     if (file_exists($_dash_clp_db_path)) {
         try {
@@ -109,7 +96,7 @@ function clp_dashboard_data(string $admin_dir): array {
         '_dash_courses', '_dash_active', '_dash_upcoming',
         '_dash_pnl_profit', '_dash_pnl_venituri', '_dash_pnl_cheltuieli',
         '_dash_participants', '_dash_total_tickets',
-        '_dash_pnl_monthly', '_dash_participant_months', '_dash_top_fideli',
+        '_dash_pnl_monthly', '_dash_participant_months',
         '_dash_ditl_year', '_ro_months_dash', '_ro_months_full', '_dash_month_label',
         '_mc_by_day'
     );

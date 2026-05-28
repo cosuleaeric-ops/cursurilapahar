@@ -241,10 +241,6 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
         transition:background .15s, border-color .15s;
     }
     .dash-cal-arrow:hover { background:#f1f5f9; border-color:#cbd5e1; }
-    .dash-stats-section { max-width:560px; }
-    .dash-stats-tabs { margin-bottom:14px; }
-    .dash-tab-panel { display:none; }
-    .dash-tab-panel.active { display:block; }
     .clp-tabs { display:flex; align-items:center; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
     .clp-tabs-sep { width:1px; align-self:stretch; margin:4px 2px; background:var(--border); flex-shrink:0; }
     .clp-tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }

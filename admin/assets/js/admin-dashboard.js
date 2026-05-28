@@ -66,14 +66,4 @@
     btnPrev?.addEventListener('click', () => { weekOffset -= 3; renderCal(); });
     btnNext?.addEventListener('click', () => { weekOffset += 3; renderCal(); });
     renderCal();
-
-    document.querySelectorAll('[data-dash-tab]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.dashTab;
-            document.querySelectorAll('[data-dash-tab]').forEach(b => b.classList.toggle('active', b === btn));
-            document.querySelectorAll('.dash-tab-panel').forEach(p => {
-                p.classList.toggle('active', p.id === 'dash-tab-' + id);
-            });
-        });
-    });
 })();

@@ -74,15 +74,11 @@ $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->fo
     <div class="mini-cal" id="dashMiniCal"></div>
 </div>
 
-<div class="dash-section dash-stats-section">
-    <div class="clp-tabs dash-stats-tabs">
-        <button type="button" class="clp-tab-btn active" data-dash-tab="evolutie">Evolutie participanti</button>
-        <button type="button" class="clp-tab-btn" data-dash-tab="fideli">Top fideli</button>
-    </div>
-
-    <div class="dash-tab-panel active" id="dash-tab-evolutie">
+<div class="dash-cols">
+    <div class="dash-section" style="margin-bottom:0">
+        <div class="dash-section-title"><span>Evolutie participanti</span></div>
         <?php if (empty($_dash_participant_months)): ?>
-            <p style="color:var(--text-muted);font-size:13px;margin-top:14px">Nicio data disponibila.</p>
+            <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
         <?php else: ?>
             <table class="dash-table">
                 <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
@@ -101,19 +97,25 @@ $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->fo
         <?php endif; ?>
     </div>
 
-    <div class="dash-tab-panel" id="dash-tab-fideli">
-        <?php if (empty($_dash_top_fideli)): ?>
-            <p style="color:var(--text-muted);font-size:13px;margin-top:14px">Niciun participant cu mai multe cursuri.</p>
+    <div class="dash-section" style="margin-bottom:0">
+        <div class="dash-section-title"><span>Cursuri viitoare</span></div>
+        <?php if (empty($_dash_upcoming)): ?>
+            <p style="color:var(--text-muted);font-size:13px">Niciun curs activ programat.</p>
         <?php else: ?>
             <table class="dash-table">
                 <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
-                    <td>Nume</td><td style="text-align:right">Cursuri</td><td style="text-align:right">Bilete</td>
+                    <td>Data</td><td>Curs</td>
                 </tr>
-            <?php foreach ($_dash_top_fideli as $_tf): ?>
+            <?php foreach ($_dash_upcoming as $_uc): ?>
                 <tr>
-                    <td><?= h($_tf['participant_name'] ?? '') ?></td>
-                    <td style="text-align:right;font-weight:600"><?= (int)($_tf['nr_cursuri'] ?? 0) ?></td>
-                    <td style="text-align:right" class="muted"><?= (int)($_tf['nr_bilete'] ?? 0) ?></td>
+                    <td class="muted" style="white-space:nowrap;padding-right:12px"><?= h($_uc['date_display'] ?? $_uc['date_raw'] ?? '') ?></td>
+                    <td style="font-weight:600">
+                        <?php if (!empty($_uc['livetickets_url'])): ?>
+                        <a href="<?= h($_uc['livetickets_url']) ?>" target="_blank" rel="noopener" class="course-title-link"><?= h(clp_course_title_for_card($_uc)) ?></a>
+                        <?php else: ?>
+                        <?= h(clp_course_title_for_card($_uc)) ?>
+                        <?php endif; ?>
+                    </td>
                 </tr>
             <?php endforeach; ?>
             </table>
@@ -127,4 +129,4 @@ window.DASH_CAL = <?= json_encode([
     'coursesByDay' => $_dash_cal_json,
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="/admin/assets/js/admin-dashboard.js?v=2"></script>
+<script src="/admin/assets/js/admin-dashboard.js?v=3"></script>
