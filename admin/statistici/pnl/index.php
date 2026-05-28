@@ -9,7 +9,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=8">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=9">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -103,6 +103,13 @@ include __DIR__ . '/../layout_header.php';
     <div class="add-btns">
       <button class="btn btn-green" id="btnAddVenit">+ Venit</button>
       <button class="btn btn-red"   id="btnAddCheltuiala">+ Cheltuiala</button>
+    </div>
+  </div>
+
+  <div class="tx-cat-filters" id="txCatFilters" style="display:none">
+    <div class="tx-cat-filter-list" id="txCatFilterList"></div>
+    <div class="tx-cat-filter-footer" id="txCatFilterFooter" style="display:none">
+      <button type="button" class="chart-toggle-link" id="btnTxCatToggle">▼ Vezi toate</button>
     </div>
   </div>
 
@@ -244,6 +251,8 @@ let allCheltuieli = [];
 let chartMonthly, chartTopCat;
 let lastStats = null;
 let showAllCategories = false;
+let showAllCatFilters = false;
+let cheltuialaCatFilter = null;
 let amountsHidden = false;
 const rowStore = new Map(); // 'venit-id' / 'cheltuiala-id' → row object
 const lastDateKey = 'pnl_last_date';
@@ -395,6 +404,7 @@ async function init() {
 
 async function refresh() {
   showAllCategories = false;
+  showAllCatFilters = false;
   const mParam = currentMonth ? `&month=${currentMonth}` : '';
   const [stats, venituri, cheltuieli] = await Promise.all([
     api('stats',      `year=${currentYear}${mParam}`),
@@ -407,12 +417,14 @@ async function refresh() {
 
   if (!stats || !Array.isArray(stats.monthly)) {
     renderStats({ total_venituri: 0, total_cheltuieli: 0, profit_net: 0, marja: 0 });
+    renderCatFilters();
     renderTable();
     return;
   }
 
   renderStats(stats);
   renderCharts(stats);
+  renderCatFilters();
   renderTable();
 }
 
@@ -547,6 +559,54 @@ function renderTopCatChart(withExpenses) {
 }
 
 // ── Table ────────────────────────────────────────────────────────────────────
+function getCheltuialaFilterCategories() {
+  const map = new Map();
+  allCheltuieli.forEach(r => {
+    const cat = r.categorie || '—';
+    if (!map.has(cat)) map.set(cat, { categorie: cat, count: 0, suma: 0 });
+    const entry = map.get(cat);
+    entry.count++;
+    entry.suma += parseFloat(r.suma) || 0;
+  });
+  return [...map.values()].sort((a, b) => b.suma - a.suma || a.categorie.localeCompare(b.categorie, 'ro'));
+}
+
+function renderCatFilters() {
+  const panel = document.getElementById('txCatFilters');
+  const list = document.getElementById('txCatFilterList');
+  const footer = document.getElementById('txCatFilterFooter');
+  const toggle = document.getElementById('btnTxCatToggle');
+  const cats = getCheltuialaFilterCategories();
+
+  if (currentTab !== 'cheltuieli' || !cats.length) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = '';
+
+  if (cheltuialaCatFilter && !cats.some(c => c.categorie === cheltuialaCatFilter)) {
+    cheltuialaCatFilter = null;
+  }
+
+  const visible = showAllCatFilters ? cats : cats.slice(0, TOP_CAT_LIMIT);
+  let html = `<button type="button" class="tx-cat-chip${!cheltuialaCatFilter ? ' active' : ''}" data-cat="">Toate</button>`;
+  visible.forEach(c => {
+    const active = cheltuialaCatFilter === c.categorie ? ' active' : '';
+    html += `<button type="button" class="tx-cat-chip${active}" data-cat="${escAttr(c.categorie)}">${esc(c.categorie)} <span class="tx-cat-chip-n">${c.count}</span></button>`;
+  });
+  list.innerHTML = html;
+
+  if (cats.length > TOP_CAT_LIMIT) {
+    footer.style.display = '';
+    toggle.textContent = showAllCatFilters
+      ? `▲ Arată top ${TOP_CAT_LIMIT}`
+      : '▼ Vezi toate';
+  } else {
+    footer.style.display = 'none';
+  }
+}
+
 function renderTable() {
   const body = document.getElementById('txBody');
   body.innerHTML = '';
@@ -561,11 +621,17 @@ function renderTable() {
     rows = allVenituri.map(r => ({ ...r, _type: 'venit' }));
   } else {
     rows = allCheltuieli.map(r => ({ ...r, _type: 'cheltuiala' }));
+    if (cheltuialaCatFilter) {
+      rows = rows.filter(r => r.categorie === cheltuialaCatFilter);
+    }
   }
 
   if (!rows.length) {
     const periodLabel = document.getElementById('yearSelect').options[document.getElementById('yearSelect').selectedIndex]?.textContent.trim() || currentYear;
-    body.innerHTML = `<tr><td colspan="4"><div class="empty-state">Nicio tranzacție în ${periodLabel}</div></td></tr>`;
+    const emptyMsg = cheltuialaCatFilter
+      ? `Nicio tranzacție în categoria „${esc(cheltuialaCatFilter)}”`
+      : `Nicio tranzacție în ${periodLabel}`;
+    body.innerHTML = `<tr><td colspan="4"><div class="empty-state">${emptyMsg}</div></td></tr>`;
     return;
   }
 
@@ -613,14 +679,35 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+function escAttr(s) {
+  return esc(s).replace(/'/g, '&#39;');
+}
+
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentTab = btn.dataset.tab;
+    if (currentTab !== 'cheltuieli') {
+      showAllCatFilters = false;
+    }
+    renderCatFilters();
     renderTable();
   });
+});
+
+document.getElementById('txCatFilterList').addEventListener('click', e => {
+  const chip = e.target.closest('.tx-cat-chip');
+  if (!chip) return;
+  cheltuialaCatFilter = chip.dataset.cat || null;
+  renderCatFilters();
+  renderTable();
+});
+
+document.getElementById('btnTxCatToggle').addEventListener('click', () => {
+  showAllCatFilters = !showAllCatFilters;
+  renderCatFilters();
 });
 
 // ── Modals ────────────────────────────────────────────────────────────────────
