@@ -318,7 +318,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.querySelector('.vote-btn[data-id="' + id + '"]');
         if (btn) applyVoted(btn, true);
     });
+    trackVoteViews();
 });
+
+function trackVoteViews() {
+    const cards = document.querySelectorAll('.vote-card');
+    if (!cards.length) return;
+
+    const storageKey = 'clp_vote_viewed';
+    let seen;
+    try {
+        seen = new Set(JSON.parse(sessionStorage.getItem(storageKey) || '[]'));
+    } catch {
+        seen = new Set();
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting || entry.intersectionRatio < 0.35) return;
+            const id = (entry.target.id || '').replace(/^vc-/, '');
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            try {
+                sessionStorage.setItem(storageKey, JSON.stringify([...seen]));
+            } catch {}
+            fetch('/api/vote_view.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+                keepalive: true,
+            }).catch(() => {});
+            observer.unobserve(entry.target);
+        });
+    }, { threshold: [0.35] });
+
+    cards.forEach(card => observer.observe(card));
+}
 
 function applyVoted(btn, isVoted) {
     if (isVoted) {
