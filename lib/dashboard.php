@@ -40,10 +40,6 @@ function clp_dashboard_data(string $admin_dir): array {
         } catch (Exception $e) {}
     }
 
-    $_dash_votes = load_vote_courses();
-    usort($_dash_votes, fn($a, $b) => ($b['likes'] ?? 0) - ($a['likes'] ?? 0));
-    $_dash_votes = array_slice($_dash_votes, 0, 5);
-
     $_dash_pnl_monthly = [];
     if (file_exists($_dash_pnl_db_path)) {
         try {
@@ -112,7 +108,7 @@ function clp_dashboard_data(string $admin_dir): array {
     return compact(
         '_dash_courses', '_dash_active', '_dash_upcoming',
         '_dash_pnl_profit', '_dash_pnl_venituri', '_dash_pnl_cheltuieli',
-        '_dash_participants', '_dash_total_tickets', '_dash_votes',
+        '_dash_participants', '_dash_total_tickets',
         '_dash_pnl_monthly', '_dash_participant_months', '_dash_top_fideli',
         '_dash_ditl_year', '_ro_months_dash', '_ro_months_full', '_dash_month_label',
         '_mc_by_day'

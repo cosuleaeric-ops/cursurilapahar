@@ -97,52 +97,24 @@ $_mc_today_str = $_mc_today->format('Y-m-d');
     </div>
 </div>
 
-<div class="dash-cols">
-    <!-- Left column -->
-    <div>
-
-        <!-- Participant evolution -->
-        <div class="dash-section">
-            <div class="dash-section-title"><span>Evolutie participanti</span></div>
-            <?php if (empty($_dash_participant_months)): ?>
-                <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
-            <?php else: ?>
-                <table class="dash-table">
-                    <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
-                        <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
-                    </tr>
-                <?php foreach ($_dash_participant_months as $_pm):
-                    $pmIdx = (int)substr($_pm['m'], 5, 2);
-                ?>
-                    <tr>
-                        <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
-                        <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
-                        <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
-                    </tr>
-                <?php endforeach; ?>
-                </table>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Right column -->
-    <div>
-        <!-- Vote courses -->
-        <div class="dash-section">
-            <div class="dash-section-title"><span>Vot cursuri</span></div>
-            <?php if (empty($_dash_votes)): ?>
-                <p style="color:var(--text-muted);font-size:13px">Nicio propunere de curs.</p>
-            <?php else: ?>
-                <table class="dash-table">
-                <?php foreach ($_dash_votes as $_vc): ?>
-                    <tr>
-                        <td><?= $_vc['emoji'] ?? '' ?> <?= h($_vc['name'] ?? '') ?></td>
-                        <td class="muted" style="text-align:right;white-space:nowrap"><?= (int)($_vc['likes'] ?? 0) ?> voturi</td>
-                    </tr>
-                <?php endforeach; ?>
-                </table>
-            <?php endif; ?>
-        </div>
-
-    </div>
+<div class="dash-section">
+    <div class="dash-section-title"><span>Evolutie participanti</span></div>
+    <?php if (empty($_dash_participant_months)): ?>
+        <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
+    <?php else: ?>
+        <table class="dash-table">
+            <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
+                <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
+            </tr>
+        <?php foreach ($_dash_participant_months as $_pm):
+            $pmIdx = (int)substr($_pm['m'], 5, 2);
+        ?>
+            <tr>
+                <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
+                <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
+                <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </table>
+    <?php endif; ?>
 </div>
