@@ -54,67 +54,80 @@ if (!empty($_ql)): ?>
 </div>
 
 <?php
-// Mini calendar: 3 weeks starting from Monday of current week
-$_mc_today   = new DateTime('now', new DateTimeZone('Europe/Bucharest'));
-$_mc_dow     = (int)$_mc_today->format('N'); // 1=Mon
-$_mc_start   = clone $_mc_today;
-$_mc_start->modify('-' . ($_mc_dow - 1) . ' days'); // Monday of current week
-$_mc_by_day  = [];
+$_dash_cal_json = [];
 foreach ($_dash_courses as $_c) {
     $d = $_c['date_raw'] ?? '';
-    if ($d) $_mc_by_day[$d][] = $_c;
+    if ($d === '') continue;
+    $_dash_cal_json[$d][] = ['title' => $_c['title'] ?? ''];
 }
-$_mc_today_str = $_mc_today->format('Y-m-d');
+$_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->format('Y-m-d');
 ?>
 
 <div class="dash-section" style="margin-bottom:20px">
     <div class="dash-section-title" style="margin-bottom:10px">
         <span>Urmatoarele cursuri</span>
-        <a href="?tab=cursuri" style="font-size:12px;font-weight:400;color:var(--primary);text-decoration:none;margin-left:10px">+ Adaugă</a>
-    </div>
-    <div class="mini-cal">
-        <?php foreach (['Lu','Ma','Mi','Jo','Vi','Sâ','Du'] as $_dl): ?>
-        <div class="mini-cal-dow"><?= $_dl ?></div>
-        <?php endforeach; ?>
-        <?php
-        $_mc_cur = clone $_mc_start;
-        for ($i = 0; $i < 21; $i++):
-            $ds       = $_mc_cur->format('Y-m-d');
-            $day_num  = $_mc_cur->format('j');
-            $is_today = $ds === $_mc_today_str;
-            $is_past  = $ds < $_mc_today_str;
-            $cell_cls = $is_today ? 'today' : ($is_past ? 'past' : '');
-        ?>
-        <div class="mini-cal-cell <?= $cell_cls ?>">
-            <div class="mini-cal-day"><?= $day_num ?></div>
-            <?php foreach ($_mc_by_day[$ds] ?? [] as $_mc_c):
-                $ev_cls = $is_today ? 'today-ev' : ($is_past ? 'past' : 'future');
-            ?>
-            <div class="mini-cal-event <?= $ev_cls ?>" title="<?= h($_mc_c['title'] ?? '') ?>"><?= h($_mc_c['title'] ?? '') ?></div>
-            <?php endforeach; ?>
+        <div class="dash-cal-nav">
+            <button type="button" class="dash-cal-arrow" id="dashCalPrev" aria-label="Săptămâni anterioare">&#8592;</button>
+            <span class="dash-cal-label" id="dashCalLabel"></span>
+            <button type="button" class="dash-cal-arrow" id="dashCalNext" aria-label="Săptămâni următoare">&#8594;</button>
+            <button type="button" class="dash-cal-today" id="dashCalToday" title="Săptămâna curentă">Azi</button>
+            <a href="?tab=cursuri" class="dash-cal-add">+ Adaugă</a>
         </div>
-        <?php $_mc_cur->modify('+1 day'); endfor; ?>
+    </div>
+    <div class="mini-cal" id="dashMiniCal"></div>
+</div>
+
+<div class="dash-section dash-stats-section">
+    <div class="clp-tabs dash-stats-tabs">
+        <button type="button" class="clp-tab-btn active" data-dash-tab="evolutie">Evolutie participanti</button>
+        <button type="button" class="clp-tab-btn" data-dash-tab="fideli">Top fideli</button>
+    </div>
+
+    <div class="dash-tab-panel active" id="dash-tab-evolutie">
+        <?php if (empty($_dash_participant_months)): ?>
+            <p style="color:var(--text-muted);font-size:13px;margin-top:14px">Nicio data disponibila.</p>
+        <?php else: ?>
+            <table class="dash-table">
+                <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
+                    <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
+                </tr>
+            <?php foreach ($_dash_participant_months as $_pm):
+                $pmIdx = (int)substr($_pm['m'], 5, 2);
+            ?>
+                <tr>
+                    <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
+                    <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
+                    <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </table>
+        <?php endif; ?>
+    </div>
+
+    <div class="dash-tab-panel" id="dash-tab-fideli">
+        <?php if (empty($_dash_top_fideli)): ?>
+            <p style="color:var(--text-muted);font-size:13px;margin-top:14px">Niciun participant cu mai multe cursuri.</p>
+        <?php else: ?>
+            <table class="dash-table">
+                <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
+                    <td>Nume</td><td style="text-align:right">Cursuri</td><td style="text-align:right">Bilete</td>
+                </tr>
+            <?php foreach ($_dash_top_fideli as $_tf): ?>
+                <tr>
+                    <td><?= h($_tf['participant_name'] ?? '') ?></td>
+                    <td style="text-align:right;font-weight:600"><?= (int)($_tf['nr_cursuri'] ?? 0) ?></td>
+                    <td style="text-align:right" class="muted"><?= (int)($_tf['nr_bilete'] ?? 0) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </table>
+        <?php endif; ?>
     </div>
 </div>
 
-<div class="dash-section">
-    <div class="dash-section-title"><span>Evolutie participanti</span></div>
-    <?php if (empty($_dash_participant_months)): ?>
-        <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
-    <?php else: ?>
-        <table class="dash-table">
-            <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
-                <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
-            </tr>
-        <?php foreach ($_dash_participant_months as $_pm):
-            $pmIdx = (int)substr($_pm['m'], 5, 2);
-        ?>
-            <tr>
-                <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
-                <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
-                <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </table>
-    <?php endif; ?>
-</div>
+<script>
+window.DASH_CAL = <?= json_encode([
+    'today' => $_mc_today_str,
+    'coursesByDay' => $_dash_cal_json,
+], JSON_UNESCAPED_UNICODE) ?>;
+</script>
+<script src="/admin/assets/js/admin-dashboard.js?v=1"></script>

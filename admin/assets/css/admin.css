@@ -232,6 +232,23 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
     .mini-cal-event.future { background:#dbeafe; color:#1e40af; }
     .mini-cal-event.past   { background:#f1f5f9; color:#9ca3af; }
     .mini-cal-event.today-ev { background:#1d4ed8; color:#fff; }
+    .dash-cal-nav { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto; }
+    .dash-cal-arrow, .dash-cal-today {
+        display:inline-flex; align-items:center; justify-content:center;
+        min-width:28px; height:28px; padding:0 8px;
+        border:1px solid var(--border); border-radius:6px; background:#fff;
+        font-size:13px; font-weight:600; color:#374151; cursor:pointer;
+        transition:background .15s, border-color .15s;
+    }
+    .dash-cal-arrow:hover, .dash-cal-today:hover { background:#f1f5f9; border-color:#cbd5e1; }
+    .dash-cal-today { font-size:11px; font-weight:700; letter-spacing:.02em; }
+    .dash-cal-label { font-size:12px; font-weight:500; color:var(--text-muted); min-width:140px; text-align:center; }
+    .dash-cal-add { font-size:12px; font-weight:400; color:var(--accent); text-decoration:none; margin-left:4px; }
+    .dash-cal-add:hover { text-decoration:underline; }
+    .dash-stats-section { max-width:560px; }
+    .dash-stats-tabs { margin-bottom:14px; }
+    .dash-tab-panel { display:none; }
+    .dash-tab-panel.active { display:block; }
     .clp-tabs { display:flex; align-items:center; gap:4px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content; }
     .clp-tabs-sep { width:1px; align-self:stretch; margin:4px 2px; background:var(--border); flex-shrink:0; }
     .clp-tab-btn { padding:7px 20px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); transition:all .15s; }
