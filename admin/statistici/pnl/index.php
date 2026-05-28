@@ -193,7 +193,7 @@ include __DIR__ . '/../layout_header.php';
         <input type="number" name="suma" id="cheltuialaSuma" step="0.01" min="0.01" required />
       </div>
       <div class="form-group" id="serviceFeeGroup">
-        <label>Service fee</label>
+        <label>Banca</label>
         <input type="number" id="cheltuialaServiceFee" step="0.01" min="0.01" placeholder="ex: 0,45" />
       </div>
       <div class="pnl-modal-actions">
@@ -864,7 +864,7 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
       setLastDate(body.data);
       const fee = parseFloat(document.getElementById('cheltuialaServiceFee').value);
       if (fee > 0) {
-        await post('add_cheltuiala', { data: body.data, categorie: 'Service fee', suma: fee });
+        await post('add_cheltuiala', { data: body.data, categorie: 'Banca', suma: fee });
       }
       document.getElementById('cheltuialaSuma').value = '';
       document.getElementById('cheltuialaServiceFee').value = '';
