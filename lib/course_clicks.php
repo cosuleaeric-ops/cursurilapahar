@@ -34,6 +34,63 @@ function clp_course_click_count(string $course_id): int
     return (int) ($clicks[$course_id] ?? 0);
 }
 
+function clp_request_user_agent(): string
+{
+    return trim((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+}
+
+function clp_is_bot_user_agent(string $ua): bool
+{
+    if ($ua === '') {
+        return true;
+    }
+
+    $ua_lc = strtolower($ua);
+
+    $patterns = [
+        'bot', 'crawl', 'spider', 'slurp', 'archiver', 'preview', 'prerender',
+        'googlebot', 'bingbot', 'yandex', 'baiduspider', 'duckduckbot', 'applebot',
+        'facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot', 'pinterest',
+        'whatsapp', 'telegrambot', 'discordbot', 'snapchat', 'skypeuripreview',
+        'semrush', 'ahrefs', 'mj12bot', 'dotbot', 'petalbot', 'bytespider',
+        'uptimerobot', 'pingdom', 'statuscake', 'gtmetrix', 'lighthouse',
+        'headlesschrome', 'phantomjs', 'selenium', 'webdriver',
+        'wget', 'curl/', 'python-requests', 'python-urllib', 'go-http-client',
+        'java/', 'libwww-perl', 'httpclient', 'okhttp', 'axios/', 'node-fetch',
+        'scrapy', 'httpunit', 'mechanize', 'aiohttp', 'postman',
+        'ia_archiver', 'archive.org', 'mediapartners-google',
+    ];
+
+    foreach ($patterns as $needle) {
+        if (str_contains($ua_lc, $needle)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/** True only for likely human browser navigations (not crawlers/tools). */
+function clp_should_count_course_click(): bool
+{
+    if (clp_is_bot_user_agent(clp_request_user_agent())) {
+        return false;
+    }
+
+    // Link prefetch / prerender from browsers — not a user click.
+    $purpose = strtolower(trim((string) ($_SERVER['HTTP_PURPOSE'] ?? $_SERVER['HTTP_X_PURPOSE'] ?? '')));
+    if ($purpose !== '' && str_contains($purpose, 'prefetch')) {
+        return false;
+    }
+
+    $sec_purpose = strtolower(trim((string) ($_SERVER['HTTP_SEC_PURPOSE'] ?? '')));
+    if ($sec_purpose !== '' && str_contains($sec_purpose, 'prefetch')) {
+        return false;
+    }
+
+    return true;
+}
+
 function clp_increment_course_click(string $course_id): int
 {
     if ($course_id === '') {

@@ -12,6 +12,9 @@ if ($url === '' || empty($course['active'])) {
     exit;
 }
 
-clp_increment_course_click($id);
+if (clp_should_count_course_click()) {
+    clp_increment_course_click($id);
+}
+
 header('Location: ' . $url, true, 302);
 exit;
