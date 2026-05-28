@@ -145,7 +145,18 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 }
 .course-lt-link:hover { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
 .course-lt-link svg { width: 12px; height: 12px; display: block; }
-.row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.action-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; padding: 0; flex-shrink: 0;
+    color: #6b7280; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+    cursor: pointer; text-decoration: none;
+    transition: color .15s, border-color .15s, background .15s;
+}
+.action-icon-btn svg { width: 14px; height: 14px; display: block; }
+.action-icon-btn:hover { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+.action-icon-btn--danger:hover { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+.row-actions { display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; }
+.row-actions form { display: inline; margin: 0; }
 .discount-tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: middle; }
 .discount-tag--active { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
 .discount-tag--expired { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }

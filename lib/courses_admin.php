@@ -58,7 +58,7 @@ function clp_render_admin_courses_table(array $list): void {
                 <th>Dată</th>
                 <th style="width:100px">Status</th>
                 <th style="width:56px;white-space:nowrap">clicks</th>
-                <th style="width:240px">Acțiuni</th>
+                <th style="width:96px">Acțiuni</th>
             </tr>
         </thead>
         <tbody>
@@ -123,12 +123,18 @@ function clp_render_admin_courses_table(array $list): void {
                 </td>
                 <td>
                     <div class="row-actions">
-                        <a href="/admin/?tab=cursuri&edit=<?= h($cid) ?>" class="btn btn-sm btn-secondary">Editează</a>
-                        <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDiscountRow('<?= h($cid) ?>')">Reducere ▾</button>
+                        <a href="/admin/?tab=cursuri&edit=<?= h($cid) ?>" class="action-icon-btn" title="Editează" aria-label="Editează">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                        </a>
+                        <button type="button" class="action-icon-btn" title="Reducere" aria-label="Reducere" onclick="toggleDiscountRow('<?= h($cid) ?>')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+                        </button>
                         <form method="post" action="/admin/?tab=cursuri" onsubmit="return confirm('Ștergi cursul?')" style="display:inline">
                             <input type="hidden" name="action" value="delete_course">
                             <input type="hidden" name="id" value="<?= h($cid) ?>">
-                            <button type="submit" class="btn btn-sm btn-danger">Șterge</button>
+                            <button type="submit" class="action-icon-btn action-icon-btn--danger" title="Șterge" aria-label="Șterge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                            </button>
                         </form>
                     </div>
                 </td>
