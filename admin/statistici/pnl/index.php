@@ -442,6 +442,7 @@ function renderStats(s) {
 }
 
 // ── Charts ───────────────────────────────────────────────────────────────────
+const TOP_CAT_LIMIT = 5;
 const CAT_COLORS = [
   '#4A90D9','#E8704A','#2A7D4F','#C1444A','#7B5EA7',
   '#D4A017','#E8A87C','#85C1E9','#A9DFBF','#F1948A',
@@ -510,7 +511,7 @@ function renderTopCatChart(withExpenses) {
 
   if (chartTopCat) chartTopCat.destroy();
 
-  const displayData = showAllCategories ? withExpenses : withExpenses.slice(0, 10);
+  const displayData = showAllCategories ? withExpenses : withExpenses.slice(0, TOP_CAT_LIMIT);
   topCatWrap.style.display = '';
   topCatWrap.style.height = (displayData.length * 40 + 40) + 'px';
 
@@ -535,12 +536,12 @@ function renderTopCatChart(withExpenses) {
     },
   });
 
-  if (withExpenses.length <= 10) {
+  if (withExpenses.length <= TOP_CAT_LIMIT) {
     footer.style.display = 'none';
   } else {
     footer.style.display = '';
     btn.textContent = showAllCategories
-      ? 'Arată top 10'
+      ? `Arată top ${TOP_CAT_LIMIT}`
       : `Vezi toate categoriile (${withExpenses.length})`;
   }
 }
