@@ -33,6 +33,7 @@ function clp_section_bg(string $id, array $settings, string $default_img = ''): 
 // ── Load and filter courses ───────────────────────────────────────────────────
 require_once __DIR__ . '/lib/courses.php';
 require_once __DIR__ . '/lib/livetickets.php';
+require_once __DIR__ . '/lib/course_clicks.php';
 
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
@@ -244,7 +245,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     }
                 }
             ?>
-            <a <?= $is_sold_out ? '' : 'href="' . htmlspecialchars($course['livetickets_url']) . '" target="_blank" rel="noopener"' ?> class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
+            <a <?= $is_sold_out ? '' : 'href="' . htmlspecialchars(clp_course_go_url($course['id'] ?? '')) . '" target="_blank" rel="noopener"' ?> class="event-card<?= $is_sold_out ? ' event-card--soldout' : '' ?>">
                 <?php if ($is_sold_out): ?>
                 <div class="sold-out-badge">SOLD OUT</div>
                 <?php endif; ?>

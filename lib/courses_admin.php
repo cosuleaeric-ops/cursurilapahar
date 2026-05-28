@@ -3,6 +3,7 @@
 require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/speakers.php';
 require_once __DIR__ . '/locations.php';
+require_once __DIR__ . '/course_clicks.php';
 
 function clp_allowed_course_times(): array {
     return ['17:00', '17:30', '18:00', '18:30'];
@@ -47,6 +48,7 @@ function clp_courses_admin_context(array $courses, string $edit_id = ''): array 
 
 /** @param list<array<string, mixed>> $list */
 function clp_render_admin_courses_table(array $list): void {
+    $clicks = clp_load_course_clicks();
     ?>
     <table class="wp-table">
         <thead>
@@ -55,6 +57,7 @@ function clp_render_admin_courses_table(array $list): void {
                 <th>Titlu</th>
                 <th>Dată</th>
                 <th style="width:100px">Status</th>
+                <th style="width:80px">Click-uri</th>
                 <th style="width:240px">Acțiuni</th>
             </tr>
         </thead>
@@ -106,6 +109,9 @@ function clp_render_admin_courses_table(array $list): void {
                     </form>
                     <?php endif; ?>
                 </td>
+                <td style="text-align:center;font-variant-numeric:tabular-nums;<?= empty($clicks[$cid]) ? 'color:var(--text-muted)' : 'font-weight:600' ?>">
+                    <?= (int) ($clicks[$cid] ?? 0) ?>
+                </td>
                 <td>
                     <div class="row-actions">
                         <a href="/admin/?tab=cursuri&edit=<?= h($cid) ?>" class="btn btn-sm btn-secondary">Editează</a>
@@ -122,7 +128,7 @@ function clp_render_admin_courses_table(array $list): void {
                 </td>
             </tr>
             <tr id="discount-row-<?= h($cid) ?>" class="discount-edit-row" style="display:none">
-                <td colspan="5">
+                <td colspan="6">
                     <form method="post" action="/admin/?tab=cursuri" class="discount-form">
                         <input type="hidden" name="action" value="save_discount">
                         <input type="hidden" name="id" value="<?= h($cid) ?>">
