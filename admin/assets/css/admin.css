@@ -136,14 +136,11 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .course-thumb { width: 60px; height: 40px; object-fit: cover; border-radius: 6px; display: block; }
 .course-thumb-empty { width: 60px; height: 40px; background: #f1f5f9; border: 1px solid #e5e7eb; border-radius: 6px; }
 .course-title-line { font-weight: 600; line-height: 1.35; }
-.course-lt-link {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 1em; height: 1em; margin: 0; padding: 0; vertical-align: -0.1em;
-    color: #6b7280; border: none; background: none;
-    text-decoration: none; transition: color .15s;
+.course-title-link {
+    color: inherit; font-weight: inherit; text-decoration: none;
+    transition: color .15s;
 }
-.course-lt-link:hover { color: #1d4ed8; }
-.course-lt-link svg { width: 1em; height: 1em; display: block; }
+.course-title-link:hover { color: #1d4ed8; text-decoration: underline; }
 .action-icon-btn {
     display: inline-flex; align-items: center; justify-content: center;
     width: 28px; height: 28px; padding: 0; flex-shrink: 0;
