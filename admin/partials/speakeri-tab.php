@@ -28,7 +28,11 @@
             </tr>
         </thead>
         <tbody>
-        <?php foreach ($_sp_contacted as $c): ?>
+        <?php foreach ($_sp_contacted as $c):
+            $sp_match_idx = clp_find_speaker_index_by_contact($speakers, $c['email'] ?? '', $c['phone'] ?? '');
+            $sp_match_id = $sp_match_idx >= 0 ? ($speakers[$sp_match_idx]['id'] ?? '') : '';
+            $contact_payload = ['id' => $sp_match_id, 'name' => $c['name'], 'email' => $c['email'], 'phone' => $c['phone']];
+        ?>
         <tr data-msg-id="<?= h($c['id']) ?>">
             <td style="font-weight:600"><?= h($c['name']) ?></td>
             <td style="font-size:13px">
@@ -39,7 +43,7 @@
             <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
             <td>
                 <div class="row-actions">
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= h(json_encode(['name'=>$c['name'],'email'=>$c['email'],'phone'=>$c['phone']])) ?>)">Editează</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="spContactatEdit(<?= h(json_encode($contact_payload, JSON_UNESCAPED_UNICODE)) ?>)">Editează</button>
                     <button type="button" class="btn btn-sm btn-danger" onclick="spScoate(this,'<?= h($c['id']) ?>')">Scoate</button>
                 </div>
             </td>

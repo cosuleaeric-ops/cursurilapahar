@@ -622,9 +622,25 @@
                 }
             }
             unset($it);
-            if (!$found) $items[] = $entry;
+            if (!$found) {
+                $idx = clp_find_speaker_index_by_contact($items, $entry['email'], $entry['phone']);
+                if ($idx >= 0) {
+                    $entry['id'] = $items[$idx]['id'] ?? $entry['id'];
+                    if (empty(array_filter($meet)) && !empty($items[$idx]['meet'])) $entry['meet'] = $items[$idx]['meet'];
+                    $items[$idx] = clp_merge_speaker_entries($items[$idx], $entry);
+                } else {
+                    $items[] = $entry;
+                }
+            }
         } else {
-            $items[] = $entry;
+            $idx = clp_find_speaker_index_by_contact($items, $entry['email'], $entry['phone']);
+            if ($idx >= 0) {
+                $entry['id'] = $items[$idx]['id'] ?? $entry['id'];
+                if (empty(array_filter($meet)) && !empty($items[$idx]['meet'])) $entry['meet'] = $items[$idx]['meet'];
+                $items[$idx] = clp_merge_speaker_entries($items[$idx], $entry);
+            } else {
+                $items[] = $entry;
+            }
         }
         save_speakers($items);
         header('Location: /admin/?tab=speakeri&edit=' . urlencode($entry['id']) . '&saved=1');

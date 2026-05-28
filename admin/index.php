@@ -103,7 +103,7 @@ $speakers = $_sp_ctx['speakers'];
 $edit_sp = $_sp_ctx['edit'];
 $edit_sp_id = $_GET['edit'] ?? '';
 $sp_status_colors = clp_speaker_status_colors();
-$_sp_contacted = clp_contacted_message_leads();
+$_sp_contacted = clp_contacted_speaker_leads();
 require __DIR__ . '/partials/speakeri-tab.php';
 ?>
 

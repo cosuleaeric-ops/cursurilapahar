@@ -19,7 +19,7 @@ function spFilter(btn) {
 }
 function spContactatEdit(data) {
     const modal = document.getElementById('sp-modal');
-    modal.querySelector('[name="speaker_id"]').value = '';
+    modal.querySelector('[name="speaker_id"]').value = data.id || '';
     modal.querySelector('[name="sp_name"]').value = data.name || '';
     modal.querySelector('[name="sp_email"]').value = data.email || '';
     modal.querySelector('[name="sp_phone"]').value = data.phone || '';
