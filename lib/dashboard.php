@@ -6,9 +6,6 @@ function clp_dashboard_data(string $admin_dir): array {
     $_dash_active  = count(clp_filter_public_courses($_dash_courses));
 
     $_dash_today = date('Y-m-d');
-    $_dash_upcoming = array_filter(clp_filter_public_courses($_dash_courses), fn($c) => ($c['date_raw'] ?? '') >= $_dash_today);
-    usort($_dash_upcoming, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
-    $_dash_upcoming = array_slice($_dash_upcoming, 0, 6);
 
     $_dash_pnl_profit = 0;
     $_dash_pnl_venituri = 0;
@@ -93,7 +90,7 @@ function clp_dashboard_data(string $admin_dir): array {
     }
 
     return compact(
-        '_dash_courses', '_dash_active', '_dash_upcoming',
+        '_dash_courses', '_dash_active',
         '_dash_pnl_profit', '_dash_pnl_venituri', '_dash_pnl_cheltuieli',
         '_dash_participants', '_dash_total_tickets',
         '_dash_pnl_monthly', '_dash_participant_months',

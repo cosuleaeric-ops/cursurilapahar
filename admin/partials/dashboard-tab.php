@@ -74,53 +74,26 @@ $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->fo
     <div class="mini-cal" id="dashMiniCal"></div>
 </div>
 
-<div class="dash-cols">
-    <div class="dash-section" style="margin-bottom:0">
-        <div class="dash-section-title"><span>Evolutie participanti</span></div>
-        <?php if (empty($_dash_participant_months)): ?>
-            <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
-        <?php else: ?>
-            <table class="dash-table">
-                <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
-                    <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
-                </tr>
-            <?php foreach ($_dash_participant_months as $_pm):
-                $pmIdx = (int)substr($_pm['m'], 5, 2);
-            ?>
-                <tr>
-                    <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
-                    <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
-                    <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
-                </tr>
-            <?php endforeach; ?>
-            </table>
-        <?php endif; ?>
-    </div>
-
-    <div class="dash-section" style="margin-bottom:0">
-        <div class="dash-section-title"><span>Cursuri viitoare</span></div>
-        <?php if (empty($_dash_upcoming)): ?>
-            <p style="color:var(--text-muted);font-size:13px">Niciun curs activ programat.</p>
-        <?php else: ?>
-            <table class="dash-table">
-                <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
-                    <td>Data</td><td>Curs</td>
-                </tr>
-            <?php foreach ($_dash_upcoming as $_uc): ?>
-                <tr>
-                    <td class="muted" style="white-space:nowrap;padding-right:12px"><?= h($_uc['date_display'] ?? $_uc['date_raw'] ?? '') ?></td>
-                    <td style="font-weight:600">
-                        <?php if (!empty($_uc['livetickets_url'])): ?>
-                        <a href="<?= h($_uc['livetickets_url']) ?>" target="_blank" rel="noopener" class="course-title-link"><?= h(clp_course_title_for_card($_uc)) ?></a>
-                        <?php else: ?>
-                        <?= h(clp_course_title_for_card($_uc)) ?>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </table>
-        <?php endif; ?>
-    </div>
+<div class="dash-section" style="margin-bottom:0">
+    <div class="dash-section-title"><span>Evolutie participanti</span></div>
+    <?php if (empty($_dash_participant_months)): ?>
+        <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
+    <?php else: ?>
+        <table class="dash-table">
+            <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
+                <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
+            </tr>
+        <?php foreach ($_dash_participant_months as $_pm):
+            $pmIdx = (int)substr($_pm['m'], 5, 2);
+        ?>
+            <tr>
+                <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
+                <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
+                <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </table>
+    <?php endif; ?>
 </div>
 
 <script>

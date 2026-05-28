@@ -216,10 +216,9 @@ body { background: #f1f5f9; color: #1f2937; font-family: -apple-system, BlinkMac
 .dash-table td { padding: 8px 0; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
 .dash-table tr:last-child td { border-bottom: none; }
 .dash-table .muted { color: var(--text-muted); }
-.dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .dash-chart-wrap { position: relative; height: 200px; }
 .fidel-badge { background: #e8f4fd; color: #2271b1; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr 1fr; } .dash-cols { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr; } }
     .mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e5e7eb; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; }
     .mini-cal-dow { background:#f8fafc; padding:5px 0; text-align:center; font-size:9px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.05em; }
