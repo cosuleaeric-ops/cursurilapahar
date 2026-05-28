@@ -9,7 +9,7 @@ function clp_settings_file(): string
 function clp_default_settings(): array
 {
     return [
-        'announcement'      => '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)',
+        'announcement'      => '🎉 1.300+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)',
         'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
         'hero_btn'          => 'Vezi următoarele cursuri',
         'courses_title'     => 'Următoarele cursuri',
@@ -110,10 +110,13 @@ function clp_load_settings(): array
 
 function clp_migrate_settings(array $settings): array
 {
-    $old = '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. E rândul tău :)';
-    $new = '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)';
-    if (($settings['announcement'] ?? '') === $old) {
-        $settings['announcement'] = $new;
+    $target = '🎉 1.300+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)';
+    $legacy = [
+        '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. E rândul tău :)',
+        '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)',
+    ];
+    if (in_array($settings['announcement'] ?? '', $legacy, true)) {
+        $settings['announcement'] = $target;
         clp_save_settings($settings);
     }
     return $settings;
