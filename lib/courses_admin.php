@@ -57,7 +57,7 @@ function clp_render_admin_courses_table(array $list): void {
                 <th>Titlu</th>
                 <th>Dată</th>
                 <th style="width:100px">Status</th>
-                <th style="width:80px">Click-uri</th>
+                <th style="width:56px;white-space:nowrap">clicks</th>
                 <th style="width:240px">Acțiuni</th>
             </tr>
         </thead>
