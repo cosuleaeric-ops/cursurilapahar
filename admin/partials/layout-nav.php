@@ -83,7 +83,7 @@
                 <span class="nav-icon">🤝</span> Colaborări
             </a>
             <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
-                <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_unread_count > 0): ?><span class="nav-new-badge"><?= $_msg_unread_count ?> <?= $_msg_unread_count === 1 ? 'nou' : 'noi' ?></span><?php endif; ?>
+                <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_pending_count > 0): ?><span class="nav-new-badge"><?= $_msg_pending_count ?></span><?php endif; ?>
             </a>
             <?php if (is_owner()): ?>
             <div class="sidebar-section">Sistem</div>

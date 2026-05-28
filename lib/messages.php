@@ -117,6 +117,12 @@ function clp_load_grouped_messages(): array {
     return ['grouped' => $grouped, 'tab_counts' => $tab_counts];
 }
 
+/** Mesaje fără răspuns: Speakeri neevaluați + Contact/Locații/Parteneriate necitite. */
+function clp_pending_message_count(): int {
+    $data = clp_load_grouped_messages();
+    return array_sum($data['tab_counts']);
+}
+
 /** @return list<array{id: string, name: string, email: string, phone: string}> */
 function clp_contacted_message_leads(): array {
     $meta = load_msg_meta();

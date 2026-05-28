@@ -29,9 +29,7 @@ if (is_authenticated() && $tab === 'cursuri') {
     $clp_ro_months = $_stats_nav['ro_months'];
 }
 
-$_msg_unread_count = 0;
+$_msg_pending_count = is_authenticated() ? clp_pending_message_count() : 0;
 if ($tab === 'mesaje' && is_authenticated()) {
     clp_mark_messages_read();
-} elseif (is_authenticated()) {
-    $_msg_unread_count = clp_unread_message_count();
 }

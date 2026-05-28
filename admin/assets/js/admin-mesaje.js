@@ -56,6 +56,23 @@ function deleteMsg(btn, type, idx) {
         .then(r => r.json())
         .then(d => { if (d.ok) { updateBadgeAfterRemoval(card, type); card.remove(); } });
 }
+function updateNavBadge(delta) {
+    const link = document.querySelector('.wp-sidebar a[href*="tab=mesaje"]');
+    if (!link) return;
+    let badge = link.querySelector('.nav-new-badge');
+    let n = badge ? (parseInt(badge.textContent, 10) || 0) : 0;
+    n = Math.max(0, n + delta);
+    if (n === 0) {
+        if (badge) badge.remove();
+        return;
+    }
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'nav-new-badge';
+        link.appendChild(badge);
+    }
+    badge.textContent = n;
+}
 function updateBadge(tabKey, delta) {
     const tab = document.querySelector('.msg-tab[data-key="' + tabKey + '"]');
     if (!tab) return;
@@ -64,6 +81,7 @@ function updateBadge(tabKey, delta) {
     n = Math.max(0, n + delta);
     span.textContent = n;
     span.style.display = n > 0 ? '' : 'none';
+    updateNavBadge(delta);
 }
 function updateBadgeAfterRemoval(card, type) {
     if (type === 'sustine') {
