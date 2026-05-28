@@ -4,10 +4,8 @@
 
     const DOW = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
     const grid = document.getElementById('dashMiniCal');
-    const label = document.getElementById('dashCalLabel');
     const btnPrev = document.getElementById('dashCalPrev');
     const btnNext = document.getElementById('dashCalNext');
-    const btnToday = document.getElementById('dashCalToday');
     if (!grid) return;
 
     let weekOffset = 0;
@@ -34,10 +32,6 @@
         return `${y}-${m}-${day}`;
     }
 
-    function fmtLabel(d) {
-        return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-    }
-
     function esc(s) {
         return String(s)
             .replace(/&/g, '&amp;')
@@ -48,10 +42,6 @@
 
     function renderCal() {
         const start = addDays(mondayOfCurrentWeek(), weekOffset * 7);
-        const end = addDays(start, 20);
-        if (label) {
-            label.textContent = `${fmtLabel(start)} – ${fmtLabel(end)} ${end.getFullYear()}`;
-        }
 
         let html = DOW.map(d => `<div class="mini-cal-dow">${d}</div>`).join('');
         let cur = new Date(start);
@@ -75,7 +65,6 @@
 
     btnPrev?.addEventListener('click', () => { weekOffset -= 3; renderCal(); });
     btnNext?.addEventListener('click', () => { weekOffset += 3; renderCal(); });
-    btnToday?.addEventListener('click', () => { weekOffset = 0; renderCal(); });
     renderCal();
 
     document.querySelectorAll('[data-dash-tab]').forEach(btn => {
