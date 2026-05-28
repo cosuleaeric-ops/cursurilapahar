@@ -72,7 +72,6 @@ function clp_dashboard_data(string $admin_dir): array {
                 FROM tickets t JOIN courses c ON c.id = t.course_id
                 GROUP BY m ORDER BY m DESC LIMIT 6");
             while ($row = $r->fetchArray(SQLITE3_ASSOC)) $_dash_participant_months[] = $row;
-            $_dash_participant_months = array_reverse($_dash_participant_months);
             $_cdb2->close();
         } catch (Exception $e) {}
     }
