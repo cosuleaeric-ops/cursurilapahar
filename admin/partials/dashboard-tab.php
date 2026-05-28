@@ -43,8 +43,8 @@ if (!empty($_ql)): ?>
 <div class="dash-grid">
     <div class="dash-card accent-blue">
         <div class="dash-label">Cursuri viitoare</div>
-        <div class="dash-value"><?= (int) $_dash_scheduled ?> / <?= number_format($_dash_total_courses, 0, ',', '.') ?></div>
-        <div class="dash-sub">cursuri totale</div>
+        <div class="dash-value"><?= (int) $_dash_scheduled ?></div>
+        <div class="dash-sub">/ <?= number_format($_dash_total_courses, 0, ',', '.') ?> cursuri totale</div>
     </div>
     <div class="dash-card accent-green">
         <div class="dash-label">Participanti unici</div>
