@@ -9,7 +9,7 @@ function clp_settings_file(): string
 function clp_default_settings(): array
 {
     return [
-        'announcement'      => '🎉 Peste 1.000 de participanți au descoperit că educația are un gust mai bun la un pahar. Tu ești următorul?',
+        'announcement'      => '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)',
         'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
         'hero_btn'          => 'Vezi următoarele cursuri',
         'courses_title'     => 'Următoarele cursuri',
@@ -104,7 +104,19 @@ function clp_load_settings(): array
         return clp_default_settings();
     }
     $data = json_decode((string)file_get_contents($file), true) ?: [];
-    return array_merge(clp_default_settings(), $data);
+    $settings = array_merge(clp_default_settings(), $data);
+    return clp_migrate_settings($settings);
+}
+
+function clp_migrate_settings(array $settings): array
+{
+    $old = '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. E rândul tău :)';
+    $new = '🎉 1.000+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)';
+    if (($settings['announcement'] ?? '') === $old) {
+        $settings['announcement'] = $new;
+        clp_save_settings($settings);
+    }
+    return $settings;
 }
 
 function clp_save_settings(array $settings): bool
