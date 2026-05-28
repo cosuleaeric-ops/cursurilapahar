@@ -9,7 +9,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=7">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=8">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -87,7 +87,7 @@ include __DIR__ . '/../layout_header.php';
       <canvas id="chartTopCat"></canvas>
     </div>
     <div class="chart-card-footer" id="topCatFooter" style="display:none">
-      <button type="button" class="btn btn-ghost btn-sm" id="btnAllCategories">Vezi toate categoriile</button>
+      <button type="button" class="chart-toggle-link" id="btnAllCategories">▼ Vezi toate</button>
     </div>
   </div>
 
@@ -541,8 +541,8 @@ function renderTopCatChart(withExpenses) {
   } else {
     footer.style.display = '';
     btn.textContent = showAllCategories
-      ? `Arată top ${TOP_CAT_LIMIT}`
-      : `Vezi toate categoriile (${withExpenses.length})`;
+      ? `▲ Arată top ${TOP_CAT_LIMIT}`
+      : '▼ Vezi toate';
   }
 }
 

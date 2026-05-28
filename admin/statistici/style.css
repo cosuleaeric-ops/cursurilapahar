@@ -56,7 +56,9 @@
 .chart-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .chart-card-header h3 { font-family: 'Crimson Pro', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--text); margin: 0; }
 .chart-card h3 { font-family: 'Crimson Pro', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
-.chart-card-footer { margin-top: 12px; text-align: center; }
+.chart-card-footer { margin-top: 12px; padding-top: 12px; text-align: center; border-top: 1px solid var(--border); }
+.chart-toggle-link { background: none; border: none; padding: 0; font: inherit; font-size: 13px; color: var(--muted); cursor: pointer; }
+.chart-toggle-link:hover { color: var(--text); }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .pnl-modal-wide { max-width: 560px; }
 .pnl-modal-sub { margin: -12px 0 0; font-size: 13px; color: var(--muted); }
