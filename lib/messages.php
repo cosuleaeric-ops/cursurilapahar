@@ -122,6 +122,10 @@ function clp_contacted_message_leads(): array {
     $meta = load_msg_meta();
     $leads = [];
     foreach (clp_read_message_log_blocks() as $block) {
+        preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
+        $type = trim($m[2] ?? 'contact');
+        if ($type !== 'sustine') continue;
+
         $mid = msg_id_from_block($block);
         if (empty($meta[$mid]['contacted'])) continue;
         $fields = clp_parse_message_block_fields($block);
@@ -203,7 +207,6 @@ function clp_render_message_card(string $key, int $i, array $msg, bool $is_owner
                     <button type="button" class="msg-read-btn <?= $is_read ? 'is-active' : '' ?>" onclick="event.stopPropagation();markRead(this)">
                         <?= $is_read ? '✓ Citit' : 'Citit' ?>
                     </button>
-                    <button type="button" class="msg-contact-btn <?= $is_contacted ? 'is-active' : '' ?>" onclick="event.stopPropagation();markContacted(this)"><?= $is_contacted ? '✓ Contactat' : 'Contactat' ?></button>
                     <button type="button" class="msg-delete-btn" onclick="event.stopPropagation();deleteMsg(this,'<?= $h($key) ?>',<?= $i ?>)">Șterge</button>
                 <?php endif; ?>
             </div>
