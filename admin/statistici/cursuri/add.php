@@ -285,7 +285,4 @@ document.getElementById('courseDate').addEventListener('input', function() {
     }
 });
 </script>
-    </main>
-</div>
-</body>
-</html>
+<?php require __DIR__ . '/../layout_footer.php'; ?>

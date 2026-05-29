@@ -87,7 +87,7 @@
             </a>
             <?php if (is_owner()): ?>
             <div class="sidebar-section">Sistem</div>
-            <a href="/admin/statistici/pnl/">
+            <a href="/admin/statistici/pnl/" class="<?= ($tab ?? '') === 'pnl' ? 'active' : '' ?>">
                 <span class="nav-icon">📈</span> P&amp;L Cursuri
             </a>
             <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">

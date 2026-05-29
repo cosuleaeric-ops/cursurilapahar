@@ -964,7 +964,4 @@ init().catch(() => {});
 </script>
 
     </div><!-- /max-width -->
-    </main>
-</div>
-</body>
-</html>
+<?php require __DIR__ . '/../layout_footer.php'; ?>

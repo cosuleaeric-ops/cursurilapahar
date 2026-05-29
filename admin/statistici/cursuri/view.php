@@ -842,7 +842,4 @@ async function extractPdfText(file) {
     }
 })();
 </script>
-    </main>
-</div>
-</body>
-</html>
+<?php require __DIR__ . '/../layout_footer.php'; ?>
