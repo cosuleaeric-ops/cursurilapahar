@@ -114,10 +114,10 @@ function clp_increment_vote_view(string $vote_id): int
 
 function clp_vote_conversion_rate(int $likes, int $views): ?float
 {
-    if ($views <= 0) {
+    if ($likes <= 0 || $views <= 0) {
         return null;
     }
-    return round($likes / $views * 100, 1);
+    return round($views / $likes * 100, 1);
 }
 
 function clp_format_vote_conversion(int $likes, int $views): string
