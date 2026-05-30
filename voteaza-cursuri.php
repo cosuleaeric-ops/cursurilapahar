@@ -326,13 +326,15 @@ function trackVotePageView() {
     const storageKey = 'clp_vote_page_viewed';
     try {
         if (sessionStorage.getItem(storageKey)) return;
-        sessionStorage.setItem(storageKey, '1');
     } catch {
         return;
     }
     fetch('/api/vote_page_view.php', {
         method: 'POST',
         keepalive: true,
+    }).then(res => {
+        if (!res.ok) return;
+        try { sessionStorage.setItem(storageKey, '1'); } catch {}
     }).catch(() => {});
 }
 

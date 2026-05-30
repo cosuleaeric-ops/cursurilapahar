@@ -4,7 +4,6 @@
 <?php
 require_once dirname(__DIR__, 2) . '/lib/vote_views.php';
 $vote_views = clp_load_vote_views();
-$vote_page_views = clp_vote_page_view_count();
 ?>
 
 <!-- Add / Edit form -->
@@ -41,12 +40,9 @@ $vote_page_views = clp_vote_page_view_count();
 
 <!-- Courses table -->
 <div class="card">
-    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>Idei de cursuri (<?= count($vote_courses) ?>)</span>
-        <span style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:400;color:var(--text-muted)">
-            Vizite pagină: <strong style="color:var(--text);font-variant-numeric:tabular-nums"><?= $vote_page_views ?></strong>
-            <a href="/voteaza-cursuri" target="_blank" class="btn btn-sm btn-secondary">Vezi pagina ↗</a>
-        </span>
+        <a href="/voteaza-cursuri" target="_blank" class="btn btn-sm btn-secondary">Vezi pagina ↗</a>
     </div>
     <?php if (empty($vote_courses)): ?>
     <p style="color:var(--text-muted)">Nu există idei de cursuri adăugate încă.</p>
@@ -69,7 +65,7 @@ $vote_page_views = clp_vote_page_view_count();
             $vc_id = $vc['id'] ?? '';
             $vc_likes = (int) ($vc['likes'] ?? 0);
             $vc_views = (int) ($vote_views[$vc_id] ?? 0);
-            $vc_conv = clp_format_vote_conversion($vc_likes, $vote_page_views);
+            $vc_conv = clp_format_vote_conversion($vc_likes, $vc_views);
             ?>
             <tr style="<?= $is_active ? '' : 'opacity:0.45' ?>">
                 <td style="font-size:1.4rem;text-align:center"><?= h($vc['emoji'] ?? '📚') ?></td>
@@ -88,7 +84,7 @@ $vote_page_views = clp_vote_page_view_count();
                 <td>
                     <span class="likes-badge">❤️ <?= $vc_likes ?></span>
                 </td>
-                <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;<?= $vc_conv === '—' ? 'color:var(--text-muted);font-weight:400' : '' ?>" title="Voturi ÷ vizite pagină">
+                <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;<?= $vc_conv === '—' ? 'color:var(--text-muted);font-weight:400' : '' ?>" title="Voturi ÷ vizite">
                     <?= h($vc_conv) ?>
                 </td>
                 <td>
