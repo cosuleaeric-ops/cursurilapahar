@@ -318,8 +318,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.querySelector('.vote-btn[data-id="' + id + '"]');
         if (btn) applyVoted(btn, true);
     });
+    trackVotePageView();
     trackVoteViews();
 });
+
+function trackVotePageView() {
+    const storageKey = 'clp_vote_page_viewed';
+    try {
+        if (sessionStorage.getItem(storageKey)) return;
+        sessionStorage.setItem(storageKey, '1');
+    } catch {
+        return;
+    }
+    fetch('/api/vote_page_view.php', {
+        method: 'POST',
+        keepalive: true,
+    }).catch(() => {});
+}
 
 function trackVoteViews() {
     const cards = document.querySelectorAll('.vote-card');

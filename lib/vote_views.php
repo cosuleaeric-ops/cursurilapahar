@@ -20,11 +20,54 @@ function clp_load_vote_views(): array
     }
     $out = [];
     foreach ($data as $id => $count) {
-        if (is_string($id) && is_numeric($count)) {
-            $out[$id] = (int) $count;
+        if ($id === '__page__' || !is_string($id) || !is_numeric($count)) {
+            continue;
         }
+        $out[$id] = (int) $count;
     }
     return $out;
+}
+
+function clp_vote_page_view_count(): int
+{
+    $file = clp_vote_views_file();
+    if (!file_exists($file)) {
+        return 0;
+    }
+    $data = json_decode(file_get_contents($file), true);
+    if (!is_array($data)) {
+        return 0;
+    }
+    return (int) ($data['__page__'] ?? 0);
+}
+
+function clp_increment_vote_page_view(): int
+{
+    $file = clp_vote_views_file();
+    $dir = dirname($file);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+
+    $fp = fopen($file, 'c+');
+    if (!$fp) {
+        return 0;
+    }
+
+    flock($fp, LOCK_EX);
+    $raw = stream_get_contents($fp);
+    $views = $raw !== false && $raw !== '' ? (json_decode($raw, true) ?: []) : [];
+    $views['__page__'] = (int) ($views['__page__'] ?? 0) + 1;
+    $new = $views['__page__'];
+
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, json_encode($views, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    fflush($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+
+    return $new;
 }
 
 function clp_vote_view_count(string $vote_id): int
@@ -83,8 +126,7 @@ function clp_format_vote_conversion(int $likes, int $views): string
     if ($rate === null) {
         return '—';
     }
-    $formatted = number_format($rate, 1, ',', '.');
-    return rtrim(rtrim($formatted, '0'), ',') . '%';
+    return number_format($rate, 1, ',', '') . '%';
 }
 
 function clp_vote_course_exists(string $vote_id): bool

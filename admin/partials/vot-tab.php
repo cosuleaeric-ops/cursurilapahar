@@ -3,7 +3,7 @@
 <?php endif; ?>
 <?php
 require_once dirname(__DIR__, 2) . '/lib/vote_views.php';
-$vote_views = clp_load_vote_views();
+$vote_page_views = clp_vote_page_view_count();
 ?>
 
 <!-- Add / Edit form -->
@@ -52,7 +52,7 @@ $vote_views = clp_load_vote_views();
             <tr>
                 <th style="width:48px">Emoji</th>
                 <th>Nume</th>
-                <th style="width:64px;white-space:nowrap">views</th>
+                <th style="width:64px;white-space:nowrap">Vizite</th>
                 <th style="width:72px;white-space:nowrap">Voturi</th>
                 <th style="width:72px;white-space:nowrap">Conv.</th>
                 <th style="width:210px">Acțiuni</th>
@@ -64,8 +64,7 @@ $vote_views = clp_load_vote_views();
             $is_active = $vc['active'] ?? true;
             $vc_id = $vc['id'] ?? '';
             $vc_likes = (int) ($vc['likes'] ?? 0);
-            $vc_views = (int) ($vote_views[$vc_id] ?? 0);
-            $vc_conv = clp_format_vote_conversion($vc_likes, $vc_views);
+            $vc_conv = clp_format_vote_conversion($vc_likes, $vote_page_views);
             ?>
             <tr style="<?= $is_active ? '' : 'opacity:0.45' ?>">
                 <td style="font-size:1.4rem;text-align:center"><?= h($vc['emoji'] ?? '📚') ?></td>
@@ -78,13 +77,13 @@ $vote_views = clp_load_vote_views();
                     <div style="font-size:12px;color:var(--text-muted);font-weight:400;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px"><?= h(mb_substr($vc['description'], 0, 80)) ?>…</div>
                     <?php endif; ?>
                 </td>
-                <td style="text-align:center;font-variant-numeric:tabular-nums;<?= $vc_views === 0 ? 'color:var(--text-muted)' : '' ?>">
-                    <?= $vc_views ?>
+                <td style="text-align:center;font-variant-numeric:tabular-nums;<?= $vote_page_views === 0 ? 'color:var(--text-muted)' : '' ?>">
+                    <?= $vote_page_views ?>
                 </td>
                 <td>
                     <span class="likes-badge">❤️ <?= $vc_likes ?></span>
                 </td>
-                <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;<?= $vc_conv === '—' ? 'color:var(--text-muted);font-weight:400' : '' ?>" title="Voturi ÷ views">
+                <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;<?= $vc_conv === '—' ? 'color:var(--text-muted);font-weight:400' : '' ?>" title="Voturi ÷ vizite pagină">
                     <?= h($vc_conv) ?>
                 </td>
                 <td>
