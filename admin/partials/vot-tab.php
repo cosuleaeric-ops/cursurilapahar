@@ -84,7 +84,7 @@ $vote_views = clp_load_vote_views();
                 <td>
                     <span class="likes-badge">❤️ <?= $vc_likes ?></span>
                 </td>
-                <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;<?= $vc_conv === '—' ? 'color:var(--text-muted);font-weight:400' : '' ?>" title="Vizite ÷ voturi">
+                <td style="text-align:center;font-variant-numeric:tabular-nums;font-weight:600;<?= $vc_conv === '—' ? 'color:var(--text-muted);font-weight:400' : '' ?>" title="Voturi ÷ vizite">
                     <?= h($vc_conv) ?>
                 </td>
                 <td>
