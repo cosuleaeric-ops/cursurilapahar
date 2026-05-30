@@ -3,6 +3,7 @@
 <?php endif; ?>
 <?php
 require_once dirname(__DIR__, 2) . '/lib/vote_views.php';
+$vote_views = clp_load_vote_views();
 $vote_page_views = clp_vote_page_view_count();
 ?>
 
@@ -40,9 +41,12 @@ $vote_page_views = clp_vote_page_view_count();
 
 <!-- Courses table -->
 <div class="card">
-    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <span>Idei de cursuri (<?= count($vote_courses) ?>)</span>
-        <a href="/voteaza-cursuri" target="_blank" class="btn btn-sm btn-secondary">Vezi pagina ↗</a>
+        <span style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:400;color:var(--text-muted)">
+            Vizite pagină: <strong style="color:var(--text);font-variant-numeric:tabular-nums"><?= $vote_page_views ?></strong>
+            <a href="/voteaza-cursuri" target="_blank" class="btn btn-sm btn-secondary">Vezi pagina ↗</a>
+        </span>
     </div>
     <?php if (empty($vote_courses)): ?>
     <p style="color:var(--text-muted)">Nu există idei de cursuri adăugate încă.</p>
@@ -64,6 +68,7 @@ $vote_page_views = clp_vote_page_view_count();
             $is_active = $vc['active'] ?? true;
             $vc_id = $vc['id'] ?? '';
             $vc_likes = (int) ($vc['likes'] ?? 0);
+            $vc_views = (int) ($vote_views[$vc_id] ?? 0);
             $vc_conv = clp_format_vote_conversion($vc_likes, $vote_page_views);
             ?>
             <tr style="<?= $is_active ? '' : 'opacity:0.45' ?>">
@@ -77,8 +82,8 @@ $vote_page_views = clp_vote_page_view_count();
                     <div style="font-size:12px;color:var(--text-muted);font-weight:400;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px"><?= h(mb_substr($vc['description'], 0, 80)) ?>…</div>
                     <?php endif; ?>
                 </td>
-                <td style="text-align:center;font-variant-numeric:tabular-nums;<?= $vote_page_views === 0 ? 'color:var(--text-muted)' : '' ?>">
-                    <?= $vote_page_views ?>
+                <td style="text-align:center;font-variant-numeric:tabular-nums;<?= $vc_views === 0 ? 'color:var(--text-muted)' : '' ?>">
+                    <?= $vc_views ?>
                 </td>
                 <td>
                     <span class="likes-badge">❤️ <?= $vc_likes ?></span>
