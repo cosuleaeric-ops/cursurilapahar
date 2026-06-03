@@ -606,7 +606,14 @@ td span[style*="background:#e5e7eb"] {
 }
 .mkt-add-toggle:hover { border-color: var(--border-strong); color: var(--text); background: var(--bg-warm); }
 .mkt-add-toggle[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-.mkt-list { list-style: none; margin: 0; padding: 0; columns: 2 360px; column-gap: 28px; }
+.mkt-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+}
 .mkt-item {
     display: flex;
     align-items: flex-start;
@@ -614,8 +621,6 @@ td span[style*="background:#e5e7eb"] {
     padding: 6px 4px;
     border-radius: 6px;
     transition: background .12s;
-    break-inside: avoid;
-    page-break-inside: avoid;
 }
 .mkt-item:hover { background: var(--bg-warm); }
 .mkt-item:hover .mkt-delete { opacity: 1; }
@@ -749,5 +754,5 @@ td span[style*="background:#e5e7eb"] {
 .mkt-competitori .comp-grid { max-width: none; }
 
 @media (max-width: 900px) {
-    .mkt-list { columns: 1; }
+    .mkt-list { grid-template-columns: 1fr; }
 }
