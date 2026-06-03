@@ -573,7 +573,11 @@ td span[style*="background:#e5e7eb"] {
 }
 
 /* ── Marketing (Notion-style post ideas) ── */
-.mkt-page { max-width: 720px; }
+.mkt-page { max-width: none; }
+.mkt-page > .mkt-title,
+.mkt-page > .mkt-lead,
+.mkt-page > .mkt-section,
+.mkt-page > .mkt-add-section { max-width: 720px; }
 .mkt-breadcrumb { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 .mkt-breadcrumb a { color: var(--text-muted); text-decoration: none; }
 .mkt-breadcrumb a:hover { color: var(--accent); }
@@ -715,6 +719,7 @@ td span[style*="background:#e5e7eb"] {
     margin-top: 40px;
     padding-top: 28px;
     border-top: 1px solid var(--border);
-    max-width: 100%;
+    width: 100%;
+    max-width: none;
 }
 .mkt-competitori .comp-grid { max-width: none; }
