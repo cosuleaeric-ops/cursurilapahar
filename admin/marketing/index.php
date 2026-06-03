@@ -93,9 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id .= '-' . substr(clp_marketing_new_id(), 0, 4);
             }
             $data['sections'][] = [
-                'id'    => $id,
-                'title' => $title,
-                'items' => [],
+                'id'          => $id,
+                'title'       => $title,
+                'items'       => [],
+                'is_default'  => false,
             ];
             clp_marketing_save($data);
         }
@@ -103,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete_section') {
         $sectionId = trim($_POST['section_id'] ?? '');
-        if ($sectionId !== '' && $sectionId !== 'video') {
+        if ($sectionId !== '' && count($data['sections']) > 1) {
             $data['sections'] = array_values(array_filter(
                 $data['sections'],
                 fn($s) => ($s['id'] ?? '') !== $sectionId
@@ -119,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $marketing = clp_marketing_load();
+$mktSectionCount = count($marketing['sections']);
 $csrf = csrf_token();
 ?>
 <!DOCTYPE html>
@@ -166,7 +168,7 @@ $csrf = csrf_token();
     <section class="mkt-section" data-section="<?= h($section['id']) ?>">
         <div class="mkt-section-head">
             <h2 class="mkt-section-title"><?= h($section['title']) ?></h2>
-            <?php if (($section['id'] ?? '') !== 'video'): ?>
+            <?php if ($mktSectionCount > 1): ?>
             <form method="post" class="mkt-section-delete-form" onsubmit="return confirm('Ștergi secțiunea «<?= h(addslashes($section['title'])) ?>» și toate ideile din ea?');">
                 <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
                 <input type="hidden" name="action" value="delete_section">

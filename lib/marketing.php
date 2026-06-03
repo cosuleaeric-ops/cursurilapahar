@@ -6,7 +6,7 @@ function clp_marketing_load(): array
 {
     $default = [
         'sections' => [
-            ['id' => 'video', 'title' => 'Video', 'items' => []],
+            ['id' => 'video', 'title' => 'Video', 'items' => [], 'is_default' => true],
         ],
     ];
     $file = clp_marketing_file();
@@ -18,14 +18,28 @@ function clp_marketing_load(): array
         return $default;
     }
     $changed = false;
+    $hasDefault = false;
     foreach ($data['sections'] as &$section) {
         if (($section['id'] ?? '') === 'postari') {
             $section['id'] = 'video';
             $section['title'] = 'Video';
             $changed = true;
         }
+        if (!empty($section['is_default'])) {
+            $hasDefault = true;
+        }
     }
     unset($section);
+    if (!$hasDefault) {
+        foreach ($data['sections'] as &$section) {
+            if (($section['id'] ?? '') === 'video') {
+                $section['is_default'] = true;
+                $changed = true;
+                break;
+            }
+        }
+        unset($section);
+    }
     if ($changed) {
         clp_marketing_save($data);
     }

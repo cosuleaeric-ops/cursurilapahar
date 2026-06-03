@@ -3,6 +3,7 @@
         {
             "id": "video",
             "title": "Video",
+            "is_default": true,
             "items": []
         }
     ]
