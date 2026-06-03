@@ -5,13 +5,14 @@ require __DIR__ . '/../auth_check.php';
 require_once dirname(__DIR__, 2) . '/lib/admin.php';
 require_once dirname(__DIR__, 2) . '/lib/messages.php';
 require_once dirname(__DIR__, 2) . '/lib/marketing.php';
+require_once dirname(__DIR__, 2) . '/lib/competitors.php';
 
 if (!is_authenticated() || !can_access_tab('competitori')) {
     header('Location: /admin/');
     exit;
 }
 
-$tab = 'marketing';
+$tab = 'competitori';
 $_msg_pending_count = clp_pending_message_count();
 $settings = load_settings();
 
@@ -113,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $marketing = clp_marketing_load();
 $mktSectionCount = count($marketing['sections']);
+$_competitors = clp_competitors_list();
 $csrf = csrf_token();
 ?>
 <!DOCTYPE html>
@@ -147,12 +149,6 @@ $csrf = csrf_token();
 <?php require dirname(__DIR__) . '/partials/layout-nav.php'; ?>
 
 <div class="mkt-page">
-    <nav class="mkt-breadcrumb">
-        <a href="/admin/?tab=competitori">Competitori</a>
-        <span>/</span>
-        <span>Marketing</span>
-    </nav>
-
     <h1 class="mkt-title">Marketing</h1>
     <p class="mkt-lead">Idei de postări — bifează când e gata, adaugă text și opțional un link.</p>
 
@@ -221,6 +217,11 @@ $csrf = csrf_token();
         <input type="text" name="title" placeholder="Nume secțiune nouă (ex. Video)" autocomplete="off">
         <button type="submit" class="btn btn-secondary btn-sm">+ Secțiune</button>
     </form>
+
+    <section id="competitori" class="mkt-competitori">
+        <h2 class="mkt-section-title">Competitori</h2>
+        <?php require dirname(__DIR__) . '/partials/competitori-grid.inc.php'; ?>
+    </section>
 </div>
 
     </main>

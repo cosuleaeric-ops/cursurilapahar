@@ -711,3 +711,10 @@ td span[style*="background:#e5e7eb"] {
     border-radius: var(--radius);
     font-size: 14px;
 }
+.mkt-competitori {
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    max-width: 100%;
+}
+.mkt-competitori .comp-grid { max-width: none; }

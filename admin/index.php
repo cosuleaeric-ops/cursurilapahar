@@ -94,7 +94,7 @@ require __DIR__ . '/partials/vot-tab.php';
 ?>
 
 <?php elseif ($tab === 'competitori'): ?>
-<?php $_competitors = clp_competitors_list(); require __DIR__ . '/partials/competitori-tab.php'; ?>
+<?php header('Location: /admin/marketing/'); exit; ?>
 
 <?php elseif ($tab === 'speakeri'): ?>
 <?php
