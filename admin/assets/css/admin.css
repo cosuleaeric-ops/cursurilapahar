@@ -689,6 +689,7 @@ td span[style*="background:#e5e7eb"] {
 }
 .mkt-show-done:hover { background: var(--bg-warm); color: var(--text); }
 .mkt-done-list { margin-top: 2px; }
+.mkt-done-list[hidden] { display: none !important; }
 .mkt-add-form {
     display: flex;
     align-items: flex-start;
