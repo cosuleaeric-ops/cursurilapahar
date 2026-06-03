@@ -6,7 +6,7 @@ function clp_marketing_load(): array
 {
     $default = [
         'sections' => [
-            ['id' => 'postari', 'title' => 'Postări', 'items' => []],
+            ['id' => 'video', 'title' => 'Video', 'items' => []],
         ],
     ];
     $file = clp_marketing_file();
@@ -16,6 +16,18 @@ function clp_marketing_load(): array
     $data = json_decode((string)file_get_contents($file), true);
     if (!is_array($data) || empty($data['sections']) || !is_array($data['sections'])) {
         return $default;
+    }
+    $changed = false;
+    foreach ($data['sections'] as &$section) {
+        if (($section['id'] ?? '') === 'postari') {
+            $section['id'] = 'video';
+            $section['title'] = 'Video';
+            $changed = true;
+        }
+    }
+    unset($section);
+    if ($changed) {
+        clp_marketing_save($data);
     }
     return $data;
 }
