@@ -494,10 +494,9 @@ include __DIR__ . '/../layout_header.php';
       <!-- Viză bilete -->
       <div class="section-card" style="margin-bottom:0">
         <h3>Viză bilete</h3>
-        <form method="post" enctype="multipart/form-data" id="vizaUploadForm">
+        <form method="post" enctype="multipart/form-data" id="vizaUploadForm" onsubmit="return false">
           <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
           <input type="hidden" name="action" value="upload_viza">
-          <input type="hidden" name="viza_text" id="vizaTextInput">
           <div class="upload-zone" id="vizaUploadZone">
             <input type="file" name="viza" accept=".pdf" onchange="handleVizaUpload(this)">
             <p id="vizaUploadLabel"><?php echo empty($vizaFiles) ? 'Trage sau apasa pentru a incarca Viză PDF' : 'Inlocuieste viză'; ?></p>
@@ -720,17 +719,53 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = '/admin/statistici/js/pdf.worker.min.js
 async function handleVizaUpload(input) {
     const file = input.files[0];
     if (!file) return;
+    const form = document.getElementById('vizaUploadForm');
+    const csrf = form.querySelector('[name="csrf_token"]').value;
+    const url = window.location.pathname + window.location.search;
     const label = document.getElementById('vizaUploadLabel');
+    const defaultLabel = label.textContent;
+    input.disabled = true;
+
     label.textContent = '⏳ Extrag date din PDF…';
+    let text = '';
     try {
-        const text = await extractPdfText(file);
+        text = await extractPdfText(file);
         if (!text.trim()) throw new Error('Textul extras este gol');
-        document.getElementById('vizaTextInput').value = text;
-    } catch(e) {
+    } catch (e) {
         alert('Eroare extragere PDF: ' + e.message);
-        document.getElementById('vizaTextInput').value = '';
+        input.value = '';
+        input.disabled = false;
+        label.textContent = defaultLabel;
+        return;
     }
-    document.getElementById('vizaUploadForm').submit();
+
+    try {
+        label.textContent = '⏳ Incarc PDF…';
+        const uploadFd = new FormData();
+        uploadFd.append('csrf_token', csrf);
+        uploadFd.append('action', 'upload_viza');
+        uploadFd.append('viza', file);
+        const uploadResp = await fetch(url, { method: 'POST', body: uploadFd, credentials: 'same-origin', redirect: 'manual' });
+        if (uploadResp.status !== 0 && uploadResp.status !== 302 && uploadResp.status !== 303 && !uploadResp.ok) {
+            throw new Error('Upload PDF eșuat');
+        }
+
+        label.textContent = '⏳ Salvez date extrase…';
+        const parseFd = new FormData();
+        parseFd.append('csrf_token', csrf);
+        parseFd.append('action', 'reprocess_viza');
+        parseFd.append('viza_text', text);
+        const parseResp = await fetch(url, { method: 'POST', body: parseFd, credentials: 'same-origin', redirect: 'manual' });
+        if (parseResp.status !== 0 && parseResp.status !== 302 && parseResp.status !== 303 && !parseResp.ok) {
+            throw new Error('Salvare date extrase eșuată');
+        }
+
+        window.location.href = url;
+    } catch (e) {
+        alert('Eroare la încărcarea vizei: ' + e.message + '. Poți apăsa „Extrage date”.');
+        input.disabled = false;
+        label.textContent = defaultLabel;
+    }
 }
 
 async function extractPdfText(file) {
