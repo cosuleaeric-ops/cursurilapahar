@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-/** @return array{sections: list<array{id: string, title: string, items: list<array{id: string, text: string, link: string, done: bool}>}>} */
+/** @return array{sections: list<array{id: string, title: string, is_default?: bool, items: list<array{id: string, text: string, link: string, done: bool}>}>} */
 function clp_marketing_load(): array
 {
     $default = [
@@ -17,33 +17,72 @@ function clp_marketing_load(): array
     if (!is_array($data) || empty($data['sections']) || !is_array($data['sections'])) {
         return $default;
     }
+
+    [$data, $changed] = clp_marketing_normalize($data);
+    if ($changed) {
+        clp_marketing_save($data);
+    }
+    return $data;
+}
+
+/** @param array{sections: list<array<string, mixed>>} $data */
+function clp_marketing_normalize(array $data): array
+{
     $changed = false;
+
+    // Migrare veche: un singur bloc „postari” devine Video
+    if (count($data['sections']) === 1 && ($data['sections'][0]['id'] ?? '') === 'postari') {
+        $data['sections'][0]['id'] = 'video';
+        $data['sections'][0]['title'] = 'Video';
+        $data['sections'][0]['is_default'] = true;
+        $changed = true;
+    }
+
+    $usedIds = [];
     $hasDefault = false;
     foreach ($data['sections'] as &$section) {
-        if (($section['id'] ?? '') === 'postari') {
-            $section['id'] = 'video';
-            $section['title'] = 'Video';
+        $id = trim((string)($section['id'] ?? ''));
+        if ($id === '') {
+            $id = clp_marketing_new_id();
+            $section['id'] = $id;
             $changed = true;
         }
+
+        while (isset($usedIds[$id])) {
+            $id = $id . '-' . substr(clp_marketing_new_id(), 0, 4);
+            $section['id'] = $id;
+            $changed = true;
+        }
+        $usedIds[$id] = true;
+
         if (!empty($section['is_default'])) {
-            $hasDefault = true;
+            if ($hasDefault) {
+                $section['is_default'] = false;
+                $changed = true;
+            } else {
+                $hasDefault = true;
+            }
         }
     }
     unset($section);
+
     if (!$hasDefault) {
         foreach ($data['sections'] as &$section) {
             if (($section['id'] ?? '') === 'video') {
                 $section['is_default'] = true;
+                $hasDefault = true;
                 $changed = true;
                 break;
             }
         }
         unset($section);
+        if (!$hasDefault && !empty($data['sections'])) {
+            $data['sections'][0]['is_default'] = true;
+            $changed = true;
+        }
     }
-    if ($changed) {
-        clp_marketing_save($data);
-    }
-    return $data;
+
+    return [$data, $changed];
 }
 
 function clp_marketing_save(array $data): void
@@ -68,6 +107,38 @@ function clp_marketing_file(): string
 function clp_marketing_new_id(): string
 {
     return bin2hex(random_bytes(8));
+}
+
+/** @param array{sections: list<array<string, mixed>>} $data */
+function clp_marketing_unique_section_id(array $data, string $baseId): string
+{
+    $existing = array_column($data['sections'], 'id');
+    $id = $baseId;
+    while (in_array($id, $existing, true)) {
+        $id = $baseId . '-' . substr(clp_marketing_new_id(), 0, 4);
+    }
+    return $id;
+}
+
+/** @param array{sections: list<array<string, mixed>>} $data */
+function clp_marketing_delete_section(array $data, string $sectionId): array
+{
+    if ($sectionId === '' || count($data['sections']) <= 1) {
+        return $data;
+    }
+    $removed = false;
+    $sections = [];
+    foreach ($data['sections'] as $section) {
+        if (!$removed && ($section['id'] ?? '') === $sectionId) {
+            $removed = true;
+            continue;
+        }
+        $sections[] = $section;
+    }
+    if ($removed && !empty($sections)) {
+        $data['sections'] = array_values($sections);
+    }
+    return $data;
 }
 
 /** @return array{id: string, title: string, items: list<array{id: string, text: string, link: string, done: bool}>}|null */

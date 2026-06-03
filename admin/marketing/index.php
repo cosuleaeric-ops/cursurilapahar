@@ -87,11 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_section') {
         $title = trim($_POST['title'] ?? '');
         if ($title !== '') {
-            $id = clp_marketing_slug($title);
-            $existing = array_column($data['sections'], 'id');
-            if (in_array($id, $existing, true)) {
-                $id .= '-' . substr(clp_marketing_new_id(), 0, 4);
-            }
+            $id = clp_marketing_unique_section_id($data, clp_marketing_slug($title));
             $data['sections'][] = [
                 'id'          => $id,
                 'title'       => $title,
@@ -104,14 +100,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete_section') {
         $sectionId = trim($_POST['section_id'] ?? '');
-        if ($sectionId !== '' && count($data['sections']) > 1) {
-            $data['sections'] = array_values(array_filter(
-                $data['sections'],
-                fn($s) => ($s['id'] ?? '') !== $sectionId
-            ));
-            if (!empty($data['sections'])) {
-                clp_marketing_save($data);
-            }
+        $before = count($data['sections']);
+        $data = clp_marketing_delete_section($data, $sectionId);
+        if (count($data['sections']) < $before) {
+            clp_marketing_save($data);
         }
     }
 
