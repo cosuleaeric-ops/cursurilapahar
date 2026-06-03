@@ -69,7 +69,7 @@
             <a href="/admin/?tab=competitori" class="<?= $tab === 'competitori' ? 'active' : '' ?>">
                 <span class="nav-icon">🔍</span> Competitori
             </a>
-            <a href="/admin/marketing/" class="sidebar-sub <?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">
+            <a href="/admin/marketing/" class="<?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">
                 <span class="nav-icon">📣</span> Marketing
             </a>
             <div class="sidebar-section">Management</div>

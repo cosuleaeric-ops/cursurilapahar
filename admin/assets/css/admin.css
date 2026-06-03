@@ -570,15 +570,6 @@ td span[style*="background:#e5e7eb"] {
     border-radius: var(--radius-pill) !important;
 }
 
-/* ── Sidebar sub-link (Marketing under Competitori) ── */
-.wp-sidebar nav a.sidebar-sub {
-    padding: 8px 16px 8px 36px;
-    margin: 0 8px;
-    font-size: 13px;
-    opacity: .92;
-}
-.wp-sidebar nav a.sidebar-sub .nav-icon { font-size: 14px; width: 18px; }
-
 /* ── Marketing (Notion-style post ideas) ── */
 .mkt-page { max-width: 720px; }
 .mkt-breadcrumb { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
@@ -613,7 +604,7 @@ td span[style*="background:#e5e7eb"] {
     flex-shrink: 0;
     transition: border-color .12s, background .12s;
 }
-.mkt-check-box--ghost { opacity: .35; margin-top: 8px; }
+.mkt-check-box--ghost { opacity: .35; margin-top: 2px; }
 .mkt-check input:checked + .mkt-check-box {
     background: var(--accent);
     border-color: var(--accent);
@@ -652,18 +643,24 @@ td span[style*="background:#e5e7eb"] {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-top: 6px;
-    padding: 4px;
+    margin-top: 4px;
+    padding: 2px 4px;
 }
-.mkt-add-fields { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mkt-add-fields { flex: 1; display: flex; flex-direction: column; gap: 0; min-width: 0; }
 .mkt-add-fields input {
     width: 100%;
     border: none;
     border-bottom: 1px solid transparent;
     background: transparent;
     font-size: 15px;
-    padding: 6px 4px;
+    line-height: 1.35;
+    padding: 3px 4px;
     color: var(--text);
+}
+.mkt-add-fields input[name="link"] {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding-top: 0;
 }
 .mkt-add-fields input::placeholder { color: #9ca3af; }
 .mkt-add-fields input:focus {

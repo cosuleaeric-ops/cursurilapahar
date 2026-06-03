@@ -4,20 +4,30 @@
         const linkInput = form.querySelector('input[name="link"]');
         if (!textInput) return;
 
-        form.addEventListener('submit', function (e) {
+        function trySubmit(e) {
             const text = (textInput.value || '').trim();
             const link = linkInput ? (linkInput.value || '').trim() : '';
             if (!text && !link) {
-                e.preventDefault();
+                if (e) e.preventDefault();
                 textInput.focus();
+                return;
+            }
+            if (e) e.preventDefault();
+            form.submit();
+        }
+
+        form.addEventListener('submit', trySubmit);
+
+        textInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                trySubmit(e);
             }
         });
 
         if (linkInput) {
             linkInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
-                    e.preventDefault();
-                    form.requestSubmit();
+                    trySubmit(e);
                 }
             });
         }

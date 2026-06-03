@@ -118,7 +118,7 @@ $csrf = csrf_token();
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=16">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=17">
 </head>
 <body>
 
@@ -179,7 +179,6 @@ $csrf = csrf_token();
                 <input type="text" name="text" placeholder="Ideea de postare…" autocomplete="off">
                 <input type="url" name="link" placeholder="Link (opțional)" autocomplete="off">
             </div>
-            <button type="submit" class="btn btn-primary btn-sm">Adaugă</button>
         </form>
     </section>
     <?php endforeach; ?>
@@ -196,6 +195,6 @@ $csrf = csrf_token();
 </div>
 
 <script src="/admin/assets/js/admin-common.js?v=3"></script>
-<script src="/admin/assets/js/admin-marketing.js?v=1"></script>
+<script src="/admin/assets/js/admin-marketing.js?v=2"></script>
 </body>
 </html>
