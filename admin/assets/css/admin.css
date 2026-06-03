@@ -577,7 +577,7 @@ td span[style*="background:#e5e7eb"] {
 .mkt-page > .mkt-title,
 .mkt-page > .mkt-lead,
 .mkt-page > .mkt-section,
-.mkt-page > .mkt-add-section { max-width: 720px; }
+.mkt-page > .mkt-add-section { max-width: 980px; }
 .mkt-breadcrumb { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 .mkt-breadcrumb a { color: var(--text-muted); text-decoration: none; }
 .mkt-breadcrumb a:hover { color: var(--accent); }
@@ -606,7 +606,7 @@ td span[style*="background:#e5e7eb"] {
 }
 .mkt-add-toggle:hover { border-color: var(--border-strong); color: var(--text); background: var(--bg-warm); }
 .mkt-add-toggle[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-.mkt-list { list-style: none; margin: 0; padding: 0; }
+.mkt-list { list-style: none; margin: 0; padding: 0; columns: 2 360px; column-gap: 28px; }
 .mkt-item {
     display: flex;
     align-items: flex-start;
@@ -614,6 +614,8 @@ td span[style*="background:#e5e7eb"] {
     padding: 6px 4px;
     border-radius: 6px;
     transition: background .12s;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 .mkt-item:hover { background: var(--bg-warm); }
 .mkt-item:hover .mkt-delete { opacity: 1; }
@@ -745,3 +747,7 @@ td span[style*="background:#e5e7eb"] {
     max-width: none;
 }
 .mkt-competitori .comp-grid { max-width: none; }
+
+@media (max-width: 900px) {
+    .mkt-list { columns: 1; }
+}
