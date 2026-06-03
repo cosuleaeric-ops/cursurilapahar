@@ -581,7 +581,25 @@ td span[style*="background:#e5e7eb"] {
 .mkt-title { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 6px; color: var(--text); }
 .mkt-lead { font-size: 14px; color: var(--text-muted); margin: 0 0 28px; }
 .mkt-section { margin-bottom: 36px; }
-.mkt-section-title { font-size: 18px; font-weight: 600; margin: 0 0 10px; color: var(--text); }
+.mkt-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.mkt-section-title { font-size: 18px; font-weight: 600; margin: 0; color: var(--text); }
+.mkt-section-delete-form { margin: 0; flex-shrink: 0; }
+.mkt-section-delete {
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+.mkt-section-delete:hover { color: var(--danger); background: #fef2f2; }
 .mkt-list { list-style: none; margin: 0; padding: 0; }
 .mkt-item {
     display: flex;

@@ -101,12 +101,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'delete_section') {
+        $sectionId = trim($_POST['section_id'] ?? '');
+        if (count($data['sections']) > 1 && $sectionId !== '') {
+            $data['sections'] = array_values(array_filter(
+                $data['sections'],
+                fn($s) => ($s['id'] ?? '') !== $sectionId
+            ));
+            if (!empty($data['sections'])) {
+                clp_marketing_save($data);
+            }
+        }
+    }
+
     header('Location: /admin/marketing/');
     exit;
 }
 
 $marketing = clp_marketing_load();
 $csrf = csrf_token();
+$mktSectionCount = count($marketing['sections']);
 ?>
 <!DOCTYPE html>
 <html lang="ro" data-theme="corporate">
@@ -151,7 +165,17 @@ $csrf = csrf_token();
 
     <?php foreach ($marketing['sections'] as $section): ?>
     <section class="mkt-section" data-section="<?= h($section['id']) ?>">
-        <h2 class="mkt-section-title"><?= h($section['title']) ?></h2>
+        <div class="mkt-section-head">
+            <h2 class="mkt-section-title"><?= h($section['title']) ?></h2>
+            <?php if ($mktSectionCount > 1): ?>
+            <form method="post" class="mkt-section-delete-form" onsubmit="return confirm('Ștergi secțiunea «<?= h(addslashes($section['title'])) ?>» și toate ideile din ea?');">
+                <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
+                <input type="hidden" name="action" value="delete_section">
+                <input type="hidden" name="section_id" value="<?= h($section['id']) ?>">
+                <button type="submit" class="mkt-section-delete">Șterge secțiunea</button>
+            </form>
+            <?php endif; ?>
+        </div>
 
         <ul class="mkt-list">
             <?php foreach ($section['items'] as $item): ?>
