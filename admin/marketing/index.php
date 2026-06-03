@@ -12,7 +12,7 @@ if (!is_authenticated() || !can_access_tab('competitori')) {
     exit;
 }
 
-$tab = 'competitori';
+$tab = 'marketing';
 $_msg_pending_count = clp_pending_message_count();
 $settings = load_settings();
 

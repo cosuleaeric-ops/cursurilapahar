@@ -66,8 +66,8 @@
             <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
                 <span class="nav-icon">❤️</span> Vot cursuri
             </a>
-            <a href="/admin/marketing/" class="<?= ($tab === 'competitori' || ($tab ?? '') === 'marketing') ? 'active' : '' ?>">
-                <span class="nav-icon">🔍</span> Competitori
+            <a href="/admin/marketing/" class="<?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">
+                <span class="nav-icon">📣</span> Marketing
             </a>
             <div class="sidebar-section">Management</div>
             <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
