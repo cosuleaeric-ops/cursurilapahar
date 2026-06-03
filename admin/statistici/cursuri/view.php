@@ -39,36 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf_token'] ?? '')) { http_response_code(400); exit('CSRF invalid'); }
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'upload_viza') {
-        $file = $_FILES['viza'] ?? null;
-        if ($file && $file['error'] === UPLOAD_ERR_OK) {
-            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if ($ext === 'pdf') {
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-                $safeName = bin2hex(random_bytes(10)) . '-' . $id . '.pdf';
-                if (move_uploaded_file($file['tmp_name'], $uploadDir . $safeName)) {
-                    $ins = $db->prepare('INSERT INTO course_files (course_id, filename, original_name, file_type, uploaded_at) VALUES (:cid, :fn, :on, \'viza\', :now)');
-                    $ins->bindValue(':cid', $id, SQLITE3_INTEGER);
-                    $ins->bindValue(':fn',  $safeName, SQLITE3_TEXT);
-                    $ins->bindValue(':on',  $file['name'], SQLITE3_TEXT);
-                    $ins->bindValue(':now', date('Y-m-d H:i:s'), SQLITE3_TEXT);
-                    $ins->execute();
-                }
-            } else { $error = 'Doar fișiere PDF sunt acceptate.'; }
-        } else { $error = 'Eroare la upload.'; }
-        if (!$error) { header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit; }
-    }
-
-    if ($action === 'delete_viza') {
-        $fid = (int)($_POST['file_id'] ?? 0);
-        $row = $db->querySingle("SELECT filename FROM course_files WHERE id={$fid} AND course_id={$id}", true);
-        if ($row) {
-            @unlink($uploadDir . $row['filename']);
-            $db->exec("DELETE FROM course_files WHERE id={$fid}");
-        }
-        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
-    }
-
     if ($action === 'update_participants') {
         $participantsJson = $_POST['participants_json'] ?? '[]';
         $participants = json_decode($participantsJson, true);
