@@ -1,5 +1,9 @@
 <h1 class="wp-page-title">Competitori</h1>
 
+<p style="margin:-12px 0 20px">
+    <a href="/admin/marketing/" class="btn btn-secondary btn-sm">📣 Marketing — idei de postări</a>
+</p>
+
 <div class="comp-grid">
 <?php foreach ($_competitors as $_c): ?>
 <div class="comp-card">
