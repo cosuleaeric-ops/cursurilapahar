@@ -696,6 +696,7 @@ td span[style*="background:#e5e7eb"] {
     gap: 10px;
     margin: -2px 0 8px;
     padding: 2px 4px;
+    max-width: calc((100% - 28px) / 2);
 }
 .mkt-add-form[hidden] { display: none; }
 .mkt-add-fields { flex: 1; display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
@@ -756,4 +757,5 @@ td span[style*="background:#e5e7eb"] {
 
 @media (max-width: 900px) {
     .mkt-list { grid-template-columns: 1fr; }
+    .mkt-add-form { max-width: none; }
 }
