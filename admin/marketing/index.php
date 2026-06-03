@@ -115,10 +115,25 @@ $csrf = csrf_token();
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Marketing — Admin</title>
 <?php if (!empty($settings['favicon_path'])): ?><link rel="icon" href="<?= h($settings['favicon_path']) ?>"><?php endif; ?>
-<link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
-<script>tailwind={config:{corePlugins:{preflight:false}}}</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=17">
+<?php $adminCssVer = (string)@filemtime(dirname(__DIR__) . '/assets/css/admin.css'); ?>
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=<?= h($adminCssVer ?: '18') ?>">
+<style>
+/* DaisyUI nu e încărcat aici; forțăm înălțime Notion pe inputs */
+.mkt-page .mkt-add-fields input {
+    min-height: 0 !important;
+    height: 22px !important;
+    padding: 0 4px !important;
+    margin: 0 !important;
+    line-height: 22px !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+}
+.mkt-page .mkt-add-fields { gap: 0 !important; row-gap: 0 !important; }
+.mkt-page .mkt-add-form { align-items: flex-start !important; padding: 2px 4px !important; }
+.mkt-page .mkt-check-box--ghost { margin-top: 2px !important; }
+</style>
 </head>
 <body>
 
@@ -177,7 +192,7 @@ $csrf = csrf_token();
             <span class="mkt-check-box mkt-check-box--ghost" aria-hidden="true"></span>
             <div class="mkt-add-fields">
                 <input type="text" name="text" placeholder="Ideea de postare…" autocomplete="off">
-                <input type="url" name="link" placeholder="Link (opțional)" autocomplete="off">
+                <input type="text" name="link" placeholder="Link (opțional)" autocomplete="off" inputmode="url">
             </div>
         </form>
     </section>

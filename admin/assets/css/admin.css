@@ -107,7 +107,9 @@ body {
     font-weight: 600;
 }
 .wp-sidebar nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-.sidebar-section { padding: 12px 16px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; font-weight: 700; opacity: .85; }
+.sidebar-section { padding: 8px 16px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; font-weight: 700; opacity: .85; }
+.sidebar-nav-tight a { margin: 2px 8px; }
+.sidebar-nav-tight a + a { margin-top: 0; }
 .sidebar-section.collapsible { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding-right: 14px; }
 .sidebar-section.collapsible::after { content: '▾'; font-size: 11px; transition: transform .2s; }
 .sidebar-section.collapsible.collapsed::after { transform: rotate(-90deg); }
@@ -647,20 +649,26 @@ td span[style*="background:#e5e7eb"] {
     padding: 2px 4px;
 }
 .mkt-add-fields { flex: 1; display: flex; flex-direction: column; gap: 0; min-width: 0; }
-.mkt-add-fields input {
+.mkt-page .mkt-add-fields input {
     width: 100%;
     border: none;
     border-bottom: 1px solid transparent;
     background: transparent;
     font-size: 15px;
-    line-height: 1.35;
-    padding: 3px 4px;
+    line-height: 22px;
+    height: 22px;
+    min-height: 0;
+    padding: 0 4px;
+    margin: 0;
     color: var(--text);
+    box-shadow: none;
+    border-radius: 0;
 }
-.mkt-add-fields input[name="link"] {
+.mkt-page .mkt-add-fields input[name="link"] {
     font-size: 13px;
     color: var(--text-muted);
-    padding-top: 0;
+    line-height: 20px;
+    height: 20px;
 }
 .mkt-add-fields input::placeholder { color: #9ca3af; }
 .mkt-add-fields input:focus {
@@ -673,8 +681,8 @@ td span[style*="background:#e5e7eb"] {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-top: 12px;
-    padding-top: 20px;
+    margin-top: 16px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
 }
 .mkt-add-section input {
