@@ -139,7 +139,8 @@ $csrf = csrf_token();
     background: transparent !important;
     border-radius: 0 !important;
 }
-.mkt-page .mkt-add-fields { gap: 0 !important; row-gap: 0 !important; }
+.mkt-page .mkt-add-fields { flex-direction: row !important; gap: 12px !important; row-gap: 0 !important; }
+.mkt-page .mkt-add-fields input[name="link"] { flex: 0 0 240px !important; }
 .mkt-page .mkt-add-form { align-items: flex-start !important; padding: 2px 4px !important; }
 .mkt-page .mkt-check-box--ghost { margin-top: 2px !important; }
 </style>
