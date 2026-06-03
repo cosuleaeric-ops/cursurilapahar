@@ -33,6 +33,25 @@
         }
     });
 
+    document.querySelectorAll('.mkt-add-toggle').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const section = button.closest('.mkt-section');
+            const form = section ? section.querySelector('.mkt-add-form') : null;
+            if (!form) return;
+
+            const isHidden = form.hasAttribute('hidden');
+            if (isHidden) {
+                form.removeAttribute('hidden');
+                button.setAttribute('aria-expanded', 'true');
+                const textInput = form.querySelector('input[name="text"]');
+                if (textInput) textInput.focus();
+            } else {
+                form.setAttribute('hidden', '');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+
     document.querySelectorAll('.mkt-show-done').forEach(function (button) {
         button.addEventListener('click', function () {
             const list = button.nextElementSibling;

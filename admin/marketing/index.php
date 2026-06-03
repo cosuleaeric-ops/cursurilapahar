@@ -161,7 +161,19 @@ $csrf = csrf_token();
     <section class="mkt-section" data-section="<?= h($section['id']) ?>">
         <div class="mkt-section-head">
             <h2 class="mkt-section-title"><?= h($section['title']) ?></h2>
+            <button type="button" class="mkt-add-toggle" aria-expanded="false">+</button>
         </div>
+
+        <form method="post" class="mkt-add-form" hidden>
+            <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
+            <input type="hidden" name="action" value="add_item">
+            <input type="hidden" name="section_id" value="<?= h($section['id']) ?>">
+            <span class="mkt-check-box mkt-check-box--ghost" aria-hidden="true"></span>
+            <div class="mkt-add-fields">
+                <input type="text" name="text" placeholder="Ideea de postare…" autocomplete="off">
+                <input type="text" name="link" placeholder="Link (opțional)" autocomplete="off" inputmode="url">
+            </div>
+        </form>
 
         <ul class="mkt-list">
             <?php foreach ($openItems as $item): ?>
@@ -229,17 +241,6 @@ $csrf = csrf_token();
             <?php endforeach; ?>
         </ul>
         <?php endif; ?>
-
-        <form method="post" class="mkt-add-form">
-            <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
-            <input type="hidden" name="action" value="add_item">
-            <input type="hidden" name="section_id" value="<?= h($section['id']) ?>">
-            <span class="mkt-check-box mkt-check-box--ghost" aria-hidden="true"></span>
-            <div class="mkt-add-fields">
-                <input type="text" name="text" placeholder="Ideea de postare…" autocomplete="off">
-                <input type="text" name="link" placeholder="Link (opțional)" autocomplete="off" inputmode="url">
-            </div>
-        </form>
     </section>
     <?php endforeach; ?>
 
@@ -260,6 +261,6 @@ $csrf = csrf_token();
 </div>
 
 <script src="/admin/assets/js/admin-common.js?v=3"></script>
-<script src="/admin/assets/js/admin-marketing.js?v=3"></script>
+<script src="/admin/assets/js/admin-marketing.js?v=4"></script>
 </body>
 </html>
