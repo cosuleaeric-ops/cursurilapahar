@@ -113,7 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $marketing = clp_marketing_load();
-$mktSectionCount = count($marketing['sections']);
 $_competitors = clp_competitors_list();
 $csrf = csrf_token();
 ?>
@@ -154,22 +153,19 @@ $csrf = csrf_token();
     <p class="mkt-lead">Idei de postări — bifează când e gata, adaugă text și opțional un link.</p>
 
     <?php foreach ($marketing['sections'] as $section): ?>
+    <?php
+        $sectionItems = $section['items'] ?? [];
+        $openItems = array_values(array_filter($sectionItems, fn($item) => empty($item['done'])));
+        $doneItems = array_values(array_filter($sectionItems, fn($item) => !empty($item['done'])));
+    ?>
     <section class="mkt-section" data-section="<?= h($section['id']) ?>">
         <div class="mkt-section-head">
             <h2 class="mkt-section-title"><?= h($section['title']) ?></h2>
-            <?php if ($mktSectionCount > 1): ?>
-            <form method="post" class="mkt-section-delete-form" onsubmit="return confirm('Ștergi secțiunea «<?= h(addslashes($section['title'])) ?>» și toate ideile din ea?');">
-                <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
-                <input type="hidden" name="action" value="delete_section">
-                <input type="hidden" name="section_id" value="<?= h($section['id']) ?>">
-                <button type="submit" class="mkt-section-delete">Șterge secțiunea</button>
-            </form>
-            <?php endif; ?>
         </div>
 
         <ul class="mkt-list">
-            <?php foreach ($section['items'] as $item): ?>
-            <li class="mkt-item<?= !empty($item['done']) ? ' is-done' : '' ?>">
+            <?php foreach ($openItems as $item): ?>
+            <li class="mkt-item">
                 <form method="post" class="mkt-toggle-form">
                     <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
                     <input type="hidden" name="action" value="toggle_item">
@@ -181,11 +177,10 @@ $csrf = csrf_token();
                     </label>
                 </form>
                 <div class="mkt-item-body">
-                    <?php if (!empty($item['text'])): ?>
-                    <span class="mkt-item-text"><?= h($item['text']) ?></span>
-                    <?php endif; ?>
                     <?php if (!empty($item['link'])): ?>
-                    <a href="<?= h($item['link']) ?>" target="_blank" rel="noopener" class="mkt-item-link"><?= h($item['link']) ?></a>
+                    <a href="<?= h($item['link']) ?>" target="_blank" rel="noopener" class="mkt-item-text mkt-item-text-link"><?= h($item['text'] ?: $item['link']) ?></a>
+                    <?php elseif (!empty($item['text'])): ?>
+                    <span class="mkt-item-text"><?= h($item['text']) ?></span>
                     <?php endif; ?>
                 </div>
                 <form method="post" class="mkt-delete-form" onsubmit="return confirm('Ștergi această idee?');">
@@ -198,6 +193,42 @@ $csrf = csrf_token();
             </li>
             <?php endforeach; ?>
         </ul>
+
+        <?php if (!empty($doneItems)): ?>
+        <button type="button" class="mkt-show-done" data-show-label="Arată postările finalizate (<?= count($doneItems) ?>)" data-hide-label="Ascunde postările finalizate">
+            Arată postările finalizate (<?= count($doneItems) ?>)
+        </button>
+        <ul class="mkt-list mkt-done-list" hidden>
+            <?php foreach ($doneItems as $item): ?>
+            <li class="mkt-item is-done">
+                <form method="post" class="mkt-toggle-form">
+                    <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
+                    <input type="hidden" name="action" value="toggle_item">
+                    <input type="hidden" name="section_id" value="<?= h($section['id']) ?>">
+                    <input type="hidden" name="item_id" value="<?= h($item['id']) ?>">
+                    <label class="mkt-check">
+                        <input type="checkbox" checked onchange="this.form.submit()">
+                        <span class="mkt-check-box"></span>
+                    </label>
+                </form>
+                <div class="mkt-item-body">
+                    <?php if (!empty($item['link'])): ?>
+                    <a href="<?= h($item['link']) ?>" target="_blank" rel="noopener" class="mkt-item-text mkt-item-text-link"><?= h($item['text'] ?: $item['link']) ?></a>
+                    <?php elseif (!empty($item['text'])): ?>
+                    <span class="mkt-item-text"><?= h($item['text']) ?></span>
+                    <?php endif; ?>
+                </div>
+                <form method="post" class="mkt-delete-form" onsubmit="return confirm('Ștergi această idee?');">
+                    <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
+                    <input type="hidden" name="action" value="delete_item">
+                    <input type="hidden" name="section_id" value="<?= h($section['id']) ?>">
+                    <input type="hidden" name="item_id" value="<?= h($item['id']) ?>">
+                    <button type="submit" class="mkt-delete" title="Șterge" aria-label="Șterge">&times;</button>
+                </form>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
 
         <form method="post" class="mkt-add-form">
             <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
@@ -229,6 +260,6 @@ $csrf = csrf_token();
 </div>
 
 <script src="/admin/assets/js/admin-common.js?v=3"></script>
-<script src="/admin/assets/js/admin-marketing.js?v=2"></script>
+<script src="/admin/assets/js/admin-marketing.js?v=3"></script>
 </body>
 </html>

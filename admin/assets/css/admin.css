@@ -593,17 +593,6 @@ td span[style*="background:#e5e7eb"] {
     margin-bottom: 10px;
 }
 .mkt-section-title { font-size: 18px; font-weight: 600; margin: 0; color: var(--text); }
-.mkt-section-delete-form { margin: 0; flex-shrink: 0; }
-.mkt-section-delete {
-    border: none;
-    background: none;
-    color: var(--text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-}
-.mkt-section-delete:hover { color: var(--danger); background: #fef2f2; }
 .mkt-list { list-style: none; margin: 0; padding: 0; }
 .mkt-item {
     display: flex;
@@ -639,6 +628,8 @@ td span[style*="background:#e5e7eb"] {
 }
 .mkt-item-body { flex: 1; min-width: 0; font-size: 15px; line-height: 1.45; padding-top: 1px; }
 .mkt-item-text { color: var(--text); }
+.mkt-item-text-link { color: var(--accent); text-decoration: none; }
+.mkt-item-text-link:hover { text-decoration: underline; }
 .mkt-item.is-done .mkt-item-text,
 .mkt-item.is-done .mkt-item-link { color: #9ca3af; text-decoration: line-through; }
 .mkt-item-link {
@@ -663,6 +654,21 @@ td span[style*="background:#e5e7eb"] {
     border-radius: 4px;
 }
 .mkt-delete:hover { color: var(--danger); background: #fef2f2; }
+.mkt-show-done {
+    display: inline-flex;
+    align-items: center;
+    margin: 6px 0 4px 32px;
+    padding: 3px 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.mkt-show-done:hover { background: var(--bg-warm); color: var(--text); }
+.mkt-done-list { margin-top: 2px; }
 .mkt-add-form {
     display: flex;
     align-items: flex-start;
