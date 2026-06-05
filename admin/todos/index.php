@@ -79,32 +79,32 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/admin/assets/css/admin.css?v=28">
 <style>
-.todos-grid { display: flex; flex-direction: column; gap: 42px; }
+.todos-grid { display: flex; flex-direction: column; gap: 26px; }
 .todo-list-block { }
-.todo-list-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
-.todo-list-circle { width: 17px; height: 17px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
-.todo-list-name { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.todo-list-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.todo-list-circle { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+.todo-list-name { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
 .todo-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 8px 8px 8px 3px; border-radius: 8px; transition: background .1s; }
+.todo-item { display: flex; align-items: flex-start; gap: 11px; padding: 5px 8px 5px 3px; border-radius: 8px; transition: background .1s; }
 .todo-item:hover { background: var(--bg); }
 .todo-check { flex-shrink: 0; margin: 1px 0 0; display: flex; }
 .todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
-.todo-text { flex: 1; font-size: 15px; color: var(--text); line-height: 1.45; }
+.todo-text { flex: 1; font-size: 15px; color: var(--text); line-height: 1.4; }
 .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
 .todo-del { opacity: 0; flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; padding: 0 4px; transition: opacity .15s, color .15s; }
 .todo-item:hover .todo-del { opacity: 1; }
 .todo-del:hover { color: var(--danger); }
-.todo-empty { color: var(--text-muted); font-size: 14px; padding: 6px 3px; }
+.todo-empty { color: var(--text-muted); font-size: 14px; padding: 5px 3px; }
 
 /* completed collapsible */
-.todo-completed { margin-top: 2px; }
-.todo-completed > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 8px 3px; font-size: 14px; color: var(--text-muted); user-select: none; }
+.todo-completed { margin-top: 0; }
+.todo-completed > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 11px; padding: 5px 3px; font-size: 14px; color: var(--text-muted); user-select: none; }
 .todo-completed > summary::-webkit-details-marker { display: none; }
 .todo-completed-check { width: 18px; height: 18px; border-radius: 4px; background: var(--success); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; flex-shrink: 0; }
 .todo-completed-items { display: flex; flex-direction: column; }
 
-.todo-add { margin-top: 12px; }
-.todo-add-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 15px; padding: 6px 3px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.todo-add { margin-top: 6px; }
+.todo-add-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 15px; padding: 5px 3px; display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
 .todo-add-link:hover { text-decoration: underline; }
 .todo-add-checkmark { width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 4px; flex-shrink: 0; }
 .todo-add-form { display: none; gap: 8px; margin-top: 8px; padding: 0 3px; }
