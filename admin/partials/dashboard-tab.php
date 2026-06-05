@@ -128,19 +128,6 @@ if (!empty($_ql)): ?>
 </div>
 <?php endif; ?>
 
-<!-- Stats cards -->
-<div class="dash-grid">
-    <div class="dash-card accent-blue">
-        <div class="dash-label">Cursuri programate</div>
-        <div class="dash-value"><?= (int) $_dash_scheduled ?></div>
-        <div class="dash-sub">/ <?= number_format($_dash_total_courses, 0, ',', '.') ?> cursuri totale</div>
-    </div>
-    <div class="dash-card accent-green">
-        <div class="dash-label">Participanti unici</div>
-        <div class="dash-value"><?= number_format($_dash_participants, 0, ',', '.') ?></div>
-        <div class="dash-sub"><?= number_format($_dash_total_tickets, 0, ',', '.') ?> bilete total</div>
-    </div>
-</div>
 
 <?php
 $_dash_cal_json = [];
