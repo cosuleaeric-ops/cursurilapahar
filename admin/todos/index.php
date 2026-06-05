@@ -101,8 +101,12 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-list-circle { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
 .todo-list-name { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
 .todo-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.todo-item { display: flex; align-items: center; gap: 11px; padding: 5px 8px 5px 3px; border-radius: 8px; transition: background .1s; }
+.todo-item { display: flex; align-items: center; gap: 11px; padding: 7px 10px 7px 8px; border-radius: 8px; transition: background .1s; }
 .todo-item:hover { background: var(--bg); }
+.todo-item.a-eric6 { background: #eff6ff; }
+.todo-item.a-andy  { background: #f0fdf4; }
+.todo-item.a-eric6:hover { background: #dbeafe; }
+.todo-item.a-andy:hover  { background: #dcfce7; }
 .todo-check { flex-shrink: 0; margin: 0; display: flex; }
 .todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
 .todo-text { font-size: 15px; color: var(--text); line-height: 1.4; }
@@ -159,7 +163,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 <div class="todos-single">
     <ul class="todo-items">
     <?php foreach ($pending as $todo): ?>
-        <li class="todo-item">
+        <li class="todo-item a-<?= h($todo['assigned_to'] ?? '') ?>">
             <form method="post" action="/admin/todos/" class="todo-check">
                 <input type="hidden" name="action" value="toggle_todo">
                 <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
@@ -185,7 +189,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
         <summary><span class="todo-completed-check">✓</span> <?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></summary>
         <ul class="todo-items todo-completed-items">
         <?php foreach ($done as $todo): ?>
-            <li class="todo-item">
+            <li class="todo-item a-<?= h($todo['assigned_to'] ?? '') ?>">
                 <form method="post" action="/admin/todos/" class="todo-check">
                     <input type="hidden" name="action" value="toggle_todo">
                     <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
