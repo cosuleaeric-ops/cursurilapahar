@@ -3,45 +3,86 @@
 <?php
 $_dash_todo_user = clp_current_user()['username'] ?? '';
 $_dash_todos_all = clp_load_todos();
-$_dash_my_todos  = array_values(array_filter($_dash_todos_all, fn($t) => $t['assigned_to'] === $_dash_todo_user && !$t['completed']));
-$_dash_my_todos  = array_slice($_dash_my_todos, 0, 5);
-if (is_owner()) {
-    $all_users_td = load_users();
-    $_dash_td_other = [];
-    foreach ($all_users_td as $_u) {
-        if ($_u['username'] === $_dash_todo_user) continue;
-        $_cnt = count(array_filter($_dash_todos_all, fn($t) => $t['assigned_to'] === $_u['username'] && !$t['completed']));
-        if ($_cnt > 0) $_dash_td_other[] = ['username' => $_u['username'], 'count' => $_cnt];
-    }
+$_dash_is_owner  = is_owner();
+
+// Build per-user pending lists (max 5 preview)
+$_dash_all_users_td = load_users();
+$_dash_td_cols = [];
+foreach ($_dash_all_users_td as $_u) {
+    $uname = $_u['username'];
+    $pending = array_values(array_filter($_dash_todos_all, fn($t) => $t['assigned_to'] === $uname && !$t['completed']));
+    $_dash_td_cols[$uname] = array_slice($pending, 0, 5);
 }
+$_dash_td_user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 ?>
-<div class="dash-section" style="margin-bottom:20px">
-    <div class="dash-section-title" style="margin-bottom:12px">
-        <span>To-dos ale mele</span>
+
+<?php if ($_dash_is_owner): ?>
+<!-- OWNER: two-column todos, full width -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+<?php foreach ($_dash_td_cols as $_uname => $_ulist):
+    $_dot = $_dash_td_user_colors[$_uname] ?? '#6b7280';
+?>
+<div class="dash-section" style="margin:0">
+    <div class="dash-section-title" style="margin-bottom:10px">
+        <span style="display:inline-flex;align-items:center;gap:7px">
+            <span style="width:10px;height:10px;border-radius:50%;background:<?= h($_dot) ?>;display:inline-block;flex-shrink:0"></span>
+            <?= h(ucfirst($_uname)) ?>
+        </span>
         <a href="/admin/todos/" style="font-size:12px;font-weight:500;color:var(--accent);margin-left:auto;text-decoration:none">Toate →</a>
     </div>
-    <?php if (empty($_dash_my_todos)): ?>
-        <p style="color:var(--text-muted);font-size:13px">Nicio sarcină în așteptare.</p>
+    <?php if (empty($_ulist)): ?>
+        <p style="color:var(--text-muted);font-size:13px">Nicio sarcină.</p>
     <?php else: ?>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-        <?php foreach ($_dash_my_todos as $_dt): ?>
+        <?php foreach ($_ulist as $_dt): ?>
             <li style="display:flex;align-items:flex-start;gap:8px;font-size:13px">
-                <span style="color:var(--accent);margin-top:2px">☐</span>
+                <span style="color:var(--accent);margin-top:1px;flex-shrink:0">☐</span>
                 <span style="color:var(--text)"><?= h($_dt['title']) ?></span>
             </li>
         <?php endforeach; ?>
         </ul>
     <?php endif; ?>
-    <?php if (!empty($_dash_td_other)): ?>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap">
-        <?php foreach ($_dash_td_other as $_uo): ?>
-            <a href="/admin/todos/" style="font-size:12px;color:var(--text-muted);text-decoration:none">
-                <?= h(ucfirst($_uo['username'])) ?>: <strong style="color:var(--text)"><?= $_uo['count'] ?></strong> în așteptare
-            </a>
-        <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
 </div>
+<?php endforeach; ?>
+</div>
+
+<?php else: ?>
+<!-- ANDY: todos 50% + stats 50% in one row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;align-items:start">
+    <div class="dash-section" style="margin:0">
+        <div class="dash-section-title" style="margin-bottom:10px">
+            <span>To-dos ale mele</span>
+            <a href="/admin/todos/" style="font-size:12px;font-weight:500;color:var(--accent);margin-left:auto;text-decoration:none">Toate →</a>
+        </div>
+        <?php $_dash_andy_list = $_dash_td_cols[$_dash_todo_user] ?? []; ?>
+        <?php if (empty($_dash_andy_list)): ?>
+            <p style="color:var(--text-muted);font-size:13px">Nicio sarcină.</p>
+        <?php else: ?>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+            <?php foreach ($_dash_andy_list as $_dt): ?>
+                <li style="display:flex;align-items:flex-start;gap:8px;font-size:13px">
+                    <span style="color:var(--accent);margin-top:1px;flex-shrink:0">☐</span>
+                    <span style="color:var(--text)"><?= h($_dt['title']) ?></span>
+                </li>
+            <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </div>
+    <!-- Stats cards inline for Andy -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="dash-card accent-blue" style="margin:0">
+            <div class="dash-label">Cursuri programate</div>
+            <div class="dash-value"><?= (int) $_dash_scheduled ?></div>
+            <div class="dash-sub">/ <?= number_format($_dash_total_courses, 0, ',', '.') ?> cursuri totale</div>
+        </div>
+        <div class="dash-card accent-green" style="margin:0">
+            <div class="dash-label">Participanti unici</div>
+            <div class="dash-value"><?= number_format($_dash_participants, 0, ',', '.') ?></div>
+            <div class="dash-sub"><?= number_format($_dash_total_tickets, 0, ',', '.') ?> bilete total</div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php
 $_ql = $settings['quick_links'] ?? [];
@@ -82,7 +123,8 @@ if (!empty($_ql)): ?>
 </div>
 <?php endif; ?>
 
-<!-- Stats cards -->
+<?php if ($_dash_is_owner): ?>
+<!-- Stats cards (owner only — Andy sees these inline next to todos above) -->
 <div class="dash-grid">
     <div class="dash-card accent-blue">
         <div class="dash-label">Cursuri programate</div>
@@ -95,6 +137,7 @@ if (!empty($_ql)): ?>
         <div class="dash-sub"><?= number_format($_dash_total_tickets, 0, ',', '.') ?> bilete total</div>
     </div>
 </div>
+<?php endif; ?>
 
 <?php
 $_dash_cal_json = [];
