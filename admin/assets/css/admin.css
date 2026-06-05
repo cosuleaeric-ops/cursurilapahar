@@ -131,20 +131,12 @@ body {
     padding: 40px 46px 52px;
     box-shadow: var(--shadow);
 }
-.bc-doc--canvas {
-    max-width: 1200px;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    padding: 30px 6px 20px;
-    box-shadow: none;
-}
+.bc-doc--home { max-width: 1180px; }
 .bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; letter-spacing: .01em; }
 .bc-doc-top .bc-doc-sep { opacity: .5; margin: 0 2px; }
 .bc-home-link { color: var(--accent); text-decoration: none; }
 .bc-home-link:hover { text-decoration: underline; }
 .wp-page-title { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 24px; letter-spacing: -0.04em; line-height: 1.1; }
-.bc-doc--canvas .wp-page-title { margin-bottom: 22px; }
 
 /* ── Basecamp home card grid ── */
 .bc-home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px 28px; margin-bottom: 8px; align-items: start; }
