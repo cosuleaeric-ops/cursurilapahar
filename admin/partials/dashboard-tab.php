@@ -91,7 +91,7 @@ foreach ($_ql as $_ql_item) {
 if (!empty($_ql)): ?>
 <div class="ql-grid">
     <?php if (!empty($_ql_general)): ?>
-    <div class="dash-section" style="margin:0;grid-column:span 1">
+    <div class="dash-section" style="margin:0">
         <div class="dash-section-title"><span>Linkuri utile</span></div>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
         <?php foreach ($_ql_general as $_ql_item): ?>
@@ -104,7 +104,7 @@ if (!empty($_ql)): ?>
     </div>
     <?php endif; ?>
     <?php if (!empty($_ql_canva)): ?>
-    <div class="dash-section" style="margin:0;grid-column:span 2">
+    <div class="dash-section" style="margin:0">
         <div class="dash-section-title"><span>Canva</span></div>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
         <?php foreach ($_ql_canva as $_ql_item): ?>

@@ -363,7 +363,7 @@ body {
 .clr-alpha { display: none !important; }
 .ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-btn);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
 .ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
-.ql-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:24px; }
+.ql-grid { display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px; }
 @media (max-width: 900px) { .ql-grid { grid-template-columns:1fr; } }
 .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
 .dash-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow-sm); }
