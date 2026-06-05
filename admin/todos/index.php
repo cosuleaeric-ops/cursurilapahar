@@ -52,20 +52,12 @@ $users_to_show = $owner
     ? array_column($all_users, 'username')
     : [$current_username];
 
-$show_completed = isset($_GET['show_completed']);
-
 $todos_by_user = [];
 foreach ($users_to_show as $u) {
     $list = clp_todos_for_user($u);
-    if (!$show_completed) {
-        $pending = array_values(array_filter($list, fn($t) => !$t['completed']));
-        $done_count = count($list) - count($pending);
-        $todos_by_user[$u] = ['pending' => $pending, 'done_count' => $done_count];
-    } else {
-        $pending = array_values(array_filter($list, fn($t) => !$t['completed']));
-        $done = array_values(array_filter($list, fn($t) => $t['completed']));
-        $todos_by_user[$u] = ['pending' => $pending, 'done_count' => count($done), 'done' => $done];
-    }
+    $pending = array_values(array_filter($list, fn($t) => empty($t['completed'])));
+    $done    = array_values(array_filter($list, fn($t) => !empty($t['completed'])));
+    $todos_by_user[$u] = ['pending' => $pending, 'done' => $done, 'done_count' => count($done)];
 }
 
 $user_labels = [];
@@ -87,71 +79,41 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/admin/assets/css/admin.css?v=26">
 <style>
-.todos-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
-.todos-header h1 { margin: 0; }
-.todos-toggle-completed {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--text-muted); cursor: pointer;
-    background: none; border: none; padding: 0; text-decoration: none;
-}
-.todos-grid { display: flex; flex-direction: column; gap: 34px; }
-.todo-section { background: transparent; border: none; }
-.todo-section-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 0 0 6px;
-    margin-bottom: 4px;
-}
-.todo-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
-.todo-section-title { font-size: 17px; font-weight: 700; color: var(--text); }
-.todo-done-count { font-size: 12px; color: var(--text-muted); margin-left: auto; }
-.todo-list { padding: 0; }
-.todo-item {
-    display: flex; align-items: flex-start; gap: 11px;
-    padding: 8px 8px 8px 2px;
-    border-radius: 8px;
-    transition: background .1s;
-}
+.todos-grid { display: flex; flex-direction: column; gap: 42px; }
+.todo-list-block { }
+.todo-list-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+.todo-list-circle { width: 17px; height: 17px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+.todo-list-name { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.todo-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 8px 8px 8px 3px; border-radius: 8px; transition: background .1s; }
 .todo-item:hover { background: var(--bg); }
-.todo-item-check { flex-shrink: 0; margin-top: 1px; }
-.todo-item-check input[type="checkbox"] {
-    width: 16px; height: 16px; cursor: pointer;
-    accent-color: var(--accent);
-}
-.todo-item-label { flex: 1; font-size: 14px; color: var(--text); line-height: 1.4; cursor: pointer; }
-.todo-item-label.done { text-decoration: line-through; color: var(--text-muted); }
-.todo-item-delete {
-    opacity: 0; flex-shrink: 0; background: none; border: none;
-    cursor: pointer; color: var(--text-muted); font-size: 16px;
-    padding: 0 2px; line-height: 1; transition: opacity .15s, color .15s;
-}
-.todo-item:hover .todo-item-delete { opacity: 1; }
-.todo-item-delete:hover { color: var(--danger); }
-.todo-done-group { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; }
-.todo-done-group .todo-item { opacity: .65; }
-.todo-add-area { padding: 10px 2px 0; }
-.todo-add-link {
-    background: none; border: none; cursor: pointer;
-    color: var(--accent); font-size: 13px; padding: 0;
-    display: flex; align-items: center; gap: 5px;
-}
+.todo-check { flex-shrink: 0; margin: 1px 0 0; display: flex; }
+.todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
+.todo-text { flex: 1; font-size: 15px; color: var(--text); line-height: 1.45; }
+.todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+.todo-del { opacity: 0; flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; padding: 0 4px; transition: opacity .15s, color .15s; }
+.todo-item:hover .todo-del { opacity: 1; }
+.todo-del:hover { color: var(--danger); }
+.todo-empty { color: var(--text-muted); font-size: 14px; padding: 6px 3px; }
+
+/* completed collapsible */
+.todo-completed { margin-top: 2px; }
+.todo-completed > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 8px 3px; font-size: 14px; color: var(--text-muted); user-select: none; }
+.todo-completed > summary::-webkit-details-marker { display: none; }
+.todo-completed-check { width: 18px; height: 18px; border-radius: 4px; background: var(--success); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; flex-shrink: 0; }
+.todo-completed-items { display: flex; flex-direction: column; }
+
+.todo-add { margin-top: 12px; }
+.todo-add-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 15px; padding: 6px 3px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
 .todo-add-link:hover { text-decoration: underline; }
-.todo-add-form { display: none; gap: 8px; margin-top: 8px; }
+.todo-add-checkmark { width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 4px; flex-shrink: 0; }
+.todo-add-form { display: none; gap: 8px; margin-top: 8px; padding: 0 3px; }
 .todo-add-form.open { display: flex; }
-.todo-add-input {
-    flex: 1; padding: 8px 12px; border: 1px solid var(--border);
-    border-radius: var(--radius); font-size: 13px;
-    background: var(--surface); color: var(--text);
-    transition: border-color .15s, box-shadow .15s;
-}
-.todo-add-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
-.todo-add-submit {
-    padding: 8px 14px; background: var(--accent); color: #fff;
-    border: none; border-radius: var(--radius); cursor: pointer;
-    font-size: 13px; font-weight: 600; white-space: nowrap;
-    transition: background .15s;
-}
+.todo-add-input { flex: 1; padding: 10px 13px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 14px; background: #fff; color: var(--text); transition: border-color .15s, box-shadow .15s; }
+.todo-add-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.todo-add-submit { padding: 10px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; transition: background .15s; }
 .todo-add-submit:hover { background: var(--accent-hover); }
-.todo-add-cancel { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 0 4px; }
+.todo-add-cancel { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px; padding: 0 4px; }
 </style>
 </head>
 <body>
@@ -159,86 +121,77 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 
 <h1 class="wp-page-title">To-dos</h1>
 
-<div class="todos-header">
-    <a href="/admin/todos/?<?= $show_completed ? '' : 'show_completed=1' ?>" class="todos-toggle-completed">
-        <span style="display:inline-block;width:18px;height:10px;background:<?= $show_completed ? 'var(--accent)' : '#d1d5db' ?>;border-radius:10px;transition:background .2s;position:relative">
-            <span style="display:block;width:8px;height:8px;background:#fff;border-radius:50%;position:absolute;top:1px;<?= $show_completed ? 'right:1px' : 'left:1px' ?>;transition:left .2s,right .2s"></span>
-        </span>
-        Arată completate
-    </a>
-</div>
-
 <div class="todos-grid">
 <?php foreach ($todos_by_user as $uname => $data):
-    $dot_color = $user_colors[$uname] ?? '#6b7280';
+    $dot_color = $user_colors[$uname] ?? '#16a34a';
     $label = $user_labels[$uname] ?? ucfirst($uname);
     $pending = $data['pending'];
-    $done_count = $data['done_count'];
     $done_list = $data['done'] ?? [];
+    $done_count = $data['done_count'];
     $can_add = $owner || $uname === $current_username;
 ?>
-<div class="todo-section">
-    <div class="todo-section-header">
-        <span class="todo-dot" style="background:<?= h($dot_color) ?>"></span>
-        <span class="todo-section-title"><?= h($label) ?></span>
-        <?php if ($done_count > 0): ?>
-        <span class="todo-done-count"><?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></span>
-        <?php endif; ?>
+<div class="todo-list-block">
+    <div class="todo-list-head">
+        <span class="todo-list-circle" style="background:<?= h($dot_color) ?>"></span>
+        <span class="todo-list-name"><?= h($label) ?></span>
     </div>
 
-    <div class="todo-list">
+    <ul class="todo-items">
     <?php foreach ($pending as $todo): ?>
-        <div class="todo-item">
-            <form method="post" action="/admin/todos/" class="todo-item-check">
+        <li class="todo-item">
+            <form method="post" action="/admin/todos/" class="todo-check">
                 <input type="hidden" name="action" value="toggle_todo">
                 <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
                 <input type="checkbox" onchange="this.form.submit()" title="Marchează completat">
             </form>
-            <span class="todo-item-label"><?= h($todo['title']) ?></span>
+            <span class="todo-text"><?= h($todo['title']) ?></span>
             <form method="post" action="/admin/todos/" style="margin:0">
                 <input type="hidden" name="action" value="delete_todo">
                 <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
-                <button type="submit" class="todo-item-delete" title="Șterge" onclick="return confirm('Sigur ștergi?')">×</button>
+                <button type="submit" class="todo-del" title="Șterge" onclick="return confirm('Sigur ștergi?')">×</button>
             </form>
-        </div>
+        </li>
     <?php endforeach; ?>
 
-    <?php if (!empty($done_list)): ?>
-    <div class="todo-done-group">
-        <?php foreach ($done_list as $todo): ?>
-        <div class="todo-item">
-            <form method="post" action="/admin/todos/" class="todo-item-check">
-                <input type="hidden" name="action" value="toggle_todo">
-                <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
-                <input type="checkbox" checked onchange="this.form.submit()" title="Marchează incomplet">
-            </form>
-            <span class="todo-item-label done"><?= h($todo['title']) ?></span>
-            <form method="post" action="/admin/todos/" style="margin:0">
-                <input type="hidden" name="action" value="delete_todo">
-                <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
-                <button type="submit" class="todo-item-delete" title="Șterge" onclick="return confirm('Sigur ștergi?')">×</button>
-            </form>
-        </div>
-        <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
-
     <?php if (empty($pending) && empty($done_list)): ?>
-    <p style="padding:12px 20px;color:var(--text-muted);font-size:13px">Nicio sarcină.</p>
+        <li class="todo-empty">Nicio sarcină.</li>
     <?php endif; ?>
-    </div>
+    </ul>
+
+    <?php if (!empty($done_list)): ?>
+    <details class="todo-completed">
+        <summary><span class="todo-completed-check">✓</span> <?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></summary>
+        <ul class="todo-items todo-completed-items">
+        <?php foreach ($done_list as $todo): ?>
+            <li class="todo-item">
+                <form method="post" action="/admin/todos/" class="todo-check">
+                    <input type="hidden" name="action" value="toggle_todo">
+                    <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
+                    <input type="checkbox" checked onchange="this.form.submit()" title="Marchează incomplet">
+                </form>
+                <span class="todo-text done"><?= h($todo['title']) ?></span>
+                <form method="post" action="/admin/todos/" style="margin:0">
+                    <input type="hidden" name="action" value="delete_todo">
+                    <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
+                    <button type="submit" class="todo-del" title="Șterge" onclick="return confirm('Sigur ștergi?')">×</button>
+                </form>
+            </li>
+        <?php endforeach; ?>
+        </ul>
+    </details>
+    <?php endif; ?>
 
     <?php if ($can_add): ?>
-    <div class="todo-add-area">
+    <div class="todo-add">
         <button class="todo-add-link" onclick="toggleAddForm(this)">
-            + Adaugă o sarcină
+            <span class="todo-add-checkmark"></span> Adaugă o sarcină
         </button>
         <form method="post" action="/admin/todos/" class="todo-add-form">
             <input type="hidden" name="action" value="add_todo">
             <input type="hidden" name="assigned_to" value="<?= h($uname) ?>">
             <input type="text" name="title" class="todo-add-input" autofocus required>
             <button type="submit" class="todo-add-submit">Adaugă</button>
-            <button type="button" class="todo-add-cancel" onclick="toggleAddForm(this.closest('.todo-add-area').querySelector('.todo-add-link'), true)">Anulează</button>
+            <button type="button" class="todo-add-cancel" onclick="toggleAddForm(this.closest('.todo-add').querySelector('.todo-add-link'), true)">Anulează</button>
         </form>
     </div>
     <?php endif; ?>
@@ -248,7 +201,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 
 <script>
 function toggleAddForm(btn, forceClose) {
-    var area = btn.closest ? btn.closest('.todo-add-area') : btn.parentElement;
+    var area = btn.closest ? btn.closest('.todo-add') : btn.parentElement;
     var form = area.querySelector('.todo-add-form');
     var link = area.querySelector('.todo-add-link');
     if (!form) return;
