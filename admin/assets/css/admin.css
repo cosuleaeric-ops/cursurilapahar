@@ -119,7 +119,7 @@ body {
 .nav-new-badge { margin-left: auto; background: #e8a317; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
 
 /* ── Main content ── */
-.wp-main { flex: 1; min-width: 0; margin-left: 220px; padding: 0 24px 48px; background: var(--bg); }
+.wp-main { flex: 1; min-width: 0; padding: 0 24px 48px; background: var(--bg); }
 
 /* ── Basecamp document wrapper ── */
 .bc-doc {
@@ -141,6 +141,8 @@ body {
 }
 .bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; letter-spacing: .01em; }
 .bc-doc-top .bc-doc-sep { opacity: .5; margin: 0 2px; }
+.bc-home-link { color: var(--accent); text-decoration: none; }
+.bc-home-link:hover { text-decoration: underline; }
 .wp-page-title { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 24px; letter-spacing: -0.04em; line-height: 1.1; }
 .bc-doc--canvas .wp-page-title { margin-bottom: 22px; }
 

@@ -51,55 +51,6 @@
 
 <div class="wp-layout">
 
-    <!-- ── SIDEBAR ── -->
-    <aside class="wp-sidebar">
-        <nav>
-            <a href="/admin/" class="<?= $tab === 'dashboard' ? 'active' : '' ?>">
-                <span class="nav-icon">🏠</span> Dashboard
-            </a>
-            <a href="/admin/?tab=imagini" class="<?= $tab === 'imagini' ? 'active' : '' ?>">
-                <span class="nav-icon">🖼️</span> Imagini
-            </a>
-            <a href="/admin/?tab=aspect" class="<?= $tab === 'aspect' ? 'active' : '' ?>">
-                <span class="nav-icon">🎨</span> Aspect
-            </a>
-            <a href="/admin/?tab=vot" class="<?= $tab === 'vot' ? 'active' : '' ?>">
-                <span class="nav-icon">❤️</span> Vot cursuri
-            </a>
-            <a href="/admin/marketing/" class="<?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">
-                <span class="nav-icon">📣</span> Marketing
-            </a>
-            <div class="sidebar-section">Management</div>
-            <a href="/admin/?tab=cursuri" class="<?= $tab === 'cursuri' ? 'active' : '' ?>">
-                <span class="nav-icon">📋</span> Cursuri
-            </a>
-            <a href="/admin/?tab=speakeri" class="<?= $tab === 'speakeri' ? 'active' : '' ?>">
-                <span class="nav-icon">🎤</span> Speakeri
-            </a>
-            <a href="/admin/?tab=locatii" class="<?= $tab === 'locatii' ? 'active' : '' ?>">
-                <span class="nav-icon">📍</span> Locații
-            </a>
-            <a href="/admin/todos/" class="<?= ($tab ?? '') === 'todos' ? 'active' : '' ?>">
-                <span class="nav-icon">✅</span> To-dos<?php $_td_count = clp_todos_pending_count(clp_current_user()['username'] ?? ''); if ($_td_count > 0): ?><span class="nav-new-badge"><?= $_td_count ?></span><?php endif; ?>
-            </a>
-            <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
-                <span class="nav-icon">🤝</span> Colaborări
-            </a>
-            <a href="/admin/?tab=mesaje" class="<?= $tab === 'mesaje' ? 'active' : '' ?>">
-                <span class="nav-icon">💬</span> Mesaje<?php if ($_msg_pending_count > 0): ?><span class="nav-new-badge"><?= $_msg_pending_count ?></span><?php endif; ?>
-            </a>
-            <?php if (is_owner()): ?>
-            <div class="sidebar-section">Sistem</div>
-            <a href="/admin/statistici/pnl/" class="<?= ($tab ?? '') === 'pnl' ? 'active' : '' ?>">
-                <span class="nav-icon">📈</span> P&amp;L Cursuri
-            </a>
-            <a href="/admin/?tab=config" class="<?= $tab === 'config' || $tab === 'securitate' || $tab === 'kit' ? 'active' : '' ?>">
-                <span class="nav-icon">⚙️</span> Setări
-            </a>
-            <?php endif; ?>
-        </nav>
-    </aside>
-
     <main class="wp-main">
 <?php
 $__bc_is_home = (($tab ?? '') === 'dashboard');
@@ -115,5 +66,5 @@ $__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
 ?>
     <div class="bc-doc <?= $__bc_is_home ? 'bc-doc--canvas' : '' ?>">
 <?php if (!$__bc_is_home && $__bc_crumb !== ''): ?>
-        <div class="bc-doc-top">Cursuri la Pahar<?php if ($__bc_crumb): ?> <span class="bc-doc-sep">›</span> <?= h($__bc_crumb) ?><?php endif; ?></div>
+        <div class="bc-doc-top"><a href="/admin/" class="bc-home-link">🏠 Acasă</a> <span class="bc-doc-sep">›</span> <?= h($__bc_crumb) ?></div>
 <?php endif; ?>
