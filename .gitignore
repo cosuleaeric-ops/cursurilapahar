@@ -26,3 +26,6 @@ server.py
 
 # Dependencies
 node_modules/
+
+# Andy course-task cron state (server-side)
+data/andy_course_tasks_done.json
