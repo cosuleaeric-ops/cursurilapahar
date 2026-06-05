@@ -77,7 +77,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=27">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=28">
 <style>
 .todos-grid { display: flex; flex-direction: column; gap: 42px; }
 .todo-list-block { }
