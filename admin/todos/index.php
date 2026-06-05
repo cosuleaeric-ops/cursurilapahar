@@ -76,7 +76,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
     $av   = $user_avatars[$uname] ?? '';
     $ini  = $user_initials[$uname] ?? mb_strtoupper(mb_substr($name, 0, 1));
     ob_start(); ?>
-<span class="todo-assign">
+<span class="todo-assign todo-assign--<?= h($uname) ?>">
     <span class="todo-av" style="background:<?= h($col) ?>"><?= h($ini) ?><?php if ($av): ?><img src="<?= h($av) ?>" alt="" style="object-position:<?= $uname === 'eric6' ? 'top' : 'center' ?>" onerror="this.remove()"><?php endif; ?></span>
     <span class="todo-assign-name"><?= h($name) ?></span>
 </span>
@@ -103,10 +103,10 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .todo-item { display: flex; align-items: center; gap: 11px; padding: 5px 8px 5px 3px; border-radius: 8px; transition: background .1s; }
 .todo-item:hover { background: var(--bg); }
-.todo-item.a-eric6 .todo-assign { background: #eff6ff; }
-.todo-item.a-eric6 .todo-assign-name { color: #2563eb; }
-.todo-item.a-andy .todo-assign { background: #f0fdf4; }
-.todo-item.a-andy .todo-assign-name { color: #16a34a; }
+.todo-assign--eric6 { background: #eff6ff; }
+.todo-assign--eric6 .todo-assign-name { color: #2563eb; }
+.todo-assign--andy { background: #f0fdf4; }
+.todo-assign--andy .todo-assign-name { color: #16a34a; }
 .todo-check { flex-shrink: 0; margin: 0; display: flex; }
 .todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
 .todo-text { font-size: 15px; color: var(--text); line-height: 1.4; }
@@ -126,8 +126,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-assign-pick { cursor: pointer; display: inline-flex; }
 .todo-assign-pick input { position: absolute; opacity: 0; width: 0; height: 0; }
 .todo-assign-pick .todo-assign { border: 2px solid transparent; cursor: pointer; transition: border-color .12s, background .12s; }
-.todo-assign-pick input:checked + .todo-assign { border-color: var(--accent); background: var(--accent-soft); }
-.todo-assign-pick input:checked + .todo-assign .todo-assign-name { color: var(--accent); }
+.todo-assign-pick input:checked + .todo-assign { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .todo-del { opacity: 0; flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; padding: 0 4px; transition: opacity .15s, color .15s; }
 .todo-item:hover .todo-del { opacity: 1; }
 .todo-del:hover { color: var(--danger); }
