@@ -28,6 +28,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'upload_avatar') {
+        if (!verify_csrf($_POST['csrf_token'] ?? '')) { http_response_code(400); exit('CSRF'); }
+        $u = $_POST['user'] ?? '';
+        $valid_users = array_column(load_users(), 'username');
+        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (in_array($u, $valid_users, true) && isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            $info = @getimagesize($_FILES['avatar']['tmp_name']);
+            if ($info && isset($allowed[$info['mime']])) {
+                $dir = dirname(__DIR__, 2) . '/assets/images/avatars';
+                if (!is_dir($dir)) mkdir($dir, 0755, true);
+                foreach (['jpg', 'jpeg', 'png', 'webp'] as $e) { @unlink("$dir/$u.$e"); }
+                move_uploaded_file($_FILES['avatar']['tmp_name'], "$dir/$u." . $allowed[$info['mime']]);
+            }
+        }
+        header('Location: /admin/todos/');
+        exit;
+    }
+
     if ($action === 'toggle_todo') {
         $id = $_POST['id'] ?? '';
         if ($id) clp_toggle_todo($id);
@@ -56,8 +74,18 @@ $done_count = count($done);
 
 $user_display  = ['eric6' => 'Eric', 'andy' => 'Andy'];
 $user_colors   = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
-$user_avatars  = ['eric6' => '/assets/images/avatars/eric6.jpg', 'andy' => '/assets/images/avatars/andy.jpg'];
 $user_initials = ['eric6' => 'E', 'andy' => 'A'];
+
+$_av_dir = dirname(__DIR__, 2) . '/assets/images/avatars';
+$user_avatars = [];
+foreach ($all_users as $u) {
+    $un = $u['username'];
+    $user_avatars[$un] = '';
+    foreach (['jpg', 'jpeg', 'png', 'webp'] as $e) {
+        $p = "$_av_dir/$un.$e";
+        if (is_file($p)) { $user_avatars[$un] = "/assets/images/avatars/$un.$e?t=" . filemtime($p); break; }
+    }
+}
 
 $render_assign = function ($uname) use ($user_display, $user_colors, $user_avatars, $user_initials) {
     if ($uname === '') return '';
@@ -91,9 +119,9 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-list-circle { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
 .todo-list-name { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
 .todo-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.todo-item { display: flex; align-items: flex-start; gap: 11px; padding: 5px 8px 5px 3px; border-radius: 8px; transition: background .1s; }
+.todo-item { display: flex; align-items: center; gap: 11px; padding: 5px 8px 5px 3px; border-radius: 8px; transition: background .1s; }
 .todo-item:hover { background: var(--bg); }
-.todo-check { flex-shrink: 0; margin: 1px 0 0; display: flex; }
+.todo-check { flex-shrink: 0; margin: 0; display: flex; }
 .todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
 .todo-text { font-size: 15px; color: var(--text); line-height: 1.4; }
 .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
@@ -105,6 +133,13 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-assign-name { font-size: 13px; color: var(--text-muted); font-weight: 500; }
 .todo-item > form { margin: 0; }
 .todo-item > form:last-child { margin-left: auto; }
+
+/* avatar editor */
+.todo-avatars { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.todo-av-edit { margin: 0; }
+.todo-av-edit-label { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; }
+.todo-av-edit-link { font-size: 12px; color: var(--accent); }
+.todo-av-edit-label:hover .todo-av-edit-link { text-decoration: underline; }
 
 /* assignee chooser in add form */
 .todo-add-assign { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -145,6 +180,21 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 <?php require dirname(__DIR__) . '/partials/layout-nav.php'; ?>
 
 <h1 class="wp-page-title">To-dos</h1>
+
+<div class="todo-avatars">
+<?php foreach ($all_users as $u): $un = $u['username']; ?>
+    <form method="post" action="/admin/todos/" enctype="multipart/form-data" class="todo-av-edit">
+        <input type="hidden" name="action" value="upload_avatar">
+        <input type="hidden" name="csrf_token" value="<?= h(csrf_token()) ?>">
+        <input type="hidden" name="user" value="<?= h($un) ?>">
+        <label class="todo-av-edit-label">
+            <?= $render_assign($un) ?>
+            <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" style="display:none">
+            <span class="todo-av-edit-link">Schimbă poza</span>
+        </label>
+    </form>
+<?php endforeach; ?>
+</div>
 
 <div class="todos-single">
     <ul class="todo-items">
