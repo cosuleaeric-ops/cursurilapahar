@@ -17,6 +17,6 @@ $__favicon = $__s['favicon_path'] ?? '';
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=21">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=22">
 </head>
 <body>
