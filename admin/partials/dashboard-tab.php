@@ -5,13 +5,10 @@ $_dash_todo_user = clp_current_user()['username'] ?? '';
 $_dash_todos_all = clp_load_todos();
 $_dash_is_owner  = is_owner();
 
-// Todos: pending for preview
-$_dash_td_pending = array_values(array_filter($_dash_todos_all, function ($t) use ($_dash_is_owner, $_dash_todo_user) {
-    if (!empty($t['completed'])) return false;
-    return $_dash_is_owner ? true : ($t['assigned_to'] ?? '') === $_dash_todo_user;
-}));
+// Todos: my own pending only
+$_dash_td_pending = array_values(array_filter($_dash_todos_all, fn($t) => empty($t['completed']) && ($t['assigned_to'] ?? '') === $_dash_todo_user));
 $_dash_td_preview = array_slice($_dash_td_pending, 0, 5);
-$_dash_td_colors  = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
+$_dash_td_dot     = ['eric6' => '#2563eb', 'andy' => '#16a34a'][$_dash_todo_user] ?? '#2563eb';
 
 // Cursuri: next upcoming
 $_dash_today2   = date('Y-m-d');
@@ -32,15 +29,11 @@ $_dash_msg_pend   = array_sum($_dash_msg_data['tab_counts'] ?? []);
         <div class="bc-card-head">
             <span class="bc-card-icon">✅</span>
             <span class="bc-card-title">To-dos</span>
-            <?php if (count($_dash_td_pending) > 0): ?><span class="bc-card-badge"><?= count($_dash_td_pending) ?></span><?php endif; ?>
         </div>
-        <?php if (empty($_dash_td_preview)): ?>
-            <p class="bc-card-empty">Nicio sarcină în așteptare.</p>
-        <?php else: ?>
+        <?php if (!empty($_dash_td_preview)): ?>
             <ul class="bc-card-list">
-            <?php foreach ($_dash_td_preview as $_dt):
-                $_c = $_dash_is_owner ? ($_dash_td_colors[$_dt['assigned_to'] ?? ''] ?? '#9ca3af') : '#2563eb'; ?>
-                <li><span class="bc-li-dot" style="background:<?= h($_c) ?>"></span><?= h($_dt['title']) ?></li>
+            <?php foreach ($_dash_td_preview as $_dt): ?>
+                <li><span class="bc-li-dot" style="background:<?= h($_dash_td_dot) ?>"></span><?= h($_dt['title']) ?></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>
@@ -51,7 +44,6 @@ $_dash_msg_pend   = array_sum($_dash_msg_data['tab_counts'] ?? []);
         <div class="bc-card-head">
             <span class="bc-card-icon">📋</span>
             <span class="bc-card-title">Cursuri</span>
-            <?php if ($_dash_scheduled > 0): ?><span class="bc-card-badge"><?= (int)$_dash_scheduled ?></span><?php endif; ?>
         </div>
         <?php if (empty($_dash_upcoming)): ?>
             <p class="bc-card-empty">Niciun curs programat.</p>
@@ -69,7 +61,6 @@ $_dash_msg_pend   = array_sum($_dash_msg_data['tab_counts'] ?? []);
         <div class="bc-card-head">
             <span class="bc-card-icon">💬</span>
             <span class="bc-card-title">Mesaje</span>
-            <?php if ($_dash_msg_pend > 0): ?><span class="bc-card-badge"><?= (int)$_dash_msg_pend ?></span><?php endif; ?>
         </div>
         <?php
         $_dash_msg_lines = [];
