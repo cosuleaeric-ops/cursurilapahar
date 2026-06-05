@@ -20,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_todo') {
         $title = trim($_POST['title'] ?? '');
         $assigned_to = $_POST['assigned_to'] ?? $current_username;
-        if (!$owner) $assigned_to = $current_username;
         if ($title !== '') {
             clp_add_todo($title, $assigned_to, $current_username);
         }
@@ -48,9 +47,7 @@ $_msg_pending_count = clp_pending_message_count();
 $tab = 'todos';
 
 $all_users = load_users();
-$users_to_show = $owner
-    ? array_column($all_users, 'username')
-    : [$current_username];
+$users_to_show = array_column($all_users, 'username');
 
 $todos_by_user = [];
 foreach ($users_to_show as $u) {
@@ -130,7 +127,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
     $pending = $data['pending'];
     $done_list = $data['done'] ?? [];
     $done_count = $data['done_count'];
-    $can_add = $owner || $uname === $current_username;
+    $can_add = true;
 ?>
 <div class="todo-list-block">
     <div class="todo-list-head">
