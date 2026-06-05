@@ -49,6 +49,20 @@
     <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
+<nav class="bc-botnav">
+    <a href="/admin/marketing/" class="<?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">Marketing</a>
+    <a href="/admin/?tab=speakeri" class="<?= ($tab ?? '') === 'speakeri' ? 'active' : '' ?>">Speakeri</a>
+    <a href="/admin/?tab=locatii" class="<?= ($tab ?? '') === 'locatii' ? 'active' : '' ?>">Locații</a>
+    <a href="/admin/?tab=vot" class="<?= ($tab ?? '') === 'vot' ? 'active' : '' ?>">Voturi</a>
+    <a href="/admin/?tab=colaborari" class="<?= ($tab ?? '') === 'colaborari' ? 'active' : '' ?>">Colaborări</a>
+    <a href="/admin/?tab=imagini" class="<?= ($tab ?? '') === 'imagini' ? 'active' : '' ?>">Imagini</a>
+    <a href="/admin/?tab=aspect" class="<?= ($tab ?? '') === 'aspect' ? 'active' : '' ?>">Aspect</a>
+    <?php if (is_owner()): ?>
+    <a href="/admin/statistici/pnl/" class="<?= ($tab ?? '') === 'pnl' ? 'active' : '' ?>">P&amp;L</a>
+    <a href="/admin/?tab=config" class="<?= in_array($tab ?? '', ['config','securitate','kit'], true) ? 'active' : '' ?>">Setări</a>
+    <?php endif; ?>
+</nav>
+
 <div class="wp-layout">
 
     <main class="wp-main">
