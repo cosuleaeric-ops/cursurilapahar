@@ -183,7 +183,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
     <?php if ($can_add): ?>
     <div class="todo-add">
         <button class="todo-add-link" onclick="toggleAddForm(this)">
-            <span class="todo-add-checkmark"></span> Adaugă o sarcină
+            Adaugă o sarcină
         </button>
         <form method="post" action="/admin/todos/" class="todo-add-form">
             <input type="hidden" name="action" value="add_todo">
