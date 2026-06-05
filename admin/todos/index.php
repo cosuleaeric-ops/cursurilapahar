@@ -1,10 +1,8 @@
 <?php
+require __DIR__ . '/../auth_check.php';
 require_once dirname(__DIR__, 2) . '/lib/admin.php';
-require_once dirname(__DIR__, 2) . '/lib/auth.php';
 require_once dirname(__DIR__, 2) . '/lib/messages.php';
 require_once dirname(__DIR__, 2) . '/lib/todos.php';
-
-clp_ensure_secrets();
 
 if (!is_authenticated()) {
     header('Location: /admin/');
