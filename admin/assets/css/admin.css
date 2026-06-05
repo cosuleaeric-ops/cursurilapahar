@@ -168,7 +168,7 @@ body {
 .wp-page-title { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 24px; letter-spacing: -0.04em; line-height: 1.1; }
 
 /* ── Basecamp home card grid ── */
-.bc-home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 8px; }
+.bc-home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px; }
 @media (max-width: 1080px) { .bc-home-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 680px) { .bc-home-grid { grid-template-columns: 1fr; } }
 .bc-card {
