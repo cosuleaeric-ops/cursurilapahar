@@ -1,6 +1,49 @@
 <h1 class="wp-page-title">Dashboard</h1>
 
 <?php
+$_dash_todo_user = clp_current_user()['username'] ?? '';
+$_dash_todos_all = clp_load_todos();
+$_dash_my_todos  = array_values(array_filter($_dash_todos_all, fn($t) => $t['assigned_to'] === $_dash_todo_user && !$t['completed']));
+$_dash_my_todos  = array_slice($_dash_my_todos, 0, 5);
+if (is_owner()) {
+    $all_users_td = load_users();
+    $_dash_td_other = [];
+    foreach ($all_users_td as $_u) {
+        if ($_u['username'] === $_dash_todo_user) continue;
+        $_cnt = count(array_filter($_dash_todos_all, fn($t) => $t['assigned_to'] === $_u['username'] && !$t['completed']));
+        if ($_cnt > 0) $_dash_td_other[] = ['username' => $_u['username'], 'count' => $_cnt];
+    }
+}
+?>
+<div class="dash-section" style="margin-bottom:20px">
+    <div class="dash-section-title" style="margin-bottom:12px">
+        <span>To-dos ale mele</span>
+        <a href="/admin/todos/" style="font-size:12px;font-weight:500;color:var(--accent);margin-left:auto;text-decoration:none">Toate →</a>
+    </div>
+    <?php if (empty($_dash_my_todos)): ?>
+        <p style="color:var(--text-muted);font-size:13px">Nicio sarcină în așteptare.</p>
+    <?php else: ?>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <?php foreach ($_dash_my_todos as $_dt): ?>
+            <li style="display:flex;align-items:flex-start;gap:8px;font-size:13px">
+                <span style="color:var(--accent);margin-top:2px">☐</span>
+                <span style="color:var(--text)"><?= h($_dt['title']) ?></span>
+            </li>
+        <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+    <?php if (!empty($_dash_td_other)): ?>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap">
+        <?php foreach ($_dash_td_other as $_uo): ?>
+            <a href="/admin/todos/" style="font-size:12px;color:var(--text-muted);text-decoration:none">
+                <?= h(ucfirst($_uo['username'])) ?>: <strong style="color:var(--text)"><?= $_uo['count'] ?></strong> în așteptare
+            </a>
+        <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php
 $_ql = $settings['quick_links'] ?? [];
 $_ql_general = [];
 $_ql_canva   = [];

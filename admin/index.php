@@ -23,6 +23,7 @@ require_once dirname(__DIR__) . '/lib/locations.php';
 require_once dirname(__DIR__) . '/lib/collaborations.php';
 require_once dirname(__DIR__) . '/lib/competitors.php';
 require_once dirname(__DIR__) . '/lib/auth.php';
+require_once dirname(__DIR__) . '/lib/todos.php';
 require_once dirname(__DIR__) . '/lib/dashboard.php';
 require_once dirname(__DIR__) . '/lib/design.php';
 require_once dirname(__DIR__) . '/lib/images.php';

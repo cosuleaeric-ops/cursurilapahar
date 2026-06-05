@@ -79,6 +79,9 @@
             <a href="/admin/?tab=locatii" class="<?= $tab === 'locatii' ? 'active' : '' ?>">
                 <span class="nav-icon">📍</span> Locații
             </a>
+            <a href="/admin/todos/" class="<?= ($tab ?? '') === 'todos' ? 'active' : '' ?>">
+                <span class="nav-icon">✅</span> To-dos<?php $_td_count = clp_todos_pending_count(clp_current_user()['username'] ?? ''); if ($_td_count > 0): ?><span class="nav-new-badge"><?= $_td_count ?></span><?php endif; ?>
+            </a>
             <a href="/admin/?tab=colaborari" class="<?= $tab === 'colaborari' ? 'active' : '' ?>">
                 <span class="nav-icon">🤝</span> Colaborări
             </a>

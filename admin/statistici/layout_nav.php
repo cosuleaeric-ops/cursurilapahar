@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/../lib/admin.php';
 require_once dirname(__DIR__) . '/../lib/messages.php';
+require_once dirname(__DIR__) . '/../lib/todos.php';
 
 $_stat_path = $_SERVER['REQUEST_URI'] ?? '';
 if (strpos($_stat_path, '/admin/statistici/pnl') !== false) {
