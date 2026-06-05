@@ -843,3 +843,38 @@ td span[style*="background:#e5e7eb"] {
     .mkt-list { grid-template-columns: 1fr; }
     .mkt-add-form { max-width: none; }
 }
+
+/* ── Motion / smoothing (Basecamp-like) ── */
+html { scroll-behavior: smooth; }
+:root { --ease: cubic-bezier(.2, .7, .3, 1); --t-fast: .12s; --t: .18s; }
+
+a, button, .btn, .ql-btn, .msg-tab, .sp-filter-btn, .msg-eval-filter-btn,
+.bc-botnav a, .bc-card, .dash-card, .dash-section, .wp-header-site-link,
+input, textarea, select, summary, .todo-item, .todo-assign-pick .todo-assign,
+.todo-del, .todo-add-link {
+    transition-timing-function: var(--ease);
+}
+
+.btn, .ql-btn, .btn-logout, .wp-header-site-link {
+    transition: background var(--t), border-color var(--t), color var(--t), transform var(--t-fast), box-shadow var(--t);
+}
+.btn:active, .ql-btn:active, .bc-botnav a:active, .btn-logout:active { transform: translateY(1px); }
+
+.bc-card { transition: box-shadow var(--t), transform var(--t), border-color var(--t); }
+.bc-card:active { transform: translateY(0) scale(.995); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .bc-doc { animation: bc-fade-in .26s var(--ease) both; }
+    @keyframes bc-fade-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: none; }
+    }
+    .bc-home-grid > * { animation: bc-rise .32s var(--ease) both; }
+    .bc-home-grid > *:nth-child(1) { animation-delay: .03s; }
+    .bc-home-grid > *:nth-child(2) { animation-delay: .07s; }
+    .bc-home-grid > *:nth-child(3) { animation-delay: .11s; }
+    @keyframes bc-rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: none; }
+    }
+}
