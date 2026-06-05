@@ -107,9 +107,10 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 .todo-add-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 15px; padding: 5px 3px; display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
 .todo-add-link:hover { text-decoration: underline; }
 .todo-add-checkmark { width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 4px; flex-shrink: 0; }
-.todo-add-form { display: none; gap: 8px; margin-top: 8px; padding: 0 3px; }
+.todo-add-form { display: none; flex-direction: column; gap: 10px; margin-top: 8px; padding: 0 3px; }
 .todo-add-form.open { display: flex; }
-.todo-add-input { flex: 1; padding: 10px 13px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 14px; background: #fff; color: var(--text); transition: border-color .15s, box-shadow .15s; }
+.todo-add-actions { display: flex; align-items: center; gap: 8px; }
+.todo-add-input { width: 100%; padding: 10px 13px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 14px; background: #fff; color: var(--text); transition: border-color .15s, box-shadow .15s; }
 .todo-add-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
 .todo-add-submit { padding: 10px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; transition: background .15s; }
 .todo-add-submit:hover { background: var(--accent-hover); }
@@ -190,8 +191,10 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
             <input type="hidden" name="action" value="add_todo">
             <input type="hidden" name="assigned_to" value="<?= h($uname) ?>">
             <input type="text" name="title" class="todo-add-input" autofocus required>
-            <button type="submit" class="todo-add-submit">Adaugă</button>
-            <button type="button" class="todo-add-cancel" onclick="toggleAddForm(this.closest('.todo-add').querySelector('.todo-add-link'), true)">Anulează</button>
+            <div class="todo-add-actions">
+                <button type="submit" class="todo-add-submit">Adaugă</button>
+                <button type="button" class="todo-add-cancel" onclick="toggleAddForm(this.closest('.todo-add').querySelector('.todo-add-link'), true)">Anulează</button>
+            </div>
         </form>
     </div>
     <?php endif; ?>
