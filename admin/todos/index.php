@@ -28,24 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if ($action === 'upload_avatar') {
-        if (!verify_csrf($_POST['csrf_token'] ?? '')) { http_response_code(400); exit('CSRF'); }
-        $u = $_POST['user'] ?? '';
-        $valid_users = array_column(load_users(), 'username');
-        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        if (in_array($u, $valid_users, true) && isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
-            $info = @getimagesize($_FILES['avatar']['tmp_name']);
-            if ($info && isset($allowed[$info['mime']])) {
-                $dir = dirname(__DIR__, 2) . '/assets/images/avatars';
-                if (!is_dir($dir)) mkdir($dir, 0755, true);
-                foreach (['jpg', 'jpeg', 'png', 'webp'] as $e) { @unlink("$dir/$u.$e"); }
-                move_uploaded_file($_FILES['avatar']['tmp_name'], "$dir/$u." . $allowed[$info['mime']]);
-            }
-        }
-        header('Location: /admin/todos/');
-        exit;
-    }
-
     if ($action === 'toggle_todo') {
         $id = $_POST['id'] ?? '';
         if ($id) clp_toggle_todo($id);
@@ -95,7 +77,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
     $ini  = $user_initials[$uname] ?? mb_strtoupper(mb_substr($name, 0, 1));
     ob_start(); ?>
 <span class="todo-assign">
-    <span class="todo-av" style="background:<?= h($col) ?>"><?= h($ini) ?><?php if ($av): ?><img src="<?= h($av) ?>" alt="" onerror="this.remove()"><?php endif; ?></span>
+    <span class="todo-av" style="background:<?= h($col) ?>"><?= h($ini) ?><?php if ($av): ?><img src="<?= h($av) ?>" alt="" style="object-position:<?= $uname === 'eric6' ? 'top' : 'center' ?>" onerror="this.remove()"><?php endif; ?></span>
     <span class="todo-assign-name"><?= h($name) ?></span>
 </span>
 <?php return ob_get_clean();
@@ -133,13 +115,6 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-assign-name { font-size: 13px; color: var(--text-muted); font-weight: 500; }
 .todo-item > form { margin: 0; }
 .todo-item > form:last-child { margin-left: auto; }
-
-/* avatar editor */
-.todo-avatars { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-.todo-av-edit { margin: 0; }
-.todo-av-edit-label { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; }
-.todo-av-edit-link { font-size: 12px; color: var(--accent); }
-.todo-av-edit-label:hover .todo-av-edit-link { text-decoration: underline; }
 
 /* assignee chooser in add form */
 .todo-add-assign { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -180,21 +155,6 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 <?php require dirname(__DIR__) . '/partials/layout-nav.php'; ?>
 
 <h1 class="wp-page-title">To-dos</h1>
-
-<div class="todo-avatars">
-<?php foreach ($all_users as $u): $un = $u['username']; ?>
-    <form method="post" action="/admin/todos/" enctype="multipart/form-data" class="todo-av-edit">
-        <input type="hidden" name="action" value="upload_avatar">
-        <input type="hidden" name="csrf_token" value="<?= h(csrf_token()) ?>">
-        <input type="hidden" name="user" value="<?= h($un) ?>">
-        <label class="todo-av-edit-label">
-            <?= $render_assign($un) ?>
-            <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" style="display:none">
-            <span class="todo-av-edit-link">Schimbă poza</span>
-        </label>
-    </form>
-<?php endforeach; ?>
-</div>
 
 <div class="todos-single">
     <ul class="todo-items">
