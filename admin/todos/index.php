@@ -85,7 +85,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=23">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=24">
 <style>
 .todos-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
 .todos-header h1 { margin: 0; }

@@ -35,180 +35,160 @@ $_dash_mkt        = function_exists('clp_marketing_load') ? clp_marketing_load()
 $_dash_mkt_secs   = $_dash_mkt['sections'] ?? [];
 $_dash_mkt_items  = 0;
 foreach ($_dash_mkt_secs as $_ms) $_dash_mkt_items += count($_ms['items'] ?? []);
-
-// helpers + richer previews
-$_bc_initials = function ($name) {
-    $p = preg_split('/\s+/', trim((string)$name));
-    $a = $p[0] ?? ''; $b = count($p) > 1 ? end($p) : '';
-    $ini = function_exists('mb_substr') ? mb_substr($a, 0, 1) . mb_substr($b, 0, 1) : substr($a, 0, 1) . substr($b, 0, 1);
-    return function_exists('mb_strtoupper') ? mb_strtoupper($ini) : strtoupper($ini);
-};
-$_bc_av_colors = ['#2563eb', '#7c3aed', '#db2777', '#0891b2', '#16a34a', '#d97706', '#dc2626'];
-$_dash_spk_status_colors = function_exists('clp_speaker_status_colors') ? clp_speaker_status_colors() : [];
-
-// Mesaje: recent sender + snippet
-$_dash_msg_prev = [];
-$_snip_keys = ['Message', 'Mesaj', 'Course name', 'Venue name', 'City', 'Social', 'Other', 'Email'];
-foreach (($_dash_msg_data['grouped'] ?? []) as $_cat => $_list) {
-    foreach ($_list as $_m) {
-        $f = $_m['fields'] ?? [];
-        $snip = '';
-        foreach ($_snip_keys as $_sk) { if (!empty($f[$_sk])) { $snip = $f[$_sk]; break; } }
-        $_dash_msg_prev[] = ['from' => $f['Name'] ?? ($f['Nume'] ?? '—'), 'snip' => $snip];
-    }
-}
-$_dash_msg_prev = array_slice($_dash_msg_prev, 0, 4);
 ?>
 
 <div class="bc-home-grid">
 
-    <!-- To-dos -->
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/todos/">To-dos<?php if (count($_dash_td_pending)): ?> <span class="bc-col-count">(<?= count($_dash_td_pending) ?>)</span><?php endif; ?></a>
-        <a class="bc-card" href="/admin/todos/">
-        <?php if (empty($_dash_td_pending)): ?>
+    <!-- Todos -->
+    <a class="bc-card" href="/admin/todos/">
+        <div class="bc-card-head">
+            <span class="bc-card-icon">✅</span>
+            <span class="bc-card-title">To-dos</span>
+            <?php if (count($_dash_td_pending) > 0): ?><span class="bc-card-badge"><?= count($_dash_td_pending) ?></span><?php endif; ?>
+        </div>
+        <?php if (empty($_dash_td_preview)): ?>
             <p class="bc-card-empty">Nicio sarcină în așteptare.</p>
-        <?php else:
-            $_td_by_user = [];
-            foreach (array_slice($_dash_td_pending, 0, 8) as $_dt) { $_td_by_user[$_dt['assigned_to'] ?? '?'][] = $_dt; }
-            foreach ($_td_by_user as $_uname => $_items):
-                $_c = $_dash_td_colors[$_uname] ?? '#9ca3af'; ?>
-            <div class="bc-td-group">
-                <?php if ($_dash_is_owner): ?>
-                <div class="bc-td-head"><span class="bc-dot2" style="background:<?= h($_c) ?>"></span><?= h(ucfirst($_uname)) ?></div>
-                <?php endif; ?>
-                <ul class="bc-td-list">
-                <?php foreach (array_slice($_items, 0, 5) as $_dt): ?>
-                    <li class="bc-check"><span class="bc-checkbox"></span><?= h($_dt['title']) ?></li>
-                <?php endforeach; ?>
-                </ul>
-            </div>
+        <?php else: ?>
+            <ul class="bc-card-list">
+            <?php foreach ($_dash_td_preview as $_dt):
+                $_c = $_dash_is_owner ? ($_dash_td_colors[$_dt['assigned_to'] ?? ''] ?? '#9ca3af') : '#2563eb'; ?>
+                <li><span class="bc-li-dot" style="background:<?= h($_c) ?>"></span><?= h($_dt['title']) ?></li>
             <?php endforeach; ?>
+            </ul>
         <?php endif; ?>
-        </a>
-    </div>
+        <span class="bc-card-foot">Deschide →</span>
+    </a>
 
     <!-- Cursuri -->
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=cursuri">Cursuri<?php if ($_dash_scheduled): ?> <span class="bc-col-count">(<?= (int)$_dash_scheduled ?>)</span><?php endif; ?></a>
-        <a class="bc-card" href="/admin/?tab=cursuri">
+    <a class="bc-card" href="/admin/?tab=cursuri">
+        <div class="bc-card-head">
+            <span class="bc-card-icon">📋</span>
+            <span class="bc-card-title">Cursuri</span>
+            <?php if ($_dash_scheduled > 0): ?><span class="bc-card-badge"><?= (int)$_dash_scheduled ?></span><?php endif; ?>
+        </div>
         <?php if (empty($_dash_upcoming)): ?>
             <p class="bc-card-empty">Niciun curs programat.</p>
         <?php else: ?>
-            <ul class="bc-list2">
+            <ul class="bc-card-list">
             <?php foreach ($_dash_upcoming as $_uc): ?>
-                <li class="bc-line"><span class="bc-line-title"><?= h($_uc['title'] ?? '') ?></span><span class="bc-line-meta"><?= h($_uc['date_display'] ?? '') ?></span></li>
+                <li><span class="bc-li-dot" style="background:#2563eb"></span><span><?= h($_uc['title'] ?? '') ?><span class="bc-li-meta"> · <?= h($_uc['date_display'] ?? '') ?></span></span></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        </a>
-    </div>
+        <span class="bc-card-foot">Vezi toate →</span>
+    </a>
 
     <!-- Speakeri -->
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=speakeri">Speakeri<?php if (count($_dash_speakers)): ?> <span class="bc-col-count">(<?= count($_dash_speakers) ?>)</span><?php endif; ?></a>
-        <a class="bc-card" href="/admin/?tab=speakeri">
+    <a class="bc-card" href="/admin/?tab=speakeri">
+        <div class="bc-card-head">
+            <span class="bc-card-icon">🎤</span>
+            <span class="bc-card-title">Speakeri</span>
+            <?php if (count($_dash_speakers) > 0): ?><span class="bc-card-badge"><?= count($_dash_speakers) ?></span><?php endif; ?>
+        </div>
         <?php if (empty($_dash_spk_prev)): ?>
             <p class="bc-card-empty">Niciun speaker.</p>
         <?php else: ?>
-            <ul class="bc-list2">
-            <?php foreach ($_dash_spk_prev as $_i => $_sp):
-                $_st = $_sp['status'] ?? '';
-                $_stc = $_dash_spk_status_colors[$_st] ?? '#9ca3af'; ?>
-                <li class="bc-person">
-                    <span class="bc-avatar" style="background:<?= h($_bc_av_colors[$_i % count($_bc_av_colors)]) ?>"><?= h($_bc_initials($_sp['name'] ?? '')) ?></span>
-                    <span class="bc-person-name"><?= h($_sp['name'] ?? '') ?></span>
-                    <?php if ($_st): ?><span class="bc-person-status" style="background:<?= h($_stc) ?>" title="<?= h($_st) ?>"></span><?php endif; ?>
-                </li>
+            <ul class="bc-card-list">
+            <?php foreach ($_dash_spk_prev as $_sp): ?>
+                <li><span class="bc-li-dot" style="background:#7c3aed"></span><?= h($_sp['name'] ?? '') ?></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        </a>
-    </div>
+        <span class="bc-card-foot">Vezi toți →</span>
+    </a>
 
     <!-- Locații -->
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=locatii">Locații<?php if (count($_dash_locations)): ?> <span class="bc-col-count">(<?= count($_dash_locations) ?>)</span><?php endif; ?></a>
-        <a class="bc-card" href="/admin/?tab=locatii">
+    <a class="bc-card" href="/admin/?tab=locatii">
+        <div class="bc-card-head">
+            <span class="bc-card-icon">📍</span>
+            <span class="bc-card-title">Locații</span>
+            <?php if (count($_dash_locations) > 0): ?><span class="bc-card-badge"><?= count($_dash_locations) ?></span><?php endif; ?>
+        </div>
         <?php if (empty($_dash_loc_prev)): ?>
             <p class="bc-card-empty">Nicio locație.</p>
         <?php else: ?>
-            <ul class="bc-list2">
+            <ul class="bc-card-list">
             <?php foreach ($_dash_loc_prev as $_lc): ?>
-                <li class="bc-line"><span class="bc-line-title"><?= h($_lc['name'] ?? '') ?></span><?php if (!empty($_lc['days'])): ?><span class="bc-line-meta"><?= h($_lc['days']) ?></span><?php endif; ?></li>
+                <li><span class="bc-li-dot" style="background:#0891b2"></span><?= h($_lc['name'] ?? '') ?></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        </a>
-    </div>
+        <span class="bc-card-foot">Vezi toate →</span>
+    </a>
 
     <!-- Mesaje -->
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=mesaje">Mesaje<?php if ($_dash_msg_pend): ?> <span class="bc-col-count">(<?= (int)$_dash_msg_pend ?>)</span><?php endif; ?></a>
-        <a class="bc-card" href="/admin/?tab=mesaje">
-        <?php if (empty($_dash_msg_prev)): ?>
-            <p class="bc-card-empty">Niciun mesaj.</p>
+    <a class="bc-card" href="/admin/?tab=mesaje">
+        <div class="bc-card-head">
+            <span class="bc-card-icon">💬</span>
+            <span class="bc-card-title">Mesaje</span>
+            <?php if ($_dash_msg_pend > 0): ?><span class="bc-card-badge"><?= (int)$_dash_msg_pend ?></span><?php endif; ?>
+        </div>
+        <?php
+        $_dash_msg_lines = [];
+        foreach (($_dash_msg_data['tab_counts'] ?? []) as $_k => $_n) {
+            if ($_n > 0) $_dash_msg_lines[] = [($_dash_msg_cats[$_k] ?? ucfirst($_k)), $_n];
+        }
+        ?>
+        <?php if (empty($_dash_msg_lines)): ?>
+            <p class="bc-card-empty">Toate mesajele sunt citite.</p>
         <?php else: ?>
-            <ul class="bc-list2">
-            <?php foreach ($_dash_msg_prev as $_i => $_mp): ?>
-                <li class="bc-msg">
-                    <span class="bc-avatar" style="background:<?= h($_bc_av_colors[$_i % count($_bc_av_colors)]) ?>"><?= h($_bc_initials($_mp['from'])) ?></span>
-                    <div style="min-width:0">
-                        <div class="bc-msg-from"><?= h($_mp['from']) ?></div>
-                        <?php if ($_mp['snip'] !== ''): ?><div class="bc-msg-snip"><?= h($_mp['snip']) ?></div><?php endif; ?>
-                    </div>
-                </li>
+            <ul class="bc-card-list">
+            <?php foreach (array_slice($_dash_msg_lines, 0, 4) as $_ml): ?>
+                <li><span class="bc-li-dot" style="background:#e8a317"></span><span><?= h(is_array($_ml[0]) ? ($_ml[0]['label'] ?? '') : $_ml[0]) ?><span class="bc-li-meta"> · <?= (int)$_ml[1] ?> noi</span></span></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        </a>
-    </div>
+        <span class="bc-card-foot">Deschide →</span>
+    </a>
 
     <!-- Marketing -->
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/marketing/">Marketing<?php if ($_dash_mkt_items): ?> <span class="bc-col-count">(<?= (int)$_dash_mkt_items ?>)</span><?php endif; ?></a>
-        <a class="bc-card" href="/admin/marketing/">
+    <a class="bc-card" href="/admin/marketing/">
+        <div class="bc-card-head">
+            <span class="bc-card-icon">📣</span>
+            <span class="bc-card-title">Marketing</span>
+            <?php if ($_dash_mkt_items > 0): ?><span class="bc-card-badge"><?= (int)$_dash_mkt_items ?></span><?php endif; ?>
+        </div>
         <?php if (empty($_dash_mkt_secs)): ?>
             <p class="bc-card-empty">Nicio secțiune.</p>
         <?php else: ?>
-            <ul class="bc-list2">
-            <?php foreach (array_slice($_dash_mkt_secs, 0, 5) as $_msec): ?>
-                <li class="bc-line"><span class="bc-line-title"><?= h($_msec['title'] ?? '') ?></span><span class="bc-line-meta"><?= count($_msec['items'] ?? []) ?></span></li>
+            <ul class="bc-card-list">
+            <?php foreach (array_slice($_dash_mkt_secs, 0, 4) as $_msec): ?>
+                <li><span class="bc-li-dot" style="background:#db2777"></span><span><?= h($_msec['title'] ?? '') ?><span class="bc-li-meta"> · <?= count($_msec['items'] ?? []) ?></span></span></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        </a>
-    </div>
+        <span class="bc-card-foot">Deschide →</span>
+    </a>
 </div>
 
 <button type="button" class="bc-more-btn" id="bcMoreBtn" onclick="bcToggleMore(this)">Mai multe ▾</button>
 
 <div class="bc-home-grid bc-more-grid" id="bcMoreGrid">
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=imagini">Imagini</a>
-        <a class="bc-card" href="/admin/?tab=imagini"><p class="bc-card-empty">Galeria de imagini</p></a>
-    </div>
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=aspect">Aspect</a>
-        <a class="bc-card" href="/admin/?tab=aspect"><p class="bc-card-empty">Culori și aspect site</p></a>
-    </div>
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=vot">Vot cursuri</a>
-        <a class="bc-card" href="/admin/?tab=vot"><p class="bc-card-empty">Propuneri la vot</p></a>
-    </div>
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=colaborari">Colaborări</a>
-        <a class="bc-card" href="/admin/?tab=colaborari"><p class="bc-card-empty">Parteneri și colaborări</p></a>
-    </div>
+    <a class="bc-card bc-card--mini" href="/admin/?tab=imagini">
+        <div class="bc-card-head"><span class="bc-card-icon">🖼️</span><span class="bc-card-title">Imagini</span></div>
+        <p class="bc-card-empty">Galeria de imagini</p>
+    </a>
+    <a class="bc-card bc-card--mini" href="/admin/?tab=aspect">
+        <div class="bc-card-head"><span class="bc-card-icon">🎨</span><span class="bc-card-title">Aspect</span></div>
+        <p class="bc-card-empty">Culori și aspect site</p>
+    </a>
+    <a class="bc-card bc-card--mini" href="/admin/?tab=vot">
+        <div class="bc-card-head"><span class="bc-card-icon">❤️</span><span class="bc-card-title">Vot cursuri</span></div>
+        <p class="bc-card-empty">Propuneri la vot</p>
+    </a>
+    <a class="bc-card bc-card--mini" href="/admin/?tab=colaborari">
+        <div class="bc-card-head"><span class="bc-card-icon">🤝</span><span class="bc-card-title">Colaborări</span></div>
+        <p class="bc-card-empty">Parteneri și colaborări</p>
+    </a>
     <?php if ($_dash_is_owner): ?>
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/statistici/pnl/">P&amp;L Cursuri</a>
-        <a class="bc-card" href="/admin/statistici/pnl/"><p class="bc-card-empty">Venituri și cheltuieli</p></a>
-    </div>
-    <div class="bc-col">
-        <a class="bc-col-title" href="/admin/?tab=config">Setări</a>
-        <a class="bc-card" href="/admin/?tab=config"><p class="bc-card-empty">Configurare cont și site</p></a>
-    </div>
+    <a class="bc-card bc-card--mini" href="/admin/statistici/pnl/">
+        <div class="bc-card-head"><span class="bc-card-icon">📈</span><span class="bc-card-title">P&amp;L Cursuri</span></div>
+        <p class="bc-card-empty">Venituri și cheltuieli</p>
+    </a>
+    <a class="bc-card bc-card--mini" href="/admin/?tab=config">
+        <div class="bc-card-head"><span class="bc-card-icon">⚙️</span><span class="bc-card-title">Setări</span></div>
+        <p class="bc-card-empty">Configurare cont și site</p>
+    </a>
     <?php endif; ?>
 </div>
 
