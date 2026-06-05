@@ -163,28 +163,6 @@ $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->fo
     <div class="mini-cal" id="dashMiniCal"></div>
 </div>
 
-<div class="dash-section" style="margin-bottom:0">
-    <div class="dash-section-title"><span>Evolutie participanti</span></div>
-    <?php if (empty($_dash_participant_months)): ?>
-        <p style="color:var(--text-muted);font-size:13px">Nicio data disponibila.</p>
-    <?php else: ?>
-        <table class="dash-table">
-            <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
-                <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
-            </tr>
-        <?php foreach ($_dash_participant_months as $_pm):
-            $pmIdx = (int)substr($_pm['m'], 5, 2);
-        ?>
-            <tr>
-                <td><?= ucfirst($_ro_months_full[$pmIdx]) ?> <?= substr($_pm['m'], 0, 4) ?></td>
-                <td style="text-align:right;font-weight:600"><?= $_pm['unici'] ?></td>
-                <td style="text-align:right" class="muted"><?= $_pm['bilete'] ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </table>
-    <?php endif; ?>
-</div>
-
 <script>
 window.DASH_CAL = <?= json_encode([
     'today' => $_mc_today_str,

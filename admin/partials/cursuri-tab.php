@@ -130,4 +130,4 @@
     <script>
     window.CLP_STATS = <?= json_encode(clp_courses_stats_js_config($courses, (int)$clp_year, (int)$clp_month, $clp_ctab), JSON_UNESCAPED_UNICODE) ?>;
     </script>
-    <script src="/admin/assets/js/admin-cursuri-stats.js?v=2"></script>
+    <script src="/admin/assets/js/admin-cursuri-stats.js?v=3"></script>

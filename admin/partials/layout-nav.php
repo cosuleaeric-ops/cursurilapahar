@@ -79,6 +79,6 @@ $__bc_labels = [
 $__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
 ?>
     <div class="bc-doc <?= $__bc_is_home ? 'bc-doc--home' : '' ?>">
-<?php if (!$__bc_is_home && $__bc_crumb !== ''): ?>
-        <div class="bc-doc-top"><a href="/admin/" class="bc-home-link">🏠 Acasă</a> <span class="bc-doc-sep">›</span> <?= h($__bc_crumb) ?></div>
+<?php if (!$__bc_is_home): ?>
+        <div class="bc-doc-top"><a href="/admin/" class="bc-home-link">Dashboard</a></div>
 <?php endif; ?>

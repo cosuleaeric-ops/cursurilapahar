@@ -172,6 +172,24 @@
                 </tr>`;
             });
             html += '</tbody></table>';
+
+            const evo = data.evolution || [];
+            if (evo.length) {
+                html += `<div class="dash-section" style="margin-top:28px;margin-bottom:0">
+                    <div class="dash-section-title"><span>Evoluție participanți</span></div>
+                    <table class="dash-table">
+                        <tr style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">
+                            <td>Luna</td><td style="text-align:right">Unici</td><td style="text-align:right">Bilete</td>
+                        </tr>`;
+                evo.forEach(e => {
+                    const mi = parseInt((e.m || '').slice(5, 7), 10);
+                    const yr = (e.m || '').slice(0, 4);
+                    const mn = (clpRoMonths[mi] || '').charAt(0).toUpperCase() + (clpRoMonths[mi] || '').slice(1);
+                    html += `<tr><td>${mn} ${yr}</td><td style="text-align:right;font-weight:600">${e.unici}</td><td style="text-align:right" class="muted">${e.bilete}</td></tr>`;
+                });
+                html += '</table></div>';
+            }
+
             panel.innerHTML = html;
         } catch (err) {
             panel.innerHTML = '<p style="color:var(--danger)">Eroare la încărcarea participanților.</p>';

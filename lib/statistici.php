@@ -6,13 +6,14 @@ require_once __DIR__ . '/courses.php';
 /** @return array{participants: list<array<string, mixed>>, stats: array{unique: int, returning: int, tickets: int}} */
 function clp_fetch_participants(): array
 {
-    $empty = ['participants' => [], 'stats' => ['unique' => 0, 'returning' => 0, 'tickets' => 0]];
+    $empty = ['participants' => [], 'stats' => ['unique' => 0, 'returning' => 0, 'tickets' => 0], 'evolution' => []];
     $db_path = clp_statistici_db_path();
     if (!file_exists($db_path)) {
         return $empty;
     }
 
     $participants = [];
+    $evolution = [];
     try {
         $db = new SQLite3($db_path);
         $db->exec('PRAGMA journal_mode = WAL;');
@@ -29,6 +30,18 @@ function clp_fetch_participants(): array
             unset($row['course_list']);
             $participants[] = $row;
         }
+
+        $er = $db->query(
+            "SELECT strftime('%Y-%m', c.date) AS m,
+                    COUNT(DISTINCT LOWER(TRIM(t.participant_name))) AS unici,
+                    COUNT(*) AS bilete
+             FROM tickets t JOIN courses c ON c.id = t.course_id
+             GROUP BY m ORDER BY m DESC LIMIT 12"
+        );
+        while ($row = $er->fetchArray(SQLITE3_ASSOC)) {
+            $evolution[] = ['m' => (string)$row['m'], 'unici' => (int)$row['unici'], 'bilete' => (int)$row['bilete']];
+        }
+
         $db->close();
     } catch (Exception $e) {
         return $empty;
@@ -41,6 +54,7 @@ function clp_fetch_participants(): array
             'returning' => count(array_filter($participants, fn($p) => (int)($p['num_courses'] ?? 0) > 1)),
             'tickets' => (int)array_sum(array_column($participants, 'total_tickets')),
         ],
+        'evolution' => $evolution,
     ];
 }
 
