@@ -8,16 +8,9 @@
     const btnNext = document.getElementById('dashCalNext');
     if (!grid) return;
 
-    let weekOffset = 0;
+    let monthOffset = 0;
     const today = cfg.today;
     const coursesByDay = cfg.coursesByDay || {};
-
-    function mondayOfCurrentWeek() {
-        const d = new Date(today + 'T12:00:00');
-        const dow = d.getDay() === 0 ? 7 : d.getDay();
-        d.setDate(d.getDate() - (dow - 1));
-        return d;
-    }
 
     function addDays(date, n) {
         const d = new Date(date);
@@ -41,11 +34,21 @@
     }
 
     function renderCal() {
-        const start = addDays(mondayOfCurrentWeek(), weekOffset * 7);
+        const base = new Date(today + 'T12:00:00');
+        const view = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+        const y = view.getFullYear();
+        const m = view.getMonth();
+
+        const first = new Date(y, m, 1);
+        const lastDate = new Date(y, m + 1, 0).getDate();
+        const firstDow = first.getDay() === 0 ? 7 : first.getDay();
+        const gridStart = addDays(first, -(firstDow - 1));
+        const weeks = Math.ceil((firstDow - 1 + lastDate) / 7);
+        const totalCells = weeks * 7;
 
         let html = DOW.map(d => `<div class="mini-cal-dow">${d}</div>`).join('');
-        let cur = new Date(start);
-        for (let i = 0; i < 21; i++) {
+        let cur = new Date(gridStart);
+        for (let i = 0; i < totalCells; i++) {
             const ds = fmtYmd(cur);
             const isToday = ds === today;
             const isPast = ds < today;
@@ -63,7 +66,7 @@
         grid.innerHTML = html;
     }
 
-    btnPrev?.addEventListener('click', () => { weekOffset -= 3; renderCal(); });
-    btnNext?.addEventListener('click', () => { weekOffset += 3; renderCal(); });
+    btnPrev?.addEventListener('click', () => { monthOffset -= 1; renderCal(); });
+    btnNext?.addEventListener('click', () => { monthOffset += 1; renderCal(); });
     renderCal();
 })();

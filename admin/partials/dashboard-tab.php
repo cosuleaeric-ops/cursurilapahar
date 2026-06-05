@@ -134,8 +134,8 @@ $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->fo
     <div class="dash-section-title" style="margin-bottom:10px">
         <div class="dash-cal-heading">
             <span>Urmatoarele cursuri</span>
-            <button type="button" class="dash-cal-arrow" id="dashCalPrev" aria-label="Săptămâni anterioare">&#8592;</button>
-            <button type="button" class="dash-cal-arrow" id="dashCalNext" aria-label="Săptămâni următoare">&#8594;</button>
+            <button type="button" class="dash-cal-arrow" id="dashCalPrev" aria-label="Luna anterioară">&#8592;</button>
+            <button type="button" class="dash-cal-arrow" id="dashCalNext" aria-label="Luna următoare">&#8594;</button>
         </div>
     </div>
     <div class="mini-cal" id="dashMiniCal"></div>
@@ -147,4 +147,4 @@ window.DASH_CAL = <?= json_encode([
     'coursesByDay' => $_dash_cal_json,
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="/admin/assets/js/admin-dashboard.js?v=3"></script>
+<script src="/admin/assets/js/admin-dashboard.js?v=4"></script>
