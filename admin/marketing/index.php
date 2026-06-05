@@ -124,7 +124,7 @@ $csrf = csrf_token();
 <title>Marketing — Admin</title>
 <?php if (!empty($settings['favicon_path'])): ?><link rel="icon" href="<?= h($settings['favicon_path']) ?>"><?php endif; ?>
 <?php $adminCssVer = (string)@filemtime(dirname(__DIR__) . '/assets/css/admin.css'); ?>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=<?= h($adminCssVer ?: '18') ?>">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=<?= h($adminCssVer ?: '19') ?>">
 <style>
 /* DaisyUI nu e încărcat aici; forțăm înălțime Notion pe inputs */
 .mkt-page .mkt-add-fields input {
