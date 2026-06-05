@@ -77,7 +77,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=28">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=29">
 <style>
 .todos-grid { display: flex; flex-direction: column; gap: 26px; }
 .todo-list-block { }
@@ -114,7 +114,8 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 .todo-add-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
 .todo-add-submit { padding: 10px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; transition: background .15s; }
 .todo-add-submit:hover { background: var(--accent-hover); }
-.todo-add-cancel { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px; padding: 0 4px; }
+.todo-add-cancel { background: #fff; border: 1px solid var(--border-strong); color: var(--text); border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; padding: 10px 16px; transition: background .15s, border-color .15s; }
+.todo-add-cancel:hover { background: var(--bg-warm); }
 </style>
 </head>
 <body>

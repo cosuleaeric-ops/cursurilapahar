@@ -46,7 +46,7 @@ require __DIR__ . '/bootstrap.php';
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/coloris.min.css">
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=28">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=29">
 </head>
 <body>
 
