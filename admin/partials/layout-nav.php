@@ -101,3 +101,19 @@
     </aside>
 
     <main class="wp-main">
+<?php
+$__bc_is_home = (($tab ?? '') === 'dashboard');
+$__bc_labels = [
+    'todos' => 'To-dos',
+    'cursuri' => 'Cursuri', 'speakeri' => 'Speakeri', 'locatii' => 'Locații',
+    'mesaje' => 'Mesaje', 'marketing' => 'Marketing', 'imagini' => 'Imagini',
+    'aspect' => 'Aspect', 'vot' => 'Vot cursuri', 'colaborari' => 'Colaborări',
+    'config' => 'Setări', 'securitate' => 'Setări', 'kit' => 'Setări',
+    'pnl' => 'P&L Cursuri',
+];
+$__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
+?>
+    <div class="bc-doc <?= $__bc_is_home ? 'bc-doc--canvas' : '' ?>">
+<?php if (!$__bc_is_home && $__bc_crumb !== ''): ?>
+        <div class="bc-doc-top">Cursuri la Pahar<?php if ($__bc_crumb): ?> <span class="bc-doc-sep">›</span> <?= h($__bc_crumb) ?><?php endif; ?></div>
+<?php endif; ?>

@@ -85,7 +85,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=17">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=18">
 <style>
 .todos-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
 .todos-header h1 { margin: 0; }
@@ -94,25 +94,21 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
     font-size: 13px; color: var(--text-muted); cursor: pointer;
     background: none; border: none; padding: 0; text-decoration: none;
 }
-.todos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
-.todo-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
+.todos-grid { display: flex; flex-direction: column; gap: 34px; }
+.todo-section { background: transparent; border: none; }
 .todo-section-header {
     display: flex; align-items: center; gap: 10px;
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid var(--border);
+    padding: 0 0 6px;
+    margin-bottom: 4px;
 }
-.todo-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-.todo-section-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.todo-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+.todo-section-title { font-size: 17px; font-weight: 700; color: var(--text); }
 .todo-done-count { font-size: 12px; color: var(--text-muted); margin-left: auto; }
-.todo-list { padding: 8px 0; }
+.todo-list { padding: 0; }
 .todo-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 9px 20px;
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 8px 8px 8px 2px;
+    border-radius: 8px;
     transition: background .1s;
 }
 .todo-item:hover { background: var(--bg); }
@@ -132,7 +128,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 .todo-item-delete:hover { color: var(--danger); }
 .todo-done-group { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; }
 .todo-done-group .todo-item { opacity: .65; }
-.todo-add-area { padding: 10px 20px 16px; }
+.todo-add-area { padding: 10px 2px 0; }
 .todo-add-link {
     background: none; border: none; cursor: pointer;
     color: var(--accent); font-size: 13px; padding: 0;
@@ -269,6 +265,7 @@ function toggleAddForm(btn, forceClose) {
 }
 </script>
 
+    </div><!-- /bc-doc -->
     </main>
 </div>
 

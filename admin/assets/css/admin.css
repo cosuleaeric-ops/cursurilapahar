@@ -118,8 +118,68 @@ body {
 .nav-new-badge { margin-left: auto; background: #e8a317; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
 
 /* ── Main content ── */
-.wp-main { flex: 1; padding: 28px 32px; min-width: 0; margin-left: 220px; }
-.wp-page-title { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 22px; letter-spacing: -0.03em; }
+.wp-main { flex: 1; min-width: 0; margin-left: 220px; padding: 0 24px 48px; background: var(--bg); }
+
+/* ── Basecamp document wrapper ── */
+.bc-doc {
+    max-width: 840px;
+    margin: 34px auto 60px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 40px 46px 52px;
+    box-shadow: var(--shadow);
+}
+.bc-doc--canvas {
+    max-width: 1200px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 30px 6px 20px;
+    box-shadow: none;
+}
+.bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; letter-spacing: .01em; }
+.bc-doc-top .bc-doc-sep { opacity: .5; margin: 0 2px; }
+.wp-page-title { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 24px; letter-spacing: -0.04em; line-height: 1.1; }
+.bc-doc--canvas .wp-page-title { margin-bottom: 22px; }
+
+/* ── Basecamp home card grid ── */
+.bc-home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-bottom: 8px; }
+@media (max-width: 1080px) { .bc-home-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 680px) { .bc-home-grid { grid-template-columns: 1fr; } }
+.bc-card {
+    display: flex; flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    text-decoration: none; color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .15s, transform .15s, border-color .15s;
+    min-height: 168px;
+}
+.bc-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--border-strong); }
+.bc-card--mini { min-height: 0; }
+.bc-card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
+.bc-card-icon { font-size: 19px; line-height: 1; }
+.bc-card-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.bc-card-badge { margin-left: auto; font-size: 11px; font-weight: 700; color: #fff; background: var(--accent); border-radius: var(--radius-pill); padding: 2px 9px; line-height: 1.5; }
+.bc-card-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bc-card-list li { font-size: 13px; color: var(--text); display: flex; gap: 8px; align-items: flex-start; line-height: 1.4; }
+.bc-li-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; background: var(--accent); }
+.bc-li-meta { color: var(--text-muted); font-size: 12px; }
+.bc-card-empty { font-size: 13px; color: var(--text-muted); margin: 0; }
+.bc-card-foot { margin-top: auto; padding-top: 14px; font-size: 12px; font-weight: 600; color: var(--accent); }
+.bc-more-btn {
+    display: block; margin: 22px auto 0;
+    background: none; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill); padding: 8px 20px;
+    font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer;
+    transition: border-color .15s, color .15s;
+}
+.bc-more-btn:hover { border-color: var(--accent); color: var(--accent); }
+.bc-more-grid { display: none; margin-top: 22px; margin-bottom: 28px; }
+.bc-more-grid.open { display: grid; }
 
 /* ── Cards ── */
 .card { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius-lg) !important; padding: 22px !important; margin-bottom: 20px; box-shadow: var(--shadow-sm); display: block !important; flex-direction: unset !important; }

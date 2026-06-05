@@ -24,6 +24,7 @@ require_once dirname(__DIR__) . '/lib/collaborations.php';
 require_once dirname(__DIR__) . '/lib/competitors.php';
 require_once dirname(__DIR__) . '/lib/auth.php';
 require_once dirname(__DIR__) . '/lib/todos.php';
+require_once dirname(__DIR__) . '/lib/marketing.php';
 require_once dirname(__DIR__) . '/lib/dashboard.php';
 require_once dirname(__DIR__) . '/lib/design.php';
 require_once dirname(__DIR__) . '/lib/images.php';
@@ -45,7 +46,7 @@ require __DIR__ . '/bootstrap.php';
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/coloris.min.css">
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=17">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=18">
 </head>
 <body>
 
@@ -132,6 +133,7 @@ require __DIR__ . '/partials/colaborari-tab.php';
 
 <?php endif; ?>
 
+    </div><!-- /bc-doc -->
     </main>
 </div><!-- /wp-layout -->
 

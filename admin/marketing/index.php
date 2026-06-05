@@ -257,6 +257,7 @@ $csrf = csrf_token();
     </section>
 </div>
 
+    </div><!-- /bc-doc -->
     </main>
 </div>
 
