@@ -160,7 +160,7 @@ body {
     box-shadow: var(--shadow);
 }
 .bc-doc--home { max-width: 1180px; }
-.bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .01em; margin: 0 -46px 26px; padding: 0 46px 18px; border-bottom: 1px solid var(--border); }
+.bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .01em; margin: -20px -46px 14px; padding: 0 46px 11px; border-bottom: 1px solid var(--border); }
 .bc-doc-top .bc-doc-sep { opacity: .5; margin: 0 2px; }
 .bc-home-link { color: var(--accent); text-decoration: none; }
 .bc-home-link:hover { text-decoration: underline; }
