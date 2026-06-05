@@ -19,8 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'add_todo') {
         $title = trim($_POST['title'] ?? '');
-        $assigned_to = $_POST['assigned_to'] ?? $current_username;
-        if ($title !== '') {
+        $assigned_to = $_POST['assigned_to'] ?? '';
+        $valid_users = array_column(load_users(), 'username');
+        if ($title !== '' && in_array($assigned_to, $valid_users, true)) {
             clp_add_todo($title, $assigned_to, $current_username);
         }
         header('Location: /admin/todos/');
@@ -47,22 +48,30 @@ $_msg_pending_count = clp_pending_message_count();
 $tab = 'todos';
 
 $all_users = load_users();
-$users_to_show = array_column($all_users, 'username');
 
-$todos_by_user = [];
-foreach ($users_to_show as $u) {
-    $list = clp_todos_for_user($u);
-    $pending = array_values(array_filter($list, fn($t) => empty($t['completed'])));
-    $done    = array_values(array_filter($list, fn($t) => !empty($t['completed'])));
-    $todos_by_user[$u] = ['pending' => $pending, 'done' => $done, 'done_count' => count($done)];
-}
+$_all_todos = clp_load_todos();
+$pending = array_values(array_filter($_all_todos, fn($t) => empty($t['completed'])));
+$done    = array_values(array_filter($_all_todos, fn($t) => !empty($t['completed'])));
+$done_count = count($done);
 
-$user_labels = [];
-foreach ($all_users as $u) {
-    $user_labels[$u['username']] = ucfirst($u['username']);
-}
+$user_display  = ['eric6' => 'Eric', 'andy' => 'Andy'];
+$user_colors   = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
+$user_avatars  = ['eric6' => '/assets/images/avatars/eric6.jpg', 'andy' => '/assets/images/avatars/andy.jpg'];
+$user_initials = ['eric6' => 'E', 'andy' => 'A'];
 
-$user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
+$render_assign = function ($uname) use ($user_display, $user_colors, $user_avatars, $user_initials) {
+    if ($uname === '') return '';
+    $name = $user_display[$uname] ?? ucfirst($uname);
+    $col  = $user_colors[$uname] ?? '#6b7280';
+    $av   = $user_avatars[$uname] ?? '';
+    $ini  = $user_initials[$uname] ?? mb_strtoupper(mb_substr($name, 0, 1));
+    ob_start(); ?>
+<span class="todo-assign">
+    <span class="todo-av" style="background:<?= h($col) ?>"><?= h($ini) ?><?php if ($av): ?><img src="<?= h($av) ?>" alt="" onerror="this.remove()"><?php endif; ?></span>
+    <span class="todo-assign-name"><?= h($name) ?></span>
+</span>
+<?php return ob_get_clean();
+};
 ?>
 <!DOCTYPE html>
 <html lang="ro" data-theme="corporate">
@@ -86,8 +95,25 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 .todo-item:hover { background: var(--bg); }
 .todo-check { flex-shrink: 0; margin: 1px 0 0; display: flex; }
 .todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
-.todo-text { flex: 1; font-size: 15px; color: var(--text); line-height: 1.4; }
+.todo-text { font-size: 15px; color: var(--text); line-height: 1.4; }
 .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+
+/* assignment pill (Basecamp-style) */
+.todo-assign { display: inline-flex; align-items: center; gap: 7px; background: var(--bg); border-radius: 999px; padding: 3px 12px 3px 4px; white-space: nowrap; }
+.todo-av { position: relative; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; overflow: hidden; }
+.todo-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.todo-assign-name { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.todo-item > form { margin: 0; }
+.todo-item > form:last-child { margin-left: auto; }
+
+/* assignee chooser in add form */
+.todo-add-assign { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.todo-add-assign-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.todo-assign-pick { cursor: pointer; display: inline-flex; }
+.todo-assign-pick input { position: absolute; opacity: 0; width: 0; height: 0; }
+.todo-assign-pick .todo-assign { border: 2px solid transparent; cursor: pointer; transition: border-color .12s, background .12s; }
+.todo-assign-pick input:checked + .todo-assign { border-color: var(--accent); background: var(--accent-soft); }
+.todo-assign-pick input:checked + .todo-assign .todo-assign-name { color: var(--accent); }
 .todo-del { opacity: 0; flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; padding: 0 4px; transition: opacity .15s, color .15s; }
 .todo-item:hover .todo-del { opacity: 1; }
 .todo-del:hover { color: var(--danger); }
@@ -120,21 +146,7 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 
 <h1 class="wp-page-title">To-dos</h1>
 
-<div class="todos-grid">
-<?php foreach ($todos_by_user as $uname => $data):
-    $dot_color = $user_colors[$uname] ?? '#16a34a';
-    $label = $user_labels[$uname] ?? ucfirst($uname);
-    $pending = $data['pending'];
-    $done_list = $data['done'] ?? [];
-    $done_count = $data['done_count'];
-    $can_add = true;
-?>
-<div class="todo-list-block">
-    <div class="todo-list-head">
-        <span class="todo-list-circle" style="background:<?= h($dot_color) ?>"></span>
-        <span class="todo-list-name"><?= h($label) ?></span>
-    </div>
-
+<div class="todos-single">
     <ul class="todo-items">
     <?php foreach ($pending as $todo): ?>
         <li class="todo-item">
@@ -144,7 +156,8 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
                 <input type="checkbox" onchange="this.form.submit()" title="Marchează completat">
             </form>
             <span class="todo-text"><?= h($todo['title']) ?></span>
-            <form method="post" action="/admin/todos/" style="margin:0">
+            <?= $render_assign($todo['assigned_to'] ?? '') ?>
+            <form method="post" action="/admin/todos/">
                 <input type="hidden" name="action" value="delete_todo">
                 <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
                 <button type="submit" class="todo-del" title="Șterge" onclick="return confirm('Sigur ștergi?')">×</button>
@@ -152,16 +165,16 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
         </li>
     <?php endforeach; ?>
 
-    <?php if (empty($pending) && empty($done_list)): ?>
+    <?php if (empty($pending) && empty($done)): ?>
         <li class="todo-empty">Nicio sarcină.</li>
     <?php endif; ?>
     </ul>
 
-    <?php if (!empty($done_list)): ?>
+    <?php if (!empty($done)): ?>
     <details class="todo-completed">
         <summary><span class="todo-completed-check">✓</span> <?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></summary>
         <ul class="todo-items todo-completed-items">
-        <?php foreach ($done_list as $todo): ?>
+        <?php foreach ($done as $todo): ?>
             <li class="todo-item">
                 <form method="post" action="/admin/todos/" class="todo-check">
                     <input type="hidden" name="action" value="toggle_todo">
@@ -169,7 +182,8 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
                     <input type="checkbox" checked onchange="this.form.submit()" title="Marchează incomplet">
                 </form>
                 <span class="todo-text done"><?= h($todo['title']) ?></span>
-                <form method="post" action="/admin/todos/" style="margin:0">
+                <?= $render_assign($todo['assigned_to'] ?? '') ?>
+                <form method="post" action="/admin/todos/">
                     <input type="hidden" name="action" value="delete_todo">
                     <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
                     <button type="submit" class="todo-del" title="Șterge" onclick="return confirm('Sigur ștergi?')">×</button>
@@ -180,24 +194,28 @@ $user_colors = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
     </details>
     <?php endif; ?>
 
-    <?php if ($can_add): ?>
     <div class="todo-add">
         <button class="todo-add-link" onclick="toggleAddForm(this)">
             Adaugă o sarcină
         </button>
         <form method="post" action="/admin/todos/" class="todo-add-form">
             <input type="hidden" name="action" value="add_todo">
-            <input type="hidden" name="assigned_to" value="<?= h($uname) ?>">
             <input type="text" name="title" class="todo-add-input" autofocus required>
+            <div class="todo-add-assign">
+                <span class="todo-add-assign-label">Atribuie:</span>
+                <?php foreach ($all_users as $u): $un = $u['username']; ?>
+                <label class="todo-assign-pick">
+                    <input type="radio" name="assigned_to" value="<?= h($un) ?>" required>
+                    <?= $render_assign($un) ?>
+                </label>
+                <?php endforeach; ?>
+            </div>
             <div class="todo-add-actions">
                 <button type="submit" class="todo-add-submit">Adaugă</button>
                 <button type="button" class="todo-add-cancel" onclick="toggleAddForm(this.closest('.todo-add').querySelector('.todo-add-link'), true)">Anulează</button>
             </div>
         </form>
     </div>
-    <?php endif; ?>
-</div>
-<?php endforeach; ?>
 </div>
 
 <script>
