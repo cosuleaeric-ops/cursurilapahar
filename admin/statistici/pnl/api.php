@@ -266,6 +266,10 @@ function handleStats(SQLite3 $db): void
     $date_filter = "strftime('%Y', data) = :year";
     if ($month) $date_filter .= " AND strftime('%m', data) = :month";
 
+    // Distributions (dividends) stay in the transaction list but are excluded
+    // from all profit/expense statistics — they are profit paid out, not a cost.
+    $exclude_distrib = "lower(trim(categorie)) NOT IN ('dividende')";
+
     $bind = function($stmt) use ($year, $month) {
         $stmt->bindValue(':year', $year);
         if ($month) $stmt->bindValue(':month', $month);
@@ -275,7 +279,7 @@ function handleStats(SQLite3 $db): void
     $stmt = $bind($db->prepare("SELECT COALESCE(SUM(suma), 0) as total FROM venituri WHERE $date_filter"));
     $total_v = (float)$stmt->execute()->fetchArray(SQLITE3_ASSOC)['total'];
 
-    $stmt = $bind($db->prepare("SELECT COALESCE(SUM(suma), 0) as total FROM cheltuieli WHERE $date_filter"));
+    $stmt = $bind($db->prepare("SELECT COALESCE(SUM(suma), 0) as total FROM cheltuieli WHERE $date_filter AND $exclude_distrib"));
     $total_c = (float)$stmt->execute()->fetchArray(SQLITE3_ASSOC)['total'];
 
     $group_by = $month ? "strftime('%Y-%m-%d', data)" : "strftime('%Y-%m', data)";
@@ -288,7 +292,7 @@ function handleStats(SQLite3 $db): void
     }
 
     $stmt = $bind($db->prepare("SELECT $group_by as luna, COALESCE(SUM(suma), 0) as suma
-        FROM cheltuieli WHERE $date_filter GROUP BY luna ORDER BY luna"));
+        FROM cheltuieli WHERE $date_filter AND $exclude_distrib GROUP BY luna ORDER BY luna"));
     $res = $stmt->execute();
     $monthly_c = [];
     while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
@@ -296,7 +300,7 @@ function handleStats(SQLite3 $db): void
     }
 
     $stmt = $bind($db->prepare("SELECT categorie, COALESCE(SUM(suma), 0) as suma
-        FROM cheltuieli WHERE $date_filter
+        FROM cheltuieli WHERE $date_filter AND $exclude_distrib
         GROUP BY categorie ORDER BY suma DESC"));
     $res = $stmt->execute();
     $categorii = [];
@@ -338,7 +342,7 @@ function handleStats(SQLite3 $db): void
         $prev_label  = (string)$py;
     }
     $prev_v = (float)$db->querySingle("SELECT COALESCE(SUM(suma),0) FROM venituri WHERE $prev_filter");
-    $prev_c = (float)$db->querySingle("SELECT COALESCE(SUM(suma),0) FROM cheltuieli WHERE $prev_filter");
+    $prev_c = (float)$db->querySingle("SELECT COALESCE(SUM(suma),0) FROM cheltuieli WHERE $prev_filter AND $exclude_distrib");
     $profit_prev = $prev_v - $prev_c;
 
     echo json_encode([
