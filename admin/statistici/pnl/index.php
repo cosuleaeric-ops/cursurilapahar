@@ -520,8 +520,10 @@ const CAT_COLORS = [
 ];
 
 function renderCharts(s) {
-  if (!s || !Array.isArray(s.monthly)) return;
-  const labels = s.monthly.map(m => currentMonth ? m.luna.slice(8) + '.' : monthLabel(m.luna));
+  // Macro view: always the full year by month, regardless of selected month.
+  const series = Array.isArray(s && s.yearly) ? s.yearly : (s && s.monthly);
+  if (!Array.isArray(series)) return;
+  const labels = series.map(m => monthLabel(m.luna));
 
   if (chartMonthly) chartMonthly.destroy();
   chartMonthly = new Chart(document.getElementById('chartMonthly'), {
@@ -531,14 +533,14 @@ function renderCharts(s) {
       datasets: [
         {
           label: 'Venituri',
-          data: s.monthly.map(m => m.venituri),
+          data: series.map(m => m.venituri),
           backgroundColor: 'rgba(42,125,79,0.8)',
           borderRadius: 5,
           borderSkipped: false,
         },
         {
           label: 'Cheltuieli',
-          data: s.monthly.map(m => m.cheltuieli),
+          data: series.map(m => m.cheltuieli),
           backgroundColor: 'rgba(193,68,74,0.75)',
           borderRadius: 5,
           borderSkipped: false,

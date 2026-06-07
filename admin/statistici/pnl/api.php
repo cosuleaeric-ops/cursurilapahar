@@ -345,12 +345,36 @@ function handleStats(SQLite3 $db): void
     $prev_c = (float)$db->querySingle("SELECT COALESCE(SUM(suma),0) FROM cheltuieli WHERE $prev_filter AND $exclude_distrib");
     $profit_prev = $prev_v - $prev_c;
 
+    // Year-wide monthly breakdown (always full 12 months) — macro chart, independent of selected month.
+    $ystmt = $db->prepare("SELECT strftime('%m', data) as m, COALESCE(SUM(suma),0) as suma FROM venituri WHERE strftime('%Y', data) = :year GROUP BY m");
+    $ystmt->bindValue(':year', $year);
+    $r = $ystmt->execute();
+    $yv = [];
+    while ($row = $r->fetchArray(SQLITE3_ASSOC)) $yv[$row['m']] = (float)$row['suma'];
+
+    $ystmt = $db->prepare("SELECT strftime('%m', data) as m, COALESCE(SUM(suma),0) as suma FROM cheltuieli WHERE strftime('%Y', data) = :year AND $exclude_distrib GROUP BY m");
+    $ystmt->bindValue(':year', $year);
+    $r = $ystmt->execute();
+    $yc = [];
+    while ($row = $r->fetchArray(SQLITE3_ASSOC)) $yc[$row['m']] = (float)$row['suma'];
+
+    $yearly = [];
+    for ($mm = 1; $mm <= 12; $mm++) {
+        $mp = str_pad((string)$mm, 2, '0', STR_PAD_LEFT);
+        $yearly[] = [
+            'luna'       => $year . '-' . $mp,
+            'venituri'   => $yv[$mp] ?? 0,
+            'cheltuieli' => $yc[$mp] ?? 0,
+        ];
+    }
+
     echo json_encode([
         'total_venituri' => $total_v,
         'total_cheltuieli' => $total_c,
         'profit_net' => $total_v - $total_c,
         'marja' => $total_v > 0 ? round(($total_v - $total_c) / $total_v * 100, 1) : 0,
         'monthly' => $monthly,
+        'yearly' => $yearly,
         'categorii_cheltuieli' => $categorii,
         'year' => (int)$year,
         'profit_prev' => $profit_prev,
