@@ -137,6 +137,16 @@ td.suma-red   { color: var(--red);   font-weight: 600; font-variant-numeric: tab
 .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: #fff; transition: border-color 0.15s; }
 .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green); background: #fff; }
 .categorie-combobox { position: relative; }
+.categorie-combobox input { padding-right: 38px; }
+.cat-combobox-arrow {
+  position: absolute; top: 0; right: 0; height: 100%; width: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; background: transparent; cursor: pointer; color: var(--muted);
+  transition: color .15s, transform .15s;
+}
+.cat-combobox-arrow:hover { color: var(--text); }
+.cat-combobox-arrow svg { width: 14px; height: 14px; transition: transform .18s; }
+.categorie-combobox.open .cat-combobox-arrow svg { transform: rotate(180deg); }
 .categorie-suggestions {
   position: absolute; left: 0; right: 0; top: calc(100% + 2px); z-index: 1100;
   background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm);

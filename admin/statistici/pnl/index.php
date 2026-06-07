@@ -10,7 +10,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=12">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=13">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -153,6 +153,9 @@ include __DIR__ . '/../layout_header.php';
         <label>Categorie</label>
         <div class="categorie-combobox">
           <input type="text" id="venitCategorie" autocomplete="off" placeholder="Scrie sau alege categoria..." />
+          <button type="button" class="cat-combobox-arrow" tabindex="-1" aria-label="Arată categoriile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
           <div id="venitCategorieSuggestions" class="categorie-suggestions" hidden></div>
         </div>
       </div>
@@ -188,6 +191,9 @@ include __DIR__ . '/../layout_header.php';
         <label>Categorie</label>
         <div class="categorie-combobox">
           <input type="text" id="cheltuialaCategorie" autocomplete="off" placeholder="Scrie sau alege categoria..." />
+          <button type="button" class="cat-combobox-arrow" tabindex="-1" aria-label="Arată categoriile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
           <div id="cheltuialaCategorieSuggestions" class="categorie-suggestions" hidden></div>
         </div>
       </div>
@@ -344,9 +350,27 @@ function initCategorieCombobox(inputId, boxId, getCats) {
   if (!input || !box || input.dataset.comboboxInit) return;
   input.dataset.comboboxInit = '1';
 
-  input.addEventListener('focus', () => renderCategorieSuggestions(inputId, boxId, getCats(), inputId === 'cheltuialaCategorie'));
-  input.addEventListener('input', () => renderCategorieSuggestions(inputId, boxId, getCats(), inputId === 'cheltuialaCategorie'));
-  input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 150));
+  const combobox = input.closest('.categorie-combobox');
+  const arrow = combobox ? combobox.querySelector('.cat-combobox-arrow') : null;
+  const withEmoji = inputId === 'cheltuialaCategorie';
+  const syncOpen = () => combobox && combobox.classList.toggle('open', !box.hidden);
+
+  input.addEventListener('focus', () => { renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji); syncOpen(); });
+  input.addEventListener('input', () => { renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji); syncOpen(); });
+  input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; syncOpen(); }, 150));
+
+  if (arrow) {
+    arrow.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      if (box.hidden) {
+        renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji);
+        input.focus();
+      } else {
+        box.hidden = true;
+      }
+      syncOpen();
+    });
+  }
 }
 
 async function resolveCategorie(inputId, addAction, cats) {
