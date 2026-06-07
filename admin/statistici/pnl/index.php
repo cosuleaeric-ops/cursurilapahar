@@ -356,7 +356,20 @@ function initCategorieCombobox(inputId, boxId, getCats) {
   const syncOpen = () => combobox && combobox.classList.toggle('open', !box.hidden);
 
   input.addEventListener('focus', () => { renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji); syncOpen(); });
-  input.addEventListener('input', () => { renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji); syncOpen(); });
+  input.addEventListener('input', (e) => {
+    // Inline autocomplete: complete to the first matching category, selecting the added part.
+    const isInsert = !e.inputType || e.inputType.indexOf('insert') === 0;
+    const val = input.value;
+    if (isInsert && val.length >= 2) {
+      const match = getCats().find(c => c.toLowerCase().startsWith(val.toLowerCase()));
+      if (match && match.length > val.length) {
+        input.value = match;
+        input.setSelectionRange(val.length, match.length);
+      }
+    }
+    renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji);
+    syncOpen();
+  });
   input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; syncOpen(); }, 150));
 
   if (arrow) {
