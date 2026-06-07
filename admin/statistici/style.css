@@ -93,6 +93,7 @@
 /* ── Table ── */
 .tx-section { width: 100%; margin-bottom: 28px; }
 .tx-section .section-header { width: 100%; }
+.tx-section .table-card { max-width: 640px; }
 .tx-cat-filters { margin-bottom: 12px; width: 100%; }
 .table-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; width: 100%; }
 .table-scroll { overflow-x: auto; }
