@@ -1,40 +1,11 @@
 <?php
 declare(strict_types=1);
-
 /**
  * Re-engagement landing for cold subscribers.
- * Email link: https://cursurilapahar.ro/reactivare/?e={email}
- * Logs the click so we know who re-engaged.
+ * Email link: https://cursurilapahar.ro/email
+ * (Click tracking is handled by the email marketing tool.)
  */
-
-// ── Track the click ──────────────────────────────────────────────────────────
-$email = trim((string)($_GET['e'] ?? $_GET['email'] ?? ''));
-$id    = trim((string)($_GET['id'] ?? ''));
-
-$log_file = dirname(__DIR__) . '/data/reengage_clicks.json';
-$entry = [
-    'ts'    => date('c'),
-    'email' => mb_substr($email, 0, 160),
-    'id'    => mb_substr($id, 0, 80),
-    'ip'    => $_SERVER['REMOTE_ADDR'] ?? '',
-];
-$dir = dirname($log_file);
-if (!is_dir($dir)) @mkdir($dir, 0755, true);
-$fh = @fopen($log_file, 'c+');
-if ($fh) {
-    flock($fh, LOCK_EX);
-    $raw = stream_get_contents($fh);
-    $data = json_decode($raw ?: '[]', true);
-    if (!is_array($data)) $data = [];
-    $data[] = $entry;
-    rewind($fh);
-    ftruncate($fh, 0);
-    fwrite($fh, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    flock($fh, LOCK_UN);
-    fclose($fh);
-}
-
-function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+header('X-Robots-Tag: noindex, nofollow');
 ?>
 <!DOCTYPE html>
 <html lang="ro">

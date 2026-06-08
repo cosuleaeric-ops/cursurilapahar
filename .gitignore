@@ -30,5 +30,3 @@ node_modules/
 # Andy course-task cron state (server-side)
 data/andy_course_tasks_done.json
 
-# Re-engagement click log (server-side)
-data/reengage_clicks.json
