@@ -29,7 +29,8 @@ header('X-Robots-Tag: noindex, nofollow');
     border-radius: 20px; padding: 44px 38px; max-width: 460px; width: 100%;
     text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.5);
   }
-  .logo { height: 54px; width: auto; margin-bottom: 26px; }
+  .brand { font-size: 15px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #ffffff; margin-bottom: 24px; }
+  .brand .glass { color: #ffe205; }
   .badge {
     display: inline-block; background: rgba(255,226,5,.12); color: #ffe205;
     font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
@@ -49,8 +50,7 @@ header('X-Robots-Tag: noindex, nofollow');
 </head>
 <body>
   <div class="card">
-    <img src="/assets/images/uploads/logo-1775903455.png" alt="Cursuri la Pahar" class="logo"
-         onerror="this.style.display='none'">
+    <div class="brand"><span class="glass">🍷</span> Cursuri la Pahar</div>
     <div class="badge">Ești pe listă ✦</div>
     <h1>Mă bucur că ești aici 👋</h1>
     <p>Te-am trecut înapoi pe lista activă.</p>
