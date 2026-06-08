@@ -23,3 +23,11 @@ if (!empty($settings['head_scripts'])) {
   window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script>
+
+<!-- DataFast analytics -->
+<script
+  defer
+  data-website-id="dfid_3dI6zNhYHLxBdbjNgPPmv"
+  data-domain="cursurilapahar.ro"
+  src="https://datafa.st/js/script.js">
+</script>
