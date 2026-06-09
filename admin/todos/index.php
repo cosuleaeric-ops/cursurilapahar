@@ -57,7 +57,7 @@ $done_count = count($done);
 // Group completed todos by the day they were marked done (fallback: created day)
 $done_groups = [];
 foreach ($done as $t) {
-    $ts  = $t['completed_at'] ?? ($t['created_at'] ?? '');
+    $ts  = $t['completed_at'] ?? '';
     $day = $ts !== '' ? substr($ts, 0, 10) : '';
     $done_groups[$day][] = $t;
 }
