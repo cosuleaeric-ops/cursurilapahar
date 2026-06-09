@@ -169,9 +169,9 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-add-checkmark { width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 4px; flex-shrink: 0; }
 .todos-head { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
 .todos-head .wp-page-title { margin-bottom: 0; }
-.todo-add-icon { width: 30px; height: 30px; border-radius: 999px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; border: none; cursor: pointer; font-size: 21px; line-height: 1; padding: 0 0 2px; transition: background .15s, transform .12s; }
-.todo-add-icon:hover { background: var(--accent-hover); }
-.todo-add-icon:active { transform: scale(.94); }
+.todo-add-icon { width: 30px; height: 30px; border-radius: 999px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: none; color: var(--accent); border: none; cursor: pointer; font-size: 24px; line-height: 1; padding: 0 0 3px; transition: color .15s, background .15s, transform .12s; }
+.todo-add-icon:hover { background: var(--accent-soft); }
+.todo-add-icon:active { transform: scale(.9); }
 .todo-add-form { display: none; flex-direction: column; gap: 10px; margin: 0 3px 10px; padding: 0; }
 .todo-add-form.open { display: flex; }
 .todo-add-actions { display: flex; align-items: center; gap: 8px; }
