@@ -134,9 +134,11 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 
 /* completed collapsible */
 .todo-completed { margin-top: 0; }
-.todo-completed > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 11px; padding: 5px 3px; font-size: 14px; color: var(--text-muted); user-select: none; }
+.todo-completed > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 3px; font-size: 13px; color: var(--text-muted); user-select: none; outline: none; }
 .todo-completed > summary::-webkit-details-marker { display: none; }
-.todo-completed-check { width: 18px; height: 18px; border-radius: 4px; background: var(--success); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; flex-shrink: 0; }
+.todo-completed > summary:hover { color: var(--text); }
+.todo-completed-caret { font-size: 10px; color: var(--text-muted); transition: transform .15s; display: inline-block; }
+.todo-completed[open] .todo-completed-caret { transform: rotate(90deg); }
 .todo-completed-items { display: flex; flex-direction: column; }
 
 .todo-add { margin-top: 6px; }
@@ -185,7 +187,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 
     <?php if (!empty($done)): ?>
     <details class="todo-completed">
-        <summary><span class="todo-completed-check">✓</span> <?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></summary>
+        <summary><span class="todo-completed-caret">▸</span> <?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></summary>
         <ul class="todo-items todo-completed-items">
         <?php foreach ($done as $todo): ?>
             <li class="todo-item a-<?= h($todo['assigned_to'] ?? '') ?>">
