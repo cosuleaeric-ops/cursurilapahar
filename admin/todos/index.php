@@ -54,6 +54,26 @@ $pending = array_values(array_filter($_all_todos, fn($t) => empty($t['completed'
 $done    = array_values(array_filter($_all_todos, fn($t) => !empty($t['completed'])));
 $done_count = count($done);
 
+// Group completed todos by the day they were marked done (fallback: created day)
+$done_groups = [];
+foreach ($done as $t) {
+    $ts  = $t['completed_at'] ?? ($t['created_at'] ?? '');
+    $day = $ts !== '' ? substr($ts, 0, 10) : '';
+    $done_groups[$day][] = $t;
+}
+krsort($done_groups);
+
+$_ro_months_full = ['', 'ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+$_today_ymd = date('Y-m-d');
+$_yest_ymd  = date('Y-m-d', strtotime('-1 day'));
+$day_label = function ($day) use ($_ro_months_full, $_today_ymd, $_yest_ymd) {
+    if ($day === '') return 'Mai demult';
+    if ($day === $_today_ymd) return 'Azi';
+    if ($day === $_yest_ymd) return 'Ieri';
+    $p = explode('-', $day);
+    return (int)($p[2] ?? 0) . ' ' . ($_ro_months_full[(int)($p[1] ?? 0)] ?? '') . ' ' . ($p[0] ?? '');
+};
+
 $user_display  = ['eric6' => 'Eric', 'andy' => 'Andy'];
 $user_colors   = ['eric6' => '#2563eb', 'andy' => '#16a34a'];
 $user_initials = ['eric6' => 'E', 'andy' => 'A'];
@@ -140,6 +160,8 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-completed-caret { font-size: 10px; color: var(--text-muted); transition: transform .15s; display: inline-block; }
 .todo-completed[open] .todo-completed-caret { transform: rotate(90deg); }
 .todo-completed-items { display: flex; flex-direction: column; }
+.todo-done-day { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .02em; margin: 12px 3px 3px; }
+.todo-completed > .todo-done-day:first-of-type { margin-top: 6px; }
 
 .todo-add { margin-top: 6px; }
 .todo-add-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 15px; padding: 5px 3px; display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
@@ -188,8 +210,10 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
     <?php if (!empty($done)): ?>
     <details class="todo-completed">
         <summary><span class="todo-completed-caret">▸</span> <?= $done_count ?> completat<?= $done_count === 1 ? '' : 'e' ?></summary>
+        <?php foreach ($done_groups as $_day => $_items): ?>
+        <div class="todo-done-day"><?= h($day_label($_day)) ?></div>
         <ul class="todo-items todo-completed-items">
-        <?php foreach ($done as $todo): ?>
+        <?php foreach ($_items as $todo): ?>
             <li class="todo-item a-<?= h($todo['assigned_to'] ?? '') ?>">
                 <form method="post" action="/admin/todos/" class="todo-check">
                     <input type="hidden" name="action" value="toggle_todo">
@@ -206,6 +230,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
             </li>
         <?php endforeach; ?>
         </ul>
+        <?php endforeach; ?>
     </details>
     <?php endif; ?>
 

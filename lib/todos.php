@@ -36,6 +36,11 @@ function clp_toggle_todo(string $id): bool {
     foreach ($todos as &$t) {
         if ($t['id'] === $id) {
             $t['completed'] = !$t['completed'];
+            if (!empty($t['completed'])) {
+                $t['completed_at'] = (new DateTimeImmutable('now', new DateTimeZone('Europe/Bucharest')))->format('Y-m-d\TH:i:s');
+            } else {
+                unset($t['completed_at']);
+            }
             return clp_save_todos($todos);
         }
     }
