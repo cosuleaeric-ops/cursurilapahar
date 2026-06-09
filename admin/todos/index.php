@@ -167,7 +167,12 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-add-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 15px; padding: 5px 3px; display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
 .todo-add-link:hover { text-decoration: underline; }
 .todo-add-checkmark { width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 4px; flex-shrink: 0; }
-.todo-add-form { display: none; flex-direction: column; gap: 10px; margin-top: 8px; padding: 0 3px; }
+.todos-head { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.todos-head .wp-page-title { margin-bottom: 0; }
+.todo-add-icon { width: 30px; height: 30px; border-radius: 999px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; border: none; cursor: pointer; font-size: 21px; line-height: 1; padding: 0 0 2px; transition: background .15s, transform .12s; }
+.todo-add-icon:hover { background: var(--accent-hover); }
+.todo-add-icon:active { transform: scale(.94); }
+.todo-add-form { display: none; flex-direction: column; gap: 10px; margin: 0 3px 10px; padding: 0; }
 .todo-add-form.open { display: flex; }
 .todo-add-actions { display: flex; align-items: center; gap: 8px; }
 .todo-add-input { width: 100%; padding: 10px 13px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 14px; background: #fff; color: var(--text); transition: border-color .15s, box-shadow .15s; }
@@ -181,7 +186,28 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 <body>
 <?php require dirname(__DIR__) . '/partials/layout-nav.php'; ?>
 
-<h1 class="wp-page-title">To-dos</h1>
+<div class="todos-head">
+    <h1 class="wp-page-title">To-dos</h1>
+    <button type="button" class="todo-add-icon" onclick="toggleTodoForm()" title="Adaugă o sarcină" aria-label="Adaugă o sarcină">+</button>
+</div>
+
+<form method="post" action="/admin/todos/" class="todo-add-form" id="todoAddForm">
+    <input type="hidden" name="action" value="add_todo">
+    <input type="text" name="title" class="todo-add-input" required>
+    <div class="todo-add-assign">
+        <span class="todo-add-assign-label">Atribuie:</span>
+        <?php foreach ($all_users as $u): $un = $u['username']; ?>
+        <label class="todo-assign-pick">
+            <input type="radio" name="assigned_to" value="<?= h($un) ?>" required>
+            <?= $render_assign($un) ?>
+        </label>
+        <?php endforeach; ?>
+    </div>
+    <div class="todo-add-actions">
+        <button type="submit" class="todo-add-submit">Adaugă</button>
+        <button type="button" class="todo-add-cancel" onclick="toggleTodoForm(true)">Anulează</button>
+    </div>
+</form>
 
 <div class="todos-single">
     <ul class="todo-items">
@@ -233,46 +259,19 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
         <?php endforeach; ?>
     </details>
     <?php endif; ?>
-
-    <div class="todo-add">
-        <button class="todo-add-link" onclick="toggleAddForm(this)">
-            Adaugă o sarcină
-        </button>
-        <form method="post" action="/admin/todos/" class="todo-add-form">
-            <input type="hidden" name="action" value="add_todo">
-            <input type="text" name="title" class="todo-add-input" autofocus required>
-            <div class="todo-add-assign">
-                <span class="todo-add-assign-label">Atribuie:</span>
-                <?php foreach ($all_users as $u): $un = $u['username']; ?>
-                <label class="todo-assign-pick">
-                    <input type="radio" name="assigned_to" value="<?= h($un) ?>" required>
-                    <?= $render_assign($un) ?>
-                </label>
-                <?php endforeach; ?>
-            </div>
-            <div class="todo-add-actions">
-                <button type="submit" class="todo-add-submit">Adaugă</button>
-                <button type="button" class="todo-add-cancel" onclick="toggleAddForm(this.closest('.todo-add').querySelector('.todo-add-link'), true)">Anulează</button>
-            </div>
-        </form>
-    </div>
 </div>
 
 <script>
-function toggleAddForm(btn, forceClose) {
-    var area = btn.closest ? btn.closest('.todo-add') : btn.parentElement;
-    var form = area.querySelector('.todo-add-form');
-    var link = area.querySelector('.todo-add-link');
+function toggleTodoForm(forceClose) {
+    var form = document.getElementById('todoAddForm');
     if (!form) return;
-    var open = form.classList.contains('open');
-    if (forceClose || open) {
+    var titleInput = form.querySelector('input[name="title"]');
+    if (forceClose || form.classList.contains('open')) {
         form.classList.remove('open');
-        link.style.display = '';
-        form.querySelector('input[name="title"]').value = '';
+        if (titleInput) titleInput.value = '';
     } else {
         form.classList.add('open');
-        link.style.display = 'none';
-        form.querySelector('input[name="title"]').focus();
+        if (titleInput) titleInput.focus();
     }
 }
 </script>
