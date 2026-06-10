@@ -814,7 +814,11 @@ async function extractPdfText(file) {
         reader.onload = function(e) {
             try {
                 const wb = XLSX.read(e.target.result, { type: 'array' });
-                const wsName = wb.SheetNames.find(n => /vanzari/i.test(n)) || wb.SheetNames[0];
+                const wsName = wb.SheetNames.find(n => /vanzari/i.test(n));
+                if (!wsName) {
+                    alert('Fișierul nu are foaia „Vanzari". Încarcă exportul complet al evenimentului (Curs la Pahar - ....xlsx), nu fișierul de decont.');
+                    return;
+                }
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: 0 });
 
                 let totalBilete = 0, totalIncasari = 0;
