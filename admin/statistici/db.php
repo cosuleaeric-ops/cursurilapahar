@@ -125,6 +125,45 @@ function parse_viza_subtips(string $text): array {
         }
     }
 
+    // Fallback 2: seria range entirely on its own lines around the row body, e.g.
+    //   "WAD 0001 - WAD"  /  "Bilet standard - ONLINE 55 50.00 2,750.00"  /  "0055"
+    $lines = explode("\n", $text);
+    $n = count($lines);
+    for ($i = 0; $i < $n; $i++) {
+        if (!preg_match('/^\s*([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/u', $lines[$i], $sm)) continue;
+        $seria = trim($sm[1]);
+        $de_la = $sm[2];
+        $key   = $seria . '_' . $de_la;
+        if (isset($seen[$key])) continue;
+
+        // pana_la: standalone number within the next few lines
+        $pana = null;
+        for ($j = $i + 1; $j < min($i + 4, $n); $j++) {
+            if (preg_match('/^\s*(\d{3,})\s*$/', $lines[$j], $nm)) { $pana = $nm[1]; break; }
+        }
+        if ($pana === null) continue;
+
+        // row body: adjacent line ending in "count price total" without its own seria range
+        $row = null;
+        foreach ([$i + 1, $i - 1, $i + 2] as $j) {
+            if ($j < 0 || $j >= $n) continue;
+            $cand = $lines[$j];
+            if (preg_match('/^\s*TOTAL\b/iu', $cand)) continue;
+            if (preg_match('/[A-Z]{2,}\s+\d+\s*-/u', $cand)) continue;
+            if (preg_match('/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s*$/u', $cand, $rm)) { $row = $rm; break; }
+        }
+        if (!$row) continue;
+
+        $seen[$key] = true;
+        $subtips[] = [
+            'nr_unitati' => (int)$row[1],
+            'tarif'      => (float)str_replace(',', '.', $row[2]),
+            'seria'      => $seria,
+            'de_la'      => $de_la,
+            'pana_la'    => $pana,
+        ];
+    }
+
     return $subtips;
 }
 
