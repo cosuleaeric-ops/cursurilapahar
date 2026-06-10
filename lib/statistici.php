@@ -58,6 +58,23 @@ function clp_fetch_participants(): array
     ];
 }
 
+/**
+ * DITL taxable base: face value of sold tickets minus refunds.
+ * Computed from the report's ticket types (pret × vandute − refund per type);
+ * falls back to the stored total_bilete when no type breakdown exists.
+ *
+ * @param list<array<string, mixed>> $types
+ */
+function clp_ditl_base(array $types, float $fallback): float
+{
+    if (empty($types)) return $fallback;
+    $base = 0.0;
+    foreach ($types as $t) {
+        $base += (float)($t['pret'] ?? 0) * (int)($t['vandute'] ?? 0) - (float)($t['refund'] ?? 0);
+    }
+    return $base;
+}
+
 /** @param list<array<string, mixed>> $types */
 function clp_vandute_for_tarif(array $types, float $tarif): ?int
 {

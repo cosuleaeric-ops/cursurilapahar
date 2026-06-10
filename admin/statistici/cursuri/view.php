@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../../auth_check.php';
 require __DIR__ . '/../db.php';
+require_once dirname(__DIR__, 3) . '/lib/statistici.php';
 if (!is_authenticated()) { header('Location: /admin/'); exit; }
 
 $db = get_clp_db();
@@ -384,7 +385,8 @@ include __DIR__ . '/../layout_header.php';
         </div>
         <div class="raport-stat">
           <div class="label">Taxa DITL (2%)</div>
-          <div class="value ditl"><?php echo number_format((float)$report['total_bilete'] * 0.02, 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
+          <?php $_ditl_base = clp_ditl_base(json_decode($report['types_json'] ?? '[]', true) ?: [], (float)$report['total_bilete']); ?>
+          <div class="value ditl"><?php echo number_format($_ditl_base * 0.02, 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
         </div>
       </div>
       <div class="raport-meta">
