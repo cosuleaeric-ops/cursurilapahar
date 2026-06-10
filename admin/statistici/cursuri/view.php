@@ -815,18 +815,20 @@ async function extractPdfText(file) {
                 const wsName = wb.SheetNames.find(n => /vanzari/i.test(n)) || wb.SheetNames[0];
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: 0 });
 
-                let totalBilete = 0, totalIncasari = 0;
+                let totalBilete = 0, totalIncasari = 0, totalDiscount = 0;
                 const types = [];
                 for (const row of rows) {
                     const tb      = Number(row['Total bilete']     || row['total_bilete']     || 0);
                     const refund  = Number(row['Valoare retururi'] || row['valoare_retururi'] || 0);
                     const ti      = Number(row['Total incasari']   || row['total_incasari']   || 0);
+                    const disc    = Number(row['Discounturi'] || row['discounturi'] || row['Valoare discounturi'] || row['Discount'] || row['discount'] || 0);
                     const pret    = Number(row['Pret']             || row['pret']             || 0);
                     const vandute = Number(row['Vandute']          || row['vandute']          || 0);
                     const bilet   = String(row['Bilet']            || row['bilet']            || '').trim();
                     if (!isNaN(tb)) totalBilete   += tb - (isNaN(refund) ? 0 : refund);
-                    if (!isNaN(ti)) totalIncasari += ti;
-                    if (bilet && pret > 0) types.push({ bilet, pret, vandute, refund: isNaN(refund) ? 0 : refund });
+                    if (!isNaN(ti)) totalIncasari += ti - (isNaN(disc) ? 0 : disc);
+                    if (!isNaN(disc)) totalDiscount += disc;
+                    if (bilet && pret > 0) types.push({ bilet, pret, vandute, refund: isNaN(refund) ? 0 : refund, discount: isNaN(disc) ? 0 : disc });
                 }
 
                 form.querySelector('[name=total_bilete]').value   = totalBilete.toFixed(2);
@@ -836,7 +838,9 @@ async function extractPdfText(file) {
 
                 const ditl = (totalBilete * 0.02).toFixed(2);
                 preview.innerHTML =
-                    '<strong>Total încasări:</strong> ' + totalIncasari.toFixed(2) + ' RON &nbsp;·&nbsp; ' +
+                    '<strong>Total încasări:</strong> ' + totalIncasari.toFixed(2) + ' RON' +
+                    (totalDiscount > 0 ? ' <span style="color:#6b7280">(după −' + totalDiscount.toFixed(2) + ' RON discounturi)</span>' : '') +
+                    ' &nbsp;·&nbsp; ' +
                     '<strong>Total bilete:</strong> ' + totalBilete.toFixed(2) + ' RON &nbsp;·&nbsp; ' +
                     '<strong>DITL (2%):</strong> <span style="color:#c0392b">' + ditl + ' RON</span>';
                 preview.style.display = 'block';
