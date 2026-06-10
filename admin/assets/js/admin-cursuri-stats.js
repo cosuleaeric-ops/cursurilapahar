@@ -91,9 +91,10 @@
         data.by_month.forEach(grp => grp.rows.forEach(r => { ditlById[r.id] = r; }));
 
         const sumInc = data.sum_incasari;
+        const sumBilete = data.sum_bilete || 0; // gross, pre-discount — DITL base
         let html = sumInc > 0 ? `<div class="clp-summary-grid" style="margin-bottom:16px">
             <div class="clp-stat-box"><div class="lbl">Total încasări</div><div class="val">${fmtRON(sumInc)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
-            <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(sumInc * 0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
+            <div class="clp-stat-box"><div class="lbl">Taxă DITL (2%)</div><div class="val ditl">${fmtRON(sumBilete * 0.02)} <small style="font-size:14px;font-weight:400">RON</small></div></div>
         </div>` : '';
 
         html += `<table class="wp-table"><thead><tr>
@@ -110,7 +111,7 @@
             const rid = 'clpv-' + c.id;
             const subs = dr && dr.subtips && dr.subtips.length ? dr.subtips : [];
             const inc = dr ? fmtRON(dr.total_incasari) + ' RON' : '<span style="color:#d1d5db">—</span>';
-            const ditl = dr ? `<span class="clp-ditl-cell">${fmtRON(dr.total_incasari * 0.02)} RON</span>` : '<span style="color:#d1d5db">—</span>';
+            const ditl = dr ? `<span class="clp-ditl-cell">${fmtRON((dr.total_bilete || 0) * 0.02)} RON</span>` : '<span style="color:#d1d5db">—</span>';
             const name = subs.length
                 ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
                 : esc(c.name);

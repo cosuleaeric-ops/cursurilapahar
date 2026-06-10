@@ -79,7 +79,7 @@ function clp_dashboard_data(string $admin_dir): array {
         try {
             $_cdb4 = new SQLite3($_dash_clp_db_path);
             $_cdb4->exec('PRAGMA journal_mode=WAL');
-            $_dash_ditl_year = (float)$_cdb4->querySingle("SELECT COALESCE(SUM(total_incasari),0) FROM course_reports r JOIN courses c ON c.id=r.course_id WHERE strftime('%Y',c.date)='{$_dash_pnl_year}'") * 0.02;
+            $_dash_ditl_year = (float)$_cdb4->querySingle("SELECT COALESCE(SUM(total_bilete),0) FROM course_reports r JOIN courses c ON c.id=r.course_id WHERE strftime('%Y',c.date)='{$_dash_pnl_year}'") * 0.02;
             $_cdb4->close();
         } catch (Exception $e) {}
     }

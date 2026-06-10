@@ -24,6 +24,7 @@ foreach ($courses as &$row) {
 unset($row);
 $ditl_rows = $viza_subtips = [];
 $sum_incasari = 0.0;
+$sum_bilete   = 0.0; // gross (pre-discount) ticket value — DITL base
 
 if (file_exists($db_path) && !empty($courses)) {
     $db = new SQLite3($db_path);
@@ -39,6 +40,7 @@ if (file_exists($db_path) && !empty($courses)) {
         unset($row['types_json']);
         $ditl_rows[] = $row;
         $sum_incasari += (float)$row['total_incasari'];
+        $sum_bilete   += (float)$row['total_bilete'];
     }
 
     if (!empty($ditl_rows)) {
@@ -77,5 +79,6 @@ echo json_encode([
     'month_label'  => clp_ro_month_label($month, $year),
     'courses'      => $courses,
     'sum_incasari' => $sum_incasari,
+    'sum_bilete'   => $sum_bilete,
     'by_month'     => array_values($by_month),
 ]);
