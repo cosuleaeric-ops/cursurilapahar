@@ -63,7 +63,22 @@ function lt_get_event_by_url(string $url): ?array
     }
 
     $event = json_decode($resp, true);
-    return (is_array($event) && isset($event['id'])) ? $event : null;
+    if (!is_array($event) || !isset($event['id'])) {
+        return null;
+    }
+
+    // getbyurl no longer carries ticket items; they live on get-tickets now.
+    if (empty($event['items'])) {
+        $tresp = lt_http_get('https://api.livetickets.ro/public/events/get-tickets?url=' . urlencode($slug));
+        if ($tresp) {
+            $tickets = json_decode($tresp, true);
+            if (is_array($tickets)) {
+                $event['items'] = $tickets;
+            }
+        }
+    }
+
+    return $event;
 }
 
 function lt_image_url_from_event(array $event): string
