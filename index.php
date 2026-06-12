@@ -41,10 +41,10 @@ if (file_exists($json_file)) {
     $courses = json_decode(file_get_contents($json_file), true) ?: [];
 }
 clp_enforce_course_rules($courses);
-$courses = clp_filter_public_courses($courses);
-usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 
-// Dacă lipsește imaginea salvată, o preluăm la afișare din LiveTickets
+// Dacă lipsește imaginea salvată, o preluăm din LiveTickets și o persistăm,
+// ca să apară și în admin (rulează pe lista completă, înainte de filtrare).
+$_img_dirty = false;
 foreach ($courses as &$course) {
     if (!empty($course['image_url']) || empty($course['livetickets_url'])) {
         continue;
@@ -54,10 +54,17 @@ foreach ($courses as &$course) {
         $img = lt_image_url_from_event($ev);
         if ($img !== '') {
             $course['image_url'] = $img;
+            $_img_dirty = true;
         }
     }
 }
 unset($course);
+if ($_img_dirty) {
+    clp_save_courses($courses);
+}
+
+$courses = clp_filter_public_courses($courses);
+usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 
 // ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
 $soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
