@@ -58,8 +58,17 @@
 .rec-sys-desc { font-size:12px; color:var(--text-muted); }
 </style>
 
-<div class="card">
+<div class="card" id="rec">
     <div class="card-title">🔁 Taskuri recurente</div>
+    <?php if (isset($_GET['rec'])): ?>
+        <?php if ($_GET['rec'] === 'ok'): ?>
+            <div class="notice notice-success" style="margin-bottom:14px">Salvat ✓ (<?= count(clp_recurring_monthly()) ?> taskuri lunare)</div>
+        <?php elseif ($_GET['rec'] === 'perm'): ?>
+            <div class="notice notice-error" style="margin-bottom:14px">Folderul <code>data/</code> nu e scriibil pe server (permisiuni). Trebuie 755/775 pe <code>data/</code>.</div>
+        <?php else: ?>
+            <div class="notice notice-error" style="margin-bottom:14px">Nu am putut scrie <code>data/recurring_tasks.json</code>.</div>
+        <?php endif; ?>
+    <?php endif; ?>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Apar automat în To-dos la persoana aleasă, în zilele alese din fiecare lună.</p>
 
     <?php foreach (clp_recurring_monthly() as $_rt):

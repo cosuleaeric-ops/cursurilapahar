@@ -320,8 +320,9 @@
             unset($t);
         }
 
-        clp_save_recurring($items);
-        header('Location: /admin/?tab=config&saved=1');
+        $_rec_ok = clp_save_recurring($items);
+        $_rec_writable = is_writable(dirname(RECURRING_FILE)) && (!is_file(RECURRING_FILE) || is_writable(RECURRING_FILE));
+        header('Location: /admin/?tab=config&rec=' . ($_rec_ok ? 'ok' : ($_rec_writable ? 'fail' : 'perm')) . '#rec');
         exit;
     }
 
