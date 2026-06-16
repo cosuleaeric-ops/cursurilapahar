@@ -36,20 +36,26 @@
 
 <!-- Recurring tasks (Owner only) -->
 <style>
-.rec-card { border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--bg-warm); }
-.rec-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.rec-card { position:relative; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--bg-warm); }
+.rec-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; padding-right:80px; }
 .rec-top .rec-title { flex:1; min-width:220px; }
-.rec-days { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
-.rec-day { position:relative; cursor:pointer; }
-.rec-day input { position:absolute; opacity:0; width:0; height:0; }
-.rec-day span { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--border-strong); border-radius:8px; font-size:13px; color:var(--text-muted); transition:.12s; }
-.rec-day input:checked + span { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
-.rec-sys { display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border); }
-.rec-sys:last-child { border-bottom:none; }
-.rec-sys-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#92400e; background:#fef3c7; border-radius:6px; padding:3px 7px; white-space:nowrap; flex-shrink:0; margin-top:7px; }
-.rec-sys-body { flex:1; }
-.rec-sys-desc { font-size:12px; color:var(--text-muted); margin-top:4px; }
-.rec-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:6px; }
+.rec-assignee { font-weight:600; }
+.rec-assignee.a-eric6 { color:#2563eb; }
+.rec-assignee.a-andy  { color:#16a34a; }
+.rec-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:8px; }
+.rec-days { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+.rec-day-sel { padding:7px 10px; }
+.rec-add-day { background:none; border:1px dashed var(--border-strong); border-radius:8px; padding:7px 12px; font-size:13px; font-weight:600; color:var(--accent); cursor:pointer; }
+.rec-del { position:absolute; top:14px; right:14px; margin:0; }
+.rec-pill { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 13px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0; }
+.rec-pill.a-eric6 { background:#eff6ff; color:#2563eb; }
+.rec-pill.a-andy  { background:#f0fdf4; color:#16a34a; }
+.rec-pill .dot { width:8px; height:8px; border-radius:50%; background:currentColor; }
+.rec-sys { display:flex; gap:14px; align-items:flex-start; padding:14px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; background:#fff; }
+.rec-sys-body { flex:1; min-width:0; }
+.rec-sys-meta { display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap; }
+.rec-sys-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#92400e; background:#fef3c7; border-radius:6px; padding:3px 8px; white-space:nowrap; }
+.rec-sys-desc { font-size:12px; color:var(--text-muted); }
 </style>
 
 <div class="card">
@@ -57,29 +63,39 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Apar automat în To-dos la persoana aleasă, în zilele alese din fiecare lună.</p>
 
     <?php foreach (clp_recurring_monthly() as $_rt):
-        $_days = array_map('intval', $_rt['days'] ?? []); ?>
-    <form method="post" action="/admin/?tab=config" class="rec-card">
-        <input type="hidden" name="action" value="save_recurring">
-        <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
-        <div class="rec-top">
-            <input type="text" name="title" value="<?= h($_rt['title'] ?? '') ?>" class="rec-title" required>
-            <select name="assigned_to">
-                <?php foreach (($all_users ?? load_users()) as $_u): $un = $_u['username']; ?>
-                <option value="<?= h($un) ?>" <?= ($_rt['assigned_to'] ?? '') === $un ? 'selected' : '' ?>><?= h(ucfirst($un === 'eric6' ? 'Eric' : $un)) ?></option>
+        $_days = array_values(array_filter(array_map('intval', $_rt['days'] ?? [])));
+        if (empty($_days)) $_days = [0];
+        $_asg = $_rt['assigned_to'] ?? 'eric6'; ?>
+    <div class="rec-card">
+        <form method="post" action="/admin/?tab=config" class="rec-del" onsubmit="return confirm('Ștergi taskul recurent?')">
+            <input type="hidden" name="action" value="delete_recurring">
+            <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
+            <button type="submit" class="btn btn-danger btn-sm">Șterge</button>
+        </form>
+        <form method="post" action="/admin/?tab=config">
+            <input type="hidden" name="action" value="save_recurring">
+            <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
+            <div class="rec-top">
+                <input type="text" name="title" value="<?= h($_rt['title'] ?? '') ?>" class="rec-title" required>
+                <select name="assigned_to" class="rec-assignee a-<?= h($_asg) ?>" onchange="this.className='rec-assignee a-'+this.value">
+                    <?php foreach (($all_users ?? load_users()) as $_u): $un = $_u['username']; ?>
+                    <option value="<?= h($un) ?>" <?= $_asg === $un ? 'selected' : '' ?>><?= h($un === 'eric6' ? 'Eric' : ucfirst($un)) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="rec-label">Zile din lună</div>
+            <div class="rec-days">
+                <?php foreach ($_days as $_sel): ?>
+                <select name="days[]" class="rec-day-sel">
+                    <option value="">— zi —</option>
+                    <?php for ($d = 1; $d <= 31; $d++): ?><option value="<?= $d ?>" <?= (int)$_sel === $d ? 'selected' : '' ?>><?= $d ?></option><?php endfor; ?>
+                </select>
                 <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="rec-label">Zile din lună</div>
-        <div class="rec-days">
-            <?php for ($d = 1; $d <= 31; $d++): ?>
-            <label class="rec-day"><input type="checkbox" name="days[]" value="<?= $d ?>" <?= in_array($d, $_days, true) ? 'checked' : '' ?>><span><?= $d ?></span></label>
-            <?php endfor; ?>
-        </div>
-        <div style="display:flex;gap:8px">
+                <button type="button" class="rec-add-day" onclick="recAddDay(this)">+ zi</button>
+            </div>
             <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
-            <button type="submit" name="action" value="delete_recurring" class="btn btn-danger btn-sm" onclick="return confirm('Ștergi taskul recurent?')">Șterge</button>
-        </div>
-    </form>
+        </form>
+    </div>
     <?php endforeach; ?>
 
     <form method="post" action="/admin/?tab=config" style="margin-top:4px">
@@ -92,12 +108,17 @@
         <div class="rec-label" style="margin-bottom:12px">Taskuri automate (programare fixă — poți schimba doar numele)</div>
         <form method="post" action="/admin/?tab=config">
             <input type="hidden" name="action" value="save_recurring_system">
-            <?php foreach ($_sys as $_st): ?>
+            <?php foreach ($_sys as $_st):
+                $_sa = $_st['assigned_to'] ?? 'andy';
+                $_san = $_sa === 'eric6' ? 'Eric' : ucfirst($_sa); ?>
             <div class="rec-sys">
-                <span class="rec-sys-badge"><?= h($_st['schedule'] ?? 'auto') ?></span>
+                <span class="rec-pill a-<?= h($_sa) ?>"><span class="dot"></span><?= h($_san) ?></span>
                 <div class="rec-sys-body">
                     <input type="text" name="sys_title[<?= h($_st['id'] ?? '') ?>]" value="<?= h($_st['title'] ?? '') ?>" style="width:100%">
-                    <div class="rec-sys-desc"><?= h($_st['description'] ?? '') ?></div>
+                    <div class="rec-sys-meta">
+                        <span class="rec-sys-badge"><?= h($_st['schedule'] ?? 'auto') ?></span>
+                        <span class="rec-sys-desc"><?= h($_st['description'] ?? '') ?></span>
+                    </div>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -106,6 +127,17 @@
     </div>
     <?php endif; ?>
 </div>
+
+<script>
+function recAddDay(btn) {
+    var sel = document.createElement('select');
+    sel.name = 'days[]'; sel.className = 'rec-day-sel';
+    var html = '<option value="">— zi —</option>';
+    for (var d = 1; d <= 31; d++) html += '<option value="' + d + '">' + d + '</option>';
+    sel.innerHTML = html;
+    btn.parentNode.insertBefore(sel, btn);
+}
+</script>
 
 
 <form method="post" action="/admin/?tab=config">
