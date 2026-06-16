@@ -57,6 +57,11 @@
 .rec-sys-meta { display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap; }
 .rec-sys-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#92400e; background:#fef3c7; border-radius:6px; padding:3px 8px; white-space:nowrap; }
 .rec-sys-desc { font-size:12px; color:var(--text-muted); }
+.rec-view-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; padding-right:90px; }
+.rec-view-title { font-size:15px; font-weight:600; color:var(--text); }
+.rec-view-meta { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.rec-view-days { font-weight:600; color:var(--text); }
+.rec-edit-actions { display:flex; gap:8px; }
 </style>
 
 <div class="card" id="rec">
@@ -75,57 +80,84 @@
     <?php foreach (clp_load_recurring() as $_rt):
         $_type  = $_rt['type'] ?? 'monthly';
         $_asg   = $_rt['assigned_to'] ?? 'eric6';
-        $_aname = $_asg === 'eric6' ? 'Eric' : ucfirst($_asg); ?>
+        $_aname = $_asg === 'eric6' ? 'Eric' : ucfirst($_asg);
+        $_pill  = '<span class="rec-pill a-' . h($_asg) . '"><span class="dot"></span>' . h($_aname) . '</span>'; ?>
 
         <?php if ($_type === 'monthly'):
-            $_days = array_values(array_filter(array_map('intval', $_rt['days'] ?? [])));
-            if (empty($_days)) $_days = [0]; ?>
+            $_realdays = array_values(array_filter(array_map('intval', $_rt['days'] ?? [])));
+            sort($_realdays);
+            $_editdays = $_realdays ?: [0]; ?>
         <div class="rec-card">
-            <form method="post" action="/admin/?tab=config" class="rec-del" onsubmit="return confirm('Ștergi taskul recurent?')">
-                <input type="hidden" name="action" value="delete_recurring">
-                <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
-                <button type="submit" class="btn btn-danger btn-sm">Șterge</button>
-            </form>
-            <form method="post" action="/admin/?tab=config">
-                <input type="hidden" name="action" value="save_recurring">
-                <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
-                <div class="rec-top">
-                    <input type="text" name="title" value="<?= h($_rt['title'] ?? '') ?>" class="rec-title" required>
-                    <select name="assigned_to" class="rec-assignee a-<?= h($_asg) ?>" onchange="this.className='rec-assignee a-'+this.value">
-                        <?php foreach (($all_users ?? load_users()) as $_u): $un = $_u['username']; ?>
-                        <option value="<?= h($un) ?>" <?= $_asg === $un ? 'selected' : '' ?>><?= h($un === 'eric6' ? 'Eric' : ucfirst($un)) ?></option>
+            <!-- read-only view -->
+            <div class="rec-view">
+                <div class="rec-view-top">
+                    <span class="rec-view-title"><?= h($_rt['title'] ?? '') ?></span>
+                    <?= $_pill ?>
+                </div>
+                <div class="rec-view-meta">Lunar · <?= $_realdays ? 'zilele <span class="rec-view-days">' . implode(', ', $_realdays) . '</span>' : '<em>nicio zi aleasă</em>' ?></div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="recEdit(this)">Editează</button>
+            </div>
+            <!-- edit form -->
+            <div class="rec-edit" hidden>
+                <form method="post" action="/admin/?tab=config">
+                    <input type="hidden" name="action" value="save_recurring">
+                    <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
+                    <div class="rec-top">
+                        <input type="text" name="title" value="<?= h($_rt['title'] ?? '') ?>" class="rec-title" required>
+                        <select name="assigned_to" class="rec-assignee a-<?= h($_asg) ?>" onchange="this.className='rec-assignee a-'+this.value">
+                            <?php foreach (($all_users ?? load_users()) as $_u): $un = $_u['username']; ?>
+                            <option value="<?= h($un) ?>" <?= $_asg === $un ? 'selected' : '' ?>><?= h($un === 'eric6' ? 'Eric' : ucfirst($un)) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="rec-label">Zile din lună</div>
+                    <div class="rec-days">
+                        <?php foreach ($_editdays as $_sel): ?>
+                        <select name="days[]" class="rec-day-sel">
+                            <option value="">— zi —</option>
+                            <?php for ($d = 1; $d <= 31; $d++): ?><option value="<?= $d ?>" <?= (int)$_sel === $d ? 'selected' : '' ?>><?= $d ?></option><?php endfor; ?>
+                        </select>
                         <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="rec-label">Zile din lună</div>
-                <div class="rec-days">
-                    <?php foreach ($_days as $_sel): ?>
-                    <select name="days[]" class="rec-day-sel">
-                        <option value="">— zi —</option>
-                        <?php for ($d = 1; $d <= 31; $d++): ?><option value="<?= $d ?>" <?= (int)$_sel === $d ? 'selected' : '' ?>><?= $d ?></option><?php endfor; ?>
-                    </select>
-                    <?php endforeach; ?>
-                    <button type="button" class="rec-add-day" onclick="recAddDay(this)">+ zi</button>
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
-            </form>
+                        <button type="button" class="rec-add-day" onclick="recAddDay(this)">+ zi</button>
+                    </div>
+                    <div class="rec-edit-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="recCancel(this)">Anulează</button>
+                    </div>
+                </form>
+                <form method="post" action="/admin/?tab=config" style="margin-top:10px" onsubmit="return confirm('Ștergi taskul recurent?')">
+                    <input type="hidden" name="action" value="delete_recurring">
+                    <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
+                    <button type="submit" class="btn btn-danger btn-sm">Șterge taskul</button>
+                </form>
+            </div>
         </div>
 
         <?php else: // system / automatic ?>
         <div class="rec-card">
             <span class="rec-auto">⚙︎ automat</span>
-            <form method="post" action="/admin/?tab=config">
-                <input type="hidden" name="action" value="save_recurring_system">
-                <div class="rec-top">
-                    <input type="text" name="sys_title[<?= h($_rt['id'] ?? '') ?>]" value="<?= h($_rt['title'] ?? '') ?>" class="rec-title">
-                    <span class="rec-pill a-<?= h($_asg) ?>"><span class="dot"></span><?= h($_aname) ?></span>
+            <div class="rec-view">
+                <div class="rec-view-top">
+                    <span class="rec-view-title"><?= h($_rt['title'] ?? '') ?></span>
+                    <?= $_pill ?>
                 </div>
-                <div class="rec-sys-meta" style="margin-bottom:12px">
+                <div class="rec-view-meta">
                     <span class="rec-sys-badge"><?= h($_rt['schedule'] ?? 'auto') ?></span>
                     <span class="rec-sys-desc"><?= h($_rt['description'] ?? '') ?></span>
                 </div>
-                <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
-            </form>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="recEdit(this)">Editează numele</button>
+            </div>
+            <div class="rec-edit" hidden>
+                <form method="post" action="/admin/?tab=config">
+                    <input type="hidden" name="action" value="save_recurring_system">
+                    <div class="rec-label">Nume task</div>
+                    <input type="text" name="sys_title[<?= h($_rt['id'] ?? '') ?>]" value="<?= h($_rt['title'] ?? '') ?>" style="width:100%;margin-bottom:14px">
+                    <div class="rec-edit-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="recCancel(this)">Anulează</button>
+                    </div>
+                </form>
+            </div>
         </div>
         <?php endif; ?>
     <?php endforeach; ?>
@@ -144,6 +176,18 @@ function recAddDay(btn) {
     for (var d = 1; d <= 31; d++) html += '<option value="' + d + '">' + d + '</option>';
     sel.innerHTML = html;
     btn.parentNode.insertBefore(sel, btn);
+}
+function recEdit(btn) {
+    var card = btn.closest('.rec-card');
+    card.querySelector('.rec-view').hidden = true;
+    card.querySelector('.rec-edit').hidden = false;
+    var inp = card.querySelector('.rec-edit input[type=text]');
+    if (inp) inp.focus();
+}
+function recCancel(btn) {
+    var card = btn.closest('.rec-card');
+    card.querySelector('.rec-edit').hidden = true;
+    card.querySelector('.rec-view').hidden = false;
 }
 </script>
 
