@@ -1,3 +1,4 @@
+<?php require_once dirname(__DIR__, 2) . '/lib/recurring.php'; ?>
 <h1 class="wp-page-title">Setări</h1>
 
 <?php if (isset($_GET['saved'])): ?>
@@ -31,6 +32,79 @@
             <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
         </div>
     </form>
+</div>
+
+<!-- Recurring tasks (Owner only) -->
+<style>
+.rec-card { border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--bg-warm); }
+.rec-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.rec-top .rec-title { flex:1; min-width:220px; }
+.rec-days { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+.rec-day { position:relative; cursor:pointer; }
+.rec-day input { position:absolute; opacity:0; width:0; height:0; }
+.rec-day span { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--border-strong); border-radius:8px; font-size:13px; color:var(--text-muted); transition:.12s; }
+.rec-day input:checked + span { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.rec-sys { display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border); }
+.rec-sys:last-child { border-bottom:none; }
+.rec-sys-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#92400e; background:#fef3c7; border-radius:6px; padding:3px 7px; white-space:nowrap; flex-shrink:0; margin-top:7px; }
+.rec-sys-body { flex:1; }
+.rec-sys-desc { font-size:12px; color:var(--text-muted); margin-top:4px; }
+.rec-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:6px; }
+</style>
+
+<div class="card">
+    <div class="card-title">🔁 Taskuri recurente</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Apar automat în To-dos la persoana aleasă, în zilele alese din fiecare lună.</p>
+
+    <?php foreach (clp_recurring_monthly() as $_rt):
+        $_days = array_map('intval', $_rt['days'] ?? []); ?>
+    <form method="post" action="/admin/?tab=config" class="rec-card">
+        <input type="hidden" name="action" value="save_recurring">
+        <input type="hidden" name="id" value="<?= h($_rt['id'] ?? '') ?>">
+        <div class="rec-top">
+            <input type="text" name="title" value="<?= h($_rt['title'] ?? '') ?>" class="rec-title" required>
+            <select name="assigned_to">
+                <?php foreach (($all_users ?? load_users()) as $_u): $un = $_u['username']; ?>
+                <option value="<?= h($un) ?>" <?= ($_rt['assigned_to'] ?? '') === $un ? 'selected' : '' ?>><?= h(ucfirst($un === 'eric6' ? 'Eric' : $un)) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="rec-label">Zile din lună</div>
+        <div class="rec-days">
+            <?php for ($d = 1; $d <= 31; $d++): ?>
+            <label class="rec-day"><input type="checkbox" name="days[]" value="<?= $d ?>" <?= in_array($d, $_days, true) ? 'checked' : '' ?>><span><?= $d ?></span></label>
+            <?php endfor; ?>
+        </div>
+        <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-sm">Salvează</button>
+            <button type="submit" name="action" value="delete_recurring" class="btn btn-danger btn-sm" onclick="return confirm('Ștergi taskul recurent?')">Șterge</button>
+        </div>
+    </form>
+    <?php endforeach; ?>
+
+    <form method="post" action="/admin/?tab=config" style="margin-top:4px">
+        <input type="hidden" name="action" value="add_recurring">
+        <button type="submit" class="btn btn-secondary btn-sm">+ Adaugă task recurent</button>
+    </form>
+
+    <?php $_sys = clp_recurring_system(); if (!empty($_sys)): ?>
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="rec-label" style="margin-bottom:12px">Taskuri automate (programare fixă — poți schimba doar numele)</div>
+        <form method="post" action="/admin/?tab=config">
+            <input type="hidden" name="action" value="save_recurring_system">
+            <?php foreach ($_sys as $_st): ?>
+            <div class="rec-sys">
+                <span class="rec-sys-badge"><?= h($_st['schedule'] ?? 'auto') ?></span>
+                <div class="rec-sys-body">
+                    <input type="text" name="sys_title[<?= h($_st['id'] ?? '') ?>]" value="<?= h($_st['title'] ?? '') ?>" style="width:100%">
+                    <div class="rec-sys-desc"><?= h($_st['description'] ?? '') ?></div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px">Salvează numele</button>
+        </form>
+    </div>
+    <?php endif; ?>
 </div>
 
 

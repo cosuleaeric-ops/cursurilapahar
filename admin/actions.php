@@ -273,6 +273,58 @@
         exit;
     }
 
+    // ── Recurring tasks (Owner only) ──────────────────────────────────────────
+    if (in_array($action, ['add_recurring', 'save_recurring', 'delete_recurring', 'save_recurring_system'], true) && is_owner()) {
+        require_once dirname(__DIR__) . '/lib/recurring.php';
+        $items = clp_load_recurring();
+
+        if ($action === 'add_recurring') {
+            $items[] = ['id' => clp_recurring_new_id(), 'type' => 'monthly', 'title' => 'Task nou', 'assigned_to' => 'eric6', 'days' => []];
+        }
+
+        if ($action === 'save_recurring') {
+            $id       = $_POST['id'] ?? '';
+            $title    = trim($_POST['title'] ?? '');
+            $assigned = $_POST['assigned_to'] ?? 'eric6';
+            $valid    = array_column(load_users(), 'username');
+            if (!in_array($assigned, $valid, true)) $assigned = 'eric6';
+            $days = array_values(array_unique(array_filter(
+                array_map('intval', (array)($_POST['days'] ?? [])),
+                fn($d) => $d >= 1 && $d <= 31
+            )));
+            sort($days);
+            foreach ($items as &$t) {
+                if (($t['id'] ?? '') === $id && ($t['type'] ?? '') === 'monthly') {
+                    if ($title !== '') $t['title'] = $title;
+                    $t['assigned_to'] = $assigned;
+                    $t['days'] = $days;
+                    break;
+                }
+            }
+            unset($t);
+        }
+
+        if ($action === 'delete_recurring') {
+            $id = $_POST['id'] ?? '';
+            $items = array_values(array_filter($items, fn($t) => !(($t['id'] ?? '') === $id && ($t['type'] ?? '') === 'monthly')));
+        }
+
+        if ($action === 'save_recurring_system') {
+            $titles = (array)($_POST['sys_title'] ?? []);
+            foreach ($items as &$t) {
+                if (($t['type'] ?? '') === 'system' && isset($titles[$t['id'] ?? ''])) {
+                    $nt = trim((string)$titles[$t['id']]);
+                    if ($nt !== '') $t['title'] = $nt;
+                }
+            }
+            unset($t);
+        }
+
+        clp_save_recurring($items);
+        header('Location: /admin/?tab=config&saved=1');
+        exit;
+    }
+
     // ── Save head scripts (analytics/tracking)
     if ($action === 'save_head_scripts') {
         $settings = load_settings();

@@ -20,6 +20,7 @@ require_once $ROOT . '/lib/speakers.php';
 require_once $ROOT . '/lib/courses.php';
 require_once $ROOT . '/lib/courses_admin.php';
 require_once $ROOT . '/lib/todos.php';
+require_once $ROOT . '/lib/recurring.php';
 
 $is_cli = (PHP_SAPI === 'cli');
 
@@ -77,14 +78,10 @@ foreach ($matches as $c) {
     $speaker = trim(clp_course_speaker_name($c));
     $sp      = $speaker !== '' ? $speaker : '[speaker]';
 
-    $tasks = [
-        "Adaugă foto-video Drive de la cursul {$curs}",
-        "Modifică denumirile videoclipurilor",
-        "Cere factură {$sp}",
-        "Trimite formular feedback {$sp}",
-    ];
-    foreach ($tasks as $t) {
-        clp_add_todo($t, 'andy', 'system');
+    // Titles come from the editable recurring store (system "post_course" tasks).
+    foreach (clp_recurring_post_course() as $tpl) {
+        $title = str_replace(['{curs}', '{speaker}'], [$curs, $sp], $tpl['title']);
+        clp_add_todo($title, $tpl['assigned_to'] !== '' ? $tpl['assigned_to'] : 'andy', 'system');
     }
     $done[] = $cid;
     $added[] = $curs . ($speaker !== '' ? " (speaker: {$speaker})" : ' (fără speaker)');
