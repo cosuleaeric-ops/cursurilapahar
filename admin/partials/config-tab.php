@@ -71,6 +71,7 @@
     <?php endif; ?>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Apar automat în To-dos la persoana aleasă, în zilele alese din fiecare lună.</p>
 
+    <div class="rec-label" style="margin-bottom:12px">Taskuri lunare (create de tine)</div>
     <?php foreach (clp_recurring_monthly() as $_rt):
         $_days = array_values(array_filter(array_map('intval', $_rt['days'] ?? [])));
         if (empty($_days)) $_days = [0];
