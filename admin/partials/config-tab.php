@@ -61,7 +61,9 @@
 .rec-view-title { font-size:15px; font-weight:600; color:var(--text); }
 .rec-card--auto .rec-view-top { flex-wrap:nowrap; }
 .rec-card--auto .rec-view-title { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rec-card--auto .rec-view-top .btn { flex-shrink:0; }
+.rec-edit-btn { background:none; border:none; cursor:pointer; color:var(--text-muted); padding:5px; border-radius:7px; display:inline-flex; flex-shrink:0; transition:color .12s, background .12s; }
+.rec-edit-btn:hover { color:var(--accent); background:var(--accent-soft); }
+.rec-edit-btn svg { width:17px; height:17px; display:block; }
 .rec-view-meta { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .rec-view-days { font-weight:600; color:var(--text); }
 .rec-edit-actions { display:flex; gap:8px; }
@@ -96,9 +98,11 @@
                 <div class="rec-view-top">
                     <span class="rec-view-title"><?= h($_rt['title'] ?? '') ?></span>
                     <?= $_pill ?>
+                    <button type="button" class="rec-edit-btn" style="margin-left:auto" onclick="recEdit(this)" title="Editează" aria-label="Editează">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    </button>
                 </div>
                 <div class="rec-view-meta">Lunar · <?= $_realdays ? 'zilele <span class="rec-view-days">' . implode(', ', $_realdays) . '</span>' : '<em>nicio zi aleasă</em>' ?></div>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="recEdit(this)">Editează</button>
             </div>
             <!-- edit form -->
             <div class="rec-edit" hidden>
@@ -142,7 +146,9 @@
                 <div class="rec-view-top">
                     <span class="rec-view-title"><?= h(clp_todo_plain_title($_rt['title'] ?? '')) ?></span>
                     <span class="rec-auto">⚙︎ automat</span>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="recEdit(this)">Editează numele</button>
+                    <button type="button" class="rec-edit-btn" onclick="recEdit(this)" title="Editează numele" aria-label="Editează numele">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    </button>
                 </div>
                 <div class="rec-view-meta">
                     <?= $_pill ?>
