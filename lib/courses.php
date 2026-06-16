@@ -50,6 +50,15 @@ function clp_course_is_public(array $course): bool
     if (empty($course['active']) || !clp_course_has_ticket_link($course)) {
         return false;
     }
+    // Hide events whose day has passed, immediately at midnight — independent of
+    // the stored `active` flag (which is only flipped by admin/cron loads).
+    $date = clp_resolve_course_date_raw($course);
+    if ($date !== '') {
+        $today = (new DateTimeImmutable('now', new DateTimeZone('Europe/Bucharest')))->format('Y-m-d');
+        if ($date < $today) {
+            return false;
+        }
+    }
     return true;
 }
 
