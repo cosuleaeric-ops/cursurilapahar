@@ -39,9 +39,9 @@
 .rec-card { position:relative; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--bg-warm); }
 .rec-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; padding-right:80px; }
 .rec-top .rec-title { flex:1; min-width:220px; }
-.rec-assignee { font-weight:600; }
-.rec-assignee.a-eric6 { color:#2563eb; }
-.rec-assignee.a-andy  { color:#16a34a; }
+.rec-assignee { font-weight:600; border:none; border-radius:999px; padding:6px 14px; cursor:pointer; font-size:13px; }
+.rec-assignee.a-eric6 { background:#eff6ff; color:#2563eb; }
+.rec-assignee.a-andy  { background:#f0fdf4; color:#16a34a; }
 .rec-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:8px; }
 .rec-days { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
 .rec-day-sel { padding:7px 10px; }
