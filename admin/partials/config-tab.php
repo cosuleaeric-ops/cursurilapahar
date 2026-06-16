@@ -47,7 +47,8 @@
 .rec-day-sel { padding:7px 10px; }
 .rec-add-day { background:none; border:1px dashed var(--border-strong); border-radius:8px; padding:7px 12px; font-size:13px; font-weight:600; color:var(--accent); cursor:pointer; }
 .rec-del { position:absolute; top:14px; right:14px; margin:0; }
-.rec-auto { position:absolute; top:14px; right:16px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); background:#fff; border:1px solid var(--border); border-radius:6px; padding:3px 8px; }
+.rec-auto { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); background:#fff; border:1px solid var(--border); border-radius:6px; padding:3px 8px; }
+.rec-corner { position:absolute; top:14px; right:14px; display:flex; align-items:center; gap:8px; z-index:1; }
 .rec-pill { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 13px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0; }
 .rec-pill.a-eric6 { background:#eff6ff; color:#2563eb; }
 .rec-pill.a-andy  { background:#f0fdf4; color:#16a34a; }
@@ -57,7 +58,8 @@
 .rec-sys-meta { display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap; }
 .rec-sys-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#92400e; background:#fef3c7; border-radius:6px; padding:3px 8px; white-space:nowrap; }
 .rec-sys-desc { font-size:12px; color:var(--text-muted); }
-.rec-view-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; padding-right:90px; }
+.rec-view-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+.rec-card--auto .rec-view-top { padding-right:190px; }
 .rec-view-title { font-size:15px; font-weight:600; color:var(--text); }
 .rec-view-meta { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .rec-view-days { font-weight:600; color:var(--text); }
@@ -134,8 +136,11 @@
         </div>
 
         <?php else: // system / automatic ?>
-        <div class="rec-card">
-            <span class="rec-auto">⚙︎ automat</span>
+        <div class="rec-card rec-card--auto">
+            <div class="rec-corner">
+                <span class="rec-auto">⚙︎ automat</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="recEdit(this)">Editează numele</button>
+            </div>
             <div class="rec-view">
                 <div class="rec-view-top">
                     <span class="rec-view-title"><?= h($_rt['title'] ?? '') ?></span>
@@ -145,7 +150,6 @@
                     <span class="rec-sys-badge"><?= h($_rt['schedule'] ?? 'auto') ?></span>
                     <span class="rec-sys-desc"><?= h($_rt['description'] ?? '') ?></span>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="recEdit(this)">Editează numele</button>
             </div>
             <div class="rec-edit" hidden>
                 <form method="post" action="/admin/?tab=config">
