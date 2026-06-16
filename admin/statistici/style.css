@@ -126,8 +126,9 @@ td.suma-red   { color: var(--red);   font-weight: 600; font-variant-numeric: tab
 .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
 
 /* ── Modal (prefix pnl- avoids daisyUI .modal conflict) ── */
-.pnl-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; }
+.pnl-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 24px; }
 .pnl-modal-overlay.open { display: flex; }
+html.pnl-modal-open, html.pnl-modal-open body { overflow: hidden !important; }
 .pnl-modal { background: var(--card); border-radius: var(--radius); padding: 28px 32px; width: 100%; max-width: 440px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
 .pnl-modal h2 { font-family: 'Crimson Pro', Georgia, serif; font-size: 21px; font-weight: 600; margin-bottom: 24px; }
 .pnl-modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; line-height: 1; }

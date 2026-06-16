@@ -10,7 +10,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=13">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=14">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -307,8 +307,8 @@ function renderCategorieSuggestions(inputId, boxId, cats, withEmoji = false) {
 
   const typed = input.value.trim();
   const q = typed.toLowerCase();
-  const list = cats.filter(c => !q || c.toLowerCase().includes(q));
-  const exact = typed && cats.some(c => c.toLowerCase() === q);
+  const list = cats.filter(c => !q || c.toLowerCase().includes(q) || (withEmoji && cheltuialaCatLabel(c).toLowerCase().includes(q)));
+  const exact = typed && cats.some(c => c.toLowerCase() === q || (withEmoji && cheltuialaCatLabel(c).toLowerCase() === q));
 
   box.innerHTML = '';
   if (!list.length && !typed) {
@@ -322,7 +322,7 @@ function renderCategorieSuggestions(inputId, boxId, cats, withEmoji = false) {
     btn.textContent = withEmoji ? cheltuialaCatLabel(c) : c;
     btn.addEventListener('mousedown', e => {
       e.preventDefault();
-      input.value = c;
+      input.value = withEmoji ? cheltuialaCatLabel(c) : c;
       box.hidden = true;
     });
     box.appendChild(btn);
@@ -356,6 +356,9 @@ function initCategorieCombobox(inputId, boxId, getCats) {
   const syncOpen = () => combobox && combobox.classList.toggle('open', !box.hidden);
 
   input.addEventListener('focus', () => { renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji); syncOpen(); });
+  // Un singur click (când câmpul nu era deja focusat) selectează tot textul.
+  input.addEventListener('mousedown', () => { input.dataset.selectAll = (document.activeElement !== input) ? '1' : ''; });
+  input.addEventListener('mouseup', (e) => { if (input.dataset.selectAll) { e.preventDefault(); input.select(); input.dataset.selectAll = ''; } });
   input.addEventListener('input', (e) => {
     // Inline autocomplete: complete to the first matching category, selecting the added part.
     const isInsert = !e.inputType || e.inputType.indexOf('insert') === 0;
@@ -391,7 +394,10 @@ async function resolveCategorie(inputId, addAction, cats) {
   const nome = input.value.trim();
   if (!nome) return null;
 
-  const exact = cats.find(c => c.toLowerCase() === nome.toLowerCase());
+  const exact = cats.find(c =>
+    c.toLowerCase() === nome.toLowerCase() ||
+    cheltuialaCatLabel(c).toLowerCase() === nome.toLowerCase()
+  );
   if (exact) {
     input.value = exact;
     return exact;
@@ -774,8 +780,17 @@ document.getElementById('btnTxCatToggle').addEventListener('click', () => {
 });
 
 // ── Modals ────────────────────────────────────────────────────────────────────
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Mută overlay-urile direct în <body>: ancestorul .bc-doc are o animație cu
+// transform (fill-mode: both) care îl face containing block pentru position:fixed,
+// împingând modalul în afara centrului. Scoase din .bc-doc, se raportează la viewport.
+document.querySelectorAll('.pnl-modal-overlay').forEach(o => document.body.appendChild(o));
+
+function syncModalScrollLock() {
+  const anyOpen = !!document.querySelector('.pnl-modal-overlay.open');
+  document.documentElement.classList.toggle('pnl-modal-open', anyOpen);
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); syncModalScrollLock(); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); syncModalScrollLock(); }
 
 document.querySelectorAll('[data-close]').forEach(el => {
   el.addEventListener('click', () => closeModal(el.dataset.close));
