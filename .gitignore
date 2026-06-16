@@ -37,3 +37,6 @@ data/recurring_done.json
 
 # Instagram calendar posts (server-side data)
 data/instagram_posts.json
+
+# Course publish-task state (server-side)
+data/course_publish_done.json

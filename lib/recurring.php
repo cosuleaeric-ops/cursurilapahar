@@ -30,7 +30,61 @@ function clp_default_recurring(): array
         ['id' => 'sys_pc_4', 'type' => 'system', 'system_key' => 'post_course', 'assigned_to' => 'andy',
          'title' => 'Trimite formular feedback {speaker}', 'schedule' => $sched,
          'description' => 'Generat automat lui Andy a doua zi după fiecare curs. {speaker} = speakerul cursului.'],
+        ['id' => 'sys_publish', 'type' => 'system', 'system_key' => 'course_published', 'assigned_to' => 'andy',
+         'title' => 'Adaugă cursul {curs} pe [Off the Couch](https://offthecouch.city/) și [Mellon](https://mellon.life/discover)',
+         'schedule' => 'Când un curs primește link',
+         'description' => 'Generat automat lui Andy când un curs capătă link LiveTickets. {curs} = numele cursului.'],
     ];
+}
+
+/** Strip the "Curs la Pahar - ... // date" decoration from a course title. */
+function clp_course_short_name(string $t): string
+{
+    $t = preg_replace('/^\s*Curs la Pahar\s*[-–]\s*/u', '', $t);
+    $t = preg_replace('#\s*//.*$#u', '', $t);
+    return trim($t);
+}
+
+/**
+ * Add Andy a "publish on partner sites" task the first time a course gains a
+ * LiveTickets link. Idempotent via a state file; the very first run only seeds
+ * the state (no tasks) so existing linked courses don't flood the list.
+ *
+ * @return list<string> names of courses that got a new task
+ */
+function clp_process_course_publish_tasks(): array
+{
+    $tpl = null;
+    foreach (clp_load_recurring() as $t) {
+        if (($t['system_key'] ?? '') === 'course_published') { $tpl = $t; break; }
+    }
+    if (!$tpl || trim((string)($tpl['title'] ?? '')) === '') return [];
+
+    require_once __DIR__ . '/courses.php';
+    require_once __DIR__ . '/todos.php';
+
+    $courses    = clp_load_courses_from_json();
+    $state_file = dirname(__DIR__) . '/data/course_publish_done.json';
+    $first_run  = !is_file($state_file);
+    $done       = $first_run ? [] : (json_decode((string)file_get_contents($state_file), true) ?: []);
+
+    $added = [];
+    foreach ($courses as $c) {
+        $id = (string)($c['id'] ?? '');
+        $has_link = trim((string)($c['livetickets_url'] ?? '')) !== '';
+        if ($id === '' || !$has_link || in_array($id, $done, true)) continue;
+
+        if (!$first_run) {
+            $name  = clp_course_short_name((string)($c['title'] ?? ''));
+            $title = str_replace('{curs}', $name, (string)$tpl['title']);
+            clp_add_todo($title, (string)($tpl['assigned_to'] ?? 'andy'), 'system');
+            $added[] = $name;
+        }
+        $done[] = $id;
+    }
+
+    file_put_contents($state_file, json_encode(array_values(array_unique($done)), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    return $added;
 }
 
 /** @return list<array<string,mixed>> */

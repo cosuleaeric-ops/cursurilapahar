@@ -2,6 +2,19 @@
 
 define('TODOS_FILE', dirname(__DIR__) . '/data/todos.json');
 
+/** Render a to-do title to HTML: escape, then turn [text](http-url) into links. */
+function clp_todo_render_title(string $title): string {
+    $safe = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+    return preg_replace_callback('/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/u', function ($m) {
+        return '<a href="' . $m[2] . '" target="_blank" rel="noopener" class="todo-link">' . $m[1] . '</a>';
+    }, $safe);
+}
+
+/** Plain-text title: drop the markdown link syntax, keep the visible name. */
+function clp_todo_plain_title(string $title): string {
+    return preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/u', '$1', $title);
+}
+
 function clp_load_todos(): array {
     if (!file_exists(TODOS_FILE)) return [];
     $data = json_decode(file_get_contents(TODOS_FILE), true);

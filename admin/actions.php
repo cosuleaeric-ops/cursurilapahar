@@ -140,6 +140,10 @@
         clp_save_courses($courses);
         clp_sync_course_to_statistici_db($entry);
 
+        // If a course now has a LiveTickets link, queue Andy's "publish on partners" task.
+        require_once dirname(__DIR__) . '/lib/recurring.php';
+        clp_process_course_publish_tasks();
+
         [$redirect_year, $redirect_month] = array_pad(explode('-', $entry['date_raw']), 2, '');
         $redirect = '/admin/?tab=cursuri&year=' . (int)$redirect_year . '&month=' . (int)$redirect_month . '&ctab=cursuri&saved=1&edit=' . urlencode($entry['id']);
         header('Location: ' . $redirect);

@@ -131,6 +131,8 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 .todo-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
 .todo-text { font-size: 15px; color: var(--text); line-height: 1.4; }
 .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+.todo-link { color: var(--accent); text-decoration: underline; }
+.todo-link:hover { color: var(--accent-hover); }
 
 /* assignment pill (Basecamp-style) */
 .todo-assign { display: inline-flex; align-items: center; gap: 7px; background: var(--bg); border-radius: 999px; padding: 3px 12px 3px 4px; white-space: nowrap; }
@@ -218,7 +220,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
                 <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
                 <input type="checkbox" onchange="this.form.submit()" title="Marchează completat">
             </form>
-            <span class="todo-text"><?= h($todo['title']) ?></span>
+            <span class="todo-text"><?= clp_todo_render_title($todo['title']) ?></span>
             <?= $render_assign($todo['assigned_to'] ?? '') ?>
             <form method="post" action="/admin/todos/">
                 <input type="hidden" name="action" value="delete_todo">
@@ -246,7 +248,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
                     <input type="hidden" name="id" value="<?= h($todo['id']) ?>">
                     <input type="checkbox" checked onchange="this.form.submit()" title="Marchează incomplet">
                 </form>
-                <span class="todo-text done"><?= h($todo['title']) ?></span>
+                <span class="todo-text done"><?= clp_todo_render_title($todo['title']) ?></span>
                 <?= $render_assign($todo['assigned_to'] ?? '') ?>
                 <form method="post" action="/admin/todos/">
                     <input type="hidden" name="action" value="delete_todo">

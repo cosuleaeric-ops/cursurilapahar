@@ -33,7 +33,7 @@ $_dash_msg_pend   = array_sum($_dash_msg_data['tab_counts'] ?? []);
         <?php if (!empty($_dash_td_preview)): ?>
             <ul class="bc-card-list">
             <?php foreach ($_dash_td_preview as $_dt): ?>
-                <li><span class="bc-li-dot" style="background:<?= h($_dash_td_dot) ?>"></span><?= h($_dt['title']) ?></li>
+                <li><span class="bc-li-dot" style="background:<?= h($_dash_td_dot) ?>"></span><?= h(clp_todo_plain_title($_dt['title'])) ?></li>
             <?php endforeach; ?>
             </ul>
         <?php endif; ?>

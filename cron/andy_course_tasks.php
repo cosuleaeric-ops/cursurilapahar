@@ -89,6 +89,10 @@ foreach ($matches as $c) {
 
 file_put_contents($state_file, json_encode(array_values($done), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
+// Safety net: also queue "publish on partner sites" tasks for newly-linked courses.
+$published = clp_process_course_publish_tasks();
+if ($published) $added = array_merge($added, array_map(fn($n) => "$n (publicare)", $published));
+
 $target = $want_last ? 'ultimul curs' : $date;
 $msg = $added
     ? ("Taskuri adăugate lui Andy pentru: " . implode(' | ', $added))
