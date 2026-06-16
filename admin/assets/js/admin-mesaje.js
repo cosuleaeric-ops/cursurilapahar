@@ -6,7 +6,9 @@ function filterEval(btn) {
         let show;
         if (filter === 'all') show = true;
         else if (filter === 'contactat') show = card.classList.contains('is-contacted');
-        else show = card.classList.contains('eval-' + filter);
+        // Rating filters (nope/meh/top) exclude already-contacted leads —
+        // once contacted they belong only under the "Contactați" filter.
+        else show = card.classList.contains('eval-' + filter) && !card.classList.contains('is-contacted');
         card.style.display = show ? '' : 'none';
     });
 }
