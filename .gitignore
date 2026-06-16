@@ -34,3 +34,6 @@ data/andy_course_tasks_done.json
 # Recurring tasks (server-side data)
 data/recurring_tasks.json
 data/recurring_done.json
+
+# Instagram calendar posts (server-side data)
+data/instagram_posts.json

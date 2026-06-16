@@ -11,6 +11,8 @@
     let monthOffset = 0;
     const today = cfg.today;
     const coursesByDay = cfg.coursesByDay || {};
+    const igPosts = cfg.igPosts || {};
+    const igPostTypes = cfg.igPostTypes || {};
 
     function addDays(date, n) {
         const d = new Date(date);
@@ -57,6 +59,10 @@
             let evHtml = events.map(ev => {
                 const cls = isToday ? 'today-ev' : (isPast ? 'past' : 'future');
                 return `<div class="mini-cal-event ${cls}" title="${esc(ev.title)}">${esc(ev.title)}</div>`;
+            }).join('');
+            evHtml += (igPosts[ds] || []).map(t => {
+                const label = (igPostTypes[t] && igPostTypes[t].label) || t;
+                return `<div class="mini-cal-event ig-post" title="${esc(label)}">${esc(label)}</div>`;
             }).join('');
             html += `<div class="mini-cal-cell ${cellCls}">
                 <div class="mini-cal-day">${cur.getDate()}</div>${evHtml}

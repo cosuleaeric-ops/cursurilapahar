@@ -4,6 +4,7 @@ require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/speakers.php';
 require_once __DIR__ . '/locations.php';
 require_once __DIR__ . '/course_clicks.php';
+require_once __DIR__ . '/instagram_posts.php';
 
 function clp_allowed_course_times(): array {
     return ['17:00', '17:30', '18:00', '18:30'];
@@ -172,6 +173,8 @@ function clp_courses_stats_js_config(array $courses, int $year, int $month, stri
         'calYear'       => (int)date('Y'),
         'calMonth'      => (int)date('n'),
         'calCourses'    => array_map(fn($c) => ['date' => $c['date_raw'] ?? '', 'title' => $c['title'] ?? ''], $courses),
+        'igPosts'       => clp_load_ig_posts(),
+        'igPostTypes'   => clp_ig_post_types(),
         'initCalendar'  => $ctab === 'calendar',
         'scrollToStats' => isset($_GET['saved']),
         'activeTab'     => $ctab,

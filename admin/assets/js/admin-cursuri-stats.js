@@ -4,6 +4,8 @@
     const calRoMonths = ['', 'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
     const calDow = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
     const calCourses = cfg.calCourses || [];
+    const igPostTypes = cfg.igPostTypes || {};
+    let igPosts = cfg.igPosts || {};
     const vizaHeaders = ['Seria', 'De la', 'Până la', 'Vândute', 'Total', 'Tarif'];
 
     let clpYear = cfg.year || new Date().getFullYear();
@@ -199,6 +201,13 @@
         }
     }
 
+    function igChipsHtml(ds) {
+        return (igPosts[ds] || []).map(t => {
+            const label = (igPostTypes[t] && igPostTypes[t].label) || t;
+            return `<div class="cal-event ig-post" title="${esc(label)}">${esc(label)}</div>`;
+        }).join('');
+    }
+
     function calRender() {
         const label = document.getElementById('clpMonthLabel');
         if (label) {
@@ -227,18 +236,111 @@
         for (let day = 1; day <= daysInMonth; day++) {
             const ds = `${calYear}-${String(calMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const isToday = ds === calToday;
-            html += `<div class="cal-cell${isToday ? ' today' : ''}">`;
+            html += `<div class="cal-cell cal-cell--pick${isToday ? ' today' : ''}" data-date="${ds}">`;
             html += isToday ? `<div class="cal-day-num"><span class="cal-circle">${day}</span></div>`
                 : `<div class="cal-day-num">${day}</div>`;
             (byDay[ds] || []).forEach(title => {
                 const cls = isToday ? 'today-ev' : ds < calToday ? 'past' : 'future';
                 html += `<div class="cal-event ${cls}" title="${esc(title)}">${esc(title)}</div>`;
             });
+            html += igChipsHtml(ds);
             html += '</div>';
         }
         const trailing = (7 - ((firstDow + daysInMonth) % 7)) % 7;
         for (let i = 0; i < trailing; i++) html += '<div class="cal-cell other-month"></div>';
         grid.innerHTML = html;
+
+        if (!grid.dataset.igBound) {
+            grid.dataset.igBound = '1';
+            grid.addEventListener('click', e => {
+                const cell = e.target.closest('.cal-cell--pick');
+                if (cell) openDayMenu(cell, cell.dataset.date);
+            });
+        }
+    }
+
+    // ── Day dropdown: confirm Instagram posts (e.g. POSTARE CURSURI) ──────
+    let dayMenuEl = null;
+
+    function roDateLabel(ds) {
+        const [y, m, d] = ds.split('-').map(Number);
+        return d + ' ' + clpRoMonths[m] + ' ' + y;
+    }
+
+    function onMenuKey(e) { if (e.key === 'Escape') closeDayMenu(); }
+    function onDocClickAway(e) {
+        if (dayMenuEl && !dayMenuEl.contains(e.target) && !e.target.closest('.cal-cell--pick')) closeDayMenu();
+    }
+
+    function closeDayMenu() {
+        if (dayMenuEl) { dayMenuEl.remove(); dayMenuEl = null; }
+        document.removeEventListener('click', onDocClickAway, true);
+        document.removeEventListener('keydown', onMenuKey);
+    }
+
+    function dayMenuInner(ds) {
+        const active = igPosts[ds] || [];
+        const opts = Object.keys(igPostTypes).map(t => {
+            const on = active.includes(t);
+            return `<button type="button" class="cal-daymenu-opt${on ? ' on' : ''}" data-type="${esc(t)}">
+                <span class="cal-daymenu-check">${on ? '✓' : ''}</span>${esc(igPostTypes[t].label)}
+            </button>`;
+        }).join('');
+        return `<div class="cal-daymenu-title">${esc(roDateLabel(ds))}</div>${opts}`;
+    }
+
+    function wireMenuOpts(ds) {
+        dayMenuEl.querySelectorAll('.cal-daymenu-opt').forEach(btn => {
+            btn.addEventListener('click', () => toggleIgPost(ds, btn.dataset.type));
+        });
+    }
+
+    function openDayMenu(cell, ds) {
+        const wasOpenFor = dayMenuEl && dayMenuEl.dataset.date === ds;
+        closeDayMenu();
+        if (wasOpenFor) return; // second click on same day closes it
+
+        dayMenuEl = document.createElement('div');
+        dayMenuEl.className = 'cal-daymenu';
+        dayMenuEl.dataset.date = ds;
+        dayMenuEl.innerHTML = dayMenuInner(ds);
+        document.body.appendChild(dayMenuEl);
+        wireMenuOpts(ds);
+
+        const r = cell.getBoundingClientRect();
+        let left = r.left + window.scrollX;
+        if (left + dayMenuEl.offsetWidth > window.scrollX + document.documentElement.clientWidth - 8) {
+            left = r.right + window.scrollX - dayMenuEl.offsetWidth;
+        }
+        dayMenuEl.style.top = (r.bottom + window.scrollY + 4) + 'px';
+        dayMenuEl.style.left = Math.max(8, left) + 'px';
+
+        setTimeout(() => {
+            document.addEventListener('click', onDocClickAway, true);
+            document.addEventListener('keydown', onMenuKey);
+        }, 0);
+    }
+
+    async function toggleIgPost(ds, type) {
+        const on = !(igPosts[ds] || []).includes(type);
+        try {
+            const res = await fetch('/api/instagram_posts.php', {
+                method: 'POST',
+                body: new URLSearchParams({ date: ds, type, on: on ? '1' : '0' }),
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || 'fail');
+            if (data.types && data.types.length) igPosts[ds] = data.types;
+            else delete igPosts[ds];
+        } catch (err) {
+            alert('Nu am putut salva. Încearcă din nou.');
+            return;
+        }
+        if (dayMenuEl && dayMenuEl.dataset.date === ds) {
+            dayMenuEl.innerHTML = dayMenuInner(ds);
+            wireMenuOpts(ds);
+        }
+        calRender();
     }
 
     window.clpFilter = function () {

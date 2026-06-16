@@ -113,7 +113,7 @@ $render_assign = function ($uname) use ($user_display, $user_colors, $user_avata
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=37">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=38">
 <style>
 .todos-grid { display: flex; flex-direction: column; gap: 26px; }
 .todo-list-block { }

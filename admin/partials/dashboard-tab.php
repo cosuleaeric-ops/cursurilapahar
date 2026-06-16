@@ -128,6 +128,8 @@ foreach ($_dash_courses as $_c) {
     $_dash_cal_json[$d][] = ['title' => $_c['title'] ?? ''];
 }
 $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->format('Y-m-d');
+$_dash_ig_posts = clp_load_ig_posts();
+$_dash_ig_types = clp_ig_post_types();
 ?>
 
 <div class="dash-section" style="margin-bottom:20px">
@@ -145,6 +147,8 @@ $_mc_today_str = (new DateTime('now', new DateTimeZone('Europe/Bucharest')))->fo
 window.DASH_CAL = <?= json_encode([
     'today' => $_mc_today_str,
     'coursesByDay' => $_dash_cal_json,
+    'igPosts' => $_dash_ig_posts,
+    'igPostTypes' => $_dash_ig_types,
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="/admin/assets/js/admin-dashboard.js?v=4"></script>
+<script src="/admin/assets/js/admin-dashboard.js?v=5"></script>
