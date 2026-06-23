@@ -402,8 +402,24 @@ include __DIR__ . '/../layout_header.php';
     <?php endif; ?>
 
     <!-- Distribuție bilete -->
+    <?php
+      $distCopyText = '';
+      if ($dist['total_tickets'] > 0) {
+          $lines = ['Sunt ' . $dist['total_tickets'] . ' ' . ($dist['total_tickets'] === 1 ? 'bilet' : 'bilete') . ', dintre care:', ''];
+          foreach ($dist['groups'] as $n => $orders) {
+              $lines[] = '* ' . $orders . ' ' . ($orders === 1 ? 'comanda' : 'comenzi')
+                       . ' x ' . $n . ' ' . ($n === 1 ? 'bilet' : 'bilete');
+          }
+          $distCopyText = implode("\n", $lines);
+      }
+    ?>
     <div class="section-card">
-      <h3>Distributie bilete</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+        <h3 style="margin-bottom:0">Distributie bilete</h3>
+        <?php if ($dist['total_tickets'] > 0): ?>
+          <button type="button" class="btn btn-ghost" id="distCopyBtn" data-copy="<?php echo h($distCopyText); ?>" style="font-size:12px;padding:5px 12px">Copiaza</button>
+        <?php endif; ?>
+      </div>
       <?php if ($dist['total_tickets'] === 0): ?>
         <p style="color:var(--muted);font-size:14px">Niciun bilet inregistrat.</p>
       <?php else: ?>
@@ -851,6 +867,24 @@ async function extractPdfText(file) {
         };
         reader.readAsArrayBuffer(file);
     }
+})();
+
+(function(){
+    const btn = document.getElementById('distCopyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async function(){
+        try {
+            await navigator.clipboard.writeText(btn.dataset.copy);
+        } catch(e) {
+            const ta = document.createElement('textarea');
+            ta.value = btn.dataset.copy;
+            document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        const old = btn.textContent;
+        btn.textContent = 'Copiat ✓';
+        setTimeout(function(){ btn.textContent = old; }, 1500);
+    });
 })();
 </script>
 <?php require __DIR__ . '/../layout_footer.php'; ?>
