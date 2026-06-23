@@ -407,7 +407,7 @@ include __DIR__ . '/../layout_header.php';
       if ($dist['total_tickets'] > 0) {
           $lines = ['Sunt ' . $dist['total_tickets'] . ' ' . ($dist['total_tickets'] === 1 ? 'bilet' : 'bilete') . ', dintre care:', ''];
           foreach ($dist['groups'] as $n => $orders) {
-              $lines[] = '* ' . $orders . ' ' . ($orders === 1 ? 'comanda' : 'comenzi')
+              $lines[] = '- ' . $orders . ' ' . ($orders === 1 ? 'comanda' : 'comenzi')
                        . ' x ' . $n . ' ' . ($n === 1 ? 'bilet' : 'bilete');
           }
           $distCopyText = implode("\n", $lines);
