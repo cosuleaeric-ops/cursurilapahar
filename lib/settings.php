@@ -10,7 +10,7 @@ function clp_default_settings(): array
 {
     return [
         'announcement'      => '🎉 1.300+ oameni au descoperit că e mai ușor să înveți la un pahar. Tu ce mai aștepți? :)',
-        'hero_title'        => 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>',
+        'hero_title'        => 'Învață ceva nou<br>la un pahar în oraș',
         'hero_btn'          => 'Vezi următoarele cursuri',
         'courses_title'     => 'Următoarele cursuri',
         'gallery_title'     => 'Galerie',
