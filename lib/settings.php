@@ -119,6 +119,13 @@ function clp_migrate_settings(array $settings): array
         $settings['announcement'] = $target;
         clp_save_settings($settings);
     }
+
+    $hero_legacy = 'Cursuri ținute de experți<br><em>la un pahar în oraș.</em>';
+    if (($settings['hero_title'] ?? '') === $hero_legacy) {
+        $settings['hero_title'] = 'Învață ceva nou<br>la un pahar în oraș';
+        clp_save_settings($settings);
+    }
+
     return $settings;
 }
 
