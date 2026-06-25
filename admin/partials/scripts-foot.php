@@ -1,6 +1,6 @@
 <script src="/admin/assets/js/admin-common.js?v=3"></script>
 <?php if ($tab === 'cursuri'): ?>
-<script src="/admin/assets/js/admin-course-form.js?v=1"></script>
+<script src="/admin/assets/js/admin-course-form.js?v=2"></script>
 <?php elseif ($tab === 'imagini'): ?>
 <script src="/admin/assets/js/admin-imagini.js?v=1"></script>
 <?php elseif ($tab === 'mesaje'): ?>

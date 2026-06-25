@@ -1,6 +1,6 @@
 (function () {
     const CLP_RO_MONTHS = ['', 'ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
-    const CLP_ALLOWED_TIMES = ['17:00', '17:30', '18:00', '18:30'];
+    const CLP_ALLOWED_TIMES = ['17:00', '17:30', '18:00', '18:30', '19:00'];
     let ltFetchTimer = null;
 
     function clpFormatDateRo(ymd) {
@@ -149,7 +149,7 @@
             return false;
         }
         if (!CLP_ALLOWED_TIMES.includes(time)) {
-            alert('Alege ora din listă (17:00, 17:30, 18:00 sau 18:30).');
+            alert('Alege ora din listă (17:00, 17:30, 18:00, 18:30 sau 19:00).');
             return false;
         }
         return true;
