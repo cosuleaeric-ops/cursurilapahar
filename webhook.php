@@ -111,6 +111,9 @@ if (!file_exists(PUBLIC_HTML . '/data/users.json')) {
     if ($seed) @file_put_contents(PUBLIC_HTML . '/data/users.json', $seed);
 }
 
-$log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files)";
+// Refresh OPcache so freshly deployed code takes effect immediately
+$opcache = function_exists('opcache_reset') && @opcache_reset() ? 'opcache:reset' : 'opcache:skip';
+
+$log = date('Y-m-d H:i:s') . " Deploy OK ({$updated} files) | {$opcache}";
 if (!empty($errors)) $log .= ' | ' . implode(', ', $errors);
 @file_put_contents(LOG_FILE, $log . "\n", FILE_APPEND);
