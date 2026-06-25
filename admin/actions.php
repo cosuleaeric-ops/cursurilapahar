@@ -70,7 +70,7 @@
         } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_raw) || !strtotime($date_raw)) {
             $err = 'Alege o dată validă.';
         } elseif (!in_array($time, clp_allowed_course_times(), true)) {
-            $err = 'Alege ora din listă (17:00, 17:30, 18:00 sau 18:30).';
+            $err = 'Alege ora din listă (17:00, 17:30, 18:00, 18:30 sau 19:00).';
         } else {
             $speaker = clp_find_speaker_by_id($speaker_id);
             if (!$speaker) {

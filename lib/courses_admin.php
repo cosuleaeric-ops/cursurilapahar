@@ -7,7 +7,7 @@ require_once __DIR__ . '/course_clicks.php';
 require_once __DIR__ . '/instagram_posts.php';
 
 function clp_allowed_course_times(): array {
-    return ['17:00', '17:30', '18:00', '18:30'];
+    return ['17:00', '17:30', '18:00', '18:30', '19:00'];
 }
 
 /**
