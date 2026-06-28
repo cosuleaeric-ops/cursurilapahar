@@ -24,10 +24,10 @@ if (!empty($settings['head_scripts'])) {
   plausible.init()
 </script>
 
-<!-- DataFast analytics -->
+<!-- analytics (self-hosted pe ericcosulea.ro) -->
 <script
   defer
-  data-website-id="dfid_3dI6zNhYHLxBdbjNgPPmv"
+  data-website-id="dfid_a1e25f0ab3"
   data-domain="cursurilapahar.ro"
-  src="https://datafa.st/js/script.js">
+  src="https://www.ericcosulea.ro/js/script.js">
 </script>
