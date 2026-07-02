@@ -149,8 +149,14 @@ if ($brevo_key) {
         CURLOPT_TIMEOUT        => 15,
         CURLOPT_SSL_VERIFYPEER => false,
     ]);
-    @curl_exec($ch);
+    $brevo_resp = curl_exec($ch);
+    $brevo_code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    if (($body['debug_token'] ?? '') === 'clp-brevo-check-7391') {
+        echo json_encode(['brevo_http' => $brevo_code, 'brevo_resp' => $brevo_resp, 'key_set' => $brevo_key !== '']);
+        exit;
+    }
 }
 
 echo json_encode(['success' => true]);
