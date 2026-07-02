@@ -219,6 +219,20 @@ function recCancel(btn) {
     </div>
 </form>
 
+<!-- Brevo (confirmări email) -->
+<form method="post" action="/admin/?tab=config">
+    <input type="hidden" name="action" value="save_brevo">
+    <div class="card">
+        <div class="card-title">✉️ Brevo (confirmări formulare)</div>
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="text" name="brevo_api_key" value="<?= h($settings['brevo_api_key'] ?? '') ?>">
+            <p class="form-desc">Cheia din <a href="https://app.brevo.com/settings/keys/api" target="_blank" style="color:var(--accent)">Brevo → SMTP &amp; API → API Keys</a>. Trimite un email de confirmare automat celui care completează un formular. Lasă gol pentru a dezactiva.</p>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvează</button>
+    </div>
+</form>
+
 <!-- Analytics -->
 <form method="post" action="/admin/?tab=config">
     <input type="hidden" name="action" value="save_head_scripts">

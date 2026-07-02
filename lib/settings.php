@@ -47,6 +47,7 @@ function clp_default_settings(): array
         ],
         'kit_api_key'       => '',
         'kit_form_id'       => '',
+        'brevo_api_key'     => '',
         'color_bg'          => '#0D0D0D',
         'color_accent'      => '#C9A84C',
         'color_text'        => '#E8E4DC',

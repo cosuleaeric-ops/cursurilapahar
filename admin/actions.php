@@ -442,6 +442,15 @@
         exit;
     }
 
+    // ── Save Brevo settings
+    if ($action === 'save_brevo') {
+        $settings = load_settings();
+        $settings['brevo_api_key'] = trim($_POST['brevo_api_key'] ?? '');
+        save_settings($settings);
+        header('Location: /admin/?tab=config&saved=1');
+        exit;
+    }
+
     // ── Regenerate auth secret (invalidates all sessions)
     if ($action === 'regenerate_secret') {
         $settings = load_settings();
