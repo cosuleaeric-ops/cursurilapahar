@@ -18,7 +18,7 @@ if (clp_should_count_course_click()) {
     // Test A/B headline: atribuie click-ul variantei din cookie.
     require_once dirname(__DIR__) . '/lib/ab_headline.php';
     $ab = (string) ($_COOKIE[CLP_AB_HEADLINE_COOKIE] ?? '');
-    if ($ab === 'A' || $ab === 'B') {
+    if (in_array($ab, CLP_AB_HEADLINE_VARIANTS, true)) {
         clp_ab_headline_track($ab, 'clicks');
     }
 }

@@ -397,6 +397,40 @@ ul { list-style: none; }
   .hero-subtitle { margin-top: 0; }
 }
 
+/* ── Varianta C din testul A/B: hero-ul vechi (dinainte de 4 iul 2026) ── */
+.hero--v1 .hero-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,.0) 0%,
+    rgba(0,0,0,.05) 15%,
+    rgba(0,0,0,.2) 35%,
+    rgba(0,0,0,.45) 55%,
+    rgba(0,0,0,.7) 75%,
+    rgba(0,0,0,.85) 100%
+  );
+}
+.hero--v1 .hero-title { font-size: clamp(1.65rem, 5.5vw, 4.5rem); }
+.hero--v1 .hero-content { padding: 24px 24px 30px; }
+.hero--v1 .hero-scroll-hint {
+  position: relative; z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 28px;
+  animation: scrollBounce 2s infinite;
+}
+.hero--v1 .hero-scroll-hint svg {
+  width: 28px; height: 28px;
+  color: rgb(153, 153, 153);
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(8px); }
+}
+@media (max-width: 768px) {
+  .hero--v1 { height: 60svh !important; }
+  .hero--v1 .hero-content { padding-bottom: 30px; }
+}
+
 /* ══════════════════════════════════════════
    EVENTS
 ══════════════════════════════════════════ */

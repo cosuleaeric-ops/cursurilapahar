@@ -1,21 +1,28 @@
 <?php
 
-// Test A/B pentru headline-ul din hero (index.php).
-// Varianta A = hero_title din setări; Varianta B = textul de mai jos.
+// Test A/B/C pentru hero (index.php).
+// A = headline vechi (hero_title din setări) + layout nou (subtitlu + CTA);
+// B = headline nou (textul de mai jos) + layout nou;
+// C = hero-ul vechi complet, ca înainte de 4 iul 2026 (fără subtitlu/CTA,
+//     cu săgeată de scroll, gradient vechi, banner sub hero).
 // Datele (views/clicks per variantă) stau în data/ab_headline.json.
 
 const CLP_AB_HEADLINE_COOKIE = 'clp_ab_hl';
 const CLP_AB_HEADLINE_B = 'Cursuri de la care<br>nu vrei să chiulești';
+const CLP_AB_HEADLINE_VARIANTS = ['A', 'B', 'C'];
 
 function clp_ab_headline_file(): string
 {
     return dirname(__DIR__) . '/data/ab_headline.json';
 }
 
-/** @return array{A: array{views:int, clicks:int}, B: array{views:int, clicks:int}} */
+/** @return array<string, array{views:int, clicks:int}> */
 function clp_ab_headline_load(): array
 {
-    $empty = ['A' => ['views' => 0, 'clicks' => 0], 'B' => ['views' => 0, 'clicks' => 0]];
+    $empty = [];
+    foreach (CLP_AB_HEADLINE_VARIANTS as $v) {
+        $empty[$v] = ['views' => 0, 'clicks' => 0];
+    }
     $file = clp_ab_headline_file();
     if (!file_exists($file)) {
         return $empty;
@@ -24,21 +31,21 @@ function clp_ab_headline_load(): array
     if (!is_array($data)) {
         return $empty;
     }
-    foreach (['A', 'B'] as $v) {
+    foreach (CLP_AB_HEADLINE_VARIANTS as $v) {
         $empty[$v]['views']  = (int) ($data[$v]['views']  ?? 0);
         $empty[$v]['clicks'] = (int) ($data[$v]['clicks'] ?? 0);
     }
     return $empty;
 }
 
-/** Returnează varianta din cookie sau atribuie una nouă 50/50 (setează cookie). */
+/** Returnează varianta din cookie sau atribuie una nouă (1/3 fiecare, setează cookie). */
 function clp_ab_headline_assign(): string
 {
     $v = (string) ($_COOKIE[CLP_AB_HEADLINE_COOKIE] ?? '');
-    if ($v === 'A' || $v === 'B') {
+    if (in_array($v, CLP_AB_HEADLINE_VARIANTS, true)) {
         return $v;
     }
-    $v = random_int(0, 1) === 0 ? 'A' : 'B';
+    $v = CLP_AB_HEADLINE_VARIANTS[random_int(0, count(CLP_AB_HEADLINE_VARIANTS) - 1)];
     setcookie(CLP_AB_HEADLINE_COOKIE, $v, [
         'expires'  => time() + 90 * 86400,
         'path'     => '/',
@@ -51,7 +58,7 @@ function clp_ab_headline_assign(): string
 /** Incrementează 'views' sau 'clicks' pentru varianta dată (cu lock pe fișier). */
 function clp_ab_headline_track(string $variant, string $metric): void
 {
-    if (!in_array($variant, ['A', 'B'], true) || !in_array($metric, ['views', 'clicks'], true)) {
+    if (!in_array($variant, CLP_AB_HEADLINE_VARIANTS, true) || !in_array($metric, ['views', 'clicks'], true)) {
         return;
     }
 
