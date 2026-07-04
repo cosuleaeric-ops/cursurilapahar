@@ -50,5 +50,37 @@ if (is_array($bundle['settings'])) {
     }
 }
 
+// Statistici + PnL (SQLite) — pentru analiza pe date reale intr-un mediu local
+function sync_fetch_all(SQLite3 $db, string $sql): array {
+    $out = [];
+    $res = $db->query($sql);
+    while ($row = $res->fetchArray(SQLITE3_ASSOC)) $out[] = $row;
+    return $out;
+}
+$stats_dir = __DIR__ . '/statistici/data';
+$bundle['statistici'] = null;
+$bundle['pnl'] = null;
+try {
+    if (file_exists($stats_dir . '/clp.sqlite')) {
+        $db = new SQLite3($stats_dir . '/clp.sqlite', SQLITE3_OPEN_READONLY);
+        $bundle['statistici'] = [
+            'courses'        => sync_fetch_all($db, 'SELECT * FROM courses'),
+            'tickets'        => sync_fetch_all($db, 'SELECT * FROM tickets'),
+            'course_reports' => sync_fetch_all($db, 'SELECT * FROM course_reports'),
+        ];
+        $db->close();
+    }
+    if (file_exists($stats_dir . '/pnl.sqlite')) {
+        $db = new SQLite3($stats_dir . '/pnl.sqlite', SQLITE3_OPEN_READONLY);
+        $bundle['pnl'] = [
+            'venituri'   => sync_fetch_all($db, 'SELECT * FROM venituri'),
+            'cheltuieli' => sync_fetch_all($db, 'SELECT * FROM cheltuieli'),
+        ];
+        $db->close();
+    }
+} catch (Exception $e) {
+    // bazele lipsesc sau nu pot fi citite — bundle-ul JSON ramane valid
+}
+
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode($bundle, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
