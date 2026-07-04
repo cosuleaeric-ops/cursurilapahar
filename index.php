@@ -294,7 +294,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                             <span class="discount-countdown-label">Reducerea expiră în</span>
                             <span class="discount-countdown-time">--:--:--</span>
                         </div>
-                        <div class="discount-code">Folosește codul <strong>VARA30</strong></div>
+                        <div class="discount-code">🎟️ Folosește codul <strong>VARA30</strong></div>
                     </div>
                     <?php endif; ?>
                 </div>
