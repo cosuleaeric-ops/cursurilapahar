@@ -393,7 +393,7 @@ ul { list-style: none; }
   min-height: 0;
 }
 @media (max-width: 768px) {
-  .hero-content { gap: 18px; }
+  .hero-content { gap: 18px; padding-bottom: 56px; }
   .hero-subtitle { margin-top: 0; }
 }
 
