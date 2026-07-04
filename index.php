@@ -221,9 +221,6 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         <a href="#cursuri" class="btn btn-primary hero-cta">Vezi cursurile</a>
     </div>
 
-    <div class="hero-scroll-hint" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-    </div>
 </section>
 
 <!-- ── ANNOUNCEMENT BANNER ────────────────── -->
