@@ -292,8 +292,8 @@ ul { list-style: none; }
 }
 @media (max-width: 768px) {
   .hero-content { padding-bottom: 60px; }
-  .hero { 
-    height: 60svh !important;
+  .hero {
+    height: 74svh !important;
     min-height: 200px !important;
     max-height: 750px;
   }
