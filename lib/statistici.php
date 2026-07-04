@@ -3,6 +3,49 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/courses.php';
 
+/**
+ * Normalized matching key: lowercase, Romanian diacritics stripped (both
+ * comma-below and legacy cedilla forms), separators unified, tokens sorted
+ * alphabetically so "Popescu Ion" === "Ion Popescu".
+ */
+function clp_participant_name_key(string $name): string
+{
+    $n = mb_strtolower(trim($name), 'UTF-8');
+    $n = strtr($n, ['ă' => 'a', 'â' => 'a', 'î' => 'i', 'ș' => 's', 'ş' => 's', 'ț' => 't', 'ţ' => 't', '-' => ' ', '.' => ' ']);
+    $toks = preg_split('/\s+/u', $n, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    sort($toks);
+    return implode(' ', $toks);
+}
+
+/**
+ * Fuzzy-merge normalized keys to absorb typos ("ionesc" vs "ionescu").
+ * Guarded so short names never merge: distance ≤1 only above 10 chars,
+ * ≤2 only above 15, and always same first letter.
+ *
+ * @param list<string> $keys
+ * @return array<string, string> key => canonical key
+ */
+function clp_merge_participant_keys(array $keys): array
+{
+    sort($keys);
+    $reps = [];
+    $map = [];
+    foreach ($keys as $k) {
+        $target = $k;
+        $len = strlen($k);
+        if ($len > 10) {
+            $max = $len > 15 ? 2 : 1;
+            foreach ($reps as $r) {
+                if ($r[0] !== $k[0] || abs(strlen($r) - $len) > $max) continue;
+                if (levenshtein($k, $r) <= $max) { $target = $r; break; }
+            }
+        }
+        if ($target === $k) $reps[] = $k;
+        $map[$k] = $target;
+    }
+    return $map;
+}
+
 /** @return array{participants: list<array<string, mixed>>, stats: array{unique: int, returning: int, tickets: int}} */
 function clp_fetch_participants(): array
 {
@@ -12,39 +55,63 @@ function clp_fetch_participants(): array
         return $empty;
     }
 
-    $participants = [];
-    $evolution = [];
+    $rows = [];
     try {
         $db = new SQLite3($db_path);
         $db->exec('PRAGMA journal_mode = WAL;');
-        $pr = $db->query(
-            'SELECT t.participant_name, COUNT(DISTINCT t.course_id) AS num_courses, COUNT(*) AS total_tickets,
-                    GROUP_CONCAT(c.name || \' (\' || c.date || \')\', \'|\') AS course_list
+        $tr = $db->query(
+            "SELECT t.participant_name, t.course_id, c.name AS course_name, c.date AS course_date,
+                    strftime('%Y-%m', c.date) AS m
              FROM tickets t
-             JOIN courses c ON c.id = t.course_id
-             GROUP BY LOWER(TRIM(t.participant_name))
-             ORDER BY num_courses DESC, total_tickets DESC, t.participant_name ASC'
+             JOIN courses c ON c.id = t.course_id"
         );
-        while ($row = $pr->fetchArray(SQLITE3_ASSOC)) {
-            $row['courses'] = array_values(array_unique(array_filter(explode('|', $row['course_list'] ?? ''))));
-            unset($row['course_list']);
-            $participants[] = $row;
+        while ($row = $tr->fetchArray(SQLITE3_ASSOC)) {
+            $rows[] = $row;
         }
-
-        $er = $db->query(
-            "SELECT strftime('%Y-%m', c.date) AS m,
-                    COUNT(DISTINCT LOWER(TRIM(t.participant_name))) AS unici,
-                    COUNT(*) AS bilete
-             FROM tickets t JOIN courses c ON c.id = t.course_id
-             GROUP BY m ORDER BY m DESC LIMIT 12"
-        );
-        while ($row = $er->fetchArray(SQLITE3_ASSOC)) {
-            $evolution[] = ['m' => (string)$row['m'], 'unici' => (int)$row['unici'], 'bilete' => (int)$row['bilete']];
-        }
-
         $db->close();
     } catch (Exception $e) {
         return $empty;
+    }
+
+    $keyMap = clp_merge_participant_keys(array_values(array_unique(
+        array_map(fn($r) => clp_participant_name_key((string)$r['participant_name']), $rows)
+    )));
+
+    $groups = [];
+    $evoMonths = [];
+    foreach ($rows as $r) {
+        $key = $keyMap[clp_participant_name_key((string)$r['participant_name'])];
+        $g = &$groups[$key];
+        $g['names'][(string)$r['participant_name']] = ($g['names'][(string)$r['participant_name']] ?? 0) + 1;
+        $g['course_ids'][(int)$r['course_id']] = true;
+        $g['total_tickets'] = ($g['total_tickets'] ?? 0) + 1;
+        $g['courses'][$r['course_name'] . ' (' . $r['course_date'] . ')'] = true;
+        unset($g);
+
+        $m = (string)$r['m'];
+        $evoMonths[$m]['keys'][$key] = true;
+        $evoMonths[$m]['bilete'] = ($evoMonths[$m]['bilete'] ?? 0) + 1;
+    }
+
+    $participants = [];
+    foreach ($groups as $g) {
+        arsort($g['names']);
+        $participants[] = [
+            'participant_name' => (string)array_key_first($g['names']),
+            'num_courses' => count($g['course_ids']),
+            'total_tickets' => (int)$g['total_tickets'],
+            'courses' => array_keys($g['courses']),
+        ];
+    }
+    usort($participants, fn($a, $b) =>
+        [$b['num_courses'], $b['total_tickets'], $a['participant_name']]
+        <=> [$a['num_courses'], $a['total_tickets'], $b['participant_name']]
+    );
+
+    krsort($evoMonths);
+    $evolution = [];
+    foreach (array_slice($evoMonths, 0, 12, true) as $m => $e) {
+        $evolution[] = ['m' => (string)$m, 'unici' => count($e['keys']), 'bilete' => (int)$e['bilete']];
     }
 
     return [
