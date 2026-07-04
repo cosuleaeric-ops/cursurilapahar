@@ -378,6 +378,22 @@ ul { list-style: none; }
   color: #fff;
   font-weight: inherit;
 }
+.hero-subtitle {
+  font-size: clamp(.95rem, 2vw, 1.25rem);
+  color: rgba(255,255,255,.92);
+  text-shadow: 0 2px 12px rgba(0,0,0,.6);
+  max-width: 640px;
+  line-height: 1.5;
+  margin-top: -12px;
+}
+.hero-cta {
+  font-size: 1.05rem;
+  padding: 16px 36px;
+}
+@media (max-width: 768px) {
+  .hero-content { gap: 18px; }
+  .hero-subtitle { margin-top: 0; }
+}
 
 /* Scroll hint */
 .hero-scroll-hint {

@@ -217,6 +217,8 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 
     <div class="hero-content">
         <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
+        <p class="hero-subtitle">Cursuri de o seară, ținute de experți, la un pahar într-un bar din centrul Bucureștiului.</p>
+        <a href="#cursuri" class="btn btn-primary hero-cta">Vezi cursurile</a>
     </div>
 
     <div class="hero-scroll-hint" aria-hidden="true">
