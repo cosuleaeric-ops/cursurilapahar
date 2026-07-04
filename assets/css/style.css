@@ -361,7 +361,7 @@ ul { list-style: none; }
   align-items: center;
   justify-content: flex-end;
   text-align: center;
-  padding: 24px 24px 30px;
+  padding: 24px 24px 96px;
   gap: 32px;
 }
 .hero-title {
