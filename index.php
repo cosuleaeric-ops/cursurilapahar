@@ -223,11 +223,6 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 
 </section>
 
-<!-- ── ANNOUNCEMENT BANNER ────────────────── -->
-<div class="announcement-banner" <?= clp_e('announcement',$settings) ?>>
-    <?= htmlspecialchars($settings['announcement']) ?>
-</div>
-
 <!-- ── CURSURI ─────────────────────────────── -->
 <?php $cursuri_bg = $settings['section_bgs']['cursuri'] ?? []; $cursuri_has_bg = !empty($cursuri_bg['image']); ?>
 <section class="section<?= $cursuri_has_bg ? ' section-bg-blur section-dark' : '' ?>" id="cursuri" <?= clp_section_bg('cursuri', $settings) ?>>
@@ -310,6 +305,11 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         <?php endif; ?>
     </div>
 </section>
+
+<!-- ── ANNOUNCEMENT BANNER ────────────────── -->
+<div class="announcement-banner" <?= clp_e('announcement',$settings) ?>>
+    <?= htmlspecialchars($settings['announcement']) ?>
+</div>
 
 <!-- ── NEWSLETTER ─────────────────────────── -->
 <?php
