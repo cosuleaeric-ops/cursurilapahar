@@ -7,6 +7,12 @@
       "runtimeArgs": ["-c", "import os,http.server; os.chdir('/Users/ericcosulea/Documents/Proiecte/cursurilapahar'); http.server.HTTPServer(('',int(__import__('os').environ.get('PORT',8080))),http.server.SimpleHTTPRequestHandler).serve_forever()"],
       "port": 8080,
       "autoPort": true
+    },
+    {
+      "name": "php",
+      "runtimeExecutable": "/opt/homebrew/bin/php",
+      "runtimeArgs": ["-S", "localhost:8090", "-t", "/Users/ericcosulea/Documents/Proiecte/cursurilapahar"],
+      "port": 8090
     }
   ]
 }

@@ -290,8 +290,11 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     </div>
                     <?php if ($discount_active): ?>
                     <div class="discount-countdown" data-ends-at="<?= htmlspecialchars($discount_ends) ?>">
-                        <span class="discount-countdown-label">Reducerea expiră în</span>
-                        <span class="discount-countdown-time">--:--:--</span>
+                        <div class="discount-countdown-row">
+                            <span class="discount-countdown-label">Reducerea expiră în</span>
+                            <span class="discount-countdown-time">--:--:--</span>
+                        </div>
+                        <div class="discount-code">Folosește codul <strong>VARA30</strong></div>
                     </div>
                     <?php endif; ?>
                 </div>

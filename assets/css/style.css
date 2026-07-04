@@ -484,17 +484,31 @@ ul { list-style: none; }
 
 .discount-countdown {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   background: rgba(220,38,38,.12);
   border: 1px solid rgba(220,38,38,.4);
   color: #ff8080;
   padding: 9px 12px;
   border-radius: 8px;
   flex-shrink: 0;
-}
   font-size: .85rem;
   margin-top: 4px;
+}
+.discount-countdown-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.discount-code {
+  text-align: center;
+  border-top: 1px dashed rgba(220,38,38,.4);
+  padding-top: 6px;
+}
+.discount-code strong {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: .05em;
 }
 .discount-countdown-label { font-weight: 500; }
 .discount-countdown-time {
