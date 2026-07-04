@@ -35,6 +35,13 @@ require_once __DIR__ . '/lib/courses.php';
 require_once __DIR__ . '/lib/livetickets.php';
 require_once __DIR__ . '/lib/course_clicks.php';
 
+// ── Test A/B headline hero ────────────────────────────────────────────────────
+require_once __DIR__ . '/lib/ab_headline.php';
+$ab_variant = clp_ab_headline_assign();
+if (clp_should_count_course_click()) {
+    clp_ab_headline_track($ab_variant, 'views');
+}
+
 $courses = [];
 $json_file = __DIR__ . '/data/courses.json';
 if (file_exists($json_file)) {
@@ -209,7 +216,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
-        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $settings['hero_title'] ?></h1>
+        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
     </div>
 
     <div class="hero-scroll-hint" aria-hidden="true">

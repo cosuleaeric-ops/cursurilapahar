@@ -52,6 +52,11 @@ include __DIR__ . '/layout_header.php';
                 <div class="tool-name">P&amp;L Cursuri</div>
                 <div class="tool-desc">venituri, cheltuieli si profit net pe luni si categorii</div>
             </a>
+            <a class="tool-card" href="/admin/statistici/ab_headline.php">
+                <div class="tool-icon">🧪</div>
+                <div class="tool-name">Test A/B Headline</div>
+                <div class="tool-desc">afisari, click-uri pe cursuri si CTR pe cele doua variante de headline</div>
+            </a>
         </div>
 
 <?php require __DIR__ . '/layout_footer.php'; ?>
