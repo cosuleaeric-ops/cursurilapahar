@@ -385,16 +385,17 @@ ul { list-style: none; }
   margin-bottom: -8px;
 }
 .hero-next-dot {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--accent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent);
   animation: heroNextPulse 1.6s infinite;
 }
 @keyframes heroNextPulse {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
-  70%  { box-shadow: 0 0 0 8px transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
+  0%   { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  70%  { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 0 13px transparent; }
+  100% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 0 0 transparent; }
 }
 .hero-title {
   font-family: var(--font-serif);
