@@ -368,26 +368,26 @@ ul { list-style: none; }
 .hero-next-card {
   font-family: 'Bebas Neue', 'Anton', sans-serif;
   font-weight: 400;
-  font-size: 1.2rem;
+  font-size: 1rem;
   letter-spacing: .13em;
   text-transform: uppercase;
   line-height: 1;
   color: #0D0D0D;
   background:
-    repeating-linear-gradient(to bottom, transparent 0 3px, rgba(13,13,13,.28) 3px 6px) 14px 50% / 1px 62% no-repeat,
-    repeating-linear-gradient(to bottom, transparent 0 3px, rgba(13,13,13,.28) 3px 6px) calc(100% - 14px) 50% / 1px 62% no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 3px, rgba(13,13,13,.28) 3px 6px) 12px 50% / 1px 62% no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 3px, rgba(13,13,13,.28) 3px 6px) calc(100% - 12px) 50% / 1px 62% no-repeat,
     var(--accent);
-  padding: 11px 32px 9px;
+  padding: 9px 26px 7px;
   border-radius: 6px;
   transform: rotate(-2deg);
   -webkit-mask:
-    radial-gradient(circle 7px at 0 50%, transparent 96%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle 7px at 100% 50%, transparent 96%, #000) right / 51% 100% no-repeat;
+    radial-gradient(circle 6px at 0 50%, transparent 96%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 6px at 100% 50%, transparent 96%, #000) right / 51% 100% no-repeat;
   mask:
-    radial-gradient(circle 7px at 0 50%, transparent 96%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle 7px at 100% 50%, transparent 96%, #000) right / 51% 100% no-repeat;
+    radial-gradient(circle 6px at 0 50%, transparent 96%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 6px at 100% 50%, transparent 96%, #000) right / 51% 100% no-repeat;
   filter: drop-shadow(0 8px 20px rgba(0,0,0,.4));
-  margin-bottom: -10px;
+  margin-bottom: -8px;
 }
 .hero-title {
   font-family: var(--font-serif);
@@ -420,7 +420,7 @@ ul { list-style: none; }
 @media (max-width: 768px) {
   .hero-content { gap: 18px; padding-bottom: 56px; }
   .hero-subtitle { margin-top: 0; }
-  .hero-next-card { font-size: 1.02rem; padding: 10px 26px 8px; margin-bottom: -4px; }
+  .hero-next-card { font-size: .88rem; padding: 8px 20px 6px; margin-bottom: -2px; }
 }
 
 /* ── Varianta C din testul A/B: hero-ul vechi (dinainte de 4 iul 2026) ── */

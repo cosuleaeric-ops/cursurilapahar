@@ -236,7 +236,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 
     <div class="hero-content">
         <?php if ($hero_next_label !== ''): ?>
-        <div class="hero-next-card"><?= htmlspecialchars($hero_next_label) ?></div>
+        <div class="hero-next-card">📅 <?= htmlspecialchars($hero_next_label) ?></div>
         <?php endif; ?>
         <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
         <?php if ($ab_variant !== 'C'): ?>
