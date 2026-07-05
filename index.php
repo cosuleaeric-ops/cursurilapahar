@@ -73,6 +73,25 @@ if ($_img_dirty) {
 $courses = clp_filter_public_courses($courses);
 usort($courses, fn($a, $b) => strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? ''));
 
+// ── Card „Următorul curs" în hero ─────────────────────────────────────────────
+$hero_next_label = '';
+$today_bucharest = new DateTimeImmutable('today', new DateTimeZone('Europe/Bucharest'));
+foreach ($courses as $c) {
+    $raw = clp_resolve_course_date_raw($c);
+    if ($raw === '') continue;
+    $next_date = DateTimeImmutable::createFromFormat('!Y-m-d', $raw, new DateTimeZone('Europe/Bucharest'));
+    if ($next_date === false || $next_date < $today_bucharest) continue;
+    $days_until = (int) $today_bucharest->diff($next_date)->days;
+    if ($days_until === 0) {
+        $hero_next_label = 'Următorul curs este azi';
+    } elseif ($days_until === 1) {
+        $hero_next_label = 'Următorul curs este mâine';
+    } else {
+        $hero_next_label = 'Următorul curs peste ' . $days_until . ($days_until >= 20 ? ' de zile' : ' zile');
+    }
+    break;
+}
+
 // ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
 $soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
 $soldout_cache = file_exists($soldout_cache_file)
@@ -216,6 +235,9 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
+        <?php if ($hero_next_label !== ''): ?>
+        <div class="hero-next-card"><?= htmlspecialchars($hero_next_label) ?></div>
+        <?php endif; ?>
         <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
         <?php if ($ab_variant !== 'C'): ?>
         <p class="hero-subtitle">Experți și profesori îți predau la un pahar, într-un bar din București.</p>

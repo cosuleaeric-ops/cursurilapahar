@@ -364,6 +364,18 @@ ul { list-style: none; }
   padding: 24px 24px 96px;
   gap: 32px;
 }
+.hero-next-card {
+  background: var(--accent);
+  color: #0D0D0D;
+  font-size: .85rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  line-height: 1.3;
+  padding: 9px 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.35);
+  margin-bottom: -14px;
+}
 .hero-title {
   font-family: var(--font-serif);
   font-size: clamp(2.05rem, 6.5vw, 5rem);
@@ -395,6 +407,7 @@ ul { list-style: none; }
 @media (max-width: 768px) {
   .hero-content { gap: 18px; padding-bottom: 56px; }
   .hero-subtitle { margin-top: 0; }
+  .hero-next-card { font-size: .8rem; padding: 8px 15px; margin-bottom: -6px; }
 }
 
 /* ── Varianta C din testul A/B: hero-ul vechi (dinainte de 4 iul 2026) ── */
