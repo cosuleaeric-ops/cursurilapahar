@@ -380,14 +380,14 @@ ul { list-style: none; }
   border: 1px solid rgba(255,255,255,.25);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  padding: 11px 18px 5px;
+  padding: 9px 18px 7px;
   border-radius: 999px;
   margin-bottom: -8px;
 }
 .hero-next-dot {
   position: relative;
   flex: none;
-  transform: translateY(-3px);
+  transform: translateY(-1px);
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -439,7 +439,7 @@ ul { list-style: none; }
 @media (max-width: 768px) {
   .hero-content { gap: 18px; padding-bottom: 32px; }
   .hero-subtitle { margin-top: 0; }
-  .hero-next-card { font-size: .9rem; padding: 10px 15px 4px; margin-bottom: -2px; }
+  .hero-next-card { font-size: .9rem; padding: 8px 15px 6px; margin-bottom: -2px; }
   #cursuri { padding-top: 28px; }
 }
 
