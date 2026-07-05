@@ -402,6 +402,7 @@ ul { list-style: none; }
   inset: -4px;
   border-radius: 50%;
   border: 2px solid var(--accent);
+  will-change: transform, opacity;
   animation: heroNextPulse 1.8s cubic-bezier(.4, 0, .2, 1) infinite;
 }
 @keyframes heroNextPulse {
