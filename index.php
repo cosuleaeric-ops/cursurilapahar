@@ -139,12 +139,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <?php
-    $font_heading = $settings['font_heading'] ?? 'Nunito';
-    $font_body    = $settings['font_body']    ?? 'Inter';
-    $fonts_param  = 'family=' . urlencode($font_heading) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=' . urlencode($font_body) . ':wght@300;400;500&display=swap';
-    ?>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&<?= $fonts_param ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
     <?php if (!empty($settings['favicon_path'])): ?>
     <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
@@ -156,51 +151,10 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         --text:         <?= htmlspecialchars($settings['color_text']       ?? '#E8E4DC') ?>;
         --text-muted:   <?= htmlspecialchars($settings['color_text_muted'] ?? '#9CA3AF') ?>;
         --surface:      <?= htmlspecialchars($settings['color_surface']    ?? '#161616') ?>;
-        --font-sans:    '<?= htmlspecialchars($font_body) ?>', system-ui, sans-serif;
-        --font-heading: '<?= htmlspecialchars($font_heading) ?>', sans-serif;
         --btn-hover:    <?= htmlspecialchars($settings['color_btn_hover'] ?? '#b8922e') ?>;
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
-        --nav-bg:           <?= htmlspecialchars($settings['nav_bg']           ?? '#000000') ?>;
-        --nav-brand-color:  <?= htmlspecialchars($settings['nav_brand_color']  ?? '#ffffff') ?>;
-        --nav-brand-size:   <?= htmlspecialchars($settings['nav_brand_size']   ?? '20') ?>px;
-        --nav-brand-weight: <?= htmlspecialchars($settings['nav_brand_weight'] ?? '800') ?>;
-        --nav-brand-font:   '<?= htmlspecialchars($settings['nav_brand_font']  ?? 'Poppins') ?>', sans-serif;
-        --nav-link-color:   <?= htmlspecialchars($settings['nav_link_color']   ?? '#ffffff') ?>;
-        --nav-link-size:    <?= htmlspecialchars($settings['nav_link_size']    ?? '13') ?>px;
-        --nav-link-weight:  <?= htmlspecialchars($settings['nav_link_weight']  ?? '700') ?>;
-        --nav-logo-h:       <?= htmlspecialchars($settings['nav_logo_h']       ?? '40') ?>px;
     }
     body { padding-top: 88px; }
-    <?php
-    // Typography overrides from global font settings
-    $fhW  = $settings['fh_weight']  ?? '';
-    $fhI  = !empty($settings['fh_italic']);
-    $fhLg = $settings['fh_size_lg'] ?? '';
-    $fhMd = $settings['fh_size_md'] ?? '';
-    $fhSm = $settings['fh_size_sm'] ?? '';
-    $fbW  = $settings['fb_weight']  ?? '';
-    $fbLg = $settings['fb_size_lg'] ?? '';
-    $fbMd = $settings['fb_size_md'] ?? '';
-    $fbSm = $settings['fb_size_sm'] ?? '';
-    $hSel = '.section-title,h1,h2,h3';
-    if ($fhW || $fhI || $fhLg) {
-        echo $hSel . '{';
-        if ($fhW)  echo 'font-weight:' . (int)$fhW . '!important;';
-        if ($fhI)  echo 'font-style:italic!important;';
-        if ($fhLg) echo 'font-size:' . (int)$fhLg . 'px!important;';
-        echo '}';
-    }
-    if ($fhMd) echo '@media(max-width:1024px){' . $hSel . '{font-size:' . (int)$fhMd . 'px!important;}}';
-    if ($fhSm) echo '@media(max-width:768px){'  . $hSel . '{font-size:' . (int)$fhSm . 'px!important;}}';
-    if ($fbW || $fbLg) {
-        echo 'body,p{';
-        if ($fbW)  echo 'font-weight:' . (int)$fbW . '!important;';
-        if ($fbLg) echo 'font-size:' . (int)$fbLg . 'px!important;';
-        echo '}';
-    }
-    if ($fbMd) echo '@media(max-width:1024px){body{font-size:' . (int)$fbMd . 'px!important;}}';
-    if ($fbSm) echo '@media(max-width:768px){body{font-size:'  . (int)$fbSm . 'px!important;}}';
-    ?>
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
     <?php include __DIR__ . '/includes/edit-styles.php'; ?>
@@ -370,7 +324,6 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
 ?>
 <section class="section section-dark section-bg-blur" id="newsletter" <?= clp_section_bg('newsletter', $settings, $nl_img) ?>>
     <div class="container container-narrow">
-        <div class="newsletter-icon" aria-hidden="true">✉</div>
         <h2 class="section-title" <?= clp_e('newsletter_title',$settings) ?>><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
         <p class="newsletter-desc" <?= clp_e('newsletter_desc',$settings) ?>><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
         <form class="newsletter-form" id="newsletterForm" novalidate>

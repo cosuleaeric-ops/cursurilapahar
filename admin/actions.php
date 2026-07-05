@@ -585,7 +585,7 @@
         exit;
     }
 
-    // ── Save design (colors + fonts)
+    // ── Save design (colors)
     if ($action === 'save_design') {
         $settings = load_settings();
         $color_fields = ['color_bg','color_accent','color_text','color_text_muted','color_surface','color_btn_hover','color_banner'];
@@ -593,10 +593,6 @@
             $val = trim($_POST[$f] ?? '');
             if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $val)) $settings[$f] = $val;
         }
-        $font_heading = trim($_POST['font_heading'] ?? '');
-        $font_body    = trim($_POST['font_body'] ?? '');
-        if ($font_heading) $settings['font_heading'] = $font_heading;
-        if ($font_body)    $settings['font_body']    = $font_body;
         save_settings($settings);
         header('Location: /admin/?tab=aspect&saved=1');
         exit;
@@ -954,51 +950,3 @@
         exit;
     }
 
-// ── Navbar live (from live site editor) ──────────────────────────────────────
-if ($action === 'save_navbar_live') {
-    header('Content-Type: application/json');
-    $s = load_settings();
-    $color_keys = ['nav_bg','nav_brand_color','nav_link_color'];
-    $num_keys   = ['nav_brand_size','nav_brand_weight','nav_link_size','nav_link_weight','nav_logo_h'];
-    $font_keys  = ['nav_brand_font'];
-    $allowed_fonts = clp_design_heading_fonts();
-    foreach ($color_keys as $k) {
-        $v = trim($_POST[$k] ?? '');
-        if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) $s[$k] = $v;
-    }
-    foreach ($num_keys as $k) {
-        $v = (int)($_POST[$k] ?? 0);
-        if ($v > 0) $s[$k] = (string)$v;
-    }
-    foreach ($font_keys as $k) {
-        $v = trim($_POST[$k] ?? '');
-        if ($v && in_array($v, $allowed_fonts, true)) $s[$k] = $v;
-    }
-    save_settings($s);
-    echo json_encode(['ok' => true]);
-    exit;
-}
-
-// ── Global fonts (from live site editor) ─────────────────────────────────────
-if ($action === 'save_global_fonts') {
-    $allowed_h = clp_design_heading_fonts();
-    $allowed_b = clp_design_body_fonts();
-    header('Content-Type: application/json');
-    $s  = load_settings();
-    $fh = trim($_POST['font_heading'] ?? '');
-    $fb = trim($_POST['font_body']    ?? '');
-    if ($fh && in_array($fh, $allowed_h, true)) $s['font_heading'] = $fh;
-    if ($fb && in_array($fb, $allowed_b, true)) $s['font_body']    = $fb;
-    foreach (['fh_weight','fb_weight'] as $k) {
-        $v = (int)($_POST[$k] ?? 0);
-        $s[$k] = ($v >= 100 && $v <= 900) ? (string)$v : '';
-    }
-    $s['fh_italic'] = !empty($_POST['fh_italic']) ? '1' : '';
-    foreach (['fh_size_lg','fh_size_md','fh_size_sm','fb_size_lg','fb_size_md','fb_size_sm'] as $k) {
-        $v = (int)($_POST[$k] ?? 0);
-        $s[$k] = $v > 0 ? (string)$v : '';
-    }
-    save_settings($s);
-    echo json_encode(['ok' => true]);
-    exit;
-}

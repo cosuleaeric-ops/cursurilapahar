@@ -39,13 +39,13 @@
     </form>
 </div>
 
-<!-- Culori & Fonturi -->
+<!-- Culori -->
 <form method="post" action="/admin/?tab=aspect">
     <input type="hidden" name="action" value="save_design">
     <div class="card" style="margin-top:20px">
-        <div class="card-title">Culori &amp; Fonturi</div>
+        <div class="card-title">Culori</div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
             <?php foreach (clp_design_color_fields() as $fname => $meta):
                 $val = h($settings[$fname] ?? $meta['default']);
             ?>
@@ -54,27 +54,6 @@
                 <input type="text" name="<?= $fname ?>" value="<?= $val ?>" data-coloris>
             </div>
             <?php endforeach; ?>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-            <div class="form-group" style="margin:0">
-                <label>Font titluri</label>
-                <select name="font_heading" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff">
-                    <?php foreach (clp_design_heading_fonts() as $f): ?>
-                    <option value="<?= h($f) ?>" <?= ($settings['font_heading'] ?? 'Nunito') === $f ? 'selected' : '' ?>><?= h($f) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <p class="form-desc">Font folosit pentru titluri și headinguri.</p>
-            </div>
-            <div class="form-group" style="margin:0">
-                <label>Font text</label>
-                <select name="font_body" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff">
-                    <?php foreach (clp_design_body_fonts() as $f): ?>
-                    <option value="<?= h($f) ?>" <?= ($settings['font_body'] ?? 'Inter') === $f ? 'selected' : '' ?>><?= h($f) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <p class="form-desc">Font folosit pentru textele din pagină.</p>
-            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Salvează design</button>

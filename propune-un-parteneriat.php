@@ -51,12 +51,7 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
     <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <?php
-    $font_heading = $settings['font_heading'] ?? 'Nunito';
-    $font_body    = $settings['font_body']    ?? 'Inter';
-    $fonts_param  = 'family=' . urlencode($font_heading) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=' . urlencode($font_body) . ':wght@300;400;500&display=swap';
-    ?>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@800&<?= $fonts_param ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
     <?php if (!empty($settings['favicon_path'])): ?>
     <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
@@ -68,19 +63,8 @@ $parteneriat_intro_2 = $settings['parteneriat_intro_2'] ?? 'Căutăm parteneri c
         --text:         <?= htmlspecialchars($settings['color_text']       ?? '#E8E4DC') ?>;
         --text-muted:   <?= htmlspecialchars($settings['color_text_muted'] ?? '#9CA3AF') ?>;
         --surface:      <?= htmlspecialchars($settings['color_surface']    ?? '#161616') ?>;
-        --font-sans:    '<?= htmlspecialchars($font_body) ?>', system-ui, sans-serif;
-        --font-heading: '<?= htmlspecialchars($font_heading) ?>', sans-serif;
         --btn-hover:    <?= htmlspecialchars($settings['color_btn_hover'] ?? '#b8922e') ?>;
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
-        --nav-bg:           <?= htmlspecialchars($settings['nav_bg']           ?? '#000000') ?>;
-        --nav-brand-color:  <?= htmlspecialchars($settings['nav_brand_color']  ?? '#ffffff') ?>;
-        --nav-brand-size:   <?= htmlspecialchars($settings['nav_brand_size']   ?? '20') ?>px;
-        --nav-brand-weight: <?= htmlspecialchars($settings['nav_brand_weight'] ?? '800') ?>;
-        --nav-brand-font:   '<?= htmlspecialchars($settings['nav_brand_font']  ?? 'Poppins') ?>', sans-serif;
-        --nav-link-color:   <?= htmlspecialchars($settings['nav_link_color']   ?? '#ffffff') ?>;
-        --nav-link-size:    <?= htmlspecialchars($settings['nav_link_size']    ?? '13') ?>px;
-        --nav-link-weight:  <?= htmlspecialchars($settings['nav_link_weight']  ?? '700') ?>;
-        --nav-logo-h:       <?= htmlspecialchars($settings['nav_logo_h']       ?? '40') ?>px;
     }
     body { padding-top: 88px; }
     </style>

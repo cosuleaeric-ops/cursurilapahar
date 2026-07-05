@@ -12,10 +12,3 @@ function clp_design_color_fields(): array {
     ];
 }
 
-function clp_design_heading_fonts(): array {
-    return ['Nunito', 'Playfair Display', 'Montserrat', 'Raleway', 'Oswald', 'Lora', 'Poppins', 'Rubik', 'DM Serif Display', 'Bebas Neue', 'Cormorant Garamond'];
-}
-
-function clp_design_body_fonts(): array {
-    return ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Source Sans 3', 'DM Sans', 'Nunito', 'Rubik', 'Mulish', 'Cabin', 'Karla'];
-}

@@ -55,8 +55,6 @@ function clp_default_settings(): array
         'color_surface'     => '#161616',
         'color_btn_hover'   => '#b8922e',
         'color_banner'      => '#FFB000',
-        'font_heading'      => 'Nunito',
-        'font_body'         => 'Inter',
         'head_scripts'      => '',
         'pages'             => [
             'sustine' => [

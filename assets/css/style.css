@@ -21,10 +21,13 @@
   --shadow:      0 4px 24px rgba(0,0,0,.5);
   --transition:  .25s ease;
 
-  --font-heading: 'Nunito', sans-serif;
+  --font-heading: 'Rubik', sans-serif;
   --font-serif:   var(--font-heading);
-  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-sans:    'Rubik', system-ui, sans-serif;
 }
+
+/* Greutate globală titluri (fostă setare din editorul live, acum fixă) */
+.section-title, h1, h2, h3 { font-weight: 600 !important; }
 
 /* ── Reset ──────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -164,7 +167,7 @@ ul { list-style: none; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: var(--nav-bg, #000);
+  background: #000;
   border-bottom: 1px solid rgba(255,255,255,.08);
   height: 88px;
   display: flex;
@@ -186,7 +189,7 @@ ul { list-style: none; }
   gap: 10px;
 }
 .navbar-logo img {
-  height: var(--nav-logo-h, 40px);
+  height: 50px;
   width: auto;
   display: block;
   mix-blend-mode: screen;
@@ -196,10 +199,10 @@ ul { list-style: none; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: var(--nav-brand-font, 'Poppins', sans-serif);
-  font-size: var(--nav-brand-size, 20px);
-  font-weight: var(--nav-brand-weight, 800);
-  color: var(--nav-brand-color, #fff);
+  font-family: 'Rubik', sans-serif;
+  font-size: 23px;
+  font-weight: 700;
+  color: #fff;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   line-height: 1.1;
@@ -211,10 +214,10 @@ ul { list-style: none; }
   margin-left: auto;
 }
 .navbar-links a {
-  font-size: var(--nav-link-size, 13px);
-  font-weight: var(--nav-link-weight, 700);
-  color: var(--nav-link-color, #fff);
-  letter-spacing: var(--nav-link-spacing, 0.10em);
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: .10em;
   transition: color var(--transition);
   white-space: nowrap;
   cursor: pointer;
@@ -486,7 +489,7 @@ ul { list-style: none; }
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
   margin-top: 48px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .event-card {
@@ -496,7 +499,6 @@ ul { list-style: none; }
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  height: 100%;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 .event-card:hover {
@@ -723,12 +725,6 @@ ul { list-style: none; }
 /* ══════════════════════════════════════════
    NEWSLETTER
 ══════════════════════════════════════════ */
-.newsletter-icon {
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 16px;
-  opacity: .7;
-}
 .section-dark .section-title { margin-bottom: 16px; }
 
 .newsletter-desc {
@@ -752,14 +748,13 @@ ul { list-style: none; }
   flex: 1;
   min-width: 220px;
   padding: 14px 18px;
-  background: rgba(255,255,255,.07);
-  border: 1.5px solid var(--border);
+  background: rgba(255,255,255,.92);
+  border: 1.5px solid transparent;
   border-radius: 50px;
-  color: var(--text);
+  color: #0D0D0D;
   outline: none;
   transition: border-color var(--transition);
 }
-.newsletter-fields input[type="email"]::placeholder { color: var(--text-faint); }
 .newsletter-fields input[type="email"]:focus { border-color: var(--accent); }
 .newsletter-note {
   margin-top: 14px;
