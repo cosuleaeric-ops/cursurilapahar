@@ -87,7 +87,7 @@ foreach ($courses as $c) {
     } elseif ($days_until === 1) {
         $hero_next_label = 'Următorul curs este mâine';
     } else {
-        $hero_next_label = 'Următorul curs peste ' . $days_until . ($days_until >= 20 ? ' de zile' : ' zile');
+        $hero_next_label = 'Următorul curs este peste ' . $days_until . ($days_until >= 20 ? ' de zile' : ' zile');
     }
     break;
 }
