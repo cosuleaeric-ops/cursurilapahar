@@ -387,7 +387,7 @@ ul { list-style: none; }
 .hero-next-dot {
   position: relative;
   flex: none;
-  margin-top: 2px;
+  transform: translateY(-3px);
   width: 10px;
   height: 10px;
   border-radius: 50%;
