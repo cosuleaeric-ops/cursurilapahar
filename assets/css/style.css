@@ -425,9 +425,10 @@ ul { list-style: none; }
   min-height: 0;
 }
 @media (max-width: 768px) {
-  .hero-content { gap: 18px; padding-bottom: 56px; }
+  .hero-content { gap: 18px; padding-bottom: 32px; }
   .hero-subtitle { margin-top: 0; }
   .hero-next-card { font-size: .9rem; padding: 8px 15px 6px; margin-bottom: -2px; }
+  #cursuri { padding-top: 28px; }
 }
 
 /* ── Varianta C din testul A/B: hero-ul vechi (dinainte de 4 iul 2026) ── */

@@ -76,9 +76,9 @@ if (history.scrollRestoration) history.scrollRestoration = 'manual';
 
 // ── Scroll reveal ────────────────────────
 (function initReveal() {
-  const targets = document.querySelectorAll(
+  const targets = [...document.querySelectorAll(
     '.event-card, .step, .collab-card, .faq-item, .section-title, .section-subtitle, .newsletter-form, .contact-form'
-  );
+  )].filter(el => !(el.matches('.section-title') && el.closest('#cursuri')));
   if (!targets.length) return;
 
   const observer = new IntersectionObserver(entries => {
