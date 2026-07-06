@@ -371,10 +371,10 @@ ul { list-style: none; }
 .hero-next-card {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   font-family: 'Bebas Neue', 'Anton', sans-serif;
   font-weight: 400;
-  font-size: .85rem;
+  font-size: .92rem;
   letter-spacing: .14em;
   text-transform: uppercase;
   line-height: 1;
@@ -383,7 +383,7 @@ ul { list-style: none; }
   border: 1px solid rgba(255,255,255,.25);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  padding: 7px 14px 5px;
+  padding: 8px 16px 6px;
   border-radius: 999px;
   margin-bottom: -8px;
 }
@@ -391,8 +391,8 @@ ul { list-style: none; }
   position: relative;
   flex: none;
   transform: translateY(-1px);
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--accent);
   box-shadow:
@@ -443,7 +443,7 @@ ul { list-style: none; }
 @media (max-width: 768px) {
   .hero-content { gap: 18px; padding-bottom: 32px; }
   .hero-subtitle { margin-top: 0; }
-  .hero-next-card { font-size: .78rem; padding: 6px 12px 4px; margin-bottom: -2px; }
+  .hero-next-card { font-size: .84rem; padding: 7px 14px 5px; margin-bottom: -2px; }
   #cursuri { padding-top: 28px; }
 }
 
