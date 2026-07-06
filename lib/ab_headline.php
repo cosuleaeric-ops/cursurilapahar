@@ -1,15 +1,13 @@
 <?php
 
-// Test A/B/C pentru hero (index.php).
+// Test A/B pentru hero (index.php).
 // A = headline vechi (hero_title din setări) + layout nou (subtitlu + CTA);
-// B = headline nou (textul de mai jos) + layout nou;
-// C = hero-ul vechi complet, ca înainte de 4 iul 2026 (fără subtitlu/CTA,
-//     cu săgeată de scroll, gradient vechi, banner sub hero).
+// B = headline nou (textul de mai jos) + layout nou.
 // Datele (views/clicks per variantă) stau în data/ab_headline.json.
 
 const CLP_AB_HEADLINE_COOKIE = 'clp_ab_hl';
 const CLP_AB_HEADLINE_B = 'Cursuri de la care<br>nu vrei să chiulești';
-const CLP_AB_HEADLINE_VARIANTS = ['A', 'B', 'C'];
+const CLP_AB_HEADLINE_VARIANTS = ['A', 'B'];
 
 function clp_ab_headline_file(): string
 {
@@ -38,7 +36,7 @@ function clp_ab_headline_load(): array
     return $empty;
 }
 
-/** Returnează varianta din cookie sau atribuie una nouă (1/3 fiecare, setează cookie). */
+/** Returnează varianta din cookie sau atribuie una nouă (1/2 fiecare, setează cookie). */
 function clp_ab_headline_assign(): string
 {
     $v = (string) ($_COOKIE[CLP_AB_HEADLINE_COOKIE] ?? '');

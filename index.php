@@ -193,7 +193,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 </div>
 
 <!-- ── HERO ────────────────────────────────── -->
-<section class="hero<?= $ab_variant === 'C' ? ' hero--v1' : '' ?>" id="hero">
+<section class="hero" id="hero">
     <div class="hero-slides">
         <?php foreach ($settings['hero_images'] as $idx => $hero_img): ?>
         <div class="hero-slide<?= $idx === 0 ? ' active' : '' ?>"
@@ -203,29 +203,14 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
-        <?php if ($ab_variant !== 'C' && $hero_next_label !== ''): ?>
+        <?php if ($hero_next_label !== ''): ?>
         <div class="hero-next-card"><span class="hero-next-dot"></span><?= htmlspecialchars($hero_next_label) ?></div>
         <?php endif; ?>
         <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
-        <?php if ($ab_variant !== 'C'): ?>
         <p class="hero-subtitle">Experți și profesori îți predau la un pahar, într-un bar din București.</p>
         <a href="#cursuri" class="btn btn-primary hero-cta">Vezi cursurile ↓</a>
-        <?php endif; ?>
     </div>
-
-    <?php if ($ab_variant === 'C'): ?>
-    <div class="hero-scroll-hint" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-    </div>
-    <?php endif; ?>
 </section>
-
-<?php if ($ab_variant === 'C'): ?>
-<!-- ── ANNOUNCEMENT BANNER (varianta C: sub hero, ca inainte de 4 iul) ── -->
-<div class="announcement-banner" <?= clp_e('announcement',$settings) ?>>
-    <?= htmlspecialchars($settings['announcement']) ?>
-</div>
-<?php endif; ?>
 
 <!-- ── CURSURI ─────────────────────────────── -->
 <?php $cursuri_bg = $settings['section_bgs']['cursuri'] ?? []; $cursuri_has_bg = !empty($cursuri_bg['image']); ?>
@@ -310,12 +295,10 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     </div>
 </section>
 
-<?php if ($ab_variant !== 'C'): ?>
 <!-- ── ANNOUNCEMENT BANNER ────────────────── -->
 <div class="announcement-banner" <?= clp_e('announcement',$settings) ?>>
     <?= htmlspecialchars($settings['announcement']) ?>
 </div>
-<?php endif; ?>
 
 <!-- ── NEWSLETTER ─────────────────────────── -->
 <?php
