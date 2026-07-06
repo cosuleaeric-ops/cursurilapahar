@@ -29,6 +29,38 @@ function clp_ro_months_list(bool $titleCase = false): array
     return $list;
 }
 
+/** Nume zi în română, w = 0 (duminică) … 6 (sâmbătă), ca date('w'). */
+function clp_ro_weekday_name(int $w): string
+{
+    $days = [
+        0 => 'Duminică', 1 => 'Luni', 2 => 'Marți', 3 => 'Miercuri',
+        4 => 'Joi', 5 => 'Vineri', 6 => 'Sâmbătă',
+    ];
+    return $days[$w] ?? '';
+}
+
+/** Prefix zi pentru un curs: „Astăzi" / „Mâine" / numele zilei (fus București). */
+function clp_ro_day_prefix(string $date_raw): string
+{
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_raw)) {
+        return '';
+    }
+    $tz    = new DateTimeZone('Europe/Bucharest');
+    $today = new DateTimeImmutable('today', $tz);
+    $date  = DateTimeImmutable::createFromFormat('!Y-m-d', $date_raw, $tz);
+    if ($date === false) {
+        return '';
+    }
+    $days = (int) $today->diff($date)->days;
+    if ($date >= $today && $days === 0) {
+        return 'Astăzi';
+    }
+    if ($date >= $today && $days === 1) {
+        return 'Mâine';
+    }
+    return clp_ro_weekday_name((int) $date->format('w'));
+}
+
 function clp_format_date_ro(string $date_raw, bool $withYear = true, bool $titleCase = false): string
 {
     if ($date_raw === '') {

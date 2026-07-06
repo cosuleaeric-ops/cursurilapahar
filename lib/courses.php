@@ -194,6 +194,10 @@ function clp_course_datetime_label(array $course): string
 {
     $date = clp_course_date_short($course);
     $time = trim($course['time'] ?? '');
+    $prefix = clp_ro_day_prefix(clp_resolve_course_date_raw($course));
+    if ($prefix !== '' && $date !== '') {
+        $date = "$prefix, $date";
+    }
     if ($date !== '' && $time !== '') {
         return "$date, $time";
     }
