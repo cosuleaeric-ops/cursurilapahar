@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { updateCourse } from "../actions";
 import CourseForm, { type CourseInitial } from "../CourseForm";
-import styles from "../cursuri.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +18,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <h1 className={styles.h1}>Editează curs</h1>
+      <h1 className="wp-page-title">Editează curs</h1>
       <CourseForm action={updateCourse} initial={rows[0]} />
     </>
   );

@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { updateSpeaker } from "../actions";
 import SpeakerForm, { type SpeakerInitial } from "../SpeakerForm";
-import styles from "../speakeri.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +16,7 @@ export default async function EditSpeakerPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      <h1 className={styles.h1}>Editează speaker</h1>
+      <h1 className="wp-page-title">Editează speaker</h1>
       <SpeakerForm action={updateSpeaker} initial={rows[0]} />
     </>
   );

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
 import { deleteCourse, toggleActive } from "./actions";
-import styles from "./cursuri.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -19,45 +18,56 @@ type Course = {
 
 const dFmt = new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "short", year: "numeric" });
 const fmtDate = (s: string | null) => (s ? dFmt.format(new Date(`${s}T12:00:00`)) : "—");
+const cardTitle = (t: string) => t.replace(/\s+\/\/\s+.+$/u, "");
 
-function cardTitle(t: string) {
-  return t.replace(/\s+\/\/\s+.+$/u, "");
-}
+const rowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 14,
+  padding: "12px 0",
+  borderBottom: "1px solid var(--border)",
+};
 
 function Row({ c }: { c: Course }) {
   return (
-    <div className={styles.item}>
+    <div style={rowStyle}>
       {c.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className={styles.thumb} src={c.image_url} alt="" />
+        <img className="course-thumb" src={c.image_url} alt="" />
       ) : (
-        <div className={styles.thumbPlaceholder} />
+        <div className="course-thumb-empty" />
       )}
-      <div className={styles.itemMain}>
-        <div className={styles.itemTop}>
-          <span className={styles.name}>{cardTitle(c.title)}</span>
-          {c.sold_out && <span className={`${styles.badge} ${styles.badgeSold}`}>SOLD OUT</span>}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span className="course-title-line" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {cardTitle(c.title)}
+          </span>
+          {c.sold_out && (
+            <span className="crm-status-badge" style={{ background: "#6b7280" }}>
+              SOLD OUT
+            </span>
+          )}
         </div>
-        <div className={styles.meta}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
           {fmtDate(c.date_str)}
           {c.location ? ` · ${c.location}` : ""}
           {c.ticket_count > 0 ? ` · ${c.ticket_count} bilete` : ""}
         </div>
       </div>
-      <div className={styles.itemActions}>
-        <form action={toggleActive}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <form action={toggleActive} style={{ margin: 0 }}>
           <input type="hidden" name="id" value={c.id} />
-          <button className={`${styles.toggle} ${c.active ? styles.on : styles.off}`} type="submit">
+          <button type="submit" className={`btn btn-sm ${c.active ? "status-active" : "status-inactive"}`}>
             {c.active ? "Activ" : "Inactiv"}
           </button>
         </form>
-        <Link className={styles.btnGhost} href={`/admin/cursuri/${c.id}`}>
+        <Link className="btn btn-sm btn-secondary" href={`/admin/cursuri/${c.id}`}>
           Editează
         </Link>
         {c.ticket_count === 0 && (
-          <form action={deleteCourse}>
+          <form action={deleteCourse} style={{ margin: 0 }}>
             <input type="hidden" name="id" value={c.id} />
-            <button className={styles.btnDanger} type="submit">
+            <button type="submit" className="btn btn-sm btn-danger">
               Șterge
             </button>
           </form>
@@ -80,26 +90,37 @@ export default async function CursuriPage() {
   const upcoming = rows.filter((c) => c.upcoming).sort((a, b) => (a.date_str ?? "").localeCompare(b.date_str ?? ""));
   const past = rows.filter((c) => !c.upcoming);
 
+  const subhead: React.CSSProperties = {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: ".05em",
+    textTransform: "uppercase",
+    color: "var(--text-muted)",
+    margin: "24px 0 6px",
+  };
+
   return (
     <>
-      <div className={styles.head}>
-        <h1 className={styles.h1}>Cursuri ({rows.length})</h1>
-        <Link className={styles.btnPrimary} href="/admin/cursuri/nou">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h1 className="wp-page-title" style={{ marginBottom: 0 }}>
+          Cursuri ({rows.length})
+        </h1>
+        <Link className="btn btn-primary" href="/admin/cursuri/nou">
           + Adaugă curs
         </Link>
       </div>
 
-      <h2 className={styles.subhead}>Viitoare ({upcoming.length})</h2>
-      <div className={styles.list}>
-        {upcoming.length === 0 ? <p className={styles.empty}>Niciun curs viitor.</p> : upcoming.map((c) => <Row key={c.id} c={c} />)}
-      </div>
+      <div style={subhead}>Viitoare ({upcoming.length})</div>
+      {upcoming.length === 0 ? (
+        <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Niciun curs viitor.</p>
+      ) : (
+        upcoming.map((c) => <Row key={c.id} c={c} />)
+      )}
 
-      <h2 className={styles.subhead}>Trecute ({past.length})</h2>
-      <div className={styles.list}>
-        {past.map((c) => (
-          <Row key={c.id} c={c} />
-        ))}
-      </div>
+      <div style={subhead}>Trecute ({past.length})</div>
+      {past.map((c) => (
+        <Row key={c.id} c={c} />
+      ))}
     </>
   );
 }

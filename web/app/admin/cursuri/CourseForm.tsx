@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { COURSE_TIMES } from "./times";
-import styles from "./cursuri.module.css";
 
 export type CourseInitial = {
   id?: number;
@@ -24,62 +23,62 @@ export default function CourseForm({
   initial?: CourseInitial;
 }) {
   return (
-    <form className={styles.form} action={action}>
+    <form action={action} className="crm-form" style={{ maxWidth: 580 }}>
       {initial?.id != null && <input type="hidden" name="id" value={initial.id} />}
 
-      <label className={styles.label}>
-        Titlu
-        <input className={styles.input} name="title" type="text" required defaultValue={initial?.title ?? ""} autoFocus />
-      </label>
+      <div className="form-group">
+        <label>Titlu</label>
+        <input name="title" type="text" required defaultValue={initial?.title ?? ""} autoFocus />
+      </div>
 
-      <div className={styles.row}>
-        <label className={styles.label}>
-          Data
-          <input className={styles.input} name="date" type="date" required defaultValue={initial?.date ?? ""} />
-        </label>
-        <label className={styles.label}>
-          Ora
-          <select className={styles.input} name="time" defaultValue={initial?.time ?? "19:00"}>
+      <div style={{ display: "flex", gap: 14 }}>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>Data</label>
+          <input name="date" type="date" required defaultValue={initial?.date ?? ""} />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>Ora</label>
+          <select name="time" defaultValue={initial?.time ?? "19:00"}>
             {COURSE_TIMES.map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
             ))}
           </select>
-        </label>
+        </div>
       </div>
 
-      <label className={styles.label}>
-        Locație
-        <input className={styles.input} name="location" type="text" defaultValue={initial?.location ?? ""} />
-      </label>
+      <div className="form-group">
+        <label>Locație</label>
+        <input name="location" type="text" defaultValue={initial?.location ?? ""} />
+      </div>
 
-      <label className={styles.label}>
-        Link Livetickets
-        <input className={styles.input} name="livetickets_url" type="url" defaultValue={initial?.livetickets_url ?? ""} />
-      </label>
+      <div className="form-group">
+        <label>Link Livetickets</label>
+        <input name="livetickets_url" type="url" defaultValue={initial?.livetickets_url ?? ""} />
+      </div>
 
-      <label className={styles.label}>
-        Link imagine
-        <input className={styles.input} name="image_url" type="url" defaultValue={initial?.image_url ?? ""} />
-      </label>
+      <div className="form-group">
+        <label>Link imagine</label>
+        <input name="image_url" type="url" defaultValue={initial?.image_url ?? ""} />
+      </div>
 
-      <div className={styles.checks}>
-        <label className={styles.check}>
+      <div style={{ display: "flex", gap: 22, margin: "6px 0 18px" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500 }}>
           <input type="checkbox" name="active" defaultChecked={initial?.active ?? false} />
           Activ (afișat pe site)
         </label>
-        <label className={styles.check}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500 }}>
           <input type="checkbox" name="sold_out" defaultChecked={initial?.sold_out ?? false} />
           Sold out
         </label>
       </div>
 
-      <div className={styles.formActions}>
-        <button className={styles.btnPrimary} type="submit">
+      <div style={{ display: "flex", gap: 10 }}>
+        <button type="submit" className="btn btn-primary">
           Salvează
         </button>
-        <Link className={styles.btnGhost} href="/admin/cursuri">
+        <Link className="btn btn-secondary" href="/admin/cursuri">
           Anulează
         </Link>
       </div>

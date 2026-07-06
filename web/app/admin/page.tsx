@@ -1,6 +1,5 @@
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import styles from "./admin.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -14,28 +13,23 @@ export default async function AdminHome() {
       (SELECT count(*) FROM speakers)      AS speakers
   `) as { events: string; tickets: string; votes: string; speakers: string }[];
 
+  const cards = [
+    { label: "Evenimente", value: stats.events, cls: "accent-blue" },
+    { label: "Bilete", value: stats.tickets, cls: "accent-green" },
+    { label: "Cursuri la vot", value: stats.votes, cls: "accent-gold" },
+    { label: "Speakeri", value: stats.speakers, cls: "accent-red" },
+  ];
+
   return (
     <>
-      <h1 className={styles.h1}>Salut, {session?.username} 👋</h1>
-      <p className={styles.sub}>Panou de administrare — date live din Neon.</p>
-
-      <div className={styles.stats}>
-        <div className={styles.stat}>
-          <span className={styles.num}>{stats.events}</span>
-          <span className={styles.lbl}>Evenimente</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.num}>{stats.tickets}</span>
-          <span className={styles.lbl}>Bilete</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.num}>{stats.votes}</span>
-          <span className={styles.lbl}>Cursuri la vot</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.num}>{stats.speakers}</span>
-          <span className={styles.lbl}>Speakeri</span>
-        </div>
+      <h1 className="wp-page-title">Salut, {session?.username} 👋</h1>
+      <div className="dash-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+        {cards.map((c) => (
+          <div key={c.label} className={`dash-card ${c.cls}`}>
+            <div className="dash-label">{c.label}</div>
+            <div className="dash-value">{c.value}</div>
+          </div>
+        ))}
       </div>
     </>
   );

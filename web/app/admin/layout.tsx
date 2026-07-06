@@ -1,42 +1,44 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { logout } from "./actions";
-import styles from "./admin.module.css";
+import AdminNav from "./AdminNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login");
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   return (
-    <div className={styles.shell}>
-      <header className={styles.header}>
-        <div className={styles.left}>
-          <span className={styles.brand}>Admin · Curs la Pahar</span>
-          <nav className={styles.nav}>
-            <Link className={styles.navLink} href="/admin">
-              Dashboard
-            </Link>
-            <Link className={styles.navLink} href="/admin/cursuri">
-              Cursuri
-            </Link>
-            <Link className={styles.navLink} href="/admin/speakeri">
-              Speakeri
-            </Link>
-          </nav>
+    <>
+      <link rel="stylesheet" href="/assets/css/admin.css" />
+      <header className="wp-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <a href="/admin" className="brand">
+            Cursuri la Pahar <span>— Admin</span>
+          </a>
+          <a href="/" className="wp-header-site-link">
+            🌐 Vezi site
+          </a>
         </div>
-        <div className={styles.userbox}>
-          <span className={styles.user}>
-            {session.username} <span className={styles.role}>{session.role}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 12, color: "#a0aec0" }}>
+            {cap(session.username)} · {session.role}
           </span>
-          <form action={logout}>
-            <button className={styles.logout} type="submit">
-              Ieși
+          <form action={logout} style={{ margin: 0 }}>
+            <button type="submit" className="btn-logout">
+              Deconectează-te
             </button>
           </form>
         </div>
       </header>
-      <main className={styles.main}>{children}</main>
-    </div>
+
+      <AdminNav />
+
+      <div className="wp-layout">
+        <main className="wp-main">
+          <div className="bc-doc">{children}</div>
+        </main>
+      </div>
+    </>
   );
 }

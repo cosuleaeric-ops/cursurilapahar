@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { SPEAKER_STATUSES } from "./statuses";
-import styles from "./speakeri.module.css";
 
 export type SpeakerInitial = {
   id?: number;
@@ -22,51 +21,51 @@ export default function SpeakerForm({
   initial?: SpeakerInitial;
 }) {
   return (
-    <form className={styles.form} action={action}>
+    <form action={action} className="crm-form" style={{ maxWidth: 580 }}>
       {initial?.id != null && <input type="hidden" name="id" value={initial.id} />}
 
-      <label className={styles.label}>
-        Nume
-        <input className={styles.input} name="name" type="text" required defaultValue={initial?.name ?? ""} autoFocus />
-      </label>
-
-      <div className={styles.row}>
-        <label className={styles.label}>
-          Email
-          <input className={styles.input} name="email" type="email" defaultValue={initial?.email ?? ""} />
-        </label>
-        <label className={styles.label}>
-          Telefon
-          <input className={styles.input} name="phone" type="text" defaultValue={initial?.phone ?? ""} />
-        </label>
+      <div className="form-group">
+        <label>Nume</label>
+        <input name="name" type="text" required defaultValue={initial?.name ?? ""} autoFocus />
       </div>
 
-      <label className={styles.label}>
-        Status
-        <select className={styles.input} name="status" defaultValue={initial?.status ?? "MID"}>
+      <div style={{ display: "flex", gap: 14 }}>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>Email</label>
+          <input name="email" type="email" defaultValue={initial?.email ?? ""} />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>Telefon</label>
+          <input name="phone" type="text" defaultValue={initial?.phone ?? ""} />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Status</label>
+        <select name="status" defaultValue={initial?.status ?? "MID"}>
           {SPEAKER_STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <label className={styles.label}>
-        Teme (una pe linie)
-        <textarea className={styles.textarea} name="topics" rows={5} defaultValue={(initial?.topics ?? []).join("\n")} />
-      </label>
+      <div className="form-group">
+        <label>Teme (una pe linie)</label>
+        <textarea name="topics" rows={5} defaultValue={(initial?.topics ?? []).join("\n")} />
+      </div>
 
-      <label className={styles.label}>
-        Notițe
-        <textarea className={styles.textarea} name="notes" rows={3} defaultValue={initial?.notes ?? ""} />
-      </label>
+      <div className="form-group">
+        <label>Notițe</label>
+        <textarea name="notes" rows={3} defaultValue={initial?.notes ?? ""} />
+      </div>
 
-      <div className={styles.formActions}>
-        <button className={styles.btnPrimary} type="submit">
+      <div style={{ display: "flex", gap: 10 }}>
+        <button type="submit" className="btn btn-primary">
           Salvează
         </button>
-        <Link className={styles.btnGhost} href="/admin/speakeri">
+        <Link className="btn btn-secondary" href="/admin/speakeri">
           Anulează
         </Link>
       </div>
