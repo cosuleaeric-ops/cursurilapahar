@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <AdminNav />
+      <AdminNav role={session.role} />
 
       <div className="wp-layout">
         <main className="wp-main">

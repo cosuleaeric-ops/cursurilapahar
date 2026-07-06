@@ -7,13 +7,14 @@ const TABS = [
   { href: "/admin", label: "Dashboard", exact: true },
   { href: "/admin/cursuri", label: "Cursuri" },
   { href: "/admin/speakeri", label: "Speakeri" },
+  { href: "/admin/pnl", label: "P&L", owner: true },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({ role }: { role: string }) {
   const path = usePathname();
   return (
     <nav className="bc-botnav">
-      {TABS.map((t) => {
+      {TABS.filter((t) => !t.owner || role === "owner").map((t) => {
         const active = t.exact ? path === t.href : path.startsWith(t.href);
         return (
           <Link key={t.href} href={t.href} className={active ? "active" : ""}>

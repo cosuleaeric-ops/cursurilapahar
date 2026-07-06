@@ -23,7 +23,7 @@ export default async function AdminHome() {
   return (
     <>
       <h1 className="wp-page-title">Salut, {session?.username} 👋</h1>
-      <div className="dash-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+      <div className="dash-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
         {cards.map((c) => (
           <div key={c.label} className={`dash-card ${c.cls}`}>
             <div className="dash-label">{c.label}</div>
