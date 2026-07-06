@@ -8,8 +8,6 @@ require_once dirname(__DIR__) . '/../lib/todos.php';
 $_stat_path = $_SERVER['REQUEST_URI'] ?? '';
 if (strpos($_stat_path, '/admin/statistici/pnl') !== false) {
     $tab = 'pnl';
-} elseif (strpos($_stat_path, '/admin/statistici/cursuri') !== false) {
-    $tab = 'cursuri';
 } else {
     $tab = 'dashboard';
 }

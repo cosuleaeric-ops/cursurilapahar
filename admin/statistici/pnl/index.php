@@ -24,11 +24,15 @@ include __DIR__ . '/../layout_header.php';
 
 <div style="max-width:1200px;margin:0 auto">
 
-<a href="/admin/statistici/" style="font-size:12px;color:var(--text-muted);text-decoration:none;display:inline-block;margin-bottom:12px">&larr; Statistici</a>
+<a href="/admin/" style="font-size:12px;color:var(--text-muted);text-decoration:none;display:inline-block;margin-bottom:12px">&larr; Dashboard</a>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <h1 class="wp-page-title" style="margin-bottom:0">P&amp;L Cursuri</h1>
     <div style="display:flex;align-items:center;gap:10px">
+        <a href="/admin/statistici/export.php" download style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#2271b1;color:#fff;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none" title="Exportă toate datele pentru Claude">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+        </a>
         <button class="btn-hide" id="btnHide" title="Ascunde valorile">&#128065;</button>
         <span class="last-entry-badge" id="lastEntryBadge"></span>
         <div style="display:flex;align-items:center;gap:6px">
