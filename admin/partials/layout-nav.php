@@ -57,8 +57,8 @@
     <a href="/admin/?tab=colaborari" class="<?= ($tab ?? '') === 'colaborari' ? 'active' : '' ?>">Colaborări</a>
     <a href="/admin/?tab=imagini" class="<?= ($tab ?? '') === 'imagini' ? 'active' : '' ?>">Imagini</a>
     <a href="/admin/?tab=aspect" class="<?= ($tab ?? '') === 'aspect' ? 'active' : '' ?>">Aspect</a>
-    <?php if (is_owner()): ?>
     <a href="/admin/statistici/ab_headline.php" class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/statistici') !== false && ($tab ?? '') !== 'pnl' ? 'active' : '' ?>">Test A/B</a>
+    <?php if (is_owner()): ?>
     <a href="/admin/statistici/pnl/" class="<?= ($tab ?? '') === 'pnl' ? 'active' : '' ?>">P&amp;L</a>
     <a href="/admin/?tab=config" class="<?= in_array($tab ?? '', ['config','securitate','kit'], true) ? 'active' : '' ?>">Setări</a>
     <?php endif; ?>
