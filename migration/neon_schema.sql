@@ -228,9 +228,23 @@ CREATE TABLE marketing_items (
 );
 
 
+-- mesaje din formularele publice (contact + colaborări)
+-- category: contact / sustine (speakeri) / gazduieste (locații) / parteneriat
+CREATE TABLE messages (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    category   TEXT NOT NULL,
+    name       TEXT,
+    email      TEXT,
+    payload    JSONB NOT NULL DEFAULT '{}',   -- toate câmpurile formularului
+    read       BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+
 -- ============================================================================
 -- INDECȘI
 -- ============================================================================
+CREATE INDEX idx_messages_category     ON messages(category);
 CREATE INDEX idx_events_starts_at      ON events(starts_at);
 CREATE INDEX idx_events_active         ON events(active);
 CREATE INDEX idx_tickets_event         ON tickets(event_id);

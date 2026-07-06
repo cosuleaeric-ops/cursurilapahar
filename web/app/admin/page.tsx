@@ -26,6 +26,11 @@ export default async function AdminHome() {
   `) as TodoRow[];
   const todoDot = session?.username === "andy" ? "#16a34a" : "#2563eb";
 
+  const unreadMsgs = (await sql`
+    SELECT category, count(*)::int n FROM messages WHERE read = false GROUP BY category
+  `) as { category: string; n: number }[];
+  const MSG_LABEL: Record<string, string> = { contact: "Contact", sustine: "Speakeri", gazduieste: "Locații", parteneriat: "Parteneriate" };
+
   const [qlRow] = (await sql`SELECT value FROM settings WHERE key = 'quick_links'`) as { value: unknown }[];
   const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
   const canva = quickLinks.filter((q) => (q.url ?? "").includes("canva.com"));
@@ -80,13 +85,27 @@ export default async function AdminHome() {
         </Link>
 
         {/* Mesaje */}
-        <div className="bc-card">
+        <Link className="bc-card" href="/admin/mesaje">
           <div className="bc-card-head">
             <span className="bc-card-icon">💬</span>
             <span className="bc-card-title">Mesaje</span>
           </div>
-          <p className="bc-card-empty">Toate mesajele sunt citite.</p>
-        </div>
+          {unreadMsgs.length === 0 ? (
+            <p className="bc-card-empty">Toate mesajele sunt citite.</p>
+          ) : (
+            <ul className="bc-card-list">
+              {unreadMsgs.map((m) => (
+                <li key={m.category}>
+                  <span className="bc-li-dot" style={{ background: "#e8a317" }}></span>
+                  <span>
+                    {MSG_LABEL[m.category] ?? m.category}
+                    <span className="bc-li-meta"> · {m.n} noi</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Link>
       </div>
 
       {quickLinks.length > 0 && (

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useActionState } from "react";
+import { submitContact } from "./contact-action";
 
-// Formularele sunt vizuale deocamdată. Wiring-ul (newsletter → Kit, contact → Brevo)
-// necesită cheile API (nu-s în Neon, stripate din sync-export) — pas funcțional separat.
+// Newsletter e încă vizual (wiring → Kit necesită cheia API). Contact SALVEAZĂ în Neon.
 const SOON = "Formularul va fi conectat în curând.";
 
 export function NewsletterForm() {
@@ -23,9 +24,9 @@ export function NewsletterForm() {
 }
 
 export function ContactForm() {
-  const [msg, setMsg] = useState("");
+  const [msg, action, pending] = useActionState(submitContact, null);
   return (
-    <form className="contact-form" onSubmit={(e) => { e.preventDefault(); setMsg(SOON); }}>
+    <form className="contact-form" action={action}>
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="contactName">Nume</label>
@@ -40,10 +41,10 @@ export function ContactForm() {
         <label htmlFor="contactMsg">Mesaj</label>
         <textarea id="contactMsg" name="message" rows={5} required></textarea>
       </div>
-      <button type="submit" className="btn btn-accent">
-        Trimite mesajul
+      <button type="submit" className="btn btn-accent" disabled={pending}>
+        {pending ? "Se trimite…" : "Trimite mesajul"}
       </button>
-      <div className="form-message" aria-live="polite">{msg}</div>
+      {msg && <div className="form-message" aria-live="polite">{msg}</div>}
     </form>
   );
 }
