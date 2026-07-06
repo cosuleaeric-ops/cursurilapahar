@@ -63,16 +63,22 @@ export async function verifyMagicToken(token: string): Promise<string | null> {
   }
 }
 
+// Pe localhost (next dev) te loghează automat ca owner, ca să fii mereu în /admin.
+// NODE_ENV e "development" DOAR în `next dev` — pe Vercel e mereu "production", deci
+// bypass-ul ăsta nu ajunge niciodată în producție.
+const DEV_SESSION: Session | null =
+  process.env.NODE_ENV === "development" ? { username: "eric6", role: "owner" } : null;
+
 /** Citește sesiunea din cookie (null dacă lipsește/invalid/expirat). */
 export async function getSession(): Promise<Session | null> {
   const store = await cookies();
   const token = store.get(COOKIE)?.value;
-  if (!token) return null;
+  if (!token) return DEV_SESSION;
   try {
     const { payload } = await jwtVerify(token, secretKey());
     return { username: String(payload.sub), role: String(payload.role) };
   } catch {
-    return null;
+    return DEV_SESSION;
   }
 }
 
