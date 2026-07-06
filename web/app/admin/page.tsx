@@ -1,19 +1,30 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
+import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 type EventRow = { id: number; title: string; starts_at: string | null };
+type TodoRow = { id: number; title: string };
 type QuickLink = { url: string; icon?: string; label?: string };
+const todoPlain = (t: string) => t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1");
 
 const dFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: "Europe/Bucharest", day: "numeric", month: "long", year: "numeric" });
 const cardTitle = (t: string) => t.replace(/\s+\/\/\s+.+$/u, "");
 
 export default async function AdminHome() {
+  const session = await getSession();
   const upcoming = (await sql`
     SELECT id, title, starts_at FROM events
     WHERE starts_at >= now() ORDER BY starts_at ASC LIMIT 4
   `) as EventRow[];
+
+  const todos = (await sql`
+    SELECT id, title FROM todos
+    WHERE completed = false AND assigned_to = ${session?.username ?? ""}
+    ORDER BY created_at DESC LIMIT 5
+  `) as TodoRow[];
+  const todoDot = session?.username === "andy" ? "#16a34a" : "#2563eb";
 
   const [qlRow] = (await sql`SELECT value FROM settings WHERE key = 'quick_links'`) as { value: unknown }[];
   const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
@@ -26,13 +37,24 @@ export default async function AdminHome() {
 
       <div className="bc-home-grid">
         {/* To-dos */}
-        <div className="bc-card">
+        <Link className="bc-card" href="/admin/todos">
           <div className="bc-card-head">
             <span className="bc-card-icon">✅</span>
             <span className="bc-card-title">To-dos</span>
           </div>
-          <p className="bc-card-empty">Niciun to-do.</p>
-        </div>
+          {todos.length === 0 ? (
+            <p className="bc-card-empty">Niciun to-do.</p>
+          ) : (
+            <ul className="bc-card-list">
+              {todos.map((t) => (
+                <li key={t.id}>
+                  <span className="bc-li-dot" style={{ background: todoDot }}></span>
+                  <span>{todoPlain(t.title)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Link>
 
         {/* Cursuri */}
         <Link className="bc-card" href="/admin/cursuri">
