@@ -5,8 +5,9 @@
   "type": "module",
   "description": "Migrare date live Curs la Pahar (SQLite + JSON) -> Neon Postgres",
   "scripts": {
-    "schema": "psql \"$DATABASE_URL\" -f neon_schema.sql",
-    "migrate": "tsx src/migrate.ts"
+    "schema": "tsx src/schema.ts",
+    "migrate": "tsx src/migrate.ts",
+    "verify": "tsx src/verify.ts"
   },
   "dependencies": {
     "pg": "^8.13.1"
