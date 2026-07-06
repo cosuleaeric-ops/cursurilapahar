@@ -1,0 +1,131 @@
+.main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #6b4eff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.title {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  color: #666;
+  margin: 0 0 28px;
+  font-size: 15px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.emoji {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.desc {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.voteBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 1px solid #e0dcff;
+  background: #f3f1ff;
+  color: #6b4eff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.voteBtn:hover {
+  background: #e9e5ff;
+}
+
+.voteBtn:active {
+  transform: scale(0.95);
+}
+
+.voteBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.voted {
+  background: #6b4eff;
+  border-color: #6b4eff;
+  color: #fff;
+}
+
+.heart {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.count {
+  min-width: 16px;
+  text-align: center;
+}
+
+.footnote {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card { background: #111; border-color: #2a2a2a; }
+  .subtitle, .desc { color: #999; }
+  .voteBtn { background: #1c1830; border-color: #2e2850; color: #b3a5ff; }
+  .voteBtn:hover { background: #241f3d; }
+  .voted { background: #6b4eff; color: #fff; }
+}
