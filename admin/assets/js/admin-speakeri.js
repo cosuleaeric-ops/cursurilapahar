@@ -53,6 +53,9 @@ function spStatusPop(badge, id) {
     const pop = document.getElementById('sp-status-pop');
     if (_spPopBadge === badge && pop.style.display !== 'none') { pop.style.display='none'; _spPopBadge=null; return; }
     _spPopId = id; _spPopBadge = badge;
+    // .bc-doc are animation cu transform => e containing block pt position:fixed;
+    // mutăm popover-ul în <body> ca să se poziționeze relativ la viewport.
+    if (pop.parentElement !== document.body) document.body.appendChild(pop);
     const r = badge.getBoundingClientRect();
     pop.style.position = 'fixed';
     pop.style.display = 'flex';
