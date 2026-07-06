@@ -5,6 +5,16 @@ import { sql } from "@/lib/db";
 
 const COOKIE = "clp_session";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 zile
+const MAGIC_AUD = "clp-magic";
+
+export const SESSION_COOKIE = COOKIE;
+export const sessionCookieOpts = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: MAX_AGE,
+};
 
 function secretKey(): Uint8Array {
   const s = process.env.AUTH_SECRET;
@@ -26,22 +36,31 @@ export async function verifyLogin(username: string, password: string): Promise<S
   return { username: u.username, role: u.role };
 }
 
-/** Emite JWT httpOnly. */
-export async function createSession(s: Session): Promise<void> {
-  const token = await new SignJWT({ role: s.role })
+/** Semnează un JWT de sesiune (fără a seta cookie-ul). */
+export async function signSession(s: Session): Promise<string> {
+  return new SignJWT({ role: s.role })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(s.username)
     .setIssuedAt()
     .setExpirationTime("7d")
     .sign(secretKey());
+}
+
+/** Emite JWT httpOnly. */
+export async function createSession(s: Session): Promise<void> {
+  const token = await signSession(s);
   const store = await cookies();
-  store.set(COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE,
-  });
+  store.set(COOKIE, token, sessionCookieOpts);
+}
+
+/** Verifică un magic-link token semnat; întoarce username-ul sau null. */
+export async function verifyMagicToken(token: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(token, secretKey(), { audience: MAGIC_AUD });
+    return payload.sub ? String(payload.sub) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Citește sesiunea din cookie (null dacă lipsește/invalid/expirat). */
