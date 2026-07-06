@@ -13,6 +13,12 @@
       "runtimeExecutable": "/opt/homebrew/bin/php",
       "runtimeArgs": ["-S", "localhost:8090", "-t", "/Users/ericcosulea/Documents/Proiecte/cursurilapahar"],
       "port": 8090
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/ericcosulea/Documents/Proiecte/cursurilapahar/web", "run", "dev"],
+      "port": 3000
     }
   ]
 }
