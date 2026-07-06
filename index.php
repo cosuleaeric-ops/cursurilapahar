@@ -38,8 +38,14 @@ require_once __DIR__ . '/lib/course_clicks.php';
 // ── Test A/B headline hero ────────────────────────────────────────────────────
 require_once __DIR__ . '/lib/ab_headline.php';
 $ab_variant = clp_ab_headline_assign();
+
+// ── Test A/B buton „Vreau să vin" pe cardurile de curs ────────────────────────
+require_once __DIR__ . '/lib/ab_button.php';
+$ab_button = clp_ab_button_assign();
+
 if (clp_should_count_course_click()) {
     clp_ab_headline_track($ab_variant, 'views');
+    clp_ab_button_track($ab_button, 'views');
 }
 
 $courses = [];
@@ -286,6 +292,12 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                         </div>
                         <div class="discount-code">✨ Folosește codul <strong>VARA30</strong></div>
                     </div>
+                    <?php endif; ?>
+                    <?php if ($ab_button === 'on' && !$is_sold_out): ?>
+                    <span class="event-card-cta">
+                        Vreau să vin
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </span>
                     <?php endif; ?>
                 </div>
             </a>

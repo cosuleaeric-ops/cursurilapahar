@@ -21,6 +21,13 @@ if (clp_should_count_course_click()) {
     if (in_array($ab, CLP_AB_HEADLINE_VARIANTS, true)) {
         clp_ab_headline_track($ab, 'clicks');
     }
+
+    // Test A/B buton „Vreau să vin": click pe card sau buton = același redirect.
+    require_once dirname(__DIR__) . '/lib/ab_button.php';
+    $ab_btn = (string) ($_COOKIE[CLP_AB_BUTTON_COOKIE] ?? '');
+    if (in_array($ab_btn, CLP_AB_BUTTON_VARIANTS, true)) {
+        clp_ab_button_track($ab_btn, 'clicks');
+    }
 }
 
 header('Location: ' . $url, true, 302);
