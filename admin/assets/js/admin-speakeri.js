@@ -54,10 +54,17 @@ function spStatusPop(badge, id) {
     if (_spPopBadge === badge && pop.style.display !== 'none') { pop.style.display='none'; _spPopBadge=null; return; }
     _spPopId = id; _spPopBadge = badge;
     const r = badge.getBoundingClientRect();
-    pop.style.top  = (r.bottom + window.scrollY + 4) + 'px';
-    pop.style.left = r.left + 'px';
-    pop.style.position = 'absolute';
+    pop.style.position = 'fixed';
     pop.style.display = 'flex';
+    const popW = pop.offsetWidth || 120;
+    const popH = pop.offsetHeight || 160;
+    let left = r.left;
+    if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+    pop.style.left = Math.max(8, left) + 'px';
+    // sub badge dacă e loc, altfel deasupra
+    pop.style.top = (r.bottom + 4 + popH > window.innerHeight - 8)
+        ? Math.max(8, r.top - popH - 4) + 'px'
+        : (r.bottom + 4) + 'px';
 }
 function spSetStatus(status) {
     const pop = document.getElementById('sp-status-pop');

@@ -667,7 +667,7 @@
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
             'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
-            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT']) ? $_POST['sp_status'] : 'MID',
+            'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT','URMEAZĂ']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
         // preserve existing meet data and merge new meet fields
@@ -713,7 +713,7 @@
     if ($action === 'save_speaker_status') {
         $id     = trim($_POST['id'] ?? '');
         $status = trim($_POST['status'] ?? '');
-        if ($id && in_array($status, ['RECURENT','MID','NOPE','CONTACTAT'])) {
+        if ($id && in_array($status, ['RECURENT','MID','NOPE','CONTACTAT','URMEAZĂ'])) {
             $items = load_speakers();
             foreach ($items as &$it) {
                 if (($it['id'] ?? '') === $id) { $it['status'] = $status; break; }

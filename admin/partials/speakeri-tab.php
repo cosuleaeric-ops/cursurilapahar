@@ -12,6 +12,7 @@
     <?php else: ?>
     <div class="sp-filter-bar">
         <button class="sp-filter-btn active" data-status="all" onclick="spFilter(this)">Toți</button>
+        <button class="sp-filter-btn" data-status="URMEAZĂ" onclick="spFilter(this)">URMEAZĂ</button>
         <button class="sp-filter-btn" data-status="RECURENT" onclick="spFilter(this)">RECURENT</button>
         <button class="sp-filter-btn" data-status="MID" onclick="spFilter(this)">MID</button>
         <button class="sp-filter-btn" data-status="NOPE" onclick="spFilter(this)">NOPE</button>
@@ -130,7 +131,7 @@
                             </div>
             <div class="form-group"><label>Status</label>
                 <select name="sp_status">
-                    <?php foreach (['CONTACTAT','RECURENT','MID','NOPE'] as $s): ?>
+                    <?php foreach (['CONTACTAT','URMEAZĂ','RECURENT','MID','NOPE'] as $s): ?>
                     <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -160,7 +161,7 @@
 
 <!-- Status quick-change popover -->
 <div id="sp-status-pop" class="sp-status-popover" style="display:none">
-<?php foreach (['CONTACTAT'=>'#2271b1','RECURENT'=>'#16a34a','MID'=>'#d97706','NOPE'=>'#dc2626'] as $_ss=>$_sc): ?>
+<?php foreach (['CONTACTAT'=>'#2271b1','URMEAZĂ'=>'#7c3aed','RECURENT'=>'#16a34a','MID'=>'#d97706','NOPE'=>'#dc2626'] as $_ss=>$_sc): ?>
 <button onclick="spSetStatus('<?= $_ss ?>')" style="color:<?= $_sc ?>"><?= $_ss ?></button>
 <?php endforeach; ?>
 </div>

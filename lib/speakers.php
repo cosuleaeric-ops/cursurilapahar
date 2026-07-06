@@ -109,11 +109,11 @@ function save_speakers(array $items): void {
 }
 
 function clp_speaker_status_order(): array {
-    return ['CONTACTAT' => 0, 'RECURENT' => 1, 'MID' => 2, 'NOPE' => 3];
+    return ['CONTACTAT' => 0, 'URMEAZĂ' => 1, 'RECURENT' => 2, 'MID' => 3, 'NOPE' => 4];
 }
 
 function clp_speaker_status_colors(): array {
-    return ['CONTACTAT' => '#2271b1', 'RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626'];
+    return ['CONTACTAT' => '#2271b1', 'URMEAZĂ' => '#7c3aed', 'RECURENT' => '#16a34a', 'MID' => '#d97706', 'NOPE' => '#dc2626'];
 }
 
 function clp_sort_speakers(array $speakers): array {
