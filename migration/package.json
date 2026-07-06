@@ -7,7 +7,8 @@
   "scripts": {
     "schema": "tsx src/schema.ts",
     "migrate": "tsx src/migrate.ts",
-    "verify": "tsx src/verify.ts"
+    "verify": "tsx src/verify.ts",
+    "seed-users": "tsx src/seed-users.ts"
   },
   "dependencies": {
     "pg": "^8.13.1"
