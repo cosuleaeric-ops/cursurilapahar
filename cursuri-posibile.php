@@ -158,11 +158,6 @@ $settings = array_merge($_defaults, $_loaded);
             </div>
             <?php endforeach; ?>
         </div>
-
-        <div class="ideas-cta">
-            <p>Ai o temă în spiritul lor — sau una la care nu ne-am gândit?</p>
-            <a href="/prezinta-un-curs" class="btn btn-accent">Prezintă un curs</a>
-        </div>
     </div>
 </section>
 
