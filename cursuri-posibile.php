@@ -140,12 +140,7 @@ $settings = array_merge($_defaults, $_loaded);
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             Înapoi
         </a>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-            <h1 style="margin-bottom:0;">Cursuri posibile</h1>
-            <?php if (function_exists('clp_is_admin') && clp_is_admin()): ?>
-            <a href="/admin/?tab=cursuri-posibile" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--accent);border-radius:50px;color:var(--accent);text-decoration:none;font-size:.85rem;font-weight:600;">✏️ Editează</a>
-            <?php endif; ?>
-        </div>
+        <h1>Cursuri posibile</h1>
         <div style="color:var(--text-muted);line-height:1.8;">
             <p><?= nl2br(htmlspecialchars($ideas['intro'] ?? '')) ?></p>
         </div>
