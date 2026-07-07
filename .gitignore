@@ -40,3 +40,6 @@ data/instagram_posts.json
 
 # Course publish-task state (server-side)
 data/course_publish_done.json
+
+# Course ideas — cursuri posibile (server-side data)
+data/course_ideas.json

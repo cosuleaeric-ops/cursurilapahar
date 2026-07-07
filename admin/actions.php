@@ -822,6 +822,33 @@
         exit;
     }
 
+    // ── Save course ideas (cursuri posibile)
+    if ($action === 'save_course_ideas') {
+        $emojis = (array)($_POST['cat_emoji'] ?? []);
+        $titles = (array)($_POST['cat_title'] ?? []);
+        $topics = (array)($_POST['cat_topics'] ?? []);
+        $cats = [];
+        foreach ($titles as $i => $title) {
+            $title = trim((string)$title);
+            if ($title === '') continue;
+            $lines = array_values(array_filter(
+                array_map('trim', explode("\n", (string)($topics[$i] ?? ''))),
+                fn($l) => $l !== ''
+            ));
+            $cats[] = [
+                'emoji'  => trim((string)($emojis[$i] ?? '')),
+                'title'  => $title,
+                'topics' => $lines,
+            ];
+        }
+        clp_save_course_ideas([
+            'intro'      => trim($_POST['ideas_intro'] ?? ''),
+            'categories' => $cats,
+        ]);
+        header('Location: /admin/?tab=cursuri-posibile&saved=1');
+        exit;
+    }
+
     // ── Delete location
     if ($action === 'delete_location') {
         $id    = $_POST['id'] ?? '';

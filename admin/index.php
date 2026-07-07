@@ -28,6 +28,7 @@ require_once dirname(__DIR__) . '/lib/marketing.php';
 require_once dirname(__DIR__) . '/lib/dashboard.php';
 require_once dirname(__DIR__) . '/lib/design.php';
 require_once dirname(__DIR__) . '/lib/images.php';
+require_once dirname(__DIR__) . '/lib/course_ideas.php';
 
 clp_ensure_secrets();
 clp_ensure_default_users();
@@ -133,6 +134,9 @@ require __DIR__ . '/partials/colaborari-tab.php';
 
 <?php elseif ($tab === 'templates'): ?>
 <?php require __DIR__ . '/partials/templates-tab.php'; ?>
+
+<?php elseif ($tab === 'cursuri-posibile'): ?>
+<?php $course_ideas = clp_load_course_ideas(); require __DIR__ . '/partials/cursuri-posibile-tab.php'; ?>
 
 <?php endif; ?>
 

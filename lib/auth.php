@@ -79,7 +79,7 @@ function can_access_tab(string $tab): bool {
     $user = clp_current_user();
     if (!$user) return false;
     if (($user['role'] ?? '') === 'owner') return true;
-    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'competitori', 'speakeri', 'locatii', 'colaborari', 'imagini', 'aspect', 'cursuri', 'templates'], true);
+    return in_array($tab, ['dashboard', 'mesaje', 'vot', 'competitori', 'speakeri', 'locatii', 'colaborari', 'imagini', 'aspect', 'cursuri', 'templates', 'cursuri-posibile'], true);
 }
 
 function set_auth_cookie(string $username): void {
