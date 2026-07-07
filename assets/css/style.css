@@ -391,20 +391,20 @@ ul { list-style: none; }
   position: relative;
   flex: none;
   transform: translateY(-1px);
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--accent);
+  background: #e63535;
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--accent) 40%, rgba(255,255,255,.35)),
-    0 0 8px 1px color-mix(in srgb, var(--accent) 70%, transparent);
+    0 0 0 2px color-mix(in srgb, #e63535 40%, rgba(255,255,255,.35)),
+    0 0 8px 1px color-mix(in srgb, #e63535 70%, transparent);
 }
 .hero-next-dot::after {
   content: '';
   position: absolute;
   inset: -3px;
   border-radius: 50%;
-  border: 2px solid var(--accent);
+  border: 2px solid #e63535;
   will-change: transform, opacity;
   animation: heroNextPulse 1.8s cubic-bezier(0, 0, .2, 1) infinite;
 }
