@@ -715,6 +715,14 @@ ul { list-style: none; }
 ══════════════════════════════════════════ */
 .section-dark .section-title { margin-bottom: 16px; }
 
+.newsletter-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  text-align: center;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
 .newsletter-desc {
   text-align: center;
   color: var(--text-muted);

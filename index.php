@@ -334,6 +334,7 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
 ?>
 <section class="section section-dark section-bg-blur" id="newsletter" <?= clp_section_bg('newsletter', $settings, $nl_img) ?>>
     <div class="container container-narrow">
+        <div class="newsletter-icon" aria-hidden="true">✉</div>
         <h2 class="section-title" <?= clp_e('newsletter_title',$settings) ?>><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
         <p class="newsletter-desc" <?= clp_e('newsletter_desc',$settings) ?>><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
         <form class="newsletter-form" id="newsletterForm" novalidate>
