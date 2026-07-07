@@ -30,9 +30,13 @@
         $all_images  = $all_images ?? get_all_images();
         $hero_sel    = array_values($settings['hero_images'] ?? []);
         $gallery_sel = array_values($settings['gallery_featured'] ?? []);
-        // Hartă url → nume pentru thumbnail-urile din benzile de selecție (JS)
-        $img_names = [];
-        foreach ($all_images as $im) { $img_names[$im['url']] = $im['name']; }
+        // Hărți url → nume / thumb pentru benzile de selecție (JS)
+        $img_names  = [];
+        $img_thumbs = [];
+        foreach ($all_images as $im) {
+            $img_names[$im['url']]  = $im['name'];
+            $img_thumbs[$im['url']] = $im['thumb'] ?? $im['url'];
+        }
     ?>
 
     <!-- Selecție Hero + Galerie -->
@@ -68,7 +72,7 @@
             <?php foreach ($all_images as $img): ?>
             <div class="img-tile" data-url="<?= h($img['url']) ?>">
                 <div class="img-tile-thumb">
-                    <img loading="lazy" src="<?= h($img['url']) ?>" alt="<?= h($img['name']) ?>">
+                    <img loading="lazy" decoding="async" src="<?= h($img['thumb'] ?? $img['url']) ?>" alt="<?= h($img['name']) ?>">
                     <?php if ($img['deletable']): ?>
                     <button type="button" class="img-tile-del" title="Șterge imaginea"
                         data-del="<?= h($img['name']) ?>">✕</button>
@@ -88,4 +92,5 @@
         window.CLP_HERO    = <?= json_encode($hero_sel, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         window.CLP_GALLERY = <?= json_encode($gallery_sel, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         window.CLP_NAMES   = <?= json_encode($img_names, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        window.CLP_THUMBS  = <?= json_encode($img_thumbs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     </script>
