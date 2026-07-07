@@ -330,7 +330,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <!-- ── NEWSLETTER ─────────────────────────── -->
 <?php
 $nl_bg_data = $settings['section_bgs']['newsletter'] ?? [];
-$nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settings['hero_images'][0] ?? '/assets/images/hero1.jpg');
+$nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp('/assets/images/hero1.jpg');
 ?>
 <section class="section section-dark section-bg-blur" id="newsletter" <?= clp_section_bg('newsletter', $settings, $nl_img) ?>>
     <div class="container container-narrow">
@@ -388,7 +388,7 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
 <!-- ── FAQ ────────────────────────────────── -->
 <?php
 $faq_bg_data = $settings['section_bgs']['faq'] ?? [];
-$faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg');
+$faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp('/assets/images/hero2.jpg');
 ?>
 <section class="section section-dark section-bg-blur" id="faq" <?= clp_section_bg('faq', $settings, $faq_img) ?>>
     <div class="container container-narrow">
