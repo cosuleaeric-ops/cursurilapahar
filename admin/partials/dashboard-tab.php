@@ -131,7 +131,7 @@ if (!empty($_ql)): ?>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
         <?php foreach ($_tpls as $_tpl): ?>
             <button type="button" class="ql-btn" data-tpl-text="<?= h($_tpl['text'] ?? '') ?>" onclick="clpCopyTemplate(this)">
-                <span style="font-size:15px">📋</span>
+                <span style="font-size:15px"><?= h($_tpl['icon'] ?? '📋') ?></span>
                 <?= h($_tpl['label'] ?? '') ?>
             </button>
         <?php endforeach; ?>

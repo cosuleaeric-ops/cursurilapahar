@@ -1,4 +1,4 @@
-<script src="/admin/assets/js/admin-common.js?v=6"></script>
+<script src="/admin/assets/js/admin-common.js?v=7"></script>
 <?php if ($tab === 'cursuri'): ?>
 <script src="/admin/assets/js/admin-course-form.js?v=2"></script>
 <?php elseif ($tab === 'imagini'): ?>

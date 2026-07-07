@@ -304,12 +304,13 @@
         $settings = load_settings();
         $labels = $_POST['tpl_label'] ?? [];
         $texts  = $_POST['tpl_text']  ?? [];
+        $icons  = $_POST['tpl_icon']  ?? [];
         $tpls   = [];
         for ($i = 0; $i < count($labels); $i++) {
             $lbl = trim($labels[$i] ?? '');
             $txt = trim($texts[$i]  ?? '');
             if ($lbl && $txt) {
-                $tpls[] = ['label' => $lbl, 'text' => $txt];
+                $tpls[] = ['icon' => trim($icons[$i] ?? '') ?: '📋', 'label' => $lbl, 'text' => $txt];
             }
         }
         $settings['templates'] = $tpls;

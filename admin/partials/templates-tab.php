@@ -8,6 +8,7 @@
 .tpl-view:hover { background:var(--accent-soft); }
 .tpl-chevron { color:var(--text-muted); font-size:12px; transition:transform .15s; flex-shrink:0; }
 .tpl-card.open .tpl-chevron { transform:rotate(90deg); }
+.tpl-view-icon { font-size:20px; line-height:1; flex-shrink:0; }
 .tpl-view-main { flex:1; min-width:0; }
 .tpl-view-title { font-weight:600; font-size:14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .tpl-view-preview { font-size:12.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
@@ -31,10 +32,11 @@
     <form method="post" action="/admin/?tab=templates" id="tplForm">
         <input type="hidden" name="action" value="save_templates">
         <div id="tplRows">
-        <?php foreach ($settings['templates'] ?? [] as $_tpl): $_l = $_tpl['label'] ?? ''; $_t = $_tpl['text'] ?? ''; ?>
+        <?php foreach ($settings['templates'] ?? [] as $_tpl): $_l = $_tpl['label'] ?? ''; $_t = $_tpl['text'] ?? ''; $_ic = $_tpl['icon'] ?? '📋'; ?>
             <div class="tpl-card">
                 <div class="tpl-view" onclick="tplToggle(this)">
                     <span class="tpl-chevron">▸</span>
+                    <span class="tpl-view-icon"><?= h($_ic) ?></span>
                     <div class="tpl-view-main">
                         <div class="tpl-view-title"><?= h($_l !== '' ? $_l : 'Template fără titlu') ?></div>
                         <div class="tpl-view-preview"><?= h($_t !== '' ? $_t : 'gol') ?></div>
@@ -42,8 +44,11 @@
                     <button type="button" class="tpl-copy-btn" data-tpl-text="<?= h($_t) ?>" onclick="event.stopPropagation();clpCopyTemplate(this)">📋 Copiază</button>
                 </div>
                 <div class="tpl-edit" hidden>
-                    <label class="tpl-lbl">Titlu template</label>
-                    <input type="text" name="tpl_label[]" value="<?= h($_l) ?>" oninput="tplSyncTitle(this)" style="font-weight:600">
+                    <label class="tpl-lbl">Emoji &amp; titlu</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" name="tpl_icon[]" value="<?= h($_ic) ?>" oninput="tplSyncIcon(this)" style="width:56px;text-align:center;font-size:18px">
+                        <input type="text" name="tpl_label[]" value="<?= h($_l) ?>" oninput="tplSyncTitle(this)" style="flex:1;font-weight:600">
+                    </div>
                     <label class="tpl-lbl">Text mesaj</label>
                     <textarea name="tpl_text[]" rows="6" oninput="tplSyncPreview(this)"><?= h($_t) ?></textarea>
                     <div class="tpl-edit-actions">
