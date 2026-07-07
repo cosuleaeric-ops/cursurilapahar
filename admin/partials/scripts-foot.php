@@ -2,7 +2,7 @@
 <?php if ($tab === 'cursuri'): ?>
 <script src="/admin/assets/js/admin-course-form.js?v=2"></script>
 <?php elseif ($tab === 'imagini'): ?>
-<script src="/admin/assets/js/admin-imagini.js?v=1"></script>
+<script src="/admin/assets/js/admin-imagini.js?v=2"></script>
 <?php elseif ($tab === 'mesaje'): ?>
 <script>window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;</script>
 <script src="/admin/assets/js/admin-mesaje.js?v=3"></script>

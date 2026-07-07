@@ -335,14 +335,39 @@ body {
 .notice-error { background: #fef2f2; border-left-color: var(--danger); color: #991b1b; }
 
 /* ── Images ── */
-.images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-.image-item { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
-.image-item img { width: 100%; height: 100px; object-fit: cover; display: block; }
-.image-item-body { padding: 8px; }
-.image-item-name { font-size: 11px; color: var(--text-muted); word-break: break-all; margin-bottom: 6px; }
-.image-item-actions { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.hero-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); cursor: pointer; }
-.hero-check input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+.img-hint { font-size: 12.5px; color: var(--text-muted); margin: -6px 0 14px; line-height: 1.5; }
+.img-hint strong { color: var(--text); }
+.img-hint-chip { display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: var(--accent); color: #fff; }
+.img-hint-chip-gal { background: #C9A84C; }
+
+/* Benzi de selecție Hero / Galerie */
+.img-strip { display: flex; flex-wrap: wrap; gap: 10px; min-height: 96px; padding: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--border) 12%, transparent); }
+.img-strip-empty { display: flex; align-items: center; justify-content: center; width: 100%; color: var(--text-muted); font-size: 13px; font-style: italic; }
+.img-strip-item { position: relative; width: 118px; height: 72px; border-radius: var(--radius); overflow: hidden; cursor: grab; box-shadow: var(--shadow-sm); border: 1px solid var(--border); background: #fff; }
+.img-strip-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.img-strip-item.dragging { opacity: .45; cursor: grabbing; }
+.img-strip-badge { position: absolute; top: 4px; left: 4px; z-index: 2; min-width: 20px; height: 20px; padding: 0 5px; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: rgba(17,24,39,.82); color: #fff; font-size: 11px; font-weight: 700; }
+.img-strip-remove { position: absolute; top: 4px; right: 4px; z-index: 2; width: 20px; height: 20px; padding: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: rgba(17,24,39,.6); color: #fff; font-size: 11px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity .12s; }
+.img-strip-item:hover .img-strip-remove { opacity: 1; }
+.img-strip-remove:hover { background: var(--danger); }
+
+.img-save-bar { display: flex; align-items: center; gap: 14px; margin: 4px 0 22px; }
+.img-dirty { font-size: 12px; font-weight: 600; color: var(--danger); }
+
+/* Biblioteca */
+.img-lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.img-tile { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.img-tile-thumb { position: relative; }
+.img-tile-thumb img { width: 100%; height: 104px; object-fit: cover; display: block; }
+.img-tile-del { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; padding: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: rgba(17,24,39,.55); color: #fff; font-size: 12px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity .12s; }
+.img-tile:hover .img-tile-del { opacity: 1; }
+.img-tile-del:hover { background: var(--danger); }
+.img-tile-chips { display: flex; gap: 6px; padding: 8px; }
+.img-chip { flex: 1; padding: 5px 8px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--text-muted); cursor: pointer; transition: all .12s; }
+.img-chip:hover { border-color: var(--accent); color: var(--accent); }
+.img-chip.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.img-chip-gal:hover { border-color: #C9A84C; color: #C9A84C; }
+.img-chip-gal.is-active { background: #C9A84C; border-color: #C9A84C; color: #fff; }
 
 /* ── CRM ── */
 .crm-status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }

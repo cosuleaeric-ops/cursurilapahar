@@ -15,12 +15,13 @@ function clp_get_all_images(string $public_html, string $uploads_dir, string $up
                 $base = strtolower(pathinfo($f, PATHINFO_FILENAME));
                 if (in_array($base . '.jpg', $names) || in_array($base . '.jpeg', $names) || in_array($base . '.png', $names)) continue;
             }
-            $imgs[] = ['url' => $url_prefix . $f, 'name' => $f, 'deletable' => $deletable];
+            $imgs[] = ['url' => $url_prefix . $f, 'name' => $f, 'deletable' => $deletable, 'mtime' => @filemtime($dir . '/' . $f) ?: 0];
         }
     };
     $collect($public_html . '/assets/images/', '/assets/images/', false);
     $collect($public_html . '/assets/images/gallery/', '/assets/images/gallery/', true);
     $collect($uploads_dir, $uploads_url . '/', true);
+    usort($imgs, fn($a, $b) => $b['mtime'] <=> $a['mtime']); // cele mai noi primele
     return $imgs;
 }
 
