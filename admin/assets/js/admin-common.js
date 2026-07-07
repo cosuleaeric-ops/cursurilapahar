@@ -27,23 +27,57 @@ function addQlRow() {
     document.getElementById('qlRows').appendChild(row);
 }
 
+function tplToggle(view) {
+    const card = view.closest('.tpl-card');
+    const edit = card.querySelector('.tpl-edit');
+    edit.hidden = !edit.hidden;
+    card.classList.toggle('open', !edit.hidden);
+}
+
+function tplSyncTitle(inp) {
+    const t = inp.closest('.tpl-card').querySelector('.tpl-view-title');
+    t.textContent = inp.value.trim() || 'Template fără titlu';
+}
+
+function tplSyncPreview(ta) {
+    const card = ta.closest('.tpl-card');
+    card.querySelector('.tpl-view-preview').textContent = ta.value.trim() || 'gol';
+    const cb = card.querySelector('.tpl-copy-btn');
+    if (cb) cb.setAttribute('data-tpl-text', ta.value);
+}
+
 function addTemplateRow() {
-    const row = document.createElement('div');
-    row.className = 'tpl-row';
-    row.style.cssText = 'border:1px solid var(--border);border-radius:12px;padding:16px;position:relative';
-    row.innerHTML = '<button type="button" onclick="this.closest(\'.tpl-row\').remove()" class="btn btn-danger btn-sm" style="position:absolute;top:14px;right:14px">✕</button>'
-        + '<label class="tpl-lbl">Titlu template <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(numele butonului)</span></label>'
-        + '<input type="text" name="tpl_label[]" value="" style="width:100%;font-weight:600;margin-bottom:16px">'
-        + '<label class="tpl-lbl">Text mesaj <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(se copiază la click)</span></label>'
-        + '<textarea name="tpl_text[]" rows="5" style="width:100%;font-family:inherit;resize:vertical"></textarea>';
-    document.getElementById('tplRows').appendChild(row);
+    const card = document.createElement('div');
+    card.className = 'tpl-card open';
+    card.innerHTML =
+        '<div class="tpl-view" onclick="tplToggle(this)">'
+        + '<span class="tpl-chevron">▸</span>'
+        + '<div class="tpl-view-main">'
+        + '<div class="tpl-view-title">Template fără titlu</div>'
+        + '<div class="tpl-view-preview">gol</div>'
+        + '</div>'
+        + '<button type="button" class="tpl-copy-btn" data-tpl-text="" onclick="event.stopPropagation();clpCopyTemplate(this)">📋 Copiază</button>'
+        + '</div>'
+        + '<div class="tpl-edit">'
+        + '<label class="tpl-lbl">Titlu template</label>'
+        + '<input type="text" name="tpl_label[]" value="" oninput="tplSyncTitle(this)" style="font-weight:600">'
+        + '<label class="tpl-lbl">Text mesaj</label>'
+        + '<textarea name="tpl_text[]" rows="6" oninput="tplSyncPreview(this)"></textarea>'
+        + '<div class="tpl-edit-actions">'
+        + '<button type="button" class="btn btn-secondary btn-sm" onclick="tplToggle(this.closest(\'.tpl-card\').querySelector(\'.tpl-view\'))">Închide</button>'
+        + '<button type="button" class="btn btn-danger btn-sm tpl-del" onclick="this.closest(\'.tpl-card\').remove()">Șterge</button>'
+        + '</div></div>';
+    document.getElementById('tplRows').appendChild(card);
+    card.querySelector('input').focus();
 }
 
 function clpCopyTemplate(btn) {
-    const text = btn.getAttribute('data-tpl-text') || '';
+    const card = btn.closest('.tpl-card');
+    const ta = card ? card.querySelector('textarea[name="tpl_text[]"]') : null;
+    const text = ta ? ta.value : (btn.getAttribute('data-tpl-text') || '');
     navigator.clipboard.writeText(text).then(function () {
         const orig = btn.innerHTML;
-        btn.innerHTML = '<span style="font-size:15px">✅</span> Copiat!';
+        btn.innerHTML = '✅ Copiat!';
         btn.disabled = true;
         setTimeout(function () { btn.innerHTML = orig; btn.disabled = false; }, 1400);
     });
