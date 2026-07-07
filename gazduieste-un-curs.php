@@ -26,7 +26,7 @@ function clp_e(string $key, array $settings): string {
 
 $gazduieste_title   = $settings['gazduieste_title']   ?? 'Găzduiește un curs';
 $gazduieste_intro_1 = $settings['gazduieste_intro_1'] ?? 'Ai o locație cu vibe fain și vrei să o transformi într-un loc de întâlnire al participanților Cursuri la Pahar? Well, noi căutăm parteneri care să devină „acasă" pentru evenimentele noastre!';
-$gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong>Cursuri la Pahar</strong> la tine. Punem preț pe locurile care inspiră creativitate și care oferă cadrul perfect pentru networking și învățare relaxată.';
+$gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong>Cursuri la Pahar</strong> la tine.';
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -119,7 +119,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
                 <li><strong>Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
                 <li><strong>Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
             </ul>
-            <p style="margin-top:16px;">Dacă crezi că spațiul tău se potrivește cu conceptul nostru și vrei să fim parteneri în organizarea următoarelor ediții, abia așteptăm să te cunoaștem! <strong>Completează formularul de mai jos și hai să punem ceva frumos la cale!</strong></p>
+            <p style="margin-top:16px;">Pentru a putea susține un Curs la Pahar, localul trebuie să aibă minimum <strong>40 de locuri</strong> seated, să aibă un <strong>sistem audio cu microfon</strong> și să dețină un <strong>ecran de proiecție/televizor mare</strong>, pentru prezentarea speakerilor.</p>
         </div>
 
         <div class="inner-form">
