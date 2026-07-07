@@ -91,15 +91,23 @@ function clp_load_grouped_messages(): array {
     $categories = clp_message_categories();
     $grouped = array_fill_keys(array_keys($categories), []);
     $meta = load_msg_meta();
+    $speakers = load_speakers();
 
     foreach (clp_read_message_log_blocks() as $block) {
         preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
         $type = trim($m[2] ?? 'contact');
         if (!isset($grouped[$type])) $type = 'contact';
         $mid = msg_id_from_block($block);
+        $fields = clp_parse_message_block_fields($block);
+        // Speakerii deja gestionați în /speakeri nu mai apar în triajul Mesaje
+        if ($type === 'sustine') {
+            $em = $fields['Email'] ?? $fields['email'] ?? '';
+            $ph = $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '';
+            if (clp_find_speaker_index_by_contact($speakers, $em, $ph) >= 0) continue;
+        }
         $grouped[$type][] = [
             'date'   => trim($m[1] ?? ''),
-            'fields' => clp_parse_message_block_fields($block),
+            'fields' => $fields,
             'id'     => $mid,
             'meta'   => $meta[$mid] ?? [],
         ];
@@ -143,29 +151,6 @@ function clp_contacted_message_leads(): array {
         ];
     }
     return $leads;
-}
-
-/** Șterge flagul „contactat" de pe mesajele „sustine" care corespund unui email/telefon. */
-function clp_clear_contacted_by_contact(string $email, string $phone): void {
-    $email_n = clp_normalize_speaker_email($email);
-    $phone_n = clp_normalize_speaker_phone($phone);
-    if ($email_n === '' && $phone_n === '') return;
-    $meta = load_msg_meta();
-    $changed = false;
-    foreach (clp_read_message_log_blocks() as $block) {
-        preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
-        if (trim($m[2] ?? 'contact') !== 'sustine') continue;
-        $mid = msg_id_from_block($block);
-        if (empty($meta[$mid]['contacted'])) continue;
-        $fields = clp_parse_message_block_fields($block);
-        $e = clp_normalize_speaker_email($fields['Email'] ?? $fields['email'] ?? '');
-        $p = clp_normalize_speaker_phone($fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '');
-        if (($email_n !== '' && $e === $email_n) || ($phone_n !== '' && $p === $phone_n)) {
-            unset($meta[$mid]['contacted']);
-            $changed = true;
-        }
-    }
-    if ($changed) save_msg_meta($meta);
 }
 
 function clp_mark_messages_read(): void {

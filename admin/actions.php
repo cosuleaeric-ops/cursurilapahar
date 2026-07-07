@@ -747,8 +747,6 @@
             }
         }
         save_speakers($items);
-        // Status non-CONTACTAT => iese din lista „Contactați" (curăță flagul de pe mesaj)
-        if ($entry['status'] !== 'CONTACTAT') clp_clear_contacted_by_contact($entry['email'], $entry['phone']);
         header('Location: /admin/?tab=speakeri&edit=' . urlencode($entry['id']) . '&saved=1');
         exit;
     }
@@ -759,14 +757,11 @@
         $status = trim($_POST['status'] ?? '');
         if ($id && in_array($status, ['RECURENT','MID','NOPE','CONTACTAT','URMEAZĂ'])) {
             $items = load_speakers();
-            $sp_email = ''; $sp_phone = '';
             foreach ($items as &$it) {
-                if (($it['id'] ?? '') === $id) { $it['status'] = $status; $sp_email = $it['email'] ?? ''; $sp_phone = $it['phone'] ?? ''; break; }
+                if (($it['id'] ?? '') === $id) { $it['status'] = $status; break; }
             }
             unset($it);
             save_speakers($items);
-            // Status non-CONTACTAT => iese din lista „Contactați" (curăță flagul de pe mesaj)
-            if ($status !== 'CONTACTAT') clp_clear_contacted_by_contact($sp_email, $sp_phone);
         }
         header('Location: /admin/?tab=speakeri');
         exit;
