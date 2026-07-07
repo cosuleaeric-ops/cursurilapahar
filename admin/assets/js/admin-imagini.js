@@ -4,6 +4,7 @@
     if (!form) return;
 
     const NAMES = window.CLP_NAMES || {};
+    const THUMBS = window.CLP_THUMBS || {};
     const state = {
         hero:    (window.CLP_HERO || []).slice(),
         gallery: (window.CLP_GALLERY || []).slice(),
@@ -17,6 +18,10 @@
 
     function nameFor(url) {
         return NAMES[url] || url.split('/').pop();
+    }
+
+    function thumbFor(url) {
+        return THUMBS[url] || url;
     }
 
     function markDirty() {
@@ -49,9 +54,10 @@
             badge.textContent = i + 1;
 
             const img = document.createElement('img');
-            img.src = url;
+            img.src = thumbFor(url);
             img.alt = nameFor(url);
             img.loading = 'lazy';
+            img.decoding = 'async';
 
             const remove = document.createElement('button');
             remove.type = 'button';
@@ -88,10 +94,11 @@
         });
         strip.addEventListener('drop', (e) => {
             e.preventDefault();
-            state[target] = [...strip.querySelectorAll('.img-strip-item')].map((el) => el.dataset.url);
+            // Doar re-citim ordinea și re-numerotăm badge-urile — fără rebuild (zero re-decode al imaginilor)
+            const items = [...strip.querySelectorAll('.img-strip-item')];
+            state[target] = items.map((el) => el.dataset.url);
+            items.forEach((el, i) => { el.querySelector('.img-strip-badge').textContent = i + 1; });
             markDirty();
-            renderStrip(target);
-            syncChips();
         });
     }
 

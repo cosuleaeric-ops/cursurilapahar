@@ -15,7 +15,13 @@ function clp_get_all_images(string $public_html, string $uploads_dir, string $up
                 $base = strtolower(pathinfo($f, PATHINFO_FILENAME));
                 if (in_array($base . '.jpg', $names) || in_array($base . '.jpeg', $names) || in_array($base . '.png', $names)) continue;
             }
-            $imgs[] = ['url' => $url_prefix . $f, 'name' => $f, 'deletable' => $deletable, 'mtime' => @filemtime($dir . '/' . $f) ?: 0];
+            // thumb = varianta .webp mai ușoară pentru afișare în admin (URL-ul canonic rămâne neschimbat)
+            $thumb = $url_prefix . $f;
+            if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                $webp_name = pathinfo($f, PATHINFO_FILENAME) . '.webp';
+                if (is_file($dir . '/' . $webp_name)) $thumb = $url_prefix . $webp_name;
+            }
+            $imgs[] = ['url' => $url_prefix . $f, 'name' => $f, 'thumb' => $thumb, 'deletable' => $deletable, 'mtime' => @filemtime($dir . '/' . $f) ?: 0];
         }
     };
     $collect($public_html . '/assets/images/', '/assets/images/', false);
