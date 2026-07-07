@@ -53,39 +53,6 @@ function clp_ab_button_assign(): string
     return $v;
 }
 
-/**
- * Aplică ajustări manuale (delta cu semn) pe views/clicks, cu lock pe fișier.
- * $deltas: ['off' => ['views' => -20, 'clicks' => 0], ...]. Rezultatul e clampat la ≥0.
- */
-function clp_ab_button_adjust(array $deltas): void
-{
-    $file = clp_ab_button_file();
-    $fp = fopen($file, 'c+');
-    if (!$fp) {
-        return;
-    }
-
-    flock($fp, LOCK_EX);
-    $raw = stream_get_contents($fp);
-    $data = $raw !== false && $raw !== '' ? (json_decode($raw, true) ?: []) : [];
-    foreach (CLP_AB_BUTTON_VARIANTS as $v) {
-        foreach (['views', 'clicks'] as $metric) {
-            $delta = (int) ($deltas[$v][$metric] ?? 0);
-            if ($delta === 0) {
-                continue;
-            }
-            $data[$v][$metric] = max(0, (int) ($data[$v][$metric] ?? 0) + $delta);
-        }
-    }
-
-    ftruncate($fp, 0);
-    rewind($fp);
-    fwrite($fp, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    fflush($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
-}
-
 /** Incrementează 'views' sau 'clicks' pentru varianta dată (cu lock pe fișier). */
 function clp_ab_button_track(string $variant, string $metric): void
 {
