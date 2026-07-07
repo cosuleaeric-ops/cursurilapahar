@@ -242,6 +242,12 @@
         if ($filename) {
             $path = UPLOADS_DIR . '/' . $filename;
             if (file_exists($path)) unlink($path);
+            // Curăță referințele orfane din hero/galerie ca să nu rămână slide-uri albe
+            $del_url  = UPLOADS_URL . '/' . $filename;
+            $settings = load_settings();
+            $settings['hero_images']      = array_values(array_filter($settings['hero_images'] ?? [], fn($u) => $u !== $del_url));
+            $settings['gallery_featured'] = array_values(array_filter($settings['gallery_featured'] ?? [], fn($u) => $u !== $del_url));
+            save_settings($settings);
         }
         header('Location: /admin/?tab=imagini');
         exit;
@@ -252,8 +258,8 @@
         $settings = load_settings();
         $settings['hero_images']      = array_values(array_filter(array_map('trim', $_POST['hero_images'] ?? [])));
         $settings['gallery_featured'] = array_values(array_filter(array_map('trim', $_POST['gallery_featured'] ?? [])));
-        save_settings($settings);
-        header('Location: /admin/?tab=imagini&saved=1');
+        $ok = save_settings($settings);
+        header('Location: /admin/?tab=imagini&' . ($ok ? 'saved=1' : 'err=save'));
         exit;
     }
 
