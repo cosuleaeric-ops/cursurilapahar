@@ -30,12 +30,12 @@ function addQlRow() {
 function addTemplateRow() {
     const row = document.createElement('div');
     row.className = 'tpl-row';
-    row.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px';
-    row.innerHTML = '<div style="display:flex;gap:8px;align-items:center">'
-        + '<input type="text" name="tpl_label[]" value="" style="flex:1;font-weight:600">'
-        + '<button type="button" onclick="this.closest(\'.tpl-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>'
-        + '</div>'
-        + '<textarea name="tpl_text[]" rows="4" style="width:100%;font-family:inherit;resize:vertical"></textarea>';
+    row.style.cssText = 'border:1px solid var(--border);border-radius:12px;padding:16px;position:relative';
+    row.innerHTML = '<button type="button" onclick="this.closest(\'.tpl-row\').remove()" class="btn btn-danger btn-sm" style="position:absolute;top:14px;right:14px">✕</button>'
+        + '<label class="tpl-lbl">Titlu template <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(numele butonului)</span></label>'
+        + '<input type="text" name="tpl_label[]" value="" style="width:100%;font-weight:600;margin-bottom:16px">'
+        + '<label class="tpl-lbl">Text mesaj <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(se copiază la click)</span></label>'
+        + '<textarea name="tpl_text[]" rows="5" style="width:100%;font-family:inherit;resize:vertical"></textarea>';
     document.getElementById('tplRows').appendChild(row);
 }
 

@@ -1,5 +1,9 @@
 <h1 class="wp-page-title">Templates</h1>
 
+<style>
+.tpl-lbl { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:6px; }
+</style>
+
 <?php if (isset($_GET['saved'])): ?>
 <div class="notice notice-success">Template-urile au fost salvate.</div>
 <?php endif; ?>
@@ -11,12 +15,12 @@
         <input type="hidden" name="action" value="save_templates">
         <div id="tplRows" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px">
         <?php foreach ($settings['templates'] ?? [] as $_tpl): ?>
-            <div class="tpl-row" style="border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input type="text" name="tpl_label[]" value="<?= h($_tpl['label'] ?? '') ?>" style="flex:1;font-weight:600">
-                    <button type="button" onclick="this.closest('.tpl-row').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>
-                </div>
-                <textarea name="tpl_text[]" rows="4" style="width:100%;font-family:inherit;resize:vertical"><?= h($_tpl['text'] ?? '') ?></textarea>
+            <div class="tpl-row" style="border:1px solid var(--border);border-radius:12px;padding:16px;position:relative">
+                <button type="button" onclick="this.closest('.tpl-row').remove()" class="btn btn-danger btn-sm" style="position:absolute;top:14px;right:14px">✕</button>
+                <label class="tpl-lbl">Titlu template <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(numele butonului)</span></label>
+                <input type="text" name="tpl_label[]" value="<?= h($_tpl['label'] ?? '') ?>" style="width:100%;font-weight:600;margin-bottom:16px">
+                <label class="tpl-lbl">Text mesaj <span style="font-weight:400;text-transform:none;color:var(--text-muted)">(se copiază la click)</span></label>
+                <textarea name="tpl_text[]" rows="5" style="width:100%;font-family:inherit;resize:vertical"><?= h($_tpl['text'] ?? '') ?></textarea>
             </div>
         <?php endforeach; ?>
         </div>
