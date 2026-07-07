@@ -147,6 +147,12 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css?v=<?php echo filemtime(__DIR__.'/assets/css/style.css'); ?>">
+    <script>
+    /* Înălțime viewport reală în px, setată înainte de primul paint și blocată pe scroll
+       (se schimbă doar la rotație/lățime) — hero-ul nu-și mai schimbă înălțimea când se
+       retrage bara browserului in-app (Instagram) → fără re-zoom. */
+    (function(){var w=window.innerWidth;function s(){document.documentElement.style.setProperty('--vph',window.innerHeight+'px');}s();window.addEventListener('resize',function(){if(window.innerWidth!==w){w=window.innerWidth;s();}});window.addEventListener('orientationchange',function(){w=window.innerWidth;s();});})();
+    </script>
     <?php if (!empty($settings['favicon_path'])): ?>
     <link rel="icon" href="<?= htmlspecialchars($settings['favicon_path']) ?>">
     <?php endif; ?>
@@ -254,7 +260,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 <?php endif; ?>
                 <div class="event-card-img">
                     <?php if (!empty($course['image_url'])): ?>
-                    <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($card_title) ?>" loading="lazy">
+                    <img src="<?= htmlspecialchars($course['image_url']) ?>" alt="<?= htmlspecialchars($card_title) ?>">
                     <?php else: ?>
                     <div class="event-card-img-placeholder"></div>
                     <?php endif; ?>

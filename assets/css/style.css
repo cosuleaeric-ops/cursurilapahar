@@ -296,7 +296,7 @@ ul { list-style: none; }
 @media (max-width: 768px) {
   .hero-content { padding-bottom: 60px; }
   .hero {
-    height: 62svh !important;
+    height: calc(var(--vph, 100svh) * 0.80) !important;
     min-height: 200px !important;
     max-height: 750px;
   }
@@ -319,7 +319,7 @@ ul { list-style: none; }
 ══════════════════════════════════════════ */
 .hero {
   position: relative;
-  height: 90svh;
+  height: calc(var(--vph, 100svh) * 0.90);
   min-height: 450px;
   max-height: 900px;
   display: flex;
