@@ -332,7 +332,9 @@ ul { list-style: none; }
 .hero-slide {
   position: absolute; inset: 0;
   background-size: cover;
-  background-position: center;
+  background-position: var(--hero-pos, center);
+  transform: scale(var(--hero-zoom, 1));
+  transform-origin: var(--hero-pos, center);
   opacity: 0;
   transition: opacity 1.2s ease;
   will-change: opacity;

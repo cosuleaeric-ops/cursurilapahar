@@ -207,9 +207,18 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <!-- ── HERO ────────────────────────────────── -->
 <section class="hero" id="hero">
     <div class="hero-slides">
-        <?php foreach ($settings['hero_images'] as $idx => $hero_img): ?>
+        <?php foreach ($settings['hero_images'] as $idx => $hero_img):
+            $ht   = $settings['hero_transforms'][$hero_img] ?? [];
+            $hx   = $ht['x'] ?? 50;
+            $hy   = $ht['y'] ?? 50;
+            $hz   = max(100, min(220, $ht['zoom'] ?? 100)) / 100;
+            $hvars = '--hero-pos:' . (float)$hx . '% ' . (float)$hy . '%;--hero-zoom:' . $hz . ';';
+            $hstyle = $idx === 0
+                ? $hvars . "background-image:url('" . htmlspecialchars(img_webp($hero_img)) . "')"
+                : $hvars;
+        ?>
         <div class="hero-slide<?= $idx === 0 ? ' active' : '' ?>"
-             <?= $idx === 0 ? "style=\"background-image:url('" . htmlspecialchars(img_webp($hero_img)) . "')\"" : "data-bg=\"" . htmlspecialchars(img_webp($hero_img)) . "\"" ?>></div>
+             style="<?= $hstyle ?>"<?= $idx === 0 ? '' : ' data-bg="' . htmlspecialchars(img_webp($hero_img)) . '"' ?>></div>
         <?php endforeach; ?>
     </div>
     <div class="hero-overlay"></div>

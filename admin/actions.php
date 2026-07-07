@@ -258,6 +258,22 @@
         $settings = load_settings();
         $settings['hero_images']      = array_values(array_filter(array_map('trim', $_POST['hero_images'] ?? [])));
         $settings['gallery_featured'] = array_values(array_filter(array_map('trim', $_POST['gallery_featured'] ?? [])));
+        // Poziționare hero per-imagine (x/y/zoom), doar pentru imaginile hero curente
+        $transforms = json_decode($_POST['hero_transforms'] ?? '[]', true);
+        $clean_tr = [];
+        if (is_array($transforms)) {
+            foreach ($settings['hero_images'] as $hu) {
+                $t = $transforms[$hu] ?? null;
+                if (!is_array($t)) continue;
+                $x = max(0, min(100, (float)($t['x'] ?? 50)));
+                $y = max(0, min(100, (float)($t['y'] ?? 50)));
+                $z = max(100, min(220, (float)($t['zoom'] ?? 100)));
+                if ($x != 50 || $y != 50 || $z != 100) { // stochează doar ce diferă de default
+                    $clean_tr[$hu] = ['x' => $x, 'y' => $y, 'zoom' => $z];
+                }
+            }
+        }
+        $settings['hero_transforms'] = $clean_tr;
         $ok = save_settings($settings);
         header('Location: /admin/?tab=imagini&' . ($ok ? 'saved=1' : 'err=save'));
         exit;
