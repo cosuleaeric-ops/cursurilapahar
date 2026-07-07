@@ -26,7 +26,7 @@ function clp_e(string $key, array $settings): string {
 
 $sustine_title   = $settings['sustine_title']   ?? 'Prezintă un curs';
 $sustine_intro_1 = $settings['sustine_intro_1'] ?? 'Căutăm voci noi pentru <strong>Cursuri la Pahar</strong>! Dacă ai experiență într-un domeniu care te pasionează și vrei să dai mai departe din învățăturile tale, te așteptăm să susții un curs în cadrul evenimentelor noastre.';
-$sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Punem preț pe calitatea informației și pe vibe-ul bun, așa că, dacă ești gata să inspiri comunitatea cu învățăturile tale, <strong>completează formularul de mai jos</strong>!';
+$sustine_intro_2 = $settings['sustine_intro_2'] ?? 'Dacă ai nevoie de inspirație, <a href="/cursuri-posibile" style="color:var(--accent);text-decoration:underline;">uită-te pe lista noastră cu cursuri posibile</a> care credem că s-ar potrivi la un pahar.';
 ?>
 <!DOCTYPE html>
 <html lang="ro">
