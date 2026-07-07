@@ -131,6 +131,9 @@ require __DIR__ . '/partials/colaborari-tab.php';
 <?php elseif ($tab === 'config'): ?>
 <?php require __DIR__ . '/partials/config-tab.php'; ?>
 
+<?php elseif ($tab === 'templates'): ?>
+<?php require __DIR__ . '/partials/templates-tab.php'; ?>
+
 <?php endif; ?>
 
     </div><!-- /bc-doc -->

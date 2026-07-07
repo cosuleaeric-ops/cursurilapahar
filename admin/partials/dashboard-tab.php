@@ -119,6 +119,26 @@ if (!empty($_ql)): ?>
 </div>
 <?php endif; ?>
 
+<?php $_tpls = $settings['templates'] ?? []; ?>
+<div class="dash-section" style="margin-bottom:24px">
+    <div class="dash-section-title">
+        <span>Templates</span>
+        <a href="/admin/?tab=templates">Editează →</a>
+    </div>
+    <?php if (empty($_tpls)): ?>
+        <p class="bc-card-empty">Niciun template încă. <a href="/admin/?tab=templates" style="color:var(--accent)">Adaugă unul</a>.</p>
+    <?php else: ?>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <?php foreach ($_tpls as $_tpl): ?>
+            <button type="button" class="ql-btn" data-tpl-text="<?= h($_tpl['text'] ?? '') ?>" onclick="clpCopyTemplate(this)">
+                <span style="font-size:15px">📋</span>
+                <?= h($_tpl['label'] ?? '') ?>
+            </button>
+        <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
 
 <?php
 $_dash_cal_json = [];

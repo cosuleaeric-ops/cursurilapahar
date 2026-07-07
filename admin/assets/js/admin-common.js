@@ -27,6 +27,28 @@ function addQlRow() {
     document.getElementById('qlRows').appendChild(row);
 }
 
+function addTemplateRow() {
+    const row = document.createElement('div');
+    row.className = 'tpl-row';
+    row.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px';
+    row.innerHTML = '<div style="display:flex;gap:8px;align-items:center">'
+        + '<input type="text" name="tpl_label[]" value="" style="flex:1;font-weight:600">'
+        + '<button type="button" onclick="this.closest(\'.tpl-row\').remove()" class="btn btn-danger btn-sm" style="white-space:nowrap">✕</button>'
+        + '</div>'
+        + '<textarea name="tpl_text[]" rows="4" style="width:100%;font-family:inherit;resize:vertical"></textarea>';
+    document.getElementById('tplRows').appendChild(row);
+}
+
+function clpCopyTemplate(btn) {
+    const text = btn.getAttribute('data-tpl-text') || '';
+    navigator.clipboard.writeText(text).then(function () {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span style="font-size:15px">✅</span> Copiat!';
+        btn.disabled = true;
+        setTimeout(function () { btn.innerHTML = orig; btn.disabled = false; }, 1400);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('user-switcher-btn');
     var menu = document.getElementById('user-switcher-menu');

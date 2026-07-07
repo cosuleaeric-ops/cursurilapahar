@@ -57,6 +57,7 @@
     <a href="/admin/?tab=colaborari" class="<?= ($tab ?? '') === 'colaborari' ? 'active' : '' ?>">Colaborări</a>
     <a href="/admin/?tab=imagini" class="<?= ($tab ?? '') === 'imagini' ? 'active' : '' ?>">Imagini</a>
     <a href="/admin/?tab=aspect" class="<?= ($tab ?? '') === 'aspect' ? 'active' : '' ?>">Aspect</a>
+    <a href="/admin/?tab=templates" class="<?= ($tab ?? '') === 'templates' ? 'active' : '' ?>">Templates</a>
     <a href="/admin/statistici/ab_headline.php" class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/statistici') !== false && ($tab ?? '') !== 'pnl' ? 'active' : '' ?>">Test A/B</a>
     <?php if (is_owner()): ?>
     <a href="/admin/statistici/pnl/" class="<?= ($tab ?? '') === 'pnl' ? 'active' : '' ?>">P&amp;L</a>
@@ -75,6 +76,7 @@ $__bc_labels = [
     'mesaje' => 'Mesaje', 'marketing' => 'Marketing', 'imagini' => 'Imagini',
     'aspect' => 'Aspect', 'vot' => 'Vot cursuri', 'colaborari' => 'Colaborări',
     'config' => 'Setări', 'securitate' => 'Setări', 'kit' => 'Setări',
+    'templates' => 'Templates',
     'pnl' => 'P&L Cursuri',
 ];
 $__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
