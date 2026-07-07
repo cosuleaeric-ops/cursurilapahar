@@ -117,7 +117,7 @@
             const name = subs.length
                 ? `<span class="clp-toggle" onclick="event.stopPropagation();clpToggleViza('${rid}')">${esc(c.name)}</span>`
                 : esc(c.name);
-            html += `<tr style="cursor:pointer" onclick="location.href='/admin/statistici/cursuri/view.php?id=${c.id}'">
+            html += `<tr>
                 <td style="font-weight:600">${name}</td>
                 <td style="color:var(--text-muted);white-space:nowrap">${esc(c.date_ro)}</td>
                 <td style="text-align:right">${c.total_tickets}</td>
