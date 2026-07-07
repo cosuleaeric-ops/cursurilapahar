@@ -211,11 +211,11 @@
                 };
                 if ($img) {
                     $w = imagesx($img); $h = imagesy($img);
-                    if ($w > 1920) {
-                        $img2 = imagescale($img, 1920, -1);
+                    if ($w > 2560) {
+                        $img2 = imagescale($img, 2560, -1);
                         if ($img2) { imagedestroy($img); $img = $img2; }
                     }
-                    if (imagewebp($img, $dest, 82)) {
+                    if (imagewebp($img, $dest, 88)) {
                         imagedestroy($img);
                         $count_ok++;
                     } else {

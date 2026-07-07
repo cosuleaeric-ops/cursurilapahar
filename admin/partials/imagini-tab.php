@@ -22,7 +22,7 @@
                 <input type="file" name="image_files[]" accept="image/*" multiple style="border:1px solid var(--border);padding:6px 10px;border-radius:4px;font-size:13px;background:#fff">
                 <button type="submit" class="btn btn-primary">Încarcă</button>
             </div>
-            <p class="form-desc">JPG, PNG, WEBP, GIF. Poți selecta mai multe. Convertite automat în WebP și redimensionate la max 1920px. După încărcare apar primele în Bibliotecă.</p>
+            <p class="form-desc">JPG, PNG, WEBP, GIF. Poți selecta mai multe. Convertite automat în WebP (calitate 88) și redimensionate la max 2560px. Pentru hero, urcă imaginea la rezoluție cât mai mare. După încărcare apar primele în Bibliotecă.</p>
         </form>
     </div>
 
