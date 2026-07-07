@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/speakers.php';
+
 function clp_message_meta_file(): string {
     return dirname(__DIR__) . '/data/message_meta.json';
 }
