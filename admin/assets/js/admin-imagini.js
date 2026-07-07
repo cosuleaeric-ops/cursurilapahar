@@ -128,6 +128,11 @@
         chip.addEventListener('click', () => toggle(chip.dataset.role, chip.dataset.url));
     });
 
+    // Ștergere din bibliotecă
+    document.querySelectorAll('.img-tile-del').forEach((btn) => {
+        btn.addEventListener('click', () => deleteImage(btn.dataset.del));
+    });
+
     // Serializează selecția ordonată la submit
     form.addEventListener('submit', () => {
         const hidden = document.getElementById('img-hidden');
