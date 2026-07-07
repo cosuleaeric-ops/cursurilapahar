@@ -156,6 +156,20 @@ function clp_default_course_ideas(): array {
                 ],
             ],
             ...clp_general_course_idea_categories(),
+            clp_media_journalism_category(),
+        ],
+    ];
+}
+
+function clp_media_journalism_category(): array {
+    return [
+        'emoji' => '📰',
+        'title' => 'Media & Jurnalism',
+        'topics' => [
+            'Cum se naște o știre: din teren până pe ecranul tău',
+            'Mai există obiectivitate în presă?',
+            'Economia ascunsă a presei: cine plătește ce citești',
+            'De la ziare la TikTok: cum s-a schimbat informarea',
         ],
     ];
 }
@@ -254,13 +268,23 @@ function clp_load_course_ideas(): array {
 // Adaugă o singură dată categoriile generale noi în JSON-ul de pe server.
 // Flag-ul rămâne în fișier, deci categoriile șterse ulterior din admin nu reapar.
 function clp_migrate_course_ideas(array $data): array {
-    if (!empty($data['migration_general_categories_2026_07'])) return $data;
-    $data['migration_general_categories_2026_07'] = true;
-    $existing = array_map(fn($c) => $c['title'] ?? '', $data['categories']);
-    foreach (clp_general_course_idea_categories() as $cat) {
-        if (!in_array($cat['title'], $existing, true)) $data['categories'][] = $cat;
+    $changed = false;
+    if (empty($data['migration_general_categories_2026_07'])) {
+        $data['migration_general_categories_2026_07'] = true;
+        $existing = array_map(fn($c) => $c['title'] ?? '', $data['categories']);
+        foreach (clp_general_course_idea_categories() as $cat) {
+            if (!in_array($cat['title'], $existing, true)) $data['categories'][] = $cat;
+        }
+        $changed = true;
     }
-    clp_save_course_ideas($data);
+    if (empty($data['migration_media_jurnalism_2026_07'])) {
+        $data['migration_media_jurnalism_2026_07'] = true;
+        $cat = clp_media_journalism_category();
+        $existing = array_map(fn($c) => $c['title'] ?? '', $data['categories']);
+        if (!in_array($cat['title'], $existing, true)) $data['categories'][] = $cat;
+        $changed = true;
+    }
+    if ($changed) clp_save_course_ideas($data);
     return $data;
 }
 
