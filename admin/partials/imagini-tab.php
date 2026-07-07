@@ -71,7 +71,7 @@
                     <img loading="lazy" src="<?= h($img['url']) ?>" alt="<?= h($img['name']) ?>">
                     <?php if ($img['deletable']): ?>
                     <button type="button" class="img-tile-del" title="Șterge imaginea"
-                        onclick="deleteImage(<?= json_encode($img['name']) ?>)">✕</button>
+                        data-del="<?= h($img['name']) ?>">✕</button>
                     <?php endif; ?>
                 </div>
                 <div class="img-tile-chips">
