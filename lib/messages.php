@@ -145,6 +145,29 @@ function clp_contacted_message_leads(): array {
     return $leads;
 }
 
+/** Șterge flagul „contactat" de pe mesajele „sustine" care corespund unui email/telefon. */
+function clp_clear_contacted_by_contact(string $email, string $phone): void {
+    $email_n = clp_normalize_speaker_email($email);
+    $phone_n = clp_normalize_speaker_phone($phone);
+    if ($email_n === '' && $phone_n === '') return;
+    $meta = load_msg_meta();
+    $changed = false;
+    foreach (clp_read_message_log_blocks() as $block) {
+        preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
+        if (trim($m[2] ?? 'contact') !== 'sustine') continue;
+        $mid = msg_id_from_block($block);
+        if (empty($meta[$mid]['contacted'])) continue;
+        $fields = clp_parse_message_block_fields($block);
+        $e = clp_normalize_speaker_email($fields['Email'] ?? $fields['email'] ?? '');
+        $p = clp_normalize_speaker_phone($fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '');
+        if (($email_n !== '' && $e === $email_n) || ($phone_n !== '' && $p === $phone_n)) {
+            unset($meta[$mid]['contacted']);
+            $changed = true;
+        }
+    }
+    if ($changed) save_msg_meta($meta);
+}
+
 function clp_mark_messages_read(): void {
     file_put_contents(clp_messages_last_read_file(), date('Y-m-d H:i:s'), LOCK_EX);
 }
