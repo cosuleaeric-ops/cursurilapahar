@@ -54,7 +54,6 @@
     <a href="/admin/?tab=speakeri" class="<?= ($tab ?? '') === 'speakeri' ? 'active' : '' ?>">Speakeri</a>
     <a href="/admin/?tab=locatii" class="<?= ($tab ?? '') === 'locatii' ? 'active' : '' ?>">Locații</a>
     <a href="/admin/?tab=vot" class="<?= ($tab ?? '') === 'vot' ? 'active' : '' ?>">Voturi</a>
-    <a href="/admin/?tab=cursuri-posibile" class="<?= ($tab ?? '') === 'cursuri-posibile' ? 'active' : '' ?>">Cursuri posibile</a>
     <a href="/admin/?tab=colaborari" class="<?= ($tab ?? '') === 'colaborari' ? 'active' : '' ?>">Colaborări</a>
     <a href="/admin/?tab=imagini" class="<?= ($tab ?? '') === 'imagini' ? 'active' : '' ?>">Imagini</a>
     <a href="/admin/?tab=aspect" class="<?= ($tab ?? '') === 'aspect' ? 'active' : '' ?>">Aspect</a>
