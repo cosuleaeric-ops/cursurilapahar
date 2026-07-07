@@ -119,7 +119,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
                 <li><strong>Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
                 <li><strong>Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
             </ul>
-            <p style="margin-top:16px;">Pentru a putea susține un Curs la Pahar, localul trebuie să aibă minimum <strong>40 de locuri</strong> seated, să aibă un <strong>sistem audio cu microfon</strong> și să dețină un <strong>ecran de proiecție/televizor mare</strong>, pentru prezentarea speakerilor.</p>
+            <p style="margin-top:16px;">Pentru a putea susține un Curs la Pahar, localul trebuie să aibă minimum <strong>40 de locuri</strong> seated, un <strong>sistem audio cu microfon</strong> și un <strong>ecran de proiecție/televizor mare</strong>, pentru prezentarea speakerilor.</p>
         </div>
 
         <div class="inner-form">
