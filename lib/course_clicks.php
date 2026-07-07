@@ -77,6 +77,15 @@ function clp_should_count_course_click(): bool
         return false;
     }
 
+    // Vizitele noastre (logat în admin) nu poluează statisticile / testele A/B.
+    if (isset($_COOKIE['clp_auth'])) {
+        require_once __DIR__ . '/settings.php';
+        require_once __DIR__ . '/auth.php';
+        if (clp_real_user() !== null) {
+            return false;
+        }
+    }
+
     // Link prefetch / prerender from browsers — not a user click.
     $purpose = strtolower(trim((string) ($_SERVER['HTTP_PURPOSE'] ?? $_SERVER['HTTP_X_PURPOSE'] ?? '')));
     if ($purpose !== '' && str_contains($purpose, 'prefetch')) {
