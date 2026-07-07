@@ -143,6 +143,7 @@ $settings = array_merge($_defaults, $_loaded);
         <h1>Cursuri posibile</h1>
         <div style="color:var(--text-muted);line-height:1.8;">
             <p><?= nl2br(htmlspecialchars($ideas['intro'] ?? '')) ?></p>
+            <p style="margin-top:16px;"><a href="/prezinta-un-curs" style="color:var(--accent);text-decoration:underline;">Apasă aici</a> dacă vrei să aplici pentru a susține un Curs la Pahar.</p>
         </div>
 
         <div class="ideas-grid">
