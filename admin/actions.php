@@ -841,10 +841,11 @@
                 'topics' => $lines,
             ];
         }
-        clp_save_course_ideas([
+        // array_merge peste datele existente ca să nu piardă flag-urile de migrație
+        clp_save_course_ideas(array_merge(clp_load_course_ideas(), [
             'intro'      => trim($_POST['ideas_intro'] ?? ''),
             'categories' => $cats,
-        ]);
+        ]));
         header('Location: /admin/?tab=cursuri-posibile&saved=1');
         exit;
     }

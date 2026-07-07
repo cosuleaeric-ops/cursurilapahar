@@ -155,6 +155,90 @@ function clp_default_course_ideas(): array {
                     'Călătorii și culturi: ce ne învață despre noi',
                 ],
             ],
+            ...clp_general_course_idea_categories(),
+        ],
+    ];
+}
+
+// Categorii generale adăugate în iulie 2026 (inspirate din alte serii de tip
+// „lectures on tap"). Referite și de migrația care le adaugă pe site-ul live.
+function clp_general_course_idea_categories(): array {
+    return [
+        [
+            'emoji' => '❤️',
+            'title' => 'Dragoste & Relații',
+            'topics' => [
+                'Știința atracției: de ce ne place cine ne place',
+                'Ce se întâmplă în creier când ne îndrăgostim',
+                'De ce înșală oamenii: știința fidelității',
+                'Algoritmii aplicațiilor de dating, demascați',
+                'Prietenia: de ce e vitală și de ce o neglijăm',
+            ],
+        ],
+        [
+            'emoji' => '⚖️',
+            'title' => 'Crimă & Justiție',
+            'topics' => [
+                'Cum ajung oameni nevinovați condamnați',
+                'Psihologia criminalilor: realitate vs. filme',
+                'Marile escrocherii și cum gândește un escroc',
+                'De ce ne fascinează poveștile cu crime',
+            ],
+        ],
+        [
+            'emoji' => '🗣️',
+            'title' => 'Limbă & Comunicare',
+            'topics' => [
+                'De ce vorbim: originea și evoluția limbajului',
+                'Limbajul corpului: ce comunicăm fără cuvinte',
+                'Istoria ciudată a cuvintelor pe care le folosim zilnic',
+                'Cum ne schimbă creierul o limbă străină',
+            ],
+        ],
+        [
+            'emoji' => '⚽',
+            'title' => 'Sport',
+            'topics' => [
+                'Psihologia suporterului: de ce ne doare o înfrângere',
+                'Ce ne învață sportul despre presiune și performanță',
+                'Sport și politică: când jocul devine protest',
+            ],
+        ],
+        [
+            'emoji' => '🔢',
+            'title' => 'Matematică',
+            'topics' => [
+                'Infinitul: cum numeri până la nesfârșit',
+                'Teoria jocurilor: matematica negocierilor de zi cu zi',
+                'Matematica din spatele lumii moderne: GPS, AI, hărți',
+            ],
+        ],
+        [
+            'emoji' => '🙏',
+            'title' => 'Religie, Mituri & Credințe',
+            'topics' => [
+                'De ce inventăm zei: religiile, explicate',
+                'Magie, superstiții și ocultism de-a lungul istoriei',
+                'De ce creierul nostru caută sacrul',
+            ],
+        ],
+        [
+            'emoji' => '🏙️',
+            'title' => 'Orașe, Arhitectură & Design',
+            'topics' => [
+                'Cum ne schimbă orașul comportamentul și starea de spirit',
+                'De ce arată orașele așa: o istorie a urbanismului',
+                'Psihologia designului: de ce cumpărăm cu ochii',
+            ],
+        ],
+        [
+            'emoji' => '💼',
+            'title' => 'Muncă, Carieră & Performanță',
+            'topics' => [
+                'Cum negociezi orice: psihologie și tactici',
+                'Știința creativității: poate fi antrenată?',
+                'Performanță sub presiune: lecții din sport și scenă',
+            ],
         ],
     ];
 }
@@ -164,7 +248,20 @@ function clp_load_course_ideas(): array {
     if (!file_exists($file)) return clp_default_course_ideas();
     $data = json_decode((string)file_get_contents($file), true);
     if (!is_array($data) || !is_array($data['categories'] ?? null)) return clp_default_course_ideas();
-    return array_merge(clp_default_course_ideas(), $data);
+    return clp_migrate_course_ideas(array_merge(clp_default_course_ideas(), $data));
+}
+
+// Adaugă o singură dată categoriile generale noi în JSON-ul de pe server.
+// Flag-ul rămâne în fișier, deci categoriile șterse ulterior din admin nu reapar.
+function clp_migrate_course_ideas(array $data): array {
+    if (!empty($data['migration_general_categories_2026_07'])) return $data;
+    $data['migration_general_categories_2026_07'] = true;
+    $existing = array_map(fn($c) => $c['title'] ?? '', $data['categories']);
+    foreach (clp_general_course_idea_categories() as $cat) {
+        if (!in_array($cat['title'], $existing, true)) $data['categories'][] = $cat;
+    }
+    clp_save_course_ideas($data);
+    return $data;
 }
 
 function clp_save_course_ideas(array $data): bool {
