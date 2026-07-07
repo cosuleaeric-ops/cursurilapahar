@@ -7,6 +7,34 @@ require_once dirname(__DIR__, 2) . '/lib/settings.php';
 require_once dirname(__DIR__, 2) . '/lib/ab_headline.php';
 require_once dirname(__DIR__, 2) . '/lib/ab_button.php';
 
+// ── Ajustare manuală a contoarelor (owner-only) ───────────────────────────────
+// Ex.: scoate vizitele proprii dintr-un test. Delta cu semn, clampat la ≥0.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['ab_adjust'] ?? '') !== '') {
+    if (!is_owner() || !verify_csrf($_POST['csrf_token'] ?? '')) {
+        header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?')); exit;
+    }
+    if ($_POST['ab_adjust'] === 'headline') {
+        $deltas = [];
+        foreach (CLP_AB_HEADLINE_VARIANTS as $v) {
+            $deltas[$v] = [
+                'views'  => (int) ($_POST['hl'][$v]['views']  ?? 0),
+                'clicks' => (int) ($_POST['hl'][$v]['clicks'] ?? 0),
+            ];
+        }
+        clp_ab_headline_adjust($deltas);
+    } elseif ($_POST['ab_adjust'] === 'button') {
+        $deltas = [];
+        foreach (CLP_AB_BUTTON_VARIANTS as $v) {
+            $deltas[$v] = [
+                'views'  => (int) ($_POST['btn'][$v]['views']  ?? 0),
+                'clicks' => (int) ($_POST['btn'][$v]['clicks'] ?? 0),
+            ];
+        }
+        clp_ab_button_adjust($deltas);
+    }
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?adjusted=1'); exit;
+}
+
 $stats = clp_ab_headline_load();
 $settings = clp_load_settings();
 
@@ -48,6 +76,12 @@ include __DIR__ . '/layout_nav.php';
 
 function clp_ab_h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 ?>
+        <?php if (isset($_GET['adjusted'])): ?>
+        <div style="background:#e7f6ec;border:1px solid #b6e0c4;color:#1b5e33;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:13px">
+            Contoarele au fost ajustate.
+        </div>
+        <?php endif; ?>
+
         <h1 class="wp-page-title">Test A/B — Hero</h1>
         <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">
             Fiecare vizitator al paginii principale vede aleatoriu (1/2) una din cele două variante
@@ -81,6 +115,28 @@ function clp_ab_h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, '
             </tbody>
         </table>
         </div>
+
+        <?php if (is_owner()): ?>
+        <form method="post" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;max-width:980px">
+            <input type="hidden" name="csrf_token" value="<?= clp_ab_h(csrf_token()) ?>">
+            <input type="hidden" name="ab_adjust" value="headline">
+            <?php foreach ($variants as $v => $info): ?>
+            <fieldset style="border:1px solid var(--border,#ddd);border-radius:8px;padding:8px 12px">
+                <legend style="font-size:12px;font-weight:700;padding:0 4px">Variantă <?= $v ?></legend>
+                <label style="font-size:12px;display:inline-flex;flex-direction:column;gap:2px;margin-right:8px">Δ afișări
+                    <input type="number" step="1" value="0" name="hl[<?= $v ?>][views]" style="width:90px;padding:4px">
+                </label>
+                <label style="font-size:12px;display:inline-flex;flex-direction:column;gap:2px">Δ click-uri
+                    <input type="number" step="1" value="0" name="hl[<?= $v ?>][clicks]" style="width:90px;padding:4px">
+                </label>
+            </fieldset>
+            <?php endforeach; ?>
+            <button type="submit" class="btn" style="padding:8px 16px">Aplică ajustarea</button>
+        </form>
+        <p style="color:var(--text-muted);font-size:12px;margin-top:6px">
+            Delta cu semn (ex. <code>-35</code> scoate 35 de afișări). Nu coboară sub 0.
+        </p>
+        <?php endif; ?>
 
         <?php if ($total_views === 0): ?>
         <p style="color:var(--text-muted);font-size:13px;margin-top:16px">
@@ -128,6 +184,28 @@ function clp_ab_h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, '
             </tbody>
         </table>
         </div>
+
+        <?php if (is_owner()): ?>
+        <form method="post" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;max-width:980px">
+            <input type="hidden" name="csrf_token" value="<?= clp_ab_h(csrf_token()) ?>">
+            <input type="hidden" name="ab_adjust" value="button">
+            <?php foreach ($btn_variants as $v => $desc): ?>
+            <fieldset style="border:1px solid var(--border,#ddd);border-radius:8px;padding:8px 12px">
+                <legend style="font-size:12px;font-weight:700;padding:0 4px"><?= $v === 'on' ? 'Cu buton' : 'Fără buton' ?></legend>
+                <label style="font-size:12px;display:inline-flex;flex-direction:column;gap:2px;margin-right:8px">Δ afișări
+                    <input type="number" step="1" value="0" name="btn[<?= $v ?>][views]" style="width:90px;padding:4px">
+                </label>
+                <label style="font-size:12px;display:inline-flex;flex-direction:column;gap:2px">Δ click-uri
+                    <input type="number" step="1" value="0" name="btn[<?= $v ?>][clicks]" style="width:90px;padding:4px">
+                </label>
+            </fieldset>
+            <?php endforeach; ?>
+            <button type="submit" class="btn" style="padding:8px 16px">Aplică ajustarea</button>
+        </form>
+        <p style="color:var(--text-muted);font-size:12px;margin-top:6px">
+            Delta cu semn (ex. <code>-20</code> scoate 20 de afișări). Nu coboară sub 0.
+        </p>
+        <?php endif; ?>
 
         <?php if ($btn_total_views === 0): ?>
         <p style="color:var(--text-muted);font-size:13px;margin-top:16px">
