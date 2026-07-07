@@ -65,17 +65,11 @@ $settings = array_merge($_defaults, $_loaded);
     .ideas-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 36px 64px;
         margin-top: 40px;
     }
     @media (min-width: 768px) {
         .ideas-grid { grid-template-columns: 1fr 1fr; }
-    }
-    .idea-card {
-        background: var(--surface);
-        border: 1px solid rgba(255,255,255,.08);
-        border-radius: 16px;
-        padding: 24px 26px;
     }
     .idea-card h2 {
         display: flex;
@@ -86,6 +80,7 @@ $settings = array_merge($_defaults, $_loaded);
         color: var(--text);
     }
     .idea-card ul {
+        list-style: disc;
         margin: 0;
         padding-left: 20px;
         display: flex;
@@ -93,6 +88,9 @@ $settings = array_merge($_defaults, $_loaded);
         gap: 8px;
         color: var(--text-muted);
         line-height: 1.55;
+    }
+    .idea-card li::marker {
+        color: var(--accent);
     }
     .ideas-cta {
         margin-top: 48px;
@@ -143,7 +141,7 @@ $settings = array_merge($_defaults, $_loaded);
             Înapoi
         </a>
         <h1>Cursuri posibile</h1>
-        <div style="color:var(--text-muted);line-height:1.8;max-width:720px;">
+        <div style="color:var(--text-muted);line-height:1.8;">
             <p><?= nl2br(htmlspecialchars($ideas['intro'] ?? '')) ?></p>
         </div>
 
