@@ -8,6 +8,7 @@
     const state = {
         hero:    (window.CLP_HERO || []).slice(),
         gallery: (window.CLP_GALLERY || []).slice(),
+        transforms: Object.assign({}, window.CLP_TRANSFORMS || {}),
     };
     const strips = {
         hero:    document.getElementById('hero-strip'),
@@ -22,6 +23,19 @@
 
     function thumbFor(url) {
         return THUMBS[url] || url;
+    }
+
+    function transformFor(url) {
+        const t = state.transforms[url] || {};
+        return { x: t.x ?? 50, y: t.y ?? 50, zoom: t.zoom ?? 100 };
+    }
+
+    // Aplică poziția/zoom-ul pe thumbnail-ul din bandă (mini-preview live)
+    function applyThumbTransform(img, url) {
+        const t = transformFor(url);
+        img.style.objectPosition = t.x + '% ' + t.y + '%';
+        img.style.transform = 'scale(' + (t.zoom / 100) + ')';
+        img.style.transformOrigin = t.x + '% ' + t.y + '%';
     }
 
     function markDirty() {
@@ -58,6 +72,7 @@
             img.alt = nameFor(url);
             img.loading = 'lazy';
             img.decoding = 'async';
+            if (target === 'hero') applyThumbTransform(img, url);
 
             const remove = document.createElement('button');
             remove.type = 'button';
@@ -67,6 +82,17 @@
             remove.addEventListener('click', () => toggle(target, url));
 
             item.append(badge, img, remove);
+
+            if (target === 'hero') {
+                const cog = document.createElement('button');
+                cog.type = 'button';
+                cog.className = 'img-strip-cog';
+                cog.title = 'Poziție & zoom';
+                cog.textContent = '⚙';
+                cog.addEventListener('click', () => openEditor(url));
+                item.appendChild(cog);
+            }
+
             strip.appendChild(item);
         });
         wireDrag(strip, target);
@@ -117,7 +143,13 @@
         const list = state[target];
         const idx = list.indexOf(url);
         if (idx === -1) list.push(url);
-        else list.splice(idx, 1);
+        else {
+            list.splice(idx, 1);
+            if (target === 'hero') {
+                delete state.transforms[url];
+                if (editor.url === url) closeEditor();
+            }
+        }
         markDirty();
         renderStrip(target);
         syncChips();
@@ -129,6 +161,70 @@
             chip.classList.toggle('is-active', active);
         });
     }
+
+    // ── Editor poziție & zoom hero ──
+    const editor = {
+        url: null,
+        box:    document.getElementById('hero-editor'),
+        bg:     document.getElementById('hero-editor-bg'),
+        name:   document.getElementById('hero-editor-name'),
+        x:      document.getElementById('he-x'),
+        y:      document.getElementById('he-y'),
+        zoom:   document.getElementById('he-zoom'),
+        valX:   document.getElementById('val-x'),
+        valY:   document.getElementById('val-y'),
+        valZoom:document.getElementById('val-zoom'),
+    };
+
+    function openEditor(url) {
+        editor.url = url;
+        const t = transformFor(url);
+        editor.x.value = t.x;
+        editor.y.value = t.y;
+        editor.zoom.value = t.zoom;
+        editor.name.textContent = nameFor(url);
+        editor.bg.style.backgroundImage = "url('" + thumbFor(url) + "')";
+        editor.box.hidden = false;
+        applyEditorPreview();
+        editor.box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeEditor() {
+        editor.url = null;
+        editor.box.hidden = true;
+    }
+
+    function applyEditorPreview() {
+        const x = +editor.x.value, y = +editor.y.value, z = +editor.zoom.value;
+        editor.valX.textContent = x + '%';
+        editor.valY.textContent = y + '%';
+        editor.valZoom.textContent = z + '%';
+        editor.bg.style.backgroundPosition = x + '% ' + y + '%';
+        editor.bg.style.transform = 'scale(' + (z / 100) + ')';
+        editor.bg.style.transformOrigin = x + '% ' + y + '%';
+    }
+
+    function onEditorInput() {
+        if (!editor.url) return;
+        const x = +editor.x.value, y = +editor.y.value, z = +editor.zoom.value;
+        state.transforms[editor.url] = { x: x, y: y, zoom: z };
+        applyEditorPreview();
+        // reflectă live pe thumbnail-ul din bandă
+        const item = strips.hero.querySelector('.img-strip-item[data-url="' + cssEsc(editor.url) + '"] img');
+        if (item) applyThumbTransform(item, editor.url);
+        markDirty();
+    }
+
+    function cssEsc(s) {
+        return (window.CSS && CSS.escape) ? CSS.escape(s) : s.replace(/["\\]/g, '\\$&');
+    }
+
+    [editor.x, editor.y, editor.zoom].forEach((el) => el && el.addEventListener('input', onEditorInput));
+    document.getElementById('hero-editor-close')?.addEventListener('click', closeEditor);
+    document.getElementById('hero-editor-reset')?.addEventListener('click', () => {
+        editor.x.value = 50; editor.y.value = 50; editor.zoom.value = 100;
+        onEditorInput();
+    });
 
     // Chips din bibliotecă
     document.querySelectorAll('.img-chip').forEach((chip) => {
@@ -151,6 +247,7 @@
         };
         state.hero.forEach((u) => add('hero_images[]', u));
         state.gallery.forEach((u) => add('gallery_featured[]', u));
+        add('hero_transforms', JSON.stringify(state.transforms));
     });
 
     renderStrip('hero');

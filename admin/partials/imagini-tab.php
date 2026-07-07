@@ -37,6 +37,7 @@
             $img_names[$im['url']]  = $im['name'];
             $img_thumbs[$im['url']] = $im['thumb'] ?? $im['url'];
         }
+        $hero_transforms = $settings['hero_transforms'] ?? [];
     ?>
 
     <!-- Selecție Hero + Galerie -->
@@ -45,8 +46,31 @@
 
         <div class="card img-select-card">
             <div class="card-title">Hero — slideshow pagina principală</div>
-            <p class="img-hint">Trage pentru a reordona. <strong>Imaginea ① se încarcă instant</strong>; restul rulează în slideshow la fiecare 4.5s. Adaugă/scoate imagini din Bibliotecă (butonul <span class="img-hint-chip">Hero</span>).</p>
+            <p class="img-hint">Trage pentru a reordona. <strong>Imaginea ① se încarcă instant</strong>; restul rulează în slideshow la fiecare 4.5s. Adaugă/scoate din Bibliotecă (butonul <span class="img-hint-chip">Hero</span>). Apasă <strong>⚙</strong> pe o imagine ca să-i reglezi poziția și zoom-ul.</p>
             <div class="img-strip" id="hero-strip" data-target="hero"></div>
+
+            <div class="hero-editor" id="hero-editor" hidden>
+                <div class="hero-editor-preview" id="hero-editor-preview">
+                    <div class="hero-editor-bg" id="hero-editor-bg"></div>
+                    <div class="hero-editor-frame"></div>
+                </div>
+                <div class="hero-editor-controls">
+                    <div class="hero-editor-head">
+                        <span id="hero-editor-name">Poziționare hero</span>
+                        <button type="button" class="hero-editor-close" id="hero-editor-close" title="Închide">✕</button>
+                    </div>
+                    <label class="hero-slider">Sus ↕ jos <span id="val-y">50%</span>
+                        <input type="range" id="he-y" min="0" max="100" step="1" value="50">
+                    </label>
+                    <label class="hero-slider">Stânga ↔ dreapta <span id="val-x">50%</span>
+                        <input type="range" id="he-x" min="0" max="100" step="1" value="50">
+                    </label>
+                    <label class="hero-slider">Zoom <span id="val-zoom">100%</span>
+                        <input type="range" id="he-zoom" min="100" max="200" step="1" value="100">
+                    </label>
+                    <button type="button" class="btn btn-sm" id="hero-editor-reset">Resetează</button>
+                </div>
+            </div>
         </div>
 
         <div class="card img-select-card">
@@ -93,4 +117,5 @@
         window.CLP_GALLERY = <?= json_encode($gallery_sel, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         window.CLP_NAMES   = <?= json_encode($img_names, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         window.CLP_THUMBS  = <?= json_encode($img_thumbs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+        window.CLP_TRANSFORMS = <?= json_encode((object)$hero_transforms, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     </script>
