@@ -285,8 +285,8 @@ $__page_title = h($course['name']);
 include __DIR__ . '/../layout_header.php';
 ?>
 <link rel="stylesheet" href="/admin/statistici/style.css?v=2">
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/admin/statistici/js/pdf.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="/admin/statistici/js/pdf.min.js"></script>
 <style>
     .course-wrap { max-width: 800px; margin: 0 auto; }
     .course-hero { margin-bottom: 28px; }
@@ -710,7 +710,9 @@ include __DIR__ . '/../layout_header.php';
 })();
 
 // ── Viză PDF upload + text extraction ────────────────────────────────────────
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/admin/statistici/js/pdf.worker.min.js';
+document.addEventListener('DOMContentLoaded', function () {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/admin/statistici/js/pdf.worker.min.js';
+});
 
 // Butonul "Extrage date" — fetch PDF de pe server, extrage text, submit
 (function() {
