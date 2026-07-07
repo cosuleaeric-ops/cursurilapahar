@@ -67,6 +67,8 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
     }
     body { padding-top: 88px; }
+    .benefits-bullets { list-style: disc; }
+    .benefits-bullets li::marker { color: var(--accent); }
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
     <?php include __DIR__ . '/includes/edit-styles.php'; ?>
@@ -112,7 +114,7 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
             <p <?= clp_e('gazduieste_intro_1', $settings) ?>><?= $gazduieste_intro_1 ?></p>
             <p <?= clp_e('gazduieste_intro_2', $settings) ?> style="margin-top:16px;"><?= $gazduieste_intro_2 ?></p>
             <p style="margin-top:16px;"><strong>De ce să devii locație parteneră?</strong></p>
-            <ul style="margin-top:8px;padding-left:20px;">
+            <ul class="benefits-bullets" style="margin-top:8px;padding-left:20px;">
                 <li><strong>Vizibilitate:</strong> Atragi un public nou, dornic de experiențe de calitate.</li>
                 <li><strong>Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
                 <li><strong>Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
