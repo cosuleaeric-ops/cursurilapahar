@@ -593,24 +593,9 @@ ul { list-style: none; }
   letter-spacing: .14em;
   text-transform: uppercase;
   z-index: 4;
-  transform-origin: center;
   box-shadow: 0 4px 14px rgba(220,38,38,.5);
-  animation: new-badge-pulse 1.6s ease-in-out infinite;
 }
 .new-badge--below-discount { top: 60px; }
-@keyframes new-badge-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 4px 14px rgba(220,38,38,.5), 0 0 0 0 rgba(220,38,38,.55);
-  }
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(220,38,38,.65), 0 0 0 8px rgba(220,38,38,0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .new-badge { animation: none; }
-}
 
 .sold-out-badge {
   position: absolute;
