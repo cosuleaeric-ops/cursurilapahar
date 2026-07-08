@@ -48,6 +48,7 @@
                 <div class="form-group">
                     <label for="f_lt_url">Link bilete (LiveTickets / iaBilet)</label>
                     <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()" value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="refetchLTImage()" style="margin-top:6px">↻ Preia imaginea din nou</button>
                 </div>
             </div>
             <script>

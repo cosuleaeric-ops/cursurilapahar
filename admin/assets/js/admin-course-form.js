@@ -209,6 +209,13 @@
         }, 400);
     };
 
+    window.refetchLTImage = function () {
+        document.getElementById('f_image_url').value = '';
+        const img = document.getElementById('prev_img');
+        if (img) { img.src = ''; img.style.display = 'none'; }
+        fetchLTImage();
+    };
+
     document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);
     clpInitSpeakerCombobox();
     clpInitLocationCombobox();
