@@ -53,7 +53,7 @@
 
     // ── Save course
     if ($action === 'save_course') {
-        require_once dirname(__DIR__) . '/lib/livetickets.php';
+        require_once dirname(__DIR__) . '/lib/course_image.php';
 
         $id = trim($_POST['course_id'] ?? '');
         $title = trim($_POST['title'] ?? '');
@@ -84,7 +84,7 @@
         }
 
         if ($livetickets_url !== '' && $image_url === '') {
-            $lt = lt_fetch_event_by_url($livetickets_url);
+            $lt = clp_fetch_course_meta_by_url($livetickets_url);
             if (!empty($lt['success']) && !empty($lt['data']['image_url'])) {
                 $image_url = $lt['data']['image_url'];
                 if ($location === '' && !empty($lt['data']['location'])) {

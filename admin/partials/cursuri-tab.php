@@ -46,7 +46,7 @@
                     <div id="f_location_suggestions" class="location-suggestions" hidden></div>
                 </div>
                 <div class="form-group">
-                    <label for="f_lt_url">Link LiveTickets</label>
+                    <label for="f_lt_url">Link bilete (LiveTickets / iaBilet)</label>
                     <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()" value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
                 </div>
             </div>
