@@ -94,6 +94,23 @@
         }
 
         $courses = clp_load_courses_for_admin();
+
+        $existing = null;
+        if ($id !== '') {
+            foreach ($courses as $c) {
+                if (($c['id'] ?? '') === $id) { $existing = $c; break; }
+            }
+        }
+
+        // „NOU" 48h: momentul în care linkul de bilete a fost pus prima dată.
+        // - link nou pus acum → timpul curent
+        // - avea deja link → păstrăm marcajul existent (gol la cursuri vechi = nu e nou)
+        $link_added_at = '';
+        if ($livetickets_url !== '') {
+            $had_link_before = $existing && trim($existing['livetickets_url'] ?? '') !== '';
+            $link_added_at = $had_link_before ? trim($existing['link_added_at'] ?? '') : date('c');
+        }
+
         $entry = [
             'id'              => $id ?: uniqid('c', true),
             'title'           => $title,
@@ -108,6 +125,9 @@
             'active'          => $livetickets_url !== '',
             'admin_stats'     => true,
         ];
+        if ($link_added_at !== '') {
+            $entry['link_added_at'] = $link_added_at;
+        }
         if ($id) {
             $found = false;
             foreach ($courses as &$c) {

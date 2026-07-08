@@ -44,6 +44,20 @@ function clp_course_has_ticket_link(array $course): bool
     return trim($course['livetickets_url'] ?? '') !== '';
 }
 
+/** Durata în care un curs e marcat „NOU" din momentul în care i s-a pus linkul. */
+const CLP_COURSE_NEW_SECONDS = 48 * 3600;
+
+/** Curs „NOU": linkul de bilete a fost adăugat în ultimele 48h. */
+function clp_course_is_new(array $course): bool
+{
+    $added = trim($course['link_added_at'] ?? '');
+    if ($added === '') {
+        return false;
+    }
+    $ts = strtotime($added);
+    return $ts !== false && (time() - $ts) < CLP_COURSE_NEW_SECONDS;
+}
+
 /** Curs vizibil pe site-ul public (activ + link LiveTickets obligatoriu) */
 function clp_course_is_public(array $course): bool
 {

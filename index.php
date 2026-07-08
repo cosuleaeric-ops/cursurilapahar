@@ -98,6 +98,13 @@ foreach ($courses as $c) {
     break;
 }
 
+// ── Cursurile „NOU" (link pus în ultimele 48h) apar primele, tot pe dată ──────
+usort($courses, function ($a, $b) {
+    $na = clp_course_is_new($a) ? 0 : 1;
+    $nb = clp_course_is_new($b) ? 0 : 1;
+    return $na !== $nb ? $na - $nb : strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '');
+});
+
 // ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
 $soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
 $soldout_cache = file_exists($soldout_cache_file)
@@ -249,6 +256,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $badge_day = $date_raw ? date('d', strtotime($date_raw)) : '';
                 $badge_month = $date_raw ? strtoupper(date('M', strtotime($date_raw))) : '';
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
+                $is_new = clp_course_is_new($course);
                 $datetime_label = clp_course_datetime_label($course);
                 $card_title = clp_course_title_for_card($course);
                 $discount_active = false;
@@ -281,6 +289,9 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     <?php endif; ?>
                     <?php if ($discount_active): ?>
                     <div class="discount-badge">−<?= $discount_pct ?>%</div>
+                    <?php endif; ?>
+                    <?php if ($is_new): ?>
+                    <div class="new-badge<?= $discount_active ? ' new-badge--below-discount' : '' ?>">NOU</div>
                     <?php endif; ?>
                 </div>
                 <div class="event-card-body">

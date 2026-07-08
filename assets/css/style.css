@@ -581,6 +581,22 @@ ul { list-style: none; }
   letter-spacing: .03em;
 }
 
+.new-badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: #dc2626;
+  color: #fff;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: .8rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  z-index: 3;
+  box-shadow: 0 4px 14px rgba(220,38,38,.45);
+}
+.new-badge--below-discount { top: 58px; }
+
 .sold-out-badge {
   position: absolute;
   top: 50%;
