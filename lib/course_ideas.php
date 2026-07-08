@@ -62,7 +62,7 @@ function clp_default_course_ideas(): array {
                 'topics' => [
                     'De ce urmăm mulțimea: psihologia grupului',
                     'Cum ne modelează rețelele sociale comportamentul',
-                    'Brainrot: ce ne face scrollul infinit minții și atenției',
+                    'Brainrot: efectele dăunătoare ale scroll-ului infinit',
                     'Dezinformarea: cum recunoști o minciună',
                     'Subculturi și triburi moderne',
                     'Cum se schimbă normele de la o generație la alta',
@@ -285,12 +285,14 @@ function clp_migrate_course_ideas(array $data): array {
         if (!in_array($cat['title'], $existing, true)) $data['categories'][] = $cat;
         $changed = true;
     }
-    if (empty($data['migration_brainrot_2026_07'])) {
-        $data['migration_brainrot_2026_07'] = true;
-        $topic = 'Brainrot: ce ne face scrollul infinit minții și atenției';
+    if (empty($data['migration_brainrot_2026_07b'])) {
+        $data['migration_brainrot_2026_07b'] = true;
+        $old = 'Brainrot: ce ne face scrollul infinit minții și atenției';
+        $topic = 'Brainrot: efectele dăunătoare ale scroll-ului infinit';
         foreach ($data['categories'] as &$cat) {
             if (($cat['title'] ?? '') === 'Sociologie & Societate') {
-                if (!in_array($topic, $cat['topics'] ?? [], true)) $cat['topics'][] = $topic;
+                $cat['topics'] = array_values(array_diff($cat['topics'] ?? [], [$old]));
+                if (!in_array($topic, $cat['topics'], true)) $cat['topics'][] = $topic;
                 break;
             }
         }
