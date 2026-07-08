@@ -62,6 +62,7 @@ function clp_default_course_ideas(): array {
                 'topics' => [
                     'De ce urmăm mulțimea: psihologia grupului',
                     'Cum ne modelează rețelele sociale comportamentul',
+                    'Brainrot: ce ne face scrollul infinit minții și atenției',
                     'Dezinformarea: cum recunoști o minciună',
                     'Subculturi și triburi moderne',
                     'Cum se schimbă normele de la o generație la alta',
@@ -282,6 +283,18 @@ function clp_migrate_course_ideas(array $data): array {
         $cat = clp_media_journalism_category();
         $existing = array_map(fn($c) => $c['title'] ?? '', $data['categories']);
         if (!in_array($cat['title'], $existing, true)) $data['categories'][] = $cat;
+        $changed = true;
+    }
+    if (empty($data['migration_brainrot_2026_07'])) {
+        $data['migration_brainrot_2026_07'] = true;
+        $topic = 'Brainrot: ce ne face scrollul infinit minții și atenției';
+        foreach ($data['categories'] as &$cat) {
+            if (($cat['title'] ?? '') === 'Sociologie & Societate') {
+                if (!in_array($topic, $cat['topics'] ?? [], true)) $cat['topics'][] = $topic;
+                break;
+            }
+        }
+        unset($cat);
         $changed = true;
     }
     if ($changed) clp_save_course_ideas($data);
