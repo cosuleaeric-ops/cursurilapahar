@@ -35,16 +35,11 @@ require_once __DIR__ . '/lib/courses.php';
 require_once __DIR__ . '/lib/livetickets.php';
 require_once __DIR__ . '/lib/course_clicks.php';
 
-// ── Test A/B headline hero ────────────────────────────────────────────────────
-require_once __DIR__ . '/lib/ab_headline.php';
-$ab_variant = clp_ab_headline_assign();
-
 // ── Test A/B buton „Vreau să vin" pe cardurile de curs ────────────────────────
 require_once __DIR__ . '/lib/ab_button.php';
 $ab_button = clp_ab_button_assign();
 
 if (clp_should_count_course_click()) {
-    clp_ab_headline_track($ab_variant, 'views');
     clp_ab_button_track($ab_button, 'views');
 }
 
@@ -140,7 +135,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <meta property="og:site_name" content="Cursuri la Pahar">
     <meta property="og:locale" content="ro_RO">
     <meta property="og:title" content="Cursuri la Pahar – Educație la un pahar în oraș">
-    <meta property="og:description" content="Cursuri de la care nu vrei să chiulești. Experți și profesori îți predau la un pahar, într-un bar din București.">
+    <meta property="og:description" content="Învață ceva nou la un pahar în oraș. Experți și profesori îți predau la un pahar, într-un bar din București.">
     <meta property="og:url" content="https://cursurilapahar.ro/">
     <meta property="og:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <meta property="og:image:width" content="1200">
@@ -148,7 +143,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <meta property="og:image:alt" content="Cursuri la Pahar – curs ținut într-un bar plin din București">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Cursuri la Pahar – Educație la un pahar în oraș">
-    <meta name="twitter:description" content="Cursuri de la care nu vrei să chiulești. Experți și profesori îți predau la un pahar, într-un bar din București.">
+    <meta name="twitter:description" content="Învață ceva nou la un pahar în oraș. Experți și profesori îți predau la un pahar, într-un bar din București.">
     <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,7 +229,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         <?php if ($hero_next_label !== ''): ?>
         <div class="hero-next-card"><span class="hero-next-dot"></span><?= htmlspecialchars($hero_next_label) ?></div>
         <?php endif; ?>
-        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
+        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $settings['hero_title'] ?></h1>
         <p class="hero-subtitle">Experți și profesori îți predau la un pahar, într-un bar din București.</p>
         <a href="#cursuri" class="btn btn-primary hero-cta">Vezi cursurile ↓</a>
     </div>
