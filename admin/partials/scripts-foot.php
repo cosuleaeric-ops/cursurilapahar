@@ -7,7 +7,7 @@
 <script>window.CLP_IS_OWNER = <?= is_owner() ? 'true' : 'false' ?>;</script>
 <script src="/admin/assets/js/admin-mesaje.js?v=3"></script>
 <?php elseif ($tab === 'speakeri'): ?>
-<script src="/admin/assets/js/admin-speakeri.js?v=4"></script>
+<script src="/admin/assets/js/admin-speakeri.js?v=5"></script>
 <?php elseif ($tab === 'aspect'): ?>
 <script src="/assets/js/coloris.min.js"></script>
 <script src="/admin/assets/js/admin-aspect.js?v=1"></script>

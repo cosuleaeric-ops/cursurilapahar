@@ -17,13 +17,64 @@ function spFilter(btn) {
         row.style.display = (badge && badge.textContent.trim() === status) ? '' : 'none';
     });
 }
-function spContactatEdit(data) {
+// .bc-doc are animation cu transform => e containing block pt position:fixed;
+// mutăm modalul în <body> ca overlay-ul să acopere tot viewport-ul.
+function spShowModal() {
+    const modal = document.getElementById('sp-modal');
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.style.display = 'flex';
+}
+function spResetForm() {
+    const modal = document.getElementById('sp-modal');
+    modal.querySelectorAll('input[type=text],input[type=email],textarea').forEach(el => el.value = '');
+    modal.querySelector('[name="speaker_id"]').value = '';
+    modal.querySelector('[name="sp_status"]').value = 'MID';
+    document.getElementById('sp-courses-list').innerHTML = '';
+    spAddCourse();
+    spModalTab('contact');
+}
+function spSetCourses(courses) {
+    const list = document.getElementById('sp-courses-list');
+    list.innerHTML = '';
+    (courses && courses.length ? courses : ['']).forEach(c => {
+        spAddCourse();
+        list.lastElementChild.querySelector('input').value = c;
+    });
+}
+function spNew() {
+    spResetForm();
+    document.getElementById('sp-modal-title').textContent = 'Adaugă speaker';
+    document.getElementById('sp-modal-submit').textContent = 'Adaugă speakerul';
+    spShowModal();
+}
+function spEdit(data) {
+    spResetForm();
     const modal = document.getElementById('sp-modal');
     modal.querySelector('[name="speaker_id"]').value = data.id || '';
     modal.querySelector('[name="sp_name"]').value = data.name || '';
     modal.querySelector('[name="sp_email"]').value = data.email || '';
     modal.querySelector('[name="sp_phone"]').value = data.phone || '';
-    modal.style.display = 'flex';
+    modal.querySelector('[name="sp_status"]').value = data.status || 'MID';
+    modal.querySelector('[name="sp_notes"]').value = data.notes || '';
+    spSetCourses(Array.isArray(data.courses) ? data.courses : (data.courses ? [data.courses] : []));
+    modal.querySelectorAll('textarea[name^="meet_"]').forEach(el => {
+        const key = el.name.slice(5);
+        el.value = (data.meet && data.meet[key]) || '';
+    });
+    document.getElementById('sp-modal-title').textContent = 'Editează speaker';
+    document.getElementById('sp-modal-submit').textContent = 'Salvează';
+    spShowModal();
+}
+function spContactatEdit(data) {
+    spResetForm();
+    const modal = document.getElementById('sp-modal');
+    modal.querySelector('[name="speaker_id"]').value = data.id || '';
+    modal.querySelector('[name="sp_name"]').value = data.name || '';
+    modal.querySelector('[name="sp_email"]').value = data.email || '';
+    modal.querySelector('[name="sp_phone"]').value = data.phone || '';
+    document.getElementById('sp-modal-title').textContent = 'Editează speaker';
+    document.getElementById('sp-modal-submit').textContent = 'Salvează';
+    spShowModal();
 }
 function spScoate(btn, id) {
     const fd = new FormData();
@@ -81,5 +132,11 @@ function spSetStatus(status) {
 document.addEventListener('click', e => {
     const pop = document.getElementById('sp-status-pop');
     if (pop && !pop.contains(e.target) && !e.target.classList.contains('crm-status-badge')) pop.style.display = 'none';
+});
+
+// dacă modalul e deschis din server (?edit=...), mută-l în <body> ca să acopere tot
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('sp-modal');
+    if (modal && modal.parentElement !== document.body) document.body.appendChild(modal);
 });
 

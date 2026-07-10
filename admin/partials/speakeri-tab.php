@@ -5,7 +5,10 @@
 <div class="card">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>Speakeri (<?= count($speakers) ?>)</span>
-        <button type="button" onclick="document.getElementById('sp-modal').style.display='flex'" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
+        <div style="display:flex;gap:8px">
+            <a href="/prezinta-un-curs" target="_blank" class="btn btn-sm btn-secondary">Formular speakeri ↗</a>
+            <button type="button" onclick="spNew()" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
+        </div>
     </div>
     <?php if (empty($speakers) && empty($_sp_contacted)): ?>
     <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
@@ -76,8 +79,12 @@
                 <span class="crm-status-badge" style="background:<?= $sc ?>;cursor:pointer;user-select:none;position:relative" onclick="spStatusPop(this,'<?= h($sp['id'] ?? '') ?>')"><?= h($sp['status'] ?? 'MID') ?></span>
             </td>
             <td>
+                <?php
+                $sp_payload = $sp;
+                $sp_payload['courses'] = array_values(array_filter($sp_c));
+                ?>
                 <div class="row-actions">
-                    <a href="/admin/?tab=speakeri&edit=<?= h($sp['id'] ?? '') ?>" class="btn btn-sm btn-secondary">Editează</a>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="spEdit(<?= h(json_encode($sp_payload, JSON_UNESCAPED_UNICODE)) ?>)">Editează</button>
                     <form method="post" action="/admin/?tab=speakeri" onsubmit="return confirm('Ștergi speakerul?')" style="display:inline">
                         <input type="hidden" name="action" value="delete_speaker">
                         <input type="hidden" name="id" value="<?= h($sp['id'] ?? '') ?>">
@@ -95,7 +102,7 @@
 
 <div id="sp-modal" style="display:<?= $edit_sp ? 'flex' : 'none' ?>;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
 <div class="card crm-form" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
-    <div class="card-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
+    <div class="card-title" id="sp-modal-title"><?= $edit_sp ? 'Editează speaker' : 'Adaugă speaker' ?></div>
     <form method="post" action="/admin/?tab=speakeri">
         <input type="hidden" name="action" value="save_speaker">
         <input type="hidden" name="speaker_id" value="<?= h($edit_sp['id'] ?? '') ?>">
@@ -152,8 +159,8 @@
         <?php endforeach; ?>
         </div>
         <div style="display:flex;gap:8px;margin-top:16px">
-            <button type="submit" class="btn btn-primary btn-sm"><?= $edit_sp ? 'Salvează' : 'Adaugă speakerul' ?></button>
-            <a href="/admin/?tab=speakeri" class="btn btn-secondary btn-sm">Anulează</a>
+            <button type="submit" class="btn btn-primary btn-sm" id="sp-modal-submit"><?= $edit_sp ? 'Salvează' : 'Adaugă speakerul' ?></button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('sp-modal').style.display='none'">Anulează</button>
         </div>
     </form>
 </div>
