@@ -155,6 +155,28 @@ function clp_contacted_message_leads(): array {
     return $leads;
 }
 
+/**
+ * Submisiile din formularul „Prezintă un curs”, mapate pe speakerii existenți (după email/telefon).
+ * Blocurile sunt newest-first, deci prima potrivire = cea mai recentă submisie.
+ * @return array<string, array{date: string, fields: array<string, string>}> speaker_id => submisie
+ */
+function clp_speaker_form_submissions_by_speaker(array $speakers): array {
+    $map = [];
+    foreach (clp_read_message_log_blocks() as $block) {
+        preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
+        if (trim($m[2] ?? '') !== 'sustine') continue;
+        $fields = clp_parse_message_block_fields($block);
+        $em = $fields['Email'] ?? $fields['email'] ?? '';
+        $ph = $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '';
+        $idx = clp_find_speaker_index_by_contact($speakers, $em, $ph);
+        if ($idx < 0) continue;
+        $sid = $speakers[$idx]['id'] ?? '';
+        if ($sid === '' || isset($map[$sid])) continue;
+        $map[$sid] = ['date' => trim($m[1] ?? ''), 'fields' => $fields];
+    }
+    return $map;
+}
+
 function clp_mark_messages_read(): void {
     file_put_contents(clp_messages_last_read_file(), date('Y-m-d H:i:s'), LOCK_EX);
 }

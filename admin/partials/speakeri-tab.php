@@ -5,10 +5,7 @@
 <div class="card">
     <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>Speakeri (<?= count($speakers) ?>)</span>
-        <div style="display:flex;gap:8px">
-            <a href="/prezinta-un-curs" target="_blank" class="btn btn-sm btn-secondary">Formular speakeri ↗</a>
-            <button type="button" onclick="spNew()" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
-        </div>
+        <button type="button" onclick="spNew()" class="btn btn-sm btn-primary">+ Adaugă speaker</button>
     </div>
     <?php if (empty($speakers) && empty($_sp_contacted)): ?>
     <p style="color:var(--text-muted)">Nu există speakeri adăugați încă.</p>
@@ -84,6 +81,19 @@
                 $sp_payload['courses'] = array_values(array_filter($sp_c));
                 ?>
                 <div class="row-actions">
+                    <?php if (isset($sp_form_submissions[$sp['id'] ?? ''])):
+                        $sp_sub = $sp_form_submissions[$sp['id']];
+                        $sp_lbls = clp_sustine_field_labels();
+                        $sp_form_rows = [];
+                        foreach ($sp_sub['fields'] as $fk => $fv) {
+                            $fk_lc = strtolower($fk);
+                            if ($fk_lc === 'trimis de pe' || $fk_lc === 'data') continue;
+                            $sp_form_rows[] = ['label' => $sp_lbls[$fk] ?? $fk, 'value' => $fv];
+                        }
+                        $sp_form_payload = ['name' => $sp['name'] ?? '', 'date' => $sp_sub['date'], 'rows' => $sp_form_rows];
+                    ?>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="spFormular(<?= h(json_encode($sp_form_payload, JSON_UNESCAPED_UNICODE)) ?>)">Formular</button>
+                    <?php endif; ?>
                     <button type="button" class="btn btn-sm btn-secondary" onclick="spEdit(<?= h(json_encode($sp_payload, JSON_UNESCAPED_UNICODE)) ?>)">Editează</button>
                     <form method="post" action="/admin/?tab=speakeri" onsubmit="return confirm('Ștergi speakerul?')" style="display:inline">
                         <input type="hidden" name="action" value="delete_speaker">
@@ -163,6 +173,18 @@
             <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('sp-modal').style.display='none'">Anulează</button>
         </div>
     </form>
+</div>
+</div>
+
+<!-- Modal read-only: formularul completat de speaker -->
+<div id="sp-form-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
+<div class="card" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
+    <div class="card-title" id="sp-form-title">Formular speaker</div>
+    <div id="sp-form-date" style="font-size:12px;color:var(--text-muted);margin:-8px 0 16px"></div>
+    <div id="sp-form-rows"></div>
+    <div style="margin-top:16px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('sp-form-modal').style.display='none'">Închide</button>
+    </div>
 </div>
 </div>
 

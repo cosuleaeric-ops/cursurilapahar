@@ -65,6 +65,27 @@ function spEdit(data) {
     document.getElementById('sp-modal-submit').textContent = 'Salvează';
     spShowModal();
 }
+function spFormular(data) {
+    const modal = document.getElementById('sp-form-modal');
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    document.getElementById('sp-form-title').textContent = 'Formular: ' + (data.name || '');
+    document.getElementById('sp-form-date').textContent = data.date ? 'Trimis pe ' + data.date : '';
+    const wrap = document.getElementById('sp-form-rows');
+    wrap.innerHTML = '';
+    (data.rows || []).forEach(r => {
+        const row = document.createElement('div');
+        row.style.cssText = 'margin-bottom:12px';
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.02em;margin-bottom:2px';
+        lbl.textContent = r.label;
+        const val = document.createElement('div');
+        val.style.cssText = 'font-size:13px;white-space:pre-wrap';
+        val.textContent = r.value || '—';
+        row.appendChild(lbl); row.appendChild(val);
+        wrap.appendChild(row);
+    });
+    modal.style.display = 'flex';
+}
 function spContactatEdit(data) {
     spResetForm();
     const modal = document.getElementById('sp-modal');
