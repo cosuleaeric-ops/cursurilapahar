@@ -110,17 +110,6 @@ function clp_marketing_new_id(): string
 }
 
 /** @param array{sections: list<array<string, mixed>>} $data */
-function clp_marketing_unique_section_id(array $data, string $baseId): string
-{
-    $existing = array_column($data['sections'], 'id');
-    $id = $baseId;
-    while (in_array($id, $existing, true)) {
-        $id = $baseId . '-' . substr(clp_marketing_new_id(), 0, 4);
-    }
-    return $id;
-}
-
-/** @param array{sections: list<array<string, mixed>>} $data */
 function clp_marketing_delete_section(array $data, string $sectionId): array
 {
     if ($sectionId === '' || count($data['sections']) <= 1) {
@@ -150,12 +139,4 @@ function clp_marketing_find_section(array $data, string $sectionId): ?array
         }
     }
     return null;
-}
-
-function clp_marketing_slug(string $title): string
-{
-    $s = strtolower(trim($title));
-    $s = preg_replace('/[^a-z0-9]+/u', '-', $s) ?? '';
-    $s = trim($s, '-');
-    return $s !== '' ? $s : clp_marketing_new_id();
 }

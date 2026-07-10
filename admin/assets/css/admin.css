@@ -715,8 +715,7 @@ td span[style*="background:#e5e7eb"] {
 /* ── Marketing (Notion-style post ideas) ── */
 .mkt-page { max-width: none; }
 .mkt-page > .mkt-title,
-.mkt-page > .mkt-lead,
-.mkt-page > .mkt-add-section { max-width: 980px; }
+.mkt-page > .mkt-lead { max-width: 980px; }
 .mkt-page > .mkt-section { max-width: none; }
 .mkt-breadcrumb { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 .mkt-breadcrumb a { color: var(--text-muted); text-decoration: none; }
@@ -869,22 +868,6 @@ td span[style*="background:#e5e7eb"] {
     border-bottom-color: var(--border);
     background: var(--bg-warm);
     border-radius: 4px 4px 0 0;
-}
-.mkt-add-section {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-}
-.mkt-add-section input {
-    flex: 1;
-    max-width: 280px;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 14px;
 }
 .mkt-competitori {
     margin-top: 40px;

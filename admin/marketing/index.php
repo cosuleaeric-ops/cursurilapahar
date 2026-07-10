@@ -85,20 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         clp_marketing_save($data);
     }
 
-    if ($action === 'add_section') {
-        $title = trim($_POST['title'] ?? '');
-        if ($title !== '') {
-            $id = clp_marketing_unique_section_id($data, clp_marketing_slug($title));
-            $data['sections'][] = [
-                'id'          => $id,
-                'title'       => $title,
-                'items'       => [],
-                'is_default'  => false,
-            ];
-            clp_marketing_save($data);
-        }
-    }
-
     if ($action === 'delete_section') {
         $sectionId = trim($_POST['section_id'] ?? '');
         $before = count($data['sections']);
@@ -243,13 +229,6 @@ $csrf = csrf_token();
         <?php endif; ?>
     </section>
     <?php endforeach; ?>
-
-    <form method="post" class="mkt-add-section">
-        <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
-        <input type="hidden" name="action" value="add_section">
-        <input type="text" name="title" placeholder="Nume secțiune nouă (ex. Video)" autocomplete="off">
-        <button type="submit" class="btn btn-secondary btn-sm">+ Secțiune</button>
-    </form>
 
     <section id="competitori" class="mkt-competitori">
         <h2 class="mkt-section-title">Competitori</h2>
