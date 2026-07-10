@@ -723,12 +723,20 @@
     if ($action === 'save_speaker') {
         $id    = trim($_POST['speaker_id'] ?? '');
         $items = load_speakers();
+        // Cursurile se editează în modalul Detalii, nu în formularul de editare;
+        // dacă nu sunt trimise, păstrează-le pe cele existente ca să nu le ștergem.
+        $existing_courses = [];
+        if ($id) {
+            foreach ($items as $it0) {
+                if (($it0['id'] ?? '') === $id) { $existing_courses = $it0['courses'] ?? []; break; }
+            }
+        }
         $entry = [
             'id'      => $id ?: uniqid('sp', true),
             'name'    => trim($_POST['sp_name']    ?? ''),
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
-            'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
+            'courses' => isset($_POST['sp_courses']) ? array_values(array_filter(array_map('trim', $_POST['sp_courses']))) : $existing_courses,
             'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT','URMEAZĂ']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
@@ -784,6 +792,23 @@
             save_speakers($items);
         }
         header('Location: /admin/?tab=speakeri');
+        exit;
+    }
+
+    // ── Save courses list for speaker (AJAX, din modalul Detalii → tab Cursuri)
+    if ($action === 'save_speaker_courses') {
+        header('Content-Type: application/json');
+        $id = trim($_POST['id'] ?? '');
+        if (!$id) { echo json_encode(['ok' => false]); exit; }
+        $courses = array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? [])));
+        $items = load_speakers();
+        $found = false;
+        foreach ($items as &$it) {
+            if (($it['id'] ?? '') === $id) { $it['courses'] = $courses; $found = true; break; }
+        }
+        unset($it);
+        if ($found) save_speakers($items);
+        echo json_encode(['ok' => $found, 'courses' => $courses]);
         exit;
     }
 

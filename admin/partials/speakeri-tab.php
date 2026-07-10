@@ -23,7 +23,6 @@
             <tr>
                 <th>Nume</th>
                 <th>Contact</th>
-                <th>Cursuri</th>
                 <th style="width:90px">Status</th>
                 <th style="width:150px">Acțiuni</th>
             </tr>
@@ -40,7 +39,6 @@
                 <?php if ($c['email']): ?><div><?= h($c['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['email']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
                 <?php if ($c['phone']): ?><div><?= h($c['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($c['phone']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
             </td>
-            <td></td>
             <td><span class="crm-status-badge" style="background:#2271b1">CONTACTAT</span></td>
             <td>
                 <div class="row-actions">
@@ -50,50 +48,60 @@
             </td>
         </tr>
         <?php endforeach; ?>
-        <?php foreach ($speakers as $sp): ?>
+        <?php foreach ($speakers as $sp):
+            // cursurile speaker-ului (normalizate)
+            $sp_c = $sp['courses'] ?? [];
+            if (is_string($sp_c)) $sp_c = $sp_c ? [$sp_c] : [];
+            $sp_c = array_values(array_filter($sp_c));
+            // payload pt modalul Editează
+            $sp_payload = $sp;
+            $sp_payload['courses'] = $sp_c;
+            // payload pt modalul Detalii (tab Formular + tab Cursuri)
+            $sp_form_rows = [];
+            $sp_form_date = '';
+            if (isset($sp_form_submissions[$sp['id'] ?? ''])) {
+                $sp_sub = $sp_form_submissions[$sp['id']];
+                $sp_form_date = $sp_sub['date'];
+                $sp_lbls = clp_sustine_field_labels();
+                foreach ($sp_sub['fields'] as $fk => $fv) {
+                    $fk_lc = strtolower($fk);
+                    if ($fk_lc === 'trimis de pe' || $fk_lc === 'data') continue;
+                    $sp_form_rows[] = ['label' => $sp_lbls[$fk] ?? $fk, 'value' => $fv];
+                }
+            }
+            $sp_detalii_payload = [
+                'id'        => $sp['id'] ?? '',
+                'name'      => $sp['name'] ?? '',
+                'courses'   => $sp_c,
+                'form_date' => $sp_form_date,
+                'form_rows' => $sp_form_rows,
+            ];
+        ?>
         <tr>
             <td style="font-weight:600">
-                <?= h($sp['name'] ?? '') ?>
-                <?php if (!empty($sp['notes'])): ?>
-                <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px"><?= h(mb_substr($sp['notes'], 0, 60)) ?><?= mb_strlen($sp['notes']) > 60 ? '…' : '' ?></div>
-                <?php endif; ?>
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                    <button type="button" class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0" onclick="spDetalii(<?= h(json_encode($sp_detalii_payload, JSON_UNESCAPED_UNICODE)) ?>)" title="Detalii">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        Detalii
+                    </button>
+                    <div>
+                        <?= h($sp['name'] ?? '') ?>
+                        <?php if (!empty($sp['notes'])): ?>
+                        <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px"><?= h(mb_substr($sp['notes'], 0, 60)) ?><?= mb_strlen($sp['notes']) > 60 ? '…' : '' ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </td>
             <td style="font-size:13px">
                 <?php if (!empty($sp['email'])): ?><div><?= h($sp['email']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($sp['email']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
                 <?php if (!empty($sp['phone'])): ?><div><?= h($sp['phone']) ?> <button type="button" class="sp-copy-btn" data-copy="<?= h($sp['phone']) ?>" onclick="spCopy(this)" title="Copiază"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div><?php endif; ?>
             </td>
             <td>
-                <?php
-                $sp_c = $sp['courses'] ?? [];
-                if (is_string($sp_c)) $sp_c = $sp_c ? [$sp_c] : [];
-                foreach (array_filter($sp_c) as $sp_cv):
-                ?>
-                <span style="display:inline-block;background:#e5e7eb;color:#374151;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:500;margin:2px 2px 2px 0"><?= h($sp_cv) ?></span>
-                <?php endforeach; ?>
-            </td>
-            <td>
                 <?php $sc = $sp_status_colors[$sp['status'] ?? 'MID'] ?? '#6b7280'; ?>
                 <span class="crm-status-badge" style="background:<?= $sc ?>;cursor:pointer;user-select:none;position:relative" onclick="spStatusPop(this,'<?= h($sp['id'] ?? '') ?>')"><?= h($sp['status'] ?? 'MID') ?></span>
             </td>
             <td>
-                <?php
-                $sp_payload = $sp;
-                $sp_payload['courses'] = array_values(array_filter($sp_c));
-                ?>
                 <div class="row-actions">
-                    <?php if (isset($sp_form_submissions[$sp['id'] ?? ''])):
-                        $sp_sub = $sp_form_submissions[$sp['id']];
-                        $sp_lbls = clp_sustine_field_labels();
-                        $sp_form_rows = [];
-                        foreach ($sp_sub['fields'] as $fk => $fv) {
-                            $fk_lc = strtolower($fk);
-                            if ($fk_lc === 'trimis de pe' || $fk_lc === 'data') continue;
-                            $sp_form_rows[] = ['label' => $sp_lbls[$fk] ?? $fk, 'value' => $fv];
-                        }
-                        $sp_form_payload = ['name' => $sp['name'] ?? '', 'date' => $sp_sub['date'], 'rows' => $sp_form_rows];
-                    ?>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="spFormular(<?= h(json_encode($sp_form_payload, JSON_UNESCAPED_UNICODE)) ?>)">Formular</button>
-                    <?php endif; ?>
                     <button type="button" class="btn btn-sm btn-secondary" onclick="spEdit(<?= h(json_encode($sp_payload, JSON_UNESCAPED_UNICODE)) ?>)">Editează</button>
                     <form method="post" action="/admin/?tab=speakeri" onsubmit="return confirm('Ștergi speakerul?')" style="display:inline">
                         <input type="hidden" name="action" value="delete_speaker">
@@ -128,31 +136,12 @@
             <div class="form-group"><label>Email</label><input type="email" name="sp_email" value="<?= h($edit_sp['email'] ?? '') ?>"></div>
             <div class="form-group"><label>Telefon</label><input type="text" name="sp_phone" value="<?= h($edit_sp['phone'] ?? '') ?>"></div>
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px">
-            <div class="form-group">
-                <label>Cursuri susținute</label>
-                <?php
-                $sp_courses_arr = $edit_sp['courses'] ?? [];
-                if (is_string($sp_courses_arr)) $sp_courses_arr = $sp_courses_arr ? [$sp_courses_arr] : [];
-                if (empty($sp_courses_arr)) $sp_courses_arr = [''];
-                ?>
-                <div id="sp-courses-list" style="display:flex;flex-direction:column;gap:4px">
-                <?php foreach ($sp_courses_arr as $sc_val): ?>
-                    <div style="display:flex;gap:4px;align-items:center">
-                        <input type="text" name="sp_courses[]" value="<?= h($sc_val) ?>" style="flex:1;padding:5px 9px;font-size:12px">
-                        <button type="button" onclick="this.closest('div').remove()" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0 7px;height:28px;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1">×</button>
-                    </div>
+        <div class="form-group" style="max-width:200px"><label>Status</label>
+            <select name="sp_status">
+                <?php foreach (['CONTACTAT','URMEAZĂ','RECURENT','MID','NOPE'] as $s): ?>
+                <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
                 <?php endforeach; ?>
-                </div>
-                <button type="button" onclick="spAddCourse()" style="margin-top:4px;background:none;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:#6b7280">+ curs</button>
-                            </div>
-            <div class="form-group"><label>Status</label>
-                <select name="sp_status">
-                    <?php foreach (['CONTACTAT','URMEAZĂ','RECURENT','MID','NOPE'] as $s): ?>
-                    <option value="<?= $s ?>" <?= ($edit_sp['status'] ?? 'MID') === $s ? 'selected' : '' ?>><?= $s ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+            </select>
         </div>
         <div class="form-group"><label>Note</label><textarea name="sp_notes" rows="2"><?= h($edit_sp['notes'] ?? '') ?></textarea></div>
         </div>
@@ -176,14 +165,32 @@
 </div>
 </div>
 
-<!-- Modal read-only: formularul completat de speaker -->
-<div id="sp-form-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
+<!-- Modal Detalii speaker: tab Formular (read-only) + tab Cursuri (editabil) -->
+<div id="sp-detalii-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)" onclick="if(event.target===this)this.style.display='none'">
 <div class="card" style="width:min(640px,95vw);max-height:90vh;overflow-y:auto;margin:0;position:relative">
-    <div class="card-title" id="sp-form-title">Formular speaker</div>
-    <div id="sp-form-date" style="font-size:12px;color:var(--text-muted);margin:-8px 0 16px"></div>
-    <div id="sp-form-rows"></div>
-    <div style="margin-top:16px">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('sp-form-modal').style.display='none'">Închide</button>
+    <div class="card-title" id="sp-detalii-title">Detalii speaker</div>
+    <input type="hidden" id="sp-detalii-id" value="">
+    <!-- taburi -->
+    <div style="display:flex;gap:4px;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:20px;width:fit-content">
+        <button type="button" id="sp-dt-btn-formular" onclick="spDetaliiTab('formular')" style="padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1)">Formular</button>
+        <button type="button" id="sp-dt-btn-cursuri" onclick="spDetaliiTab('cursuri')" style="padding:5px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#6b7280">Cursuri</button>
+    </div>
+    <!-- Tab: Formular -->
+    <div id="sp-dt-formular">
+        <div id="sp-dt-form-date" style="font-size:12px;color:var(--text-muted);margin:-8px 0 16px"></div>
+        <div id="sp-dt-form-rows"></div>
+    </div>
+    <!-- Tab: Cursuri -->
+    <div id="sp-dt-cursuri" style="display:none">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Cursuri pe care le poate susține</label>
+        <div id="sp-dt-courses-list" style="display:flex;flex-direction:column;gap:4px"></div>
+        <button type="button" onclick="spDtAddCourse()" style="margin-top:6px;background:none;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:#6b7280">+ curs</button>
+        <div style="margin-top:16px">
+            <button type="button" class="btn btn-primary btn-sm" id="sp-dt-save" onclick="spDtSaveCourses()">Salvează cursurile</button>
+        </div>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid #eef2f7;padding-top:12px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('sp-detalii-modal').style.display='none'">Închide</button>
     </div>
 </div>
 </div>
