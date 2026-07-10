@@ -79,10 +79,9 @@
         ?>
         <tr>
             <td style="font-weight:600">
-                <div style="display:flex;align-items:flex-start;gap:8px">
-                    <button type="button" class="btn btn-sm btn-secondary" style="padding:2px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0" onclick="spDetalii(<?= h(json_encode($sp_detalii_payload, JSON_UNESCAPED_UNICODE)) ?>)" title="Detalii">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        Detalii
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button type="button" class="btn btn-sm btn-secondary" style="padding:5px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;line-height:0" onclick="spDetalii(<?= h(json_encode($sp_detalii_payload, JSON_UNESCAPED_UNICODE)) ?>)" title="Detalii">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                     </button>
                     <div>
                         <?= h($sp['name'] ?? '') ?>
