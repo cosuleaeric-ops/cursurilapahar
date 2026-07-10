@@ -88,7 +88,9 @@ function parse_viza_subtips(string $text): array {
     $seen = [];
     if (preg_match_all($pattern2, $text, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $m) {
-            $key = trim($m[3]) . '_' . $m[4];
+            // Cheia include tariful: două produse pot împărți aceeași serie+de_la
+            // (ex. „Bilet student" și „Bilet standard" ambele OHU 0001-...), fără să fie duplicate.
+            $key = trim($m[3]) . '_' . $m[4] . '_' . (string)(float)str_replace(',', '.', $m[2]);
             if (isset($seen[$key])) continue;
             $seen[$key] = true;
             $subtips[] = [
@@ -108,7 +110,7 @@ function parse_viza_subtips(string $text): array {
         foreach ($pm as $m) {
             $seria = trim($m[3][0]);
             $de_la = $m[4][0];
-            $key   = $seria . '_' . $de_la;
+            $key   = $seria . '_' . $de_la . '_' . (string)(float)str_replace(',', '.', $m[2][0]);
             if (isset($seen[$key])) continue;
             // Search the next 400 chars for a standalone 4+ digit number (the pana_la)
             $after = substr($text, $m[0][1] + strlen($m[0][0]), 400);
@@ -133,8 +135,6 @@ function parse_viza_subtips(string $text): array {
         if (!preg_match('/^\s*([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/u', $lines[$i], $sm)) continue;
         $seria = trim($sm[1]);
         $de_la = $sm[2];
-        $key   = $seria . '_' . $de_la;
-        if (isset($seen[$key])) continue;
 
         // pana_la: standalone number within the next few lines
         $pana = null;
@@ -154,6 +154,9 @@ function parse_viza_subtips(string $text): array {
         }
         if (!$row) continue;
 
+        // Cheie cu tarif (vezi pattern2): serii partajate între produse nu sunt duplicate.
+        $key = $seria . '_' . $de_la . '_' . (string)(float)str_replace(',', '.', $row[2]);
+        if (isset($seen[$key])) continue;
         $seen[$key] = true;
         $subtips[] = [
             'nr_unitati' => (int)$row[1],

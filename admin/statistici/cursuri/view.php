@@ -535,16 +535,14 @@ include __DIR__ . '/../layout_header.php';
           <div class="viza-date">Incarcat <?php echo h(substr($vf['uploaded_at'], 0, 10)); ?></div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <?php if (empty($vizaSubtips)): ?>
-            <form method="post" style="margin:0" id="reprocessVizaForm">
-              <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
-              <input type="hidden" name="action" value="reprocess_viza">
-              <input type="hidden" name="viza_text" id="reprocessVizaText">
-              <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
-                data-pdf-url="/admin/statistici/cursuri/view.php?id=<?php echo $id; ?>&action=serve_viza"
-                title="Extrage date din PDF">&#8635; Extrage date</button>
-            </form>
-          <?php endif; ?>
+          <form method="post" style="margin:0" id="reprocessVizaForm">
+            <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+            <input type="hidden" name="action" value="reprocess_viza">
+            <input type="hidden" name="viza_text" id="reprocessVizaText">
+            <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
+              data-pdf-url="/admin/statistici/cursuri/view.php?id=<?php echo $id; ?>&action=serve_viza"
+              title="Extrage date din PDF">&#8635; Extrage date</button>
+          </form>
           <form method="post" onsubmit="return confirm('Stergi viză?');" style="margin:0">
             <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
             <input type="hidden" name="action" value="delete_viza">
