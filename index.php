@@ -134,16 +134,16 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Cursuri la Pahar">
     <meta property="og:locale" content="ro_RO">
-    <meta property="og:title" content="Cursuri la Pahar – Educație la un pahar în oraș">
-    <meta property="og:description" content="Învață ceva nou la un pahar în oraș. Experți și profesori îți predau la un pahar, într-un bar din București.">
+    <meta property="og:title" content="Învață ceva nou la un pahar în oraș">
+    <meta property="og:description" content="Experți și profesori îți predau la un pahar, într-un bar din București.">
     <meta property="og:url" content="https://cursurilapahar.ro/">
     <meta property="og:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Cursuri la Pahar – curs ținut într-un bar plin din București">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Cursuri la Pahar – Educație la un pahar în oraș">
-    <meta name="twitter:description" content="Învață ceva nou la un pahar în oraș. Experți și profesori îți predau la un pahar, într-un bar din București.">
+    <meta name="twitter:title" content="Învață ceva nou la un pahar în oraș">
+    <meta name="twitter:description" content="Experți și profesori îți predau la un pahar, într-un bar din București.">
     <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
