@@ -27,6 +27,16 @@ function addQlRow() {
     document.getElementById('qlRows').appendChild(row);
 }
 
+function clpCopyTemplate(btn) {
+    const text = btn.getAttribute('data-tpl-text') || '';
+    navigator.clipboard.writeText(text).then(function () {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✅ Copiat!';
+        btn.disabled = true;
+        setTimeout(function () { btn.innerHTML = orig; btn.disabled = false; }, 1400);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('user-switcher-btn');
     var menu = document.getElementById('user-switcher-menu');

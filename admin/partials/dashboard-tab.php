@@ -119,6 +119,23 @@ if (!empty($_ql)): ?>
 </div>
 <?php endif; ?>
 
+<?php $_tpls = $settings['templates'] ?? []; ?>
+<?php if (!empty($_tpls)): ?>
+<div class="dash-section" style="margin-bottom:24px">
+    <div class="dash-section-title">
+        <span>Templates</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+    <?php foreach ($_tpls as $_tpl): ?>
+        <button type="button" class="ql-btn" data-tpl-text="<?= h($_tpl['text'] ?? '') ?>" onclick="clpCopyTemplate(this)">
+            <span style="font-size:15px"><?= h($_tpl['icon'] ?? '📋') ?></span>
+            <?= h($_tpl['label'] ?? '') ?>
+        </button>
+    <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php
 $_dash_cal_json = [];
 foreach ($_dash_courses as $_c) {
