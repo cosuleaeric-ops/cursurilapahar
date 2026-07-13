@@ -47,7 +47,7 @@ require __DIR__ . '/bootstrap.php';
 <script>tailwind={config:{corePlugins:{preflight:false}}}</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/coloris.min.css">
-<link rel="stylesheet" href="/admin/assets/css/admin.css?v=43">
+<link rel="stylesheet" href="/admin/assets/css/admin.css?v=44">
 </head>
 <body>
 
@@ -132,9 +132,6 @@ require __DIR__ . '/partials/colaborari-tab.php';
 
 <?php elseif ($tab === 'config'): ?>
 <?php require __DIR__ . '/partials/config-tab.php'; ?>
-
-<?php elseif ($tab === 'templates'): ?>
-<?php require __DIR__ . '/partials/templates-tab.php'; ?>
 
 <?php elseif ($tab === 'cursuri-posibile'): ?>
 <?php $course_ideas = clp_load_course_ideas(); require __DIR__ . '/partials/cursuri-posibile-tab.php'; ?>
