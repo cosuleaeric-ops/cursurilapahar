@@ -94,6 +94,7 @@ $__bc_labels = [
     'mesaje' => 'Mesaje', 'marketing' => 'Marketing', 'imagini' => 'Imagini',
     'aspect' => 'Aspect', 'vot' => 'Vot cursuri', 'colaborari' => 'Colaborări',
     'config' => 'Setări', 'securitate' => 'Setări', 'kit' => 'Setări',
+    'templates' => 'Templates',
     'cursuri-posibile' => 'Cursuri posibile',
     'pnl' => 'P&L Cursuri',
 ];

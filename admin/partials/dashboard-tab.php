@@ -120,21 +120,24 @@ if (!empty($_ql)): ?>
 <?php endif; ?>
 
 <?php $_tpls = $settings['templates'] ?? []; ?>
-<?php if (!empty($_tpls)): ?>
 <div class="dash-section" style="margin-bottom:24px">
     <div class="dash-section-title">
         <span>Templates</span>
+        <a href="/admin/?tab=templates">Editează →</a>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:10px">
-    <?php foreach ($_tpls as $_tpl): ?>
-        <button type="button" class="ql-btn" data-tpl-text="<?= h($_tpl['text'] ?? '') ?>" onclick="clpCopyTemplate(this)">
-            <span style="font-size:15px"><?= h($_tpl['icon'] ?? '📋') ?></span>
-            <?= h($_tpl['label'] ?? '') ?>
-        </button>
-    <?php endforeach; ?>
-    </div>
+    <?php if (empty($_tpls)): ?>
+        <p class="bc-card-empty">Niciun template încă. <a href="/admin/?tab=templates" style="color:var(--accent)">Adaugă unul</a>.</p>
+    <?php else: ?>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <?php foreach ($_tpls as $_tpl): ?>
+            <button type="button" class="ql-btn" data-tpl-text="<?= h($_tpl['text'] ?? '') ?>" onclick="clpCopyTemplate(this)">
+                <span style="font-size:15px"><?= h($_tpl['icon'] ?? '📋') ?></span>
+                <?= h($_tpl['label'] ?? '') ?>
+            </button>
+        <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </div>
-<?php endif; ?>
 
 <?php
 $_dash_cal_json = [];

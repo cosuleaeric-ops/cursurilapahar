@@ -319,6 +319,26 @@
         exit;
     }
 
+    // ── Save templates (Eric + Andy)
+    if ($action === 'save_templates') {
+        $settings = load_settings();
+        $labels = $_POST['tpl_label'] ?? [];
+        $texts  = $_POST['tpl_text']  ?? [];
+        $icons  = $_POST['tpl_icon']  ?? [];
+        $tpls   = [];
+        for ($i = 0; $i < count($labels); $i++) {
+            $lbl = trim($labels[$i] ?? '');
+            $txt = trim($texts[$i]  ?? '');
+            if ($lbl && $txt) {
+                $tpls[] = ['icon' => trim($icons[$i] ?? '') ?: '📋', 'label' => $lbl, 'text' => $txt];
+            }
+        }
+        $settings['templates'] = $tpls;
+        save_settings($settings);
+        header('Location: /admin/?tab=templates&saved=1');
+        exit;
+    }
+
     // ── Recurring tasks (Owner only) ──────────────────────────────────────────
     if (in_array($action, ['add_recurring', 'save_recurring', 'delete_recurring', 'save_recurring_system'], true) && is_owner()) {
         require_once dirname(__DIR__) . '/lib/recurring.php';

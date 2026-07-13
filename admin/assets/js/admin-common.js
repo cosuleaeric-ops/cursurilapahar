@@ -27,6 +27,59 @@ function addQlRow() {
     document.getElementById('qlRows').appendChild(row);
 }
 
+function tplToggle(view) {
+    const card = view.closest('.tpl-card');
+    const edit = card.querySelector('.tpl-edit');
+    edit.hidden = !edit.hidden;
+    card.classList.toggle('open', !edit.hidden);
+}
+
+function tplSyncTitle(inp) {
+    const t = inp.closest('.tpl-card').querySelector('.tpl-view-title');
+    t.textContent = inp.value.trim() || 'Template fără titlu';
+}
+
+function tplSyncIcon(inp) {
+    const el = inp.closest('.tpl-card').querySelector('.tpl-view-icon');
+    el.textContent = inp.value.trim() || '📋';
+}
+
+function tplSyncPreview(ta) {
+    const card = ta.closest('.tpl-card');
+    card.querySelector('.tpl-view-preview').textContent = ta.value.trim() || 'gol';
+    const cb = card.querySelector('.tpl-copy-btn');
+    if (cb) cb.setAttribute('data-tpl-text', ta.value);
+}
+
+function addTemplateRow() {
+    const card = document.createElement('div');
+    card.className = 'tpl-card open';
+    card.innerHTML =
+        '<div class="tpl-view" onclick="tplToggle(this)">'
+        + '<span class="tpl-chevron">▸</span>'
+        + '<span class="tpl-view-icon">📋</span>'
+        + '<div class="tpl-view-main">'
+        + '<div class="tpl-view-title">Template fără titlu</div>'
+        + '<div class="tpl-view-preview">gol</div>'
+        + '</div>'
+        + '<button type="button" class="tpl-copy-btn" data-tpl-text="" onclick="event.stopPropagation();clpCopyTemplate(this)">📋 Copiază</button>'
+        + '</div>'
+        + '<div class="tpl-edit">'
+        + '<label class="tpl-lbl">Emoji &amp; titlu</label>'
+        + '<div style="display:flex;gap:8px">'
+        + '<input type="text" name="tpl_icon[]" value="📋" oninput="tplSyncIcon(this)" style="width:56px;text-align:center;font-size:18px">'
+        + '<input type="text" name="tpl_label[]" value="" oninput="tplSyncTitle(this)" style="flex:1;font-weight:600">'
+        + '</div>'
+        + '<label class="tpl-lbl">Text mesaj</label>'
+        + '<textarea name="tpl_text[]" rows="6" oninput="tplSyncPreview(this)"></textarea>'
+        + '<div class="tpl-edit-actions">'
+        + '<button type="button" class="btn btn-secondary btn-sm" onclick="tplToggle(this.closest(\'.tpl-card\').querySelector(\'.tpl-view\'))">Închide</button>'
+        + '<button type="button" class="btn btn-danger btn-sm tpl-del" onclick="this.closest(\'.tpl-card\').remove()">Șterge</button>'
+        + '</div></div>';
+    document.getElementById('tplRows').appendChild(card);
+    card.querySelector('input[name="tpl_label[]"]').focus();
+}
+
 function clpCopyTemplate(btn) {
     const text = btn.getAttribute('data-tpl-text') || '';
     navigator.clipboard.writeText(text).then(function () {
