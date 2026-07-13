@@ -144,13 +144,24 @@ function clp_ditl_base(array $types, float $fallback): float
 }
 
 /** @param list<array<string, mixed>> $types */
-function clp_vandute_for_tarif(array $types, float $tarif): ?int
+function clp_vandute_for_tarif(array $types, float $tarif, ?int $nrUnitati = null): ?int
 {
     $key = (string)(float)$tarif;
+    $cands = [];
     foreach ($types as $type) {
         if ((string)(float)($type['pret'] ?? 0) === $key) {
-            return isset($type['vandute']) ? (int)$type['vandute'] : null;
+            $cands[] = $type;
         }
     }
-    return null;
+    if (!$cands) return null;
+    if (count($cands) === 1) {
+        return isset($cands[0]['vandute']) ? (int)$cands[0]['vandute'] : null;
+    }
+    // mai multe tipuri la acelasi pret: dezambiguizeaza dupa cantitate (nr. bilete = vandute)
+    if ($nrUnitati !== null) {
+        foreach ($cands as $c) {
+            if ((int)($c['vandute'] ?? -1) === $nrUnitati) return (int)$c['vandute'];
+        }
+    }
+    return isset($cands[0]['vandute']) ? (int)$cands[0]['vandute'] : null;
 }

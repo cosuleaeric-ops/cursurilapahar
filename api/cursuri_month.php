@@ -67,7 +67,7 @@ foreach ($ditl_rows as $r) {
     unset($r['types']);
     $subtips = $viza_subtips[(int)$r['id']] ?? [];
     foreach ($subtips as &$sub) {
-        $sub['vandute'] = clp_vandute_for_tarif($types, (float)$sub['tarif']);
+        $sub['vandute'] = clp_vandute_for_tarif($types, (float)$sub['tarif'], (int)$sub['nr_unitati']);
     }
     unset($sub);
     $r['subtips'] = $subtips;
