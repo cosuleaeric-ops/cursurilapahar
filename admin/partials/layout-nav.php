@@ -55,6 +55,7 @@ $__org_active  = in_array($tab ?? '', ['locatii', 'colaborari'], true);
 $__site_active = in_array($tab ?? '', ['vot', 'imagini', 'aspect'], true) || $__ab_active;
 ?>
 <nav class="bc-botnav">
+    <a href="/admin/" class="<?= ($tab ?? '') === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
     <a href="/admin/marketing/" class="<?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">Marketing</a>
     <a href="/admin/?tab=speakeri" class="<?= ($tab ?? '') === 'speakeri' ? 'active' : '' ?>">Speakeri</a>
 
