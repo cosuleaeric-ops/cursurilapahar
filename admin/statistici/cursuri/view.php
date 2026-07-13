@@ -261,7 +261,8 @@ while ($r = $res->fetchArray(SQLITE3_ASSOC)) $vizaSubtips[] = $r;
 $reportTypes  = ($report && !empty($report['types_json'])) ? (json_decode($report['types_json'], true) ?: []) : [];
 $reportByPrice = [];
 foreach ($reportTypes as $rt) {
-    $reportByPrice[(string)(float)$rt['pret']] = $rt;
+    // mai multe tipuri de bilet pot avea acelasi pret (ex: standard si 1+1 GRATIS la 50 RON)
+    $reportByPrice[(string)(float)$rt['pret']][] = $rt;
 }
 
 // Returning participants: people in this course who attended other CLP courses
@@ -582,7 +583,17 @@ include __DIR__ . '/../layout_header.php';
           <tbody>
             <?php foreach ($vizaSubtips as $sub):
               $key   = (string)(float)$sub['tarif'];
-              $match = $reportByPrice[$key] ?? null;
+              $cands = $reportByPrice[$key] ?? [];
+              $match = null;
+              if (count($cands) === 1) {
+                  $match = $cands[0];
+              } elseif (count($cands) > 1) {
+                  // mai multe tipuri la acelasi pret: dezambiguizeaza dupa cantitate (nr. bilete = vandute)
+                  foreach ($cands as $c) {
+                      if ((int)$c['vandute'] === (int)$sub['nr_unitati']) { $match = $c; break; }
+                  }
+                  if (!$match) $match = $cands[0];
+              }
             ?>
             <tr>
               <td><span class="seria-badge"><?php echo h($sub['seria']); ?></span></td>
