@@ -841,25 +841,55 @@ async function extractPdfText(file) {
         reader.onload = function(e) {
             try {
                 const wb = XLSX.read(e.target.result, { type: 'array' });
-                const wsName = wb.SheetNames.find(n => /vanzari/i.test(n));
-                if (!wsName) {
-                    alert('Fișierul nu are foaia „Vanzari". Încarcă exportul complet al evenimentului (Curs la Pahar - ....xlsx), nu fișierul de decont.');
+                const wsName     = wb.SheetNames.find(n => /vanzari/i.test(n));
+                const decontName = wb.SheetNames.find(n => /decont/i.test(n));
+                if (!wsName && !decontName) {
+                    alert('Fișierul nu are foaia „Vanzari" sau „Decont". Încarcă exportul complet al evenimentului (Curs la Pahar - ....xlsx) sau decontul LiveTickets.');
                     return;
                 }
-                const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: 0 });
 
                 let totalBilete = 0, totalIncasari = 0;
                 const types = [];
-                for (const row of rows) {
-                    const tb      = Number(row['Total bilete']     || row['total_bilete']     || 0);
-                    const refund  = Number(row['Valoare retururi'] || row['valoare_retururi'] || 0);
-                    const ti      = Number(row['Total incasari']   || row['total_incasari']   || 0);
-                    const pret    = Number(row['Pret']             || row['pret']             || 0);
-                    const vandute = Number(row['Vandute']          || row['vandute']          || 0);
-                    const bilet   = String(row['Bilet']            || row['bilet']            || '').trim();
-                    if (!isNaN(tb)) totalBilete   += tb - (isNaN(refund) ? 0 : refund);
-                    if (!isNaN(ti)) totalIncasari += ti;
-                    if (bilet && pret > 0) types.push({ bilet, pret, vandute, refund: isNaN(refund) ? 0 : refund });
+                if (wsName) {
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: 0 });
+                    for (const row of rows) {
+                        const tb      = Number(row['Total bilete']     || row['total_bilete']     || 0);
+                        const refund  = Number(row['Valoare retururi'] || row['valoare_retururi'] || 0);
+                        const ti      = Number(row['Total incasari']   || row['total_incasari']   || 0);
+                        const pret    = Number(row['Pret']             || row['pret']             || 0);
+                        const vandute = Number(row['Vandute']          || row['vandute']          || 0);
+                        const bilet   = String(row['Bilet']            || row['bilet']            || '').trim();
+                        if (!isNaN(tb)) totalBilete   += tb - (isNaN(refund) ? 0 : refund);
+                        if (!isNaN(ti)) totalIncasari += ti;
+                        if (bilet && pret > 0) types.push({ bilet, pret, vandute, refund: isNaN(refund) ? 0 : refund });
+                    }
+                } else {
+                    // Decont LiveTickets: un rand per comanda; seria se deduce din pretul net per bilet
+                    const SERII = { 50: 'Bilet standard', 40: 'Bilet standard', 30: 'Bilet student', 25: 'Bilet student', 20: 'Bilet student' };
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[decontName], { defval: 0 });
+                    const byType = {};
+                    for (const row of rows) {
+                        const id = String(row['ID Comanda'] || '').trim();
+                        if (/comision tranzactie/i.test(id)) { totalIncasari -= Number(row['De transferat'] || 0); continue; }
+                        const nr = Number(row['Nr Bilete'] || 0);
+                        if (!/^\d+$/.test(id) || !(nr > 0)) continue;
+                        const gross    = Number(row['Total bilete']  || 0);
+                        const discount = Number(row['Discount']      || 0);
+                        const comision = Number(row['Comision']      || 0);
+                        const transf   = Number(row['De transferat'] || 0);
+                        totalBilete   += gross;
+                        totalIncasari += transf;
+                        const basePret = Math.round((gross - comision) / nr * 100) / 100;
+                        const pret     = Math.round((gross - comision - discount) / nr * 100) / 100;
+                        const baseName = SERII[basePret] || ('Tarif ' + basePret + ' lei');
+                        const bilet    = (discount > 0 && basePret > 0)
+                            ? 'REDUCERE ' + Math.round((basePret - pret) / basePret * 100) + '% - ' + baseName
+                            : baseName;
+                        const key = bilet + '|' + pret;
+                        if (!byType[key]) byType[key] = { bilet, pret, vandute: 0, refund: 0 };
+                        byType[key].vandute += nr;
+                    }
+                    for (const k in byType) types.push(byType[k]);
                 }
 
                 form.querySelector('[name=total_bilete]').value   = totalBilete.toFixed(2);
