@@ -879,14 +879,11 @@ async function extractPdfText(file) {
                         const transf   = Number(row['De transferat'] || 0);
                         totalBilete   += gross;
                         totalIncasari += transf;
+                        // biletele cu discount raman in seria de baza (pretul nominal), nu serie separata
                         const basePret = Math.round((gross - comision) / nr * 100) / 100;
-                        const pret     = Math.round((gross - comision - discount) / nr * 100) / 100;
-                        const baseName = SERII[basePret] || ('Tarif ' + basePret + ' lei');
-                        const bilet    = (discount > 0 && basePret > 0)
-                            ? 'REDUCERE ' + Math.round((basePret - pret) / basePret * 100) + '% - ' + baseName
-                            : baseName;
-                        const key = bilet + '|' + pret;
-                        if (!byType[key]) byType[key] = { bilet, pret, vandute: 0, refund: 0 };
+                        const bilet    = SERII[basePret] || ('Tarif ' + basePret + ' lei');
+                        const key = bilet + '|' + basePret;
+                        if (!byType[key]) byType[key] = { bilet, pret: basePret, vandute: 0, refund: 0 };
                         byType[key].vandute += nr;
                     }
                     for (const k in byType) types.push(byType[k]);
