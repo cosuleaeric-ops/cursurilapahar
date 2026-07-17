@@ -10,7 +10,7 @@ header('X-Robots-Tag: noindex, nofollow');
 $__page_title = 'P&L — Cursuri la Pahar';
 include __DIR__ . '/../layout_header.php';
 ?>
-<link rel="stylesheet" href="/admin/statistici/style.css?v=14">
+<link rel="stylesheet" href="/admin/statistici/style.css?v=15">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     window.PNL = {
@@ -208,6 +208,10 @@ include __DIR__ . '/../layout_header.php';
       <div class="form-group" id="serviceFeeGroup">
         <label>Banca</label>
         <input type="number" id="cheltuialaServiceFee" step="0.01" min="0.01" placeholder="ex: 0,45" />
+      </div>
+      <div class="form-group">
+        <label>Detalii</label>
+        <input type="text" id="cheltuialaDetalii" autocomplete="off" />
       </div>
       <div class="pnl-modal-actions">
         <button type="button" class="btn btn-ghost" data-close="modalCheltuiala">Anuleaz&#x103;</button>
@@ -725,10 +729,14 @@ function renderTable() {
       catHtml = escCheltuialaCat(cat);
     }
 
+    const detaliiHtml = (!isVenit && r.detalii)
+      ? `<span class="tx-detalii">${esc(r.detalii)}</span>`
+      : '';
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${fmtDate(r.data)}</td>
-      <td>${catHtml}</td>
+      <td>${catHtml}${detaliiHtml}</td>
       <td class="right ${isVenit ? 'suma-green' : 'suma-red'}">
         ${isVenit ? '+' : '−'} ${fmt(r.suma)}
       </td>
@@ -827,6 +835,7 @@ document.getElementById('btnAddCheltuiala').addEventListener('click', () => {
   document.getElementById('cheltuialaCategorie').value = '';
   document.getElementById('cheltuialaServiceFee').value = '';
   document.getElementById('serviceFeeGroup').style.display = '';
+  document.getElementById('cheltuialaDetalii').value = '';
   document.getElementById('errorCheltuiala').style.display = 'none';
   openModal('modalCheltuiala');
 });
@@ -854,6 +863,7 @@ function openEdit(row) {
     document.getElementById('cheltuialaSuma').value = row.suma;
     document.getElementById('cheltuialaServiceFee').value = '';
     document.getElementById('serviceFeeGroup').style.display = 'none';
+    document.getElementById('cheltuialaDetalii').value = row.detalii || '';
     document.getElementById('errorCheltuiala').style.display = 'none';
     document.getElementById('cheltuialaCategorie').value = row.categorie;
     openModal('modalCheltuiala');
@@ -934,6 +944,7 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
     data:      document.getElementById('cheltuialaData').value,
     categorie,
     suma:      document.getElementById('cheltuialaSuma').value,
+    detalii:   document.getElementById('cheltuialaDetalii').value.trim(),
   };
   if (id) body.id = id;
 
@@ -950,6 +961,7 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
       }
       document.getElementById('cheltuialaSuma').value = '';
       document.getElementById('cheltuialaServiceFee').value = '';
+      document.getElementById('cheltuialaDetalii').value = '';
       document.getElementById('cheltuialaSuma').focus();
     }
     refresh();

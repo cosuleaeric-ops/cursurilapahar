@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/../../auth_check.php';
+require_once dirname(__DIR__, 3) . '/lib/pnl_schema.php';
 if (!is_authenticated()) {
     http_response_code(401);
     echo json_encode(['error' => 'Neautorizat']);
@@ -32,8 +33,11 @@ $db->exec("CREATE TABLE IF NOT EXISTS cheltuieli (
     descriere TEXT NOT NULL,
     categorie TEXT NOT NULL,
     suma REAL NOT NULL,
+    detalii TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 )");
+
+clp_pnl_migrate($db);
 
 $db->exec("CREATE TABLE IF NOT EXISTS venit_categorii (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +54,7 @@ foreach (['Curs', 'Depunere capital social'] as $cat) {
     $s = $db->prepare("INSERT OR IGNORE INTO venit_categorii (nume) VALUES (:n)");
     $s->bindValue(':n', $cat); $s->execute();
 }
-foreach (['Onorariu curs','Banca','Impozit curs','Avans','Decont personal','Echipament','Contabilitate','Google Workspace','Hosting','AI','Salariu','Altele'] as $cat) {
+foreach (['Onorariu curs','Banca','Impozit curs','Avans','Decont personal','Echipament','Contabilitate','Google Workspace','Hosting','AI','Salariu','Promovare iaBilet','Backlinks','Altele'] as $cat) {
     $s = $db->prepare("INSERT OR IGNORE INTO cheltuiala_categorii (nume) VALUES (:n)");
     $s->bindValue(':n', $cat); $s->execute();
 }
@@ -444,6 +448,7 @@ function handleAddCheltuiala(SQLite3 $db): void
     $data      = trim($_POST['data']      ?? '');
     $categorie = trim($_POST['categorie'] ?? '');
     $suma      = (float)($_POST['suma']   ?? 0);
+    $detalii   = trim($_POST['detalii']   ?? '');
 
     if (!$data || !$categorie || $suma <= 0) {
         http_response_code(400);
@@ -451,11 +456,12 @@ function handleAddCheltuiala(SQLite3 $db): void
         return;
     }
 
-    $stmt = $db->prepare("INSERT INTO cheltuieli (data, descriere, categorie, suma) VALUES (:data, :descriere, :categorie, :suma)");
+    $stmt = $db->prepare("INSERT INTO cheltuieli (data, descriere, categorie, suma, detalii) VALUES (:data, :descriere, :categorie, :suma, :detalii)");
     $stmt->bindValue(':data', $data);
     $stmt->bindValue(':descriere', $categorie);
     $stmt->bindValue(':categorie', $categorie);
     $stmt->bindValue(':suma', $suma);
+    $stmt->bindValue(':detalii', $detalii);
     $stmt->execute();
 
     echo json_encode(['id' => $db->lastInsertRowID(), 'success' => true]);
@@ -490,6 +496,7 @@ function handleEditCheltuiala(SQLite3 $db): void
     $data      = trim($_POST['data']      ?? '');
     $categorie = trim($_POST['categorie'] ?? '');
     $suma      = (float)($_POST['suma']   ?? 0);
+    $detalii   = trim($_POST['detalii']   ?? '');
 
     if (!$id || !$data || !$categorie || $suma <= 0) {
         http_response_code(400);
@@ -497,11 +504,12 @@ function handleEditCheltuiala(SQLite3 $db): void
         return;
     }
 
-    $stmt = $db->prepare("UPDATE cheltuieli SET data=:data, descriere=:descriere, categorie=:categorie, suma=:suma WHERE id=:id");
+    $stmt = $db->prepare("UPDATE cheltuieli SET data=:data, descriere=:descriere, categorie=:categorie, suma=:suma, detalii=:detalii WHERE id=:id");
     $stmt->bindValue(':data', $data);
     $stmt->bindValue(':descriere', $categorie);
     $stmt->bindValue(':categorie', $categorie);
     $stmt->bindValue(':suma', $suma);
+    $stmt->bindValue(':detalii', $detalii);
     $stmt->bindValue(':id', $id);
     $stmt->execute();
 

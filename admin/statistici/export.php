@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../auth_check.php';
 require __DIR__ . '/db.php';
+require_once dirname(__DIR__, 2) . '/lib/pnl_schema.php';
 if (!is_authenticated()) { http_response_code(401); exit; }
 
 header('Content-Type: application/json; charset=utf-8');
@@ -51,11 +52,12 @@ $pnl_data = ['venituri' => [], 'cheltuieli' => [], 'sumar_lunar' => []];
 
 if (file_exists($pnl_path)) {
     $pnl = new SQLite3($pnl_path);
+    clp_pnl_migrate($pnl);
 
     $res = $pnl->query("SELECT data, descriere, suma FROM venituri ORDER BY data DESC");
     while ($r = $res->fetchArray(SQLITE3_ASSOC)) $pnl_data['venituri'][] = $r;
 
-    $res = $pnl->query("SELECT data, categorie, suma FROM cheltuieli ORDER BY data DESC");
+    $res = $pnl->query("SELECT data, categorie, suma, detalii FROM cheltuieli ORDER BY data DESC");
     while ($r = $res->fetchArray(SQLITE3_ASSOC)) $pnl_data['cheltuieli'][] = $r;
 
     $res = $pnl->query("
