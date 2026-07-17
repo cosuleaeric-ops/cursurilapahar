@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/../../auth_check.php';
-require_once dirname(__DIR__, 3) . '/lib/pnl_schema.php';
 if (!is_authenticated()) {
     http_response_code(401);
     echo json_encode(['error' => 'Neautorizat']);
@@ -37,7 +36,15 @@ $db->exec("CREATE TABLE IF NOT EXISTS cheltuieli (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 )");
 
-clp_pnl_migrate($db);
+// Adaugă coloana „detalii” la bazele create înainte de introducerea ei
+$has_detalii = false;
+$res = $db->query("PRAGMA table_info(cheltuieli)");
+while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+    if ($row['name'] === 'detalii') { $has_detalii = true; break; }
+}
+if (!$has_detalii) {
+    $db->exec("ALTER TABLE cheltuieli ADD COLUMN detalii TEXT NOT NULL DEFAULT ''");
+}
 
 $db->exec("CREATE TABLE IF NOT EXISTS venit_categorii (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
