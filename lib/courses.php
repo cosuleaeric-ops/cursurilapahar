@@ -384,7 +384,7 @@ function clp_dedupe_statistici_course_rows(array $rows): array
         }
     }
     $out = array_values($by_date);
-    usort($out, fn($a, $b) => strcmp($b['date'] ?? '', $a['date'] ?? ''));
+    usort($out, fn($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
     return $out;
 }
 
