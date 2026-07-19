@@ -104,3 +104,18 @@ $__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
 <?php if (!$__bc_is_home): ?>
         <div class="bc-doc-top"><a href="/admin/" class="bc-home-link">Dashboard</a></div>
 <?php endif; ?>
+<script>
+// Scurtaturi tastatura: pe dashboard C = Speakeri, M = Mesaje; pe restul paginilor D = Dashboard
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    var k = e.key.toLowerCase();
+<?php if ($__bc_is_home): ?>
+    if (k === 'c') window.location.href = '/admin/?tab=speakeri';
+    if (k === 'm') window.location.href = '/admin/?tab=mesaje';
+<?php else: ?>
+    if (k === 'd') window.location.href = '/admin/';
+<?php endif; ?>
+});
+</script>
