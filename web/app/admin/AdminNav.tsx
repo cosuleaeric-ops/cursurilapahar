@@ -12,6 +12,7 @@ const TABS = [
   { href: "/admin/voturi", label: "Voturi" },
   { href: "/admin/colaborari", label: "Colaborări" },
   { href: "/admin/pnl", label: "P&L", owner: true },
+  { href: "/admin/setari", label: "Setări", owner: true },
 ];
 
 export default function AdminNav({ role }: { role: string }) {
