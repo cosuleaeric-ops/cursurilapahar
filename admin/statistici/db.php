@@ -103,6 +103,25 @@ function parse_viza_subtips(string $text): array {
         }
     }
 
+    // Format iaBilet (cerere vizare DITL): seria e un interval numeric lung, fara litere,
+    // ex. "Bilet standard 100 51.86 5186.00 12877900100001-12877900100100"
+    $pattern_num = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+(\d{8,})\s*-\s*(\d{8,})\s*$/mu';
+    if (preg_match_all($pattern_num, $text, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $seria = substr($m[3], 0, 6); // primele 6 cifre = ID-ul evenimentului iaBilet
+            $key   = $seria . '_' . $m[3] . '_' . (string)(float)str_replace(',', '.', $m[2]);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $subtips[] = [
+                'nr_unitati' => (int)$m[1],
+                'tarif'      => (float)str_replace(',', '.', $m[2]),
+                'seria'      => $seria,
+                'de_la'      => $m[3],
+                'pana_la'    => $m[4],
+            ];
+        }
+    }
+
     // Fallback: rows where the seria cell wraps across lines in the PDF, causing pana_la
     // to appear separated (possibly after an intervening row in pdftotext -layout output).
     $pattern_partial = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/mu';
