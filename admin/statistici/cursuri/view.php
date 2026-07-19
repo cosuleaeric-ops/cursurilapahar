@@ -680,6 +680,9 @@ include __DIR__ . '/../layout_header.php';
                 parsedRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
                 if (!parsedRows.length) { alert('Fișierul pare gol.'); return; }
                 allHeaders = Object.keys(parsedRows[0]);
+                // Raport comisioane iaBilet: numele + nr. bilete stau impreuna in coloana "Comanda" ("Ion Pop - 2 bilete")
+                const iaBiletNames = parseIaBiletComisioane(parsedRows, allHeaders);
+                if (iaBiletNames) { applyNames(iaBiletNames, 'Comanda'); return; }
                 const detected = detectCol(allHeaders);
                 if (detected) { applyCol(detected); }
                 else {
@@ -689,6 +692,22 @@ include __DIR__ . '/../layout_header.php';
             } catch (err) { alert('Nu am putut citi fișierul.'); }
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    function parseIaBiletComisioane(rows, headers) {
+        const col = headers.find(h => /^comand[aă]$/i.test(h.trim()));
+        if (!col) return null;
+        const statusCol = headers.find(h => /^status/i.test(h.trim()));
+        const names = [];
+        let matched = 0;
+        for (const r of rows) {
+            const m = String(r[col] ?? '').trim().match(/^(.+)\s+-\s+(\d+)\s+bilete?$/i);
+            if (!m) continue; // sare randul "Total" si orice altceva
+            matched++;
+            if (statusCol && !/finalizat/i.test(String(r[statusCol] ?? ''))) continue;
+            for (let i = 0; i < parseInt(m[2], 10); i++) names.push(m[1]);
+        }
+        return matched ? names : null;
     }
 
     function detectCol(headers) {
@@ -706,6 +725,10 @@ include __DIR__ . '/../layout_header.php';
     function applyCol(col) {
         const names = parsedRows.map(r => String(r[col] ?? '').trim()).filter(n => n);
         if (!names.length) { alert('Coloana selectată pare goală.'); return; }
+        applyNames(names, col);
+    }
+
+    function applyNames(names, col) {
         const counts = {};
         names.forEach(n => counts[n] = (counts[n] || 0) + 1);
         const orders = Object.keys(counts).length;
