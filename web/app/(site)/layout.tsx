@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import SiteNav from "./SiteNav";
+import HeadScripts from "./HeadScripts";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       <link rel="stylesheet" href={FONTS} />
       <link rel="stylesheet" href="/assets/css/style.css" />
+      <HeadScripts html={str("head_scripts")} />
       <div style={vars as React.CSSProperties}>
         <SiteNav brand={brand} logo="/assets/images/logo.webp" links={links} />
         {children}

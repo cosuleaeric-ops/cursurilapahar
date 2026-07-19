@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
+import { sendConfirmationEmail } from "@/lib/brevo";
 
 const CATEGORIES = new Set(["sustine", "gazduieste", "parteneriat"]);
 
@@ -27,6 +28,7 @@ export async function submitColaborare(_prev: string | null, formData: FormData)
     INSERT INTO messages (category, name, email, payload)
     VALUES (${category}, ${name || null}, ${email}, ${JSON.stringify(payload)})
   `;
+  await sendConfirmationEmail(category, email, name);
   revalidatePath("/admin/mesaje");
   return "✓ Trimis! Îți răspundem cât putem de repede.";
 }

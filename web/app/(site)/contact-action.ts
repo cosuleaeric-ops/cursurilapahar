@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
+import { sendConfirmationEmail } from "@/lib/brevo";
 
 export async function submitContact(_prev: string | null, formData: FormData): Promise<string> {
   const name = String(formData.get("name") ?? "").trim();
@@ -13,6 +14,7 @@ export async function submitContact(_prev: string | null, formData: FormData): P
     INSERT INTO messages (category, name, email, payload)
     VALUES ('contact', ${name || null}, ${email}, ${JSON.stringify({ message })})
   `;
+  await sendConfirmationEmail("contact", email, name);
   revalidatePath("/admin/mesaje");
   return "✓ Mesaj trimis! Îți răspundem cât putem de repede.";
 }

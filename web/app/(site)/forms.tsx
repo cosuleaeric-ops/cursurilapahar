@@ -1,20 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useActionState } from "react";
 import { submitContact } from "./contact-action";
-
-// Newsletter e încă vizual (wiring → Kit necesită cheia API). Contact SALVEAZĂ în Neon.
-const SOON = "Formularul va fi conectat în curând.";
+import { subscribeNewsletter } from "./newsletter-action";
 
 export function NewsletterForm() {
-  const [msg, setMsg] = useState("");
+  const [msg, action, pending] = useActionState(subscribeNewsletter, null);
   return (
-    <form className="newsletter-form" onSubmit={(e) => { e.preventDefault(); setMsg(SOON); }}>
+    <form className="newsletter-form" action={action}>
       <div className="newsletter-fields">
         <input type="email" name="email" required autoComplete="email" aria-label="Email" />
-        <button type="submit" className="btn btn-accent">
-          Anunță-mă
+        <button type="submit" className="btn btn-accent" disabled={pending}>
+          {pending ? "Se trimite…" : "Anunță-mă"}
         </button>
       </div>
       <p className="newsletter-note">100% gratuit. Te poți dezabona oricând.</p>
