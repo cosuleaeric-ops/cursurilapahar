@@ -36,6 +36,7 @@ $files = [
     'locations'       => 'locations.json',
     'collaborations'  => 'collaborations.json',
     'course_ideas'    => 'course_ideas.json',
+    'marketing'       => 'marketing_posts.json',
 ];
 
 $bundle = ['exported_at' => date('c')];
