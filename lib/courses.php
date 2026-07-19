@@ -457,7 +457,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
             FROM courses c
             WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
             AND (" . implode(' OR ', $visibility) . ")
-            ORDER BY c.date DESC";
+            ORDER BY c.date ASC";
         $r = $db->query($sql);
         if ($r === false) {
             $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
@@ -465,7 +465,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
                 FROM courses c
                 WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
                 AND (" . implode(' OR ', $visibility) . ")
-                ORDER BY c.date DESC");
+                ORDER BY c.date ASC");
         }
         if ($r !== false) {
             while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
