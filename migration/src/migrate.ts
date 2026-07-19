@@ -34,6 +34,7 @@ interface Venit { data: string; descriere: string; suma: number; }
 interface Chelt { data: string; descriere: string; suma: number; categorie: string; }
 interface Bundle {
   settings: Record<string, unknown>;
+  course_ideas?: { intro?: string; categories?: unknown[] } | null;
   courses: SiteCard[];
   vote_courses: Vote[];
   speakers: Speaker[];
@@ -70,16 +71,23 @@ async function main(): Promise<void> {
 
   try {
     await db.query("BEGIN");
+    // Doar tabelele pe care bundle-ul le repopulează — users/todos/messages etc.
+    // trăiesc în Neon și NU trebuie șterse la re-sync.
     await db.query(`TRUNCATE
       events, tickets, event_files, event_reports, viza_subtips,
-      speakers, locations, settings, vote_courses, ab_experiments,
-      venit_categorii, cheltuiala_categorii, venituri, cheltuieli,
-      users, todos, recurring_tasks, marketing_sections, marketing_items
+      speakers, locations, settings, vote_courses,
+      venit_categorii, cheltuiala_categorii, venituri, cheltuieli
       RESTART IDENTITY CASCADE`);
 
     // 1) settings (fiecare cheie -> JSONB)
     for (const [k, v] of Object.entries(bundle.settings ?? {})) {
       await db.query("INSERT INTO settings(key, value) VALUES($1, $2)", [k, JSON.stringify(v)]);
+    }
+    // course_ideas.json (pagina /cursuri-posibile) — o singură cheie JSONB
+    if (bundle.course_ideas?.categories?.length) {
+      await db.query("INSERT INTO settings(key, value) VALUES('course_ideas', $1)", [
+        JSON.stringify(bundle.course_ideas),
+      ]);
     }
 
     // 2) events — ancora canonică din statistici.courses
