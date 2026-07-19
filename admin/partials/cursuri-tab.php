@@ -85,7 +85,7 @@
 
     <!-- Courses table (upcoming) -->
     <div class="card">
-        <div class="card-title">Cursuri (<?= count($courses_upcoming) ?>)</div>
+        <div class="card-title">Viitoarele cursuri (<?= count($courses_upcoming) ?>)</div>
         <?php if (empty($courses_upcoming)): ?>
         <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
         <?php else: clp_render_admin_courses_table($courses_upcoming); endif; ?>
