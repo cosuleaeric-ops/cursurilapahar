@@ -35,6 +35,14 @@ interface Chelt { data: string; descriere: string; suma: number; categorie: stri
 interface Bundle {
   settings: Record<string, unknown>;
   course_ideas?: { intro?: string; categories?: unknown[] } | null;
+  marketing?: {
+    sections?: {
+      id?: string;
+      title?: string;
+      is_default?: boolean;
+      items?: { id?: string; text?: string; link?: string; done?: boolean }[];
+    }[];
+  } | null;
   courses: SiteCard[];
   vote_courses: Vote[];
   speakers: Speaker[];
@@ -76,7 +84,8 @@ async function main(): Promise<void> {
     await db.query(`TRUNCATE
       events, tickets, event_files, event_reports, viza_subtips,
       speakers, locations, settings, vote_courses,
-      venit_categorii, cheltuiala_categorii, venituri, cheltuieli
+      venit_categorii, cheltuiala_categorii, venituri, cheltuieli,
+      marketing_sections, marketing_items
       RESTART IDENTITY CASCADE`);
 
     // 1) settings (fiecare cheie -> JSONB)
@@ -88,6 +97,32 @@ async function main(): Promise<void> {
       await db.query("INSERT INTO settings(key, value) VALUES('course_ideas', $1)", [
         JSON.stringify(bundle.course_ideas),
       ]);
+    }
+
+    // marketing_posts.json — secțiuni + idei de postări
+    let marketingItems = 0;
+    const marketingSections = bundle.marketing?.sections ?? [];
+    for (const [si, sec] of marketingSections.entries()) {
+      const { rows: secRows } = await db.query(
+        "INSERT INTO marketing_sections(slug, title, is_default, position) VALUES($1, $2, $3, $4) RETURNING id",
+        [sec.id ?? null, sec.title ?? "", sec.is_default ?? false, si]
+      );
+      for (const [ii, item] of (sec.items ?? []).entries()) {
+        await db.query(
+          "INSERT INTO marketing_items(section_id, payload, position) VALUES($1, $2, $3)",
+          [
+            secRows[0].id,
+            JSON.stringify({
+              legacy_id: item.id ?? null,
+              text: item.text ?? "",
+              link: item.link ?? "",
+              done: item.done ?? false,
+            }),
+            ii,
+          ]
+        );
+        marketingItems++;
+      }
     }
 
     // 2) events — ancora canonică din statistici.courses
@@ -196,6 +231,7 @@ async function main(): Promise<void> {
 
     console.log("✓ Migrare completă:");
     console.log(`  settings         ${Object.keys(bundle.settings ?? {}).length}`);
+    console.log(`  marketing        ${marketingSections.length} secțiuni, ${marketingItems} idei`);
     console.log(`  events           ${bundle.statistici.courses.length} stats + ${cardsNew} carduri noi (${cardsMatched} carduri unite)`);
     console.log(`  tickets          ${ticketsOk}${ticketsOrphan ? ` (${ticketsOrphan} orfane, ignorate)` : ""}`);
     console.log(`  event_reports    ${reportsOk}`);
@@ -205,7 +241,7 @@ async function main(): Promise<void> {
     console.log(`  cheltuiala_cat.  ${chCat.size}`);
     console.log(`  venituri         ${bundle.pnl.venituri.length}`);
     console.log(`  cheltuieli       ${bundle.pnl.cheltuieli.length}`);
-    console.log("\nNOTĂ: todos, recurring_tasks, marketing, ab_*, users, course_clicks, soldout NU sunt în bundle-ul live — se migrează separat.");
+    console.log("\nNOTĂ: todos, recurring_tasks, ab_*, users, course_clicks, soldout NU sunt în bundle-ul live — se migrează separat.");
   } catch (e) {
     await db.query("ROLLBACK");
     throw e;
