@@ -98,6 +98,19 @@ CREATE TABLE locations (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- CRM colaborări (branduri/parteneri) — tab admin, sursă collaborations.json
+CREATE TABLE collaborations (
+    id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    legacy_id    TEXT,
+    name         TEXT NOT NULL,
+    contact      TEXT,
+    contact_info TEXT,
+    status       TEXT,
+    notes        TEXT,
+    position     INTEGER,
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE speakers (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     legacy_id  TEXT,

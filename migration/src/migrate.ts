@@ -29,6 +29,7 @@ interface Ticket { course_id: number; participant_name: string; }
 interface Report { course_id: number; total_bilete: number; total_incasari: number; original_name?: string; uploaded_at?: string; types_json?: unknown; }
 interface Speaker { id: string; name: string; email?: string; phone?: string; status?: string; notes?: string; courses?: string[]; }
 interface Loc { id: string; name: string; phone?: string; maps_link?: string; days?: string; notes?: string; }
+interface Collab { id?: string; name?: string; contact?: string; contact_info?: string; status?: string; notes?: string; }
 interface Vote { id: string; name: string; emoji?: string; description?: string; likes?: number; active?: boolean; }
 interface Venit { data: string; descriere: string; suma: number; }
 interface Chelt { data: string; descriere: string; suma: number; categorie: string; }
@@ -47,6 +48,7 @@ interface Bundle {
   vote_courses: Vote[];
   speakers: Speaker[];
   locations: Loc[];
+  collaborations?: Collab[] | null;
   statistici: { courses: StatCourse[]; tickets: Ticket[]; course_reports: Report[] };
   pnl: { venituri: Venit[]; cheltuieli: Chelt[] };
 }
@@ -85,7 +87,7 @@ async function main(): Promise<void> {
       events, tickets, event_files, event_reports, viza_subtips,
       speakers, locations, settings, vote_courses,
       venit_categorii, cheltuiala_categorii, venituri, cheltuieli,
-      marketing_sections, marketing_items
+      marketing_sections, marketing_items, collaborations
       RESTART IDENTITY CASCADE`);
 
     // 1) settings (fiecare cheie -> JSONB)
@@ -205,6 +207,16 @@ async function main(): Promise<void> {
       );
     }
 
+    // 7b) collaborations (CRM branduri/parteneri)
+    const collabs = bundle.collaborations ?? [];
+    for (const [ci, col] of collabs.entries()) {
+      await db.query(
+        `INSERT INTO collaborations(legacy_id, name, contact, contact_info, status, notes, position)
+         VALUES($1,$2,$3,$4,$5,$6,$7)`,
+        [col.id ?? null, col.name ?? "", col.contact ?? null, col.contact_info ?? null, col.status ?? null, col.notes ?? null, ci]
+      );
+    }
+
     // 8) vote_courses
     for (const v of bundle.vote_courses) {
       await db.query(
@@ -237,6 +249,7 @@ async function main(): Promise<void> {
     console.log(`  event_reports    ${reportsOk}`);
     console.log(`  speakers         ${bundle.speakers.length}`);
     console.log(`  locations        ${bundle.locations.length}`);
+    console.log(`  collaborations   ${collabs.length}`);
     console.log(`  vote_courses     ${bundle.vote_courses.length}`);
     console.log(`  cheltuiala_cat.  ${chCat.size}`);
     console.log(`  venituri         ${bundle.pnl.venituri.length}`);
