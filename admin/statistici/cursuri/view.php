@@ -487,7 +487,7 @@ include __DIR__ . '/../layout_header.php';
         <input type="hidden" name="participants_json" id="updateParticipantsJson">
         <div class="update-drop" id="updateDrop" style="padding:10px 16px">
           <input type="file" id="updateFileInput" accept=".xlsx,.xls,.csv">
-          <p style="font-size:12px">Actualizeaza lista &mdash; trage sau apasa pentru XLSX / CSV</p>
+          <p style="font-size:12px"><?php echo empty($dist['name_counts']) ? 'Incarca lista' : 'Actualizeaza lista'; ?> &mdash; trage sau apasa pentru XLSX / CSV</p>
         </div>
         <div class="update-col-picker" id="updateColPicker">
           <label>Selecteaza coloana cu nume participanti</label>
@@ -496,7 +496,7 @@ include __DIR__ . '/../layout_header.php';
         </div>
         <div class="update-preview" id="updatePreview"></div>
         <div class="update-submit" id="updateSubmit">
-          <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px">Inlocuieste lista</button>
+          <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px"><?php echo empty($dist['name_counts']) ? 'Salveaza lista' : 'Inlocuieste lista'; ?></button>
         </div>
       </form>
     </div>
