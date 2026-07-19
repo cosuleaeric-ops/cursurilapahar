@@ -88,7 +88,9 @@ function parse_viza_subtips(string $text): array {
     $seen = [];
     if (preg_match_all($pattern2, $text, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $m) {
-            $key = trim($m[3]) . '_' . $m[4];
+            // Cheia include tariful: două produse pot împărți aceeași serie+de_la
+            // (ex. „Bilet student" și „Bilet standard" ambele OHU 0001-...), fără să fie duplicate.
+            $key = trim($m[3]) . '_' . $m[4] . '_' . (string)(float)str_replace(',', '.', $m[2]);
             if (isset($seen[$key])) continue;
             $seen[$key] = true;
             $subtips[] = [
@@ -101,6 +103,25 @@ function parse_viza_subtips(string $text): array {
         }
     }
 
+    // Format iaBilet (cerere vizare DITL): seria e un interval numeric lung, fara litere,
+    // ex. "Bilet standard 100 51.86 5186.00 12877900100001-12877900100100"
+    $pattern_num = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+(\d{8,})\s*-\s*(\d{8,})\s*$/mu';
+    if (preg_match_all($pattern_num, $text, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $seria = substr($m[3], 0, 6); // primele 6 cifre = ID-ul evenimentului iaBilet
+            $key   = $seria . '_' . $m[3] . '_' . (string)(float)str_replace(',', '.', $m[2]);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $subtips[] = [
+                'nr_unitati' => (int)$m[1],
+                'tarif'      => (float)str_replace(',', '.', $m[2]),
+                'seria'      => $seria,
+                'de_la'      => $m[3],
+                'pana_la'    => $m[4],
+            ];
+        }
+    }
+
     // Fallback: rows where the seria cell wraps across lines in the PDF, causing pana_la
     // to appear separated (possibly after an intervening row in pdftotext -layout output).
     $pattern_partial = '/^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/mu';
@@ -108,7 +129,7 @@ function parse_viza_subtips(string $text): array {
         foreach ($pm as $m) {
             $seria = trim($m[3][0]);
             $de_la = $m[4][0];
-            $key   = $seria . '_' . $de_la;
+            $key   = $seria . '_' . $de_la . '_' . (string)(float)str_replace(',', '.', $m[2][0]);
             if (isset($seen[$key])) continue;
             // Search the next 400 chars for a standalone 4+ digit number (the pana_la)
             $after = substr($text, $m[0][1] + strlen($m[0][0]), 400);
@@ -133,8 +154,6 @@ function parse_viza_subtips(string $text): array {
         if (!preg_match('/^\s*([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/u', $lines[$i], $sm)) continue;
         $seria = trim($sm[1]);
         $de_la = $sm[2];
-        $key   = $seria . '_' . $de_la;
-        if (isset($seen[$key])) continue;
 
         // pana_la: standalone number within the next few lines
         $pana = null;
@@ -154,6 +173,9 @@ function parse_viza_subtips(string $text): array {
         }
         if (!$row) continue;
 
+        // Cheie cu tarif (vezi pattern2): serii partajate între produse nu sunt duplicate.
+        $key = $seria . '_' . $de_la . '_' . (string)(float)str_replace(',', '.', $row[2]);
+        if (isset($seen[$key])) continue;
         $seen[$key] = true;
         $subtips[] = [
             'nr_unitati' => (int)$row[1],

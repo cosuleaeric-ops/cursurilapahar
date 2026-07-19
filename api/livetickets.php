@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 require_once dirname(__DIR__) . '/admin/auth_check.php';
-require_once dirname(__DIR__) . '/lib/livetickets.php';
+require_once dirname(__DIR__) . '/lib/course_image.php';
 
 if (!is_authenticated()) {
     http_response_code(403);
@@ -13,4 +13,4 @@ if (!is_authenticated()) {
 $body = json_decode(file_get_contents('php://input'), true);
 $url = trim($body['url'] ?? '');
 
-echo json_encode(lt_fetch_event_by_url($url));
+echo json_encode(clp_fetch_course_meta_by_url($url));

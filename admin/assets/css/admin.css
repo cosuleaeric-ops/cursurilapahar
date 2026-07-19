@@ -150,6 +150,46 @@ body {
 .bc-botnav a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 .bc-botnav a.active { color: #fff; background: var(--accent); font-weight: 600; }
 
+/* ── Nav dropdowns (hover → submeniu în sus) ── */
+.bc-nav-group { position: relative; display: flex; }
+.bc-nav-trigger {
+    color: var(--shell-muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: var(--radius-btn);
+    cursor: default;
+    white-space: nowrap;
+    transition: background .15s, color .15s;
+}
+.bc-nav-group:hover .bc-nav-trigger { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.bc-nav-trigger.active { color: #fff; background: var(--accent); font-weight: 600; }
+.bc-nav-dropdown {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 150px;
+    padding: 6px;
+    background: var(--shell);
+    border: 1px solid var(--shell-border);
+    border-radius: var(--radius-btn);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+    z-index: 101;
+}
+.bc-nav-dropdown::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    bottom: -8px;
+    height: 8px;
+}
+.bc-nav-group:hover .bc-nav-dropdown { display: flex; }
+.bc-nav-dropdown a { display: block; width: 100%; }
+
 /* ── Basecamp document wrapper ── */
 .bc-doc {
     max-width: 1180px;
@@ -389,6 +429,7 @@ body {
 /* ── CRM ── */
 .crm-status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }
 .crm-table td { vertical-align: top; }
+#sp-main-table td { vertical-align: middle; }
 
 /* ── Messages tabs ── */
 .msg-tab { padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-btn); background: var(--surface); font-size: 13px; cursor: pointer; color: var(--text); transition: background .15s, border-color .15s; font-weight: 500; }
@@ -715,8 +756,7 @@ td span[style*="background:#e5e7eb"] {
 /* ── Marketing (Notion-style post ideas) ── */
 .mkt-page { max-width: none; }
 .mkt-page > .mkt-title,
-.mkt-page > .mkt-lead,
-.mkt-page > .mkt-add-section { max-width: 980px; }
+.mkt-page > .mkt-lead { max-width: 980px; }
 .mkt-page > .mkt-section { max-width: none; }
 .mkt-breadcrumb { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 .mkt-breadcrumb a { color: var(--text-muted); text-decoration: none; }
@@ -869,22 +909,6 @@ td span[style*="background:#e5e7eb"] {
     border-bottom-color: var(--border);
     background: var(--bg-warm);
     border-radius: 4px 4px 0 0;
-}
-.mkt-add-section {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-}
-.mkt-add-section input {
-    flex: 1;
-    max-width: 280px;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 14px;
 }
 .mkt-competitori {
     margin-top: 40px;

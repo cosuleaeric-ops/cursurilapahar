@@ -45,9 +45,10 @@
                     <input type="text" name="location" id="f_location_input" autocomplete="off" oninput="updateCoursePreview()" value="<?= h($edit_course['location'] ?? '') ?>">
                     <div id="f_location_suggestions" class="location-suggestions" hidden></div>
                 </div>
-                <div class="form-group">
-                    <label for="f_lt_url">Link LiveTickets</label>
-                    <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()" value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
+                <div class="form-group" style="position:relative">
+                    <label for="f_lt_url">Link bilete (LiveTickets / iaBilet)</label>
+                    <input type="url" name="livetickets_url" id="f_lt_url" onblur="fetchLTImage()" style="padding-right:26px" value="<?= h($edit_course['livetickets_url'] ?? '') ?>">
+                    <button type="button" onclick="refetchLTImage()" title="Preia imaginea din nou" style="position:absolute;right:4px;bottom:4px;width:20px;height:20px;padding:0;border:0;background:none;cursor:pointer;color:var(--text-muted);font-size:14px;line-height:1">↻</button>
                 </div>
             </div>
             <script>
@@ -84,7 +85,7 @@
 
     <!-- Courses table (upcoming) -->
     <div class="card">
-        <div class="card-title">Cursuri (<?= count($courses_upcoming) ?>)</div>
+        <div class="card-title">Viitoarele cursuri (<?= count($courses_upcoming) ?>)</div>
         <?php if (empty($courses_upcoming)): ?>
         <p style="color:var(--text-muted)">Nu există cursuri adăugate încă.</p>
         <?php else: clp_render_admin_courses_table($courses_upcoming); endif; ?>
@@ -130,4 +131,4 @@
     <script>
     window.CLP_STATS = <?= json_encode(clp_courses_stats_js_config($courses, (int)$clp_year, (int)$clp_month, $clp_ctab), JSON_UNESCAPED_UNICODE) ?>;
     </script>
-    <script src="/admin/assets/js/admin-cursuri-stats.js?v=7"></script>
+    <script src="/admin/assets/js/admin-cursuri-stats.js?v=9"></script>

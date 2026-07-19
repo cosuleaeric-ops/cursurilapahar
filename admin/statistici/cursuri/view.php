@@ -1,0 +1,951 @@
+<?php
+declare(strict_types=1);
+require __DIR__ . '/../../auth_check.php';
+require __DIR__ . '/../db.php';
+require_once dirname(__DIR__, 3) . '/lib/statistici.php';
+if (!is_authenticated()) { header('Location: /admin/'); exit; }
+
+$db = get_clp_db();
+$id = (int)($_GET['id'] ?? 0);
+if (!$id) { header('Location: /admin/?tab=cursuri'); exit; }
+
+$stmt = $db->prepare('SELECT * FROM courses WHERE id = :id');
+$stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+$course = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+if (!$course) { header('Location: /admin/?tab=cursuri'); exit; }
+
+$csrf = csrf_token();
+$uploadDir = __DIR__ . '/../uploads/';
+$error = '';
+
+if (($_GET['action'] ?? '') === 'read_debug') {
+    $f = $uploadDir . 'viza_debug_' . $id . '.txt';
+    header('Content-Type: text/plain; charset=utf-8');
+    echo file_exists($f) ? file_get_contents($f) : '(no debug file)';
+    exit;
+}
+
+if (($_GET['action'] ?? '') === 'serve_viza') {
+    $row = $db->querySingle("SELECT filename FROM course_files WHERE course_id={$id} AND file_type='viza' LIMIT 1", true);
+    if ($row && file_exists($uploadDir . $row['filename'])) {
+        header('Content-Type: application/pdf');
+        header('Content-Length: ' . filesize($uploadDir . $row['filename']));
+        readfile($uploadDir . $row['filename']);
+    }
+    exit;
+}
+
+// ── Handle POST ───────────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf($_POST['csrf_token'] ?? '')) { http_response_code(400); exit('CSRF invalid'); }
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'update_participants') {
+        $participantsJson = $_POST['participants_json'] ?? '[]';
+        $participants = json_decode($participantsJson, true);
+        if (is_array($participants) && !empty($participants)) {
+            $db->exec("DELETE FROM tickets WHERE course_id={$id}");
+            $ins = $db->prepare('INSERT INTO tickets (course_id, participant_name) VALUES (:cid, :name)');
+            foreach ($participants as $pname) {
+                $pname = trim((string)$pname);
+                if ($pname === '') continue;
+                $ins->bindValue(':cid',  $id,    SQLITE3_INTEGER);
+                $ins->bindValue(':name', $pname, SQLITE3_TEXT);
+                $ins->execute();
+                $ins->reset();
+            }
+        }
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'upload_raport') {
+        $totalBilete   = round((float)($_POST['total_bilete']   ?? 0), 2);
+        $totalIncasari = round((float)($_POST['total_incasari'] ?? 0), 2);
+        $typesJson     = $_POST['types_json'] ?? '[]';
+        if (!is_string($typesJson) || !json_decode($typesJson)) $typesJson = '[]';
+        $file = $_FILES['raport_file'] ?? null;
+        $safeName = '';
+        $origName = '';
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['xlsx', 'xls'], true)) {
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $safeName = bin2hex(random_bytes(10)) . '-raport-' . $id . '.' . $ext;
+                $origName = $file['name'];
+                // Delete old raport file if exists
+                $old = $db->querySingle("SELECT filename FROM course_reports WHERE course_id={$id}", true);
+                if ($old && $old['filename']) @unlink($uploadDir . $old['filename']);
+                move_uploaded_file($file['tmp_name'], $uploadDir . $safeName);
+            } else { $error = 'Doar fișiere XLSX sunt acceptate.'; }
+        }
+        if (!$error) {
+            $upsert = $db->prepare('INSERT INTO course_reports (course_id, total_bilete, total_incasari, types_json, filename, original_name, uploaded_at)
+                VALUES (:cid, :tb, :ti, :tj, :fn, :on, :now)
+                ON CONFLICT(course_id) DO UPDATE SET
+                    total_bilete=excluded.total_bilete,
+                    total_incasari=excluded.total_incasari,
+                    types_json=excluded.types_json,
+                    filename=CASE WHEN excluded.filename!=\'\' THEN excluded.filename ELSE filename END,
+                    original_name=CASE WHEN excluded.original_name!=\'\' THEN excluded.original_name ELSE original_name END,
+                    uploaded_at=excluded.uploaded_at');
+            $upsert->bindValue(':cid', $id,           SQLITE3_INTEGER);
+            $upsert->bindValue(':tb',  $totalBilete,   SQLITE3_FLOAT);
+            $upsert->bindValue(':ti',  $totalIncasari, SQLITE3_FLOAT);
+            $upsert->bindValue(':tj',  $typesJson,     SQLITE3_TEXT);
+            $upsert->bindValue(':fn',  $safeName,      SQLITE3_TEXT);
+            $upsert->bindValue(':on',  $origName,      SQLITE3_TEXT);
+            $upsert->bindValue(':now', date('Y-m-d H:i:s'), SQLITE3_TEXT);
+            $upsert->execute();
+            header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+        }
+    }
+
+    if ($action === 'delete_raport') {
+        $row = $db->querySingle("SELECT filename FROM course_reports WHERE course_id={$id}", true);
+        if ($row && $row['filename']) @unlink($uploadDir . $row['filename']);
+        $db->exec("DELETE FROM course_reports WHERE course_id={$id}");
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'upload_viza') {
+        $file = $_FILES['viza'] ?? null;
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if ($ext === 'pdf') {
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $safeName = bin2hex(random_bytes(10)) . '-' . $id . '.pdf';
+                if (move_uploaded_file($file['tmp_name'], $uploadDir . $safeName)) {
+                    // Șterge viza veche
+                    $old = $db->querySingle("SELECT filename FROM course_files WHERE course_id={$id} AND file_type='viza' LIMIT 1", true);
+                    if ($old) {
+                        @unlink($uploadDir . $old['filename']);
+                        $db->exec("DELETE FROM course_files WHERE course_id={$id} AND file_type='viza'");
+                    }
+                    $ins = $db->prepare('INSERT INTO course_files (course_id, filename, original_name, file_type, uploaded_at) VALUES (:cid, :fn, :on, \'viza\', :now)');
+                    $ins->bindValue(':cid', $id,            SQLITE3_INTEGER);
+                    $ins->bindValue(':fn',  $safeName,      SQLITE3_TEXT);
+                    $ins->bindValue(':on',  $file['name'],  SQLITE3_TEXT);
+                    $ins->bindValue(':now', date('Y-m-d H:i:s'), SQLITE3_TEXT);
+                    $ins->execute();
+                    // Extrage subtipuri din PDF (preferă textul trimis din browser via PDF.js)
+                    $pdfText = trim($_POST['viza_text'] ?? '');
+                    if (!$pdfText) $pdfText = pdf_to_text($uploadDir . $safeName);
+                    // Salvează textul raw pentru debug (în fișier temporar)
+                    if ($pdfText) {
+                        file_put_contents($uploadDir . 'viza_debug_' . $id . '.txt', $pdfText);
+                    }
+                    if ($pdfText) {
+                        $subtips = parse_viza_subtips($pdfText);
+                        $db->exec("DELETE FROM viza_subtips WHERE course_id={$id}");
+                        $si = $db->prepare('INSERT INTO viza_subtips (course_id, seria, tarif, nr_unitati, de_la, pana_la) VALUES (:cid,:s,:t,:n,:d,:p)');
+                        foreach ($subtips as $sub) {
+                            $si->bindValue(':cid', $id,              SQLITE3_INTEGER);
+                            $si->bindValue(':s',   $sub['seria'],    SQLITE3_TEXT);
+                            $si->bindValue(':t',   $sub['tarif'],    SQLITE3_FLOAT);
+                            $si->bindValue(':n',   $sub['nr_unitati'], SQLITE3_INTEGER);
+                            $si->bindValue(':d',   $sub['de_la'],    SQLITE3_TEXT);
+                            $si->bindValue(':p',   $sub['pana_la'],  SQLITE3_TEXT);
+                            $si->execute();
+                            $si->reset();
+                        }
+                    }
+                }
+            } else { $error = 'Doar fișiere PDF sunt acceptate.'; }
+        } else { $error = 'Eroare la upload.'; }
+        if (!$error) { header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit; }
+    }
+
+    if ($action === 'delete_viza') {
+        $fid = (int)($_POST['file_id'] ?? 0);
+        $row = $db->querySingle("SELECT filename FROM course_files WHERE id={$fid} AND course_id={$id}", true);
+        if ($row) {
+            @unlink($uploadDir . $row['filename']);
+            $db->exec("DELETE FROM course_files WHERE id={$fid}");
+        }
+        $db->exec("DELETE FROM viza_subtips WHERE course_id={$id}");
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'reprocess_viza') {
+        $row = $db->querySingle("SELECT filename FROM course_files WHERE course_id={$id} AND file_type='viza' LIMIT 1", true);
+        if ($row) {
+            $pdfText = trim($_POST['viza_text'] ?? '');
+            if (!$pdfText) $pdfText = pdf_to_text($uploadDir . $row['filename']);
+            file_put_contents($uploadDir . 'viza_debug_' . $id . '.txt', $pdfText ?: '(empty)');
+            if ($pdfText) {
+                $subtips = parse_viza_subtips($pdfText);
+                $db->exec("DELETE FROM viza_subtips WHERE course_id={$id}");
+                $si = $db->prepare('INSERT INTO viza_subtips (course_id, seria, tarif, nr_unitati, de_la, pana_la) VALUES (:cid,:s,:t,:n,:d,:p)');
+                foreach ($subtips as $sub) {
+                    $si->bindValue(':cid', $id,              SQLITE3_INTEGER);
+                    $si->bindValue(':s',   $sub['seria'],    SQLITE3_TEXT);
+                    $si->bindValue(':t',   $sub['tarif'],    SQLITE3_FLOAT);
+                    $si->bindValue(':n',   $sub['nr_unitati'], SQLITE3_INTEGER);
+                    $si->bindValue(':d',   $sub['de_la'],    SQLITE3_TEXT);
+                    $si->bindValue(':p',   $sub['pana_la'],  SQLITE3_TEXT);
+                    $si->execute();
+                    $si->reset();
+                }
+            }
+        }
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'delete_viza_subtip') {
+        $sid = (int)($_POST['subtip_id'] ?? 0);
+        if ($sid) $db->exec("DELETE FROM viza_subtips WHERE id={$sid} AND course_id={$id}");
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'dedup_viza_subtips') {
+        $db->exec("DELETE FROM viza_subtips WHERE course_id={$id} AND id NOT IN (
+            SELECT MIN(id) FROM viza_subtips WHERE course_id={$id} GROUP BY seria, de_la, pana_la
+        )");
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'add_viza_subtip') {
+        $seria    = trim($_POST['seria']      ?? '');
+        $tarif    = (float)str_replace(',', '.', $_POST['tarif']    ?? '0');
+        $nr       = (int)($_POST['nr_unitati'] ?? 0);
+        $de_la    = trim($_POST['de_la']      ?? '');
+        $pana_la  = trim($_POST['pana_la']    ?? '');
+        if ($seria && $nr > 0 && $tarif > 0) {
+            $si = $db->prepare('INSERT INTO viza_subtips (course_id, seria, tarif, nr_unitati, de_la, pana_la) VALUES (:cid,:s,:t,:n,:d,:p)');
+            $si->bindValue(':cid', $id,      SQLITE3_INTEGER);
+            $si->bindValue(':s',   $seria,   SQLITE3_TEXT);
+            $si->bindValue(':t',   $tarif,   SQLITE3_FLOAT);
+            $si->bindValue(':n',   $nr,      SQLITE3_INTEGER);
+            $si->bindValue(':d',   $de_la,   SQLITE3_TEXT);
+            $si->bindValue(':p',   $pana_la, SQLITE3_TEXT);
+            $si->execute();
+        }
+        header("Location: /admin/statistici/cursuri/view.php?id={$id}"); exit;
+    }
+
+    if ($action === 'delete_course') {
+        // Delete associated files from disk
+        $res = $db->query("SELECT filename FROM course_files WHERE course_id={$id}");
+        while ($f = $res->fetchArray(SQLITE3_ASSOC)) @unlink($uploadDir . $f['filename']);
+        $row = $db->querySingle("SELECT filename FROM course_reports WHERE course_id={$id}", true);
+        if ($row && $row['filename']) @unlink($uploadDir . $row['filename']);
+        $db->exec("DELETE FROM courses WHERE id={$id}");
+        header('Location: /admin/?tab=cursuri'); exit;
+    }
+}
+
+// ── Load data ─────────────────────────────────────────────────────────────────
+$res = $db->query("SELECT participant_name FROM tickets WHERE course_id={$id}");
+$tickets = [];
+while ($r = $res->fetchArray(SQLITE3_ASSOC)) $tickets[] = $r;
+
+$dist = ticket_distribution($tickets);
+
+$res = $db->query("SELECT * FROM course_files WHERE course_id={$id} AND file_type='viza' ORDER BY uploaded_at DESC");
+$vizaFiles = [];
+while ($r = $res->fetchArray(SQLITE3_ASSOC)) $vizaFiles[] = $r;
+
+$report = $db->querySingle("SELECT * FROM course_reports WHERE course_id={$id}", true) ?: null;
+
+$res = $db->query("SELECT * FROM course_files WHERE course_id={$id} AND file_type='viza' ORDER BY uploaded_at DESC");
+$vizaFiles = [];
+while ($r = $res->fetchArray(SQLITE3_ASSOC)) $vizaFiles[] = $r;
+
+$db->exec("DELETE FROM viza_subtips WHERE course_id={$id} AND id NOT IN (
+    SELECT MIN(id) FROM viza_subtips WHERE course_id={$id} GROUP BY seria, de_la, pana_la
+)");
+$res = $db->query("SELECT * FROM viza_subtips WHERE course_id={$id} ORDER BY tarif DESC");
+$vizaSubtips = [];
+while ($r = $res->fetchArray(SQLITE3_ASSOC)) $vizaSubtips[] = $r;
+
+$reportTypes  = ($report && !empty($report['types_json'])) ? (json_decode($report['types_json'], true) ?: []) : [];
+$reportByPrice = [];
+foreach ($reportTypes as $rt) {
+    // mai multe tipuri de bilet pot avea acelasi pret (ex: standard si 1+1 GRATIS la 50 RON)
+    $reportByPrice[(string)(float)$rt['pret']][] = $rt;
+}
+
+// Returning participants: people in this course who attended other CLP courses
+$retRes = $db->query("
+    SELECT t.participant_name,
+           COUNT(DISTINCT t2.course_id) AS num_other,
+           GROUP_CONCAT(c2.name || '|||' || c2.date, '|') AS other_list
+    FROM tickets t
+    JOIN tickets t2 ON LOWER(TRIM(t2.participant_name)) = LOWER(TRIM(t.participant_name))
+                    AND t2.course_id != {$id}
+    JOIN courses c2 ON c2.id = t2.course_id
+    WHERE t.course_id = {$id}
+    GROUP BY LOWER(TRIM(t.participant_name))
+    ORDER BY num_other DESC, t.participant_name ASC
+");
+$returningParticipants = [];
+while ($r = $retRes->fetchArray(SQLITE3_ASSOC)) $returningParticipants[] = $r;
+?>
+<?php
+$__page_title = h($course['name']);
+include __DIR__ . '/../layout_header.php';
+?>
+<link rel="stylesheet" href="/admin/statistici/style.css?v=2">
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="/admin/statistici/js/pdf.min.js"></script>
+<style>
+    .course-wrap { max-width: 800px; margin: 0 auto; }
+    .course-hero { margin-bottom: 28px; }
+    .course-hero h2 { font-family:'Crimson Pro',Georgia,serif; font-size:28px; font-weight:600; letter-spacing:-.3px; }
+    .course-hero .meta { font-size:14px; color:var(--muted); margin-top:4px; }
+    .section-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow); margin-bottom:20px; }
+    .section-card h3 { font-family:'Crimson Pro',Georgia,serif; font-size:17px; font-weight:600; margin-bottom:16px; }
+    .dist-total { font-family:'Crimson Pro',Georgia,serif; font-size:26px; font-weight:600; margin-bottom:4px; }
+    .dist-sub { font-size:13px; color:var(--muted); margin-bottom:16px; }
+    .dist-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+    .dist-list li { display:flex; align-items:center; gap:12px; font-size:15px; }
+    .dist-bullet { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    .viza-file { display:flex; align-items:center; justify-content:space-between; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:10px; }
+    .viza-name { font-size:13px; color:var(--text); text-decoration:none; font-weight:500; }
+    .viza-name:hover { color:var(--green); }
+    .viza-date { font-size:12px; color:var(--muted); }
+    .upload-zone { border:2px dashed var(--border); border-radius:var(--radius-sm); padding:20px; text-align:center; position:relative; cursor:pointer; transition:all .15s; }
+    .upload-zone:hover { border-color:var(--green); background:var(--green-light); }
+    .upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .upload-zone p { font-size:13px; color:var(--muted); margin:0; }
+    .participants-list { columns:2; column-gap:24px; list-style:none; }
+    .participants-list li { font-size:13px; padding:3px 0; break-inside:avoid; }
+    .participants-list li span { font-size:11px; color:var(--muted); margin-left:4px; }
+    .danger-zone { border-top:1px solid var(--border); padding-top:16px; margin-top:8px; }
+    @media(max-width:600px) { .participants-list { columns:1; } }
+    /* Update participants */
+    .update-drop { border:2px dashed var(--border); border-radius:var(--radius-sm); padding:24px; text-align:center; position:relative; cursor:pointer; transition:all .15s; }
+    .update-drop:hover, .update-drop.dragover { border-color:var(--green); background:var(--green-light); }
+    .update-drop input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .update-drop p { font-size:13px; color:var(--muted); margin:0; }
+    .update-col-picker { display:none; margin-top:12px; }
+    .update-col-picker label { font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:6px; }
+    .update-col-picker select { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px; background:var(--bg); }
+    .update-preview { display:none; margin-top:12px; background:var(--green-light); border:1px solid #b2d9c0; border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; }
+    .update-preview strong { font-family:'Crimson Pro',Georgia,serif; font-size:18px; }
+    .update-submit { display:none; margin-top:12px; }
+    /* Returning participants */
+    .returning-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+    .returning-list li { font-size:14px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+    .returning-badge { background:var(--green-light); color:var(--green); border:1px solid #b2d9c0; border-radius:12px; font-size:11px; font-weight:700; padding:2px 9px; white-space:nowrap; }
+    .returning-courses { font-size:12px; color:var(--muted); }
+    /* Viză subtipuri */
+    .subtip-table { width:100%; border-collapse:collapse; font-size:14px; margin-top:12px; }
+    .subtip-table th { font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); padding:6px 10px; text-align:left; border-bottom:1px solid var(--border); }
+    .subtip-table td { padding:10px 10px; border-bottom:1px solid var(--border); }
+    .subtip-table tr:last-child td { border-bottom:none; }
+    .subtip-table td.num { font-variant-numeric:tabular-nums; text-align:right; }
+    .seria-badge { font-family:monospace; font-size:13px; font-weight:700; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:2px 8px; }
+    .sold-match { color:var(--green); font-weight:600; }
+    .no-match { color:var(--muted); font-style:italic; }
+    .reprocess-btn { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline; }
+    /* Raport financiar */
+    .raport-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+    .raport-stat { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .raport-stat .label { font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+    .raport-stat .value { font-family:'Crimson Pro',Georgia,serif; font-size:26px; font-weight:600; }
+    .raport-stat .value.ditl { color:#c0392b; }
+    .raport-meta { font-size:12px; color:var(--muted); margin-bottom:16px; }
+    .raport-drop { border:2px dashed var(--border); border-radius:var(--radius-sm); padding:20px; text-align:center; position:relative; cursor:pointer; transition:all .15s; }
+    .raport-drop:hover, .raport-drop.dragover { border-color:var(--green); background:var(--green-light); }
+    .raport-drop input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .raport-drop p { font-size:13px; color:var(--muted); margin:0; }
+    .raport-preview { display:none; margin-top:12px; background:var(--green-light); border:1px solid #b2d9c0; border-radius:var(--radius-sm); padding:12px 16px; font-size:14px; }
+    .raport-submit { display:none; margin-top:10px; }
+    @media(max-width:600px) { .raport-grid { grid-template-columns:1fr; } }
+    .actions-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
+    .actions-grid .section-card { margin-bottom:0; display:flex; flex-direction:column; }
+    .actions-grid .section-card > form,
+    .actions-grid .section-card .raport-form { flex:1; display:flex; flex-direction:column; }
+    .actions-grid .raport-drop,
+    .actions-grid .update-drop,
+    .actions-grid .upload-zone { flex:1; }
+</style>
+<?php include __DIR__ . '/../layout_nav.php'; ?>
+
+  <div class="course-wrap">
+
+    <?php if ($error): ?>
+      <div class="error-msg" style="display:block;margin-bottom:16px"><?php echo h($error); ?></div>
+    <?php endif; ?>
+
+    <div class="course-hero">
+      <a href="/admin/?tab=cursuri" style="font-size:12px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px">&larr; Inapoi</a>
+      <h2><?php echo h($course['name']); ?></h2>
+      <div class="meta"><?php echo h(ro_date($course['date'])); ?></div>
+    </div>
+
+    <?php if ($report): ?>
+    <!-- Raport eveniment (sus — doar dacă există) -->
+    <div class="section-card">
+      <h3>Raport eveniment</h3>
+      <div class="raport-grid">
+        <div class="raport-stat">
+          <div class="label">Total incasari</div>
+          <div class="value"><?php echo number_format((float)$report['total_incasari'], 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
+        </div>
+        <div class="raport-stat">
+          <div class="label">Taxa DITL (2%)</div>
+          <?php $_ditl_base = clp_ditl_base(json_decode($report['types_json'] ?? '[]', true) ?: [], (float)$report['total_bilete']); ?>
+          <div class="value ditl"><?php echo number_format($_ditl_base * 0.02, 2, ',', '.'); ?> <small style="font-size:14px;font-weight:400">RON</small></div>
+        </div>
+      </div>
+      <div class="raport-meta">
+        <?php if ($report['original_name']): ?><?php echo h($report['original_name']); ?> &middot; <?php endif; ?>
+        Actualizat <?php echo h(substr($report['uploaded_at'], 0, 10)); ?>
+      </div>
+      <form method="post" onsubmit="return confirm('Stergi raportul financiar?');" style="margin-top:4px">
+        <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+        <input type="hidden" name="action" value="delete_raport">
+        <button type="submit" class="btn btn-ghost" style="font-size:12px;padding:4px 12px;color:var(--muted)">Sterge raportul</button>
+      </form>
+    </div>
+    <?php endif; ?>
+
+    <!-- Distribuție bilete -->
+    <?php
+      $distCopyText = '';
+      if ($dist['total_tickets'] > 0) {
+          $lines = ['Sunt ' . $dist['total_tickets'] . ' ' . ($dist['total_tickets'] === 1 ? 'bilet' : 'bilete') . ', dintre care:', ''];
+          foreach ($dist['groups'] as $n => $orders) {
+              $lines[] = '- ' . $orders . ' ' . ($orders === 1 ? 'comanda' : 'comenzi')
+                       . ' x ' . $n . ' ' . ($n === 1 ? 'bilet' : 'bilete');
+          }
+          $distCopyText = implode("\n", $lines);
+      }
+    ?>
+    <div class="section-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+        <h3 style="margin-bottom:0">Distributie bilete</h3>
+        <?php if ($dist['total_tickets'] > 0): ?>
+          <button type="button" class="btn btn-ghost" id="distCopyBtn" data-copy="<?php echo h($distCopyText); ?>" style="font-size:12px;padding:5px 12px">Copiaza</button>
+        <?php endif; ?>
+      </div>
+      <?php if ($dist['total_tickets'] === 0): ?>
+        <p style="color:var(--muted);font-size:14px">Niciun bilet inregistrat.</p>
+      <?php else: ?>
+        <div class="dist-total"><?php echo $dist['total_tickets']; ?> <?php echo $dist['total_tickets'] === 1 ? 'bilet' : 'bilete'; ?></div>
+        <div class="dist-sub"><?php echo $dist['total_orders']; ?> <?php echo $dist['total_orders'] === 1 ? 'comanda' : 'comenzi'; ?></div>
+        <ul class="dist-list">
+          <?php foreach ($dist['groups'] as $n => $orders): ?>
+            <li>
+              <span class="dist-bullet"></span>
+              <strong><?php echo $orders; ?></strong>&nbsp;<?php echo $orders === 1 ? 'comanda' : 'comenzi'; ?>
+              &times;
+              <strong><?php echo $n; ?> <?php echo $n === 1 ? 'bilet' : 'bilete'; ?></strong>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      <?php endif; ?>
+    </div>
+
+    <!-- Participanți fideli -->
+    <?php if (!empty($returningParticipants)): ?>
+    <div class="section-card">
+      <h3>Participanti fideli (<?php echo count($returningParticipants); ?>)</h3>
+      <ul class="returning-list">
+        <?php foreach ($returningParticipants as $rp): ?>
+          <?php
+            $courses = array_map(function($c) {
+                $parts = explode('|||', $c, 2);
+                if (count($parts) < 2) return h($c);
+                return h($parts[0]) . ' <span style="color:var(--muted)">(' . h(ro_date($parts[1])) . ')</span>';
+            }, array_unique(explode('|', $rp['other_list'])));
+          ?>
+          <li>
+            <span class="returning-badge">&times;<?php echo $rp['num_other']; ?></span>
+            <strong><?php echo h($rp['participant_name']); ?></strong>
+            <span class="returning-courses"><?php echo implode(', ', $courses); ?></span>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+    <?php endif; ?>
+
+    <!-- Lista participanți -->
+    <div class="section-card">
+      <h3>Participanti<?php if (!empty($dist['name_counts'])): ?> (<?php echo count($dist['name_counts']); ?> comenzi)<?php endif; ?></h3>
+      <?php if (!empty($dist['name_counts'])): ?>
+      <ul class="participants-list">
+        <?php
+          $sorted = $dist['name_counts'];
+          arsort($sorted);
+          foreach ($sorted as $name => $cnt):
+        ?>
+          <li>
+            <?php echo h($name); ?>
+            <?php if ($cnt > 1): ?><span>&times;<?php echo $cnt; ?></span><?php endif; ?>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+      <?php else: ?>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Niciun participant inregistrat.</p>
+      <?php endif; ?>
+      <form method="post" id="updateForm" style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+        <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+        <input type="hidden" name="action" value="update_participants">
+        <input type="hidden" name="participants_json" id="updateParticipantsJson">
+        <div class="update-drop" id="updateDrop" style="padding:10px 16px">
+          <input type="file" id="updateFileInput" accept=".xlsx,.xls,.csv">
+          <p style="font-size:12px"><?php echo empty($dist['name_counts']) ? 'Incarca lista' : 'Actualizeaza lista'; ?> &mdash; trage sau apasa pentru XLSX / CSV</p>
+        </div>
+        <div class="update-col-picker" id="updateColPicker">
+          <label>Selecteaza coloana cu nume participanti</label>
+          <select id="updateColSelect"></select>
+          <button type="button" class="btn btn-ghost" id="btnUpdateApplyCol" style="margin-top:8px;width:100%;justify-content:center">Aplica</button>
+        </div>
+        <div class="update-preview" id="updatePreview"></div>
+        <div class="update-submit" id="updateSubmit">
+          <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:10px"><?php echo empty($dist['name_counts']) ? 'Salveaza lista' : 'Inlocuieste lista'; ?></button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Actiuni: Raport / Participanti / Viză -->
+    <div class="actions-grid">
+
+      <!-- Raport eveniment -->
+      <div class="section-card" style="margin-bottom:0">
+        <h3>Raport eveniment</h3>
+        <?php include __DIR__ . '/../raport_upload_form.inc.php'; ?>
+      </div>
+
+      <!-- Viză bilete -->
+      <div class="section-card" style="margin-bottom:0">
+        <h3>Viză bilete</h3>
+        <form method="post" enctype="multipart/form-data" id="vizaUploadForm" onsubmit="return false">
+          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+          <input type="hidden" name="action" value="upload_viza">
+          <div class="upload-zone" id="vizaUploadZone">
+            <input type="file" name="viza" accept=".pdf" onchange="handleVizaUpload(this)">
+            <p id="vizaUploadLabel"><?php echo empty($vizaFiles) ? 'Trage sau apasa pentru a incarca Viză PDF' : 'Inlocuieste viză'; ?></p>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <?php if (!empty($vizaFiles)): $vf = $vizaFiles[0]; ?>
+    <!-- Viză bilete — detalii (full width) -->
+    <div class="section-card">
+      <div class="viza-file" style="margin-bottom:12px">
+        <div>
+          <a class="viza-name" href="/admin/statistici/uploads/<?php echo h($vf['filename']); ?>" target="_blank" rel="noopener">
+            <?php echo h($vf['original_name']); ?>
+          </a>
+          <div class="viza-date">Incarcat <?php echo h(substr($vf['uploaded_at'], 0, 10)); ?></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <form method="post" style="margin:0" id="reprocessVizaForm">
+            <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+            <input type="hidden" name="action" value="reprocess_viza">
+            <input type="hidden" name="viza_text" id="reprocessVizaText">
+            <button type="button" class="reprocess-btn" id="reprocessVizaBtn"
+              data-pdf-url="/admin/statistici/cursuri/view.php?id=<?php echo $id; ?>&action=serve_viza"
+              title="Extrage date din PDF">&#8635; Extrage date</button>
+          </form>
+          <form method="post" onsubmit="return confirm('Stergi viză?');" style="margin:0">
+            <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+            <input type="hidden" name="action" value="delete_viza">
+            <input type="hidden" name="file_id" value="<?php echo (int)$vf['id']; ?>">
+            <button type="submit" class="icon-btn danger" title="Sterge">&times;</button>
+          </form>
+        </div>
+      </div>
+
+      <?php if (!empty($vizaSubtips)):
+        $seen_keys = [];
+        $has_dupes = false;
+        foreach ($vizaSubtips as $s) {
+            $k = $s['seria'].'_'.$s['de_la'].'_'.$s['pana_la'];
+            if (isset($seen_keys[$k])) { $has_dupes = true; break; }
+            $seen_keys[$k] = true;
+        }
+      ?>
+        <?php if ($has_dupes): ?>
+        <form method="post" style="margin-bottom:8px">
+          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+          <input type="hidden" name="action" value="dedup_viza_subtips">
+          <button type="submit" style="font-size:12px;color:#c0392b;background:none;border:1px solid #c0392b;border-radius:6px;padding:3px 10px;cursor:pointer">Sterge duplicate</button>
+        </form>
+        <?php endif; ?>
+        <table class="subtip-table">
+          <thead>
+            <tr>
+              <th>Seria</th>
+              <th>De la</th>
+              <th>Pana la</th>
+              <?php if (!empty($reportByPrice)): ?><th>Vandute</th><?php endif; ?>
+              <th>Nr. bilete</th>
+              <th>Tarif</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($vizaSubtips as $sub):
+              $key   = (string)(float)$sub['tarif'];
+              $cands = $reportByPrice[$key] ?? [];
+              $match = null;
+              if (count($cands) === 1) {
+                  $match = $cands[0];
+              } elseif (count($cands) > 1) {
+                  // mai multe tipuri la acelasi pret: dezambiguizeaza dupa cantitate (nr. bilete = vandute)
+                  foreach ($cands as $c) {
+                      if ((int)$c['vandute'] === (int)$sub['nr_unitati']) { $match = $c; break; }
+                  }
+                  if (!$match) $match = $cands[0];
+              }
+            ?>
+            <tr>
+              <td><span class="seria-badge"><?php echo h($sub['seria']); ?></span></td>
+              <td class="num"><?php echo h($sub['de_la']); ?></td>
+              <td class="num"><?php echo h($sub['pana_la']); ?></td>
+              <?php if (!empty($reportByPrice)): ?>
+              <td class="num <?php echo $match ? 'sold-match' : 'no-match'; ?>">
+                <?php echo $match ? (int)$match['vandute'] . ' vandute' : '—'; ?>
+              </td>
+              <?php endif; ?>
+              <td class="num"><?php echo (int)$sub['nr_unitati']; ?></td>
+              <td class="num"><?php echo number_format((float)$sub['tarif'], 0, ',', '.'); ?> RON</td>
+              <td><form method="post" style="margin:0"><input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>"><input type="hidden" name="action" value="delete_viza_subtip"><input type="hidden" name="subtip_id" value="<?php echo (int)$sub['id']; ?>"><button type="submit" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px" title="Sterge">×</button></form></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php else: ?>
+        <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Nu s-au putut extrage datele automat. Apasa „Extrage date" sau introdu manual:</p>
+        <form method="post" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+          <input type="hidden" name="action" value="add_viza_subtip">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Seria</label>
+            <input type="text" name="seria" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Tarif (RON)</label>
+            <input type="number" name="tarif" step="0.01" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Nr. bilete</label>
+            <input type="number" name="nr_unitati" required style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">De la nr.</label>
+            <input type="text" name="de_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <label style="font-size:11px;color:var(--muted)">Pana la nr.</label>
+            <input type="text" name="pana_la" required style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          </div>
+          <button type="submit" style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer">Adauga</button>
+        </form>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- Danger zone -->
+    <div class="section-card" style="border-color:#f5c6c7">
+      <div class="danger-zone">
+        <form method="post" onsubmit="return confirm('Stergi cursul «<?php echo h(addslashes($course['name'])); ?>»? Aceasta actiune este ireversibila.');">
+          <input type="hidden" name="csrf_token" value="<?php echo h($csrf); ?>">
+          <input type="hidden" name="action" value="delete_course">
+          <button type="submit" class="btn btn-red" style="font-size:12px;padding:5px 14px">Sterge cursul</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+(function() {
+    let parsedRows = [], allHeaders = [];
+    const drop = document.getElementById('updateDrop');
+    const fileInput = document.getElementById('updateFileInput');
+    const colPicker = document.getElementById('updateColPicker');
+    const colSelect = document.getElementById('updateColSelect');
+    const preview = document.getElementById('updatePreview');
+    const submitWrap = document.getElementById('updateSubmit');
+
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+    function handleFile(file) {
+        colPicker.style.display = 'none'; preview.style.display = 'none'; submitWrap.style.display = 'none';
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const wb = XLSX.read(e.target.result, { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                parsedRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+                if (!parsedRows.length) { alert('Fișierul pare gol.'); return; }
+                allHeaders = Object.keys(parsedRows[0]);
+                // Raport comisioane iaBilet: numele + nr. bilete stau impreuna in coloana "Comanda" ("Ion Pop - 2 bilete")
+                const iaBiletNames = parseIaBiletComisioane(parsedRows, allHeaders);
+                if (iaBiletNames) { applyNames(iaBiletNames, 'Comanda'); return; }
+                const detected = detectCol(allHeaders);
+                if (detected) { applyCol(detected); }
+                else {
+                    colSelect.innerHTML = allHeaders.map(h => `<option value="${esc(h)}">${esc(h)}</option>`).join('');
+                    colPicker.style.display = 'block';
+                }
+            } catch (err) { alert('Nu am putut citi fișierul.'); }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function parseIaBiletComisioane(rows, headers) {
+        const col = headers.find(h => /^comand[aă]$/i.test(h.trim()));
+        if (!col) return null;
+        const statusCol = headers.find(h => /^status/i.test(h.trim()));
+        const names = [];
+        let matched = 0;
+        for (const r of rows) {
+            const m = String(r[col] ?? '').trim().match(/^(.+)\s+-\s+(\d+)\s+bilete?$/i);
+            if (!m) continue; // sare randul "Total" si orice altceva
+            matched++;
+            if (statusCol && !/finalizat/i.test(String(r[statusCol] ?? ''))) continue;
+            for (let i = 0; i < parseInt(m[2], 10); i++) names.push(m[1]);
+        }
+        return matched ? names : null;
+    }
+
+    function detectCol(headers) {
+        for (const re of [/^prenume$/i, /prenume/i, /^nume complet$/i, /^participant/i, /^cump[aă]r[aă]tor/i, /^client/i, /^name$/i, /full.?name/i, /^nume$/i, /nume/i]) {
+            const found = headers.find(h => re.test(h.trim()));
+            if (found) return found;
+        }
+        return null;
+    }
+
+    document.getElementById('btnUpdateApplyCol').addEventListener('click', () => {
+        colPicker.style.display = 'none'; applyCol(colSelect.value);
+    });
+
+    function applyCol(col) {
+        const names = parsedRows.map(r => String(r[col] ?? '').trim()).filter(n => n);
+        if (!names.length) { alert('Coloana selectată pare goală.'); return; }
+        applyNames(names, col);
+    }
+
+    function applyNames(names, col) {
+        const counts = {};
+        names.forEach(n => counts[n] = (counts[n] || 0) + 1);
+        const orders = Object.keys(counts).length;
+        preview.innerHTML = `<strong>${names.length}</strong> bilete · <strong>${orders}</strong> comenzi · coloana: <em>${esc(col)}</em>`;
+        document.getElementById('updateParticipantsJson').value = JSON.stringify(names);
+        preview.style.display = 'block';
+        submitWrap.style.display = 'block';
+    }
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+})();
+
+// ── Viză PDF upload + text extraction ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/admin/statistici/js/pdf.worker.min.js';
+});
+
+// Butonul "Extrage date" — fetch PDF de pe server, extrage text, submit
+(function() {
+    const btn = document.getElementById('reprocessVizaBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async function() {
+        btn.textContent = '⏳ Extrag…';
+        btn.disabled = true;
+        try {
+            const url = btn.dataset.pdfUrl;
+            const resp = await fetch(url);
+            const buf  = await resp.arrayBuffer();
+            const text = await extractPdfText(new Blob([buf], {type:'application/pdf'}));
+            document.getElementById('reprocessVizaText').value = text;
+            document.getElementById('reprocessVizaForm').submit();
+        } catch(e) {
+            btn.textContent = '↻ Extrage date';
+            btn.disabled = false;
+            alert('Nu am putut extrage textul din PDF: ' + e.message);
+        }
+    });
+})();
+
+async function handleVizaUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const form = document.getElementById('vizaUploadForm');
+    const csrf = form.querySelector('[name="csrf_token"]').value;
+    const url = window.location.pathname + window.location.search;
+    const label = document.getElementById('vizaUploadLabel');
+    const defaultLabel = label.textContent;
+    input.disabled = true;
+
+    label.textContent = '⏳ Extrag date din PDF…';
+    let text = '';
+    try {
+        text = await extractPdfText(file);
+        if (!text.trim()) throw new Error('Textul extras este gol');
+    } catch (e) {
+        alert('Eroare extragere PDF: ' + e.message);
+        input.value = '';
+        input.disabled = false;
+        label.textContent = defaultLabel;
+        return;
+    }
+
+    try {
+        label.textContent = '⏳ Incarc PDF…';
+        const uploadFd = new FormData();
+        uploadFd.append('csrf_token', csrf);
+        uploadFd.append('action', 'upload_viza');
+        uploadFd.append('viza', file);
+        const uploadResp = await fetch(url, { method: 'POST', body: uploadFd, credentials: 'same-origin', redirect: 'manual' });
+        if (uploadResp.status !== 0 && uploadResp.status !== 302 && uploadResp.status !== 303 && !uploadResp.ok) {
+            throw new Error('Upload PDF eșuat');
+        }
+
+        label.textContent = '⏳ Salvez date extrase…';
+        const parseFd = new FormData();
+        parseFd.append('csrf_token', csrf);
+        parseFd.append('action', 'reprocess_viza');
+        parseFd.append('viza_text', text);
+        const parseResp = await fetch(url, { method: 'POST', body: parseFd, credentials: 'same-origin', redirect: 'manual' });
+        if (parseResp.status !== 0 && parseResp.status !== 302 && parseResp.status !== 303 && !parseResp.ok) {
+            throw new Error('Salvare date extrase eșuată');
+        }
+
+        window.location.href = url;
+    } catch (e) {
+        alert('Eroare la încărcarea vizei: ' + e.message + '. Poți apăsa „Extrage date”.');
+        input.disabled = false;
+        label.textContent = defaultLabel;
+    }
+}
+
+async function extractPdfText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+    let result = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        // Group items by y-position to reconstruct lines
+        const byY = {};
+        for (const item of content.items) {
+            if (!item.str) continue;
+            const y = Math.round(item.transform[5]);
+            if (!byY[y]) byY[y] = [];
+            byY[y].push({ x: item.transform[4], str: item.str });
+        }
+        const ys = Object.keys(byY).map(Number).sort((a, b) => b - a);
+        for (const y of ys) {
+            const items = byY[y].sort((a, b) => a.x - b.x);
+            result += items.map(i => i.str).join(' ') + '\n';
+        }
+        result += '\n';
+    }
+    return result;
+}
+
+// ── Raport XLSX parser ────────────────────────────────────────────────────────
+(function() {
+    document.querySelectorAll('.raport-drop').forEach(function(drop) {
+        const form       = drop.closest('form');
+        const fileInput  = drop.querySelector('input[type=file]');
+        const preview    = form.querySelector('.raport-preview');
+        const submitWrap = form.querySelector('.raport-submit');
+
+        drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+        drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+        drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleRaport(e.dataTransfer.files[0], form, preview, submitWrap); });
+        fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleRaport(fileInput.files[0], form, preview, submitWrap); });
+    });
+
+    function handleRaport(file, form, preview, submitWrap) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const wb = XLSX.read(e.target.result, { type: 'array' });
+                const wsName     = wb.SheetNames.find(n => /vanzari/i.test(n));
+                const decontName = wb.SheetNames.find(n => /decont/i.test(n));
+                if (!wsName && !decontName) {
+                    alert('Fișierul nu are foaia „Vanzari" sau „Decont". Încarcă exportul complet al evenimentului (Curs la Pahar - ....xlsx) sau decontul LiveTickets.');
+                    return;
+                }
+
+                let totalBilete = 0, totalIncasari = 0;
+                const types = [];
+                if (wsName) {
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: 0 });
+                    for (const row of rows) {
+                        const tb      = Number(row['Total bilete']     || row['total_bilete']     || 0);
+                        const refund  = Number(row['Valoare retururi'] || row['valoare_retururi'] || 0);
+                        const ti      = Number(row['Total incasari']   || row['total_incasari']   || 0);
+                        const pret    = Number(row['Pret']             || row['pret']             || 0);
+                        const vandute = Number(row['Vandute']          || row['vandute']          || 0);
+                        const bilet   = String(row['Bilet']            || row['bilet']            || '').trim();
+                        if (!isNaN(tb)) totalBilete   += tb - (isNaN(refund) ? 0 : refund);
+                        if (!isNaN(ti)) totalIncasari += ti;
+                        if (bilet && pret > 0) types.push({ bilet, pret, vandute, refund: isNaN(refund) ? 0 : refund });
+                    }
+                } else {
+                    // Decont LiveTickets: un rand per comanda; seria se deduce din pretul net per bilet
+                    const SERII = { 50: 'Bilet standard', 40: 'Bilet standard', 30: 'Bilet student', 25: 'Bilet student', 20: 'Bilet student' };
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[decontName], { defval: 0 });
+                    const byType = {};
+                    for (const row of rows) {
+                        const id = String(row['ID Comanda'] || '').trim();
+                        if (/comision tranzactie/i.test(id)) { totalIncasari -= Number(row['De transferat'] || 0); continue; }
+                        const nr = Number(row['Nr Bilete'] || 0);
+                        if (!/^\d+$/.test(id) || !(nr > 0)) continue;
+                        const gross    = Number(row['Total bilete']  || 0);
+                        const discount = Number(row['Discount']      || 0);
+                        const comision = Number(row['Comision']      || 0);
+                        const transf   = Number(row['De transferat'] || 0);
+                        totalBilete   += gross;
+                        totalIncasari += transf;
+                        // biletele cu discount raman in seria de baza (pretul nominal), nu serie separata
+                        const basePret = Math.round((gross - comision) / nr * 100) / 100;
+                        const bilet    = SERII[basePret] || ('Tarif ' + basePret + ' lei');
+                        const key = bilet + '|' + basePret;
+                        if (!byType[key]) byType[key] = { bilet, pret: basePret, vandute: 0, refund: 0 };
+                        byType[key].vandute += nr;
+                    }
+                    for (const k in byType) types.push(byType[k]);
+                }
+
+                form.querySelector('[name=total_bilete]').value   = totalBilete.toFixed(2);
+                form.querySelector('[name=total_incasari]').value = totalIncasari.toFixed(2);
+                const tjField = form.querySelector('[name=types_json]');
+                if (tjField) tjField.value = JSON.stringify(types);
+
+                const ditl = (totalBilete * 0.02).toFixed(2);
+                preview.innerHTML =
+                    '<strong>Total încasări:</strong> ' + totalIncasari.toFixed(2) + ' RON &nbsp;·&nbsp; ' +
+                    '<strong>Total bilete:</strong> ' + totalBilete.toFixed(2) + ' RON &nbsp;·&nbsp; ' +
+                    '<strong>DITL (2%):</strong> <span style="color:#c0392b">' + ditl + ' RON</span>';
+                preview.style.display = 'block';
+                submitWrap.style.display = 'block';
+            } catch(err) { alert('Nu am putut citi fișierul XLSX.'); }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+})();
+
+(function(){
+    const btn = document.getElementById('distCopyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async function(){
+        try {
+            await navigator.clipboard.writeText(btn.dataset.copy);
+        } catch(e) {
+            const ta = document.createElement('textarea');
+            ta.value = btn.dataset.copy;
+            document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        const old = btn.textContent;
+        btn.textContent = 'Copiat ✓';
+        setTimeout(function(){ btn.textContent = old; }, 1500);
+    });
+})();
+</script>
+<?php require __DIR__ . '/../layout_footer.php'; ?>

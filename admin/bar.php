@@ -51,6 +51,9 @@ body { padding-top: 120px !important; } /* 32px admin bar + 88px navbar */
     <a href="/admin/?tab=imagini">🖼 Imagini</a>
     <a href="/admin/?tab=mesaje">💬 Mesaje</a>
     <a href="/admin/?tab=vot">❤️ Vot</a>
+    <?php if (preg_match('#^/cursuri-posibile#', $current)): ?>
+    <a href="/admin/?tab=cursuri-posibile">✏️ Editează pagina</a>
+    <?php endif; ?>
     <span class="bar-sep"></span>
     <?php if (str_starts_with($current, '/admin')): ?>
     <a href="/">🌐 Site</a>

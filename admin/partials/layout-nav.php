@@ -49,15 +49,34 @@
     <a href="/admin/?logout=1" class="btn-logout">Deconectează-te</a>
 </header>
 
+<?php
+$__ab_active   = strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/statistici') !== false && ($tab ?? '') !== 'pnl';
+$__org_active  = in_array($tab ?? '', ['locatii', 'colaborari'], true);
+$__site_active = in_array($tab ?? '', ['vot', 'imagini', 'aspect'], true) || $__ab_active;
+?>
 <nav class="bc-botnav">
+    <a href="/admin/" class="<?= ($tab ?? '') === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
     <a href="/admin/marketing/" class="<?= ($tab ?? '') === 'marketing' ? 'active' : '' ?>">Marketing</a>
     <a href="/admin/?tab=speakeri" class="<?= ($tab ?? '') === 'speakeri' ? 'active' : '' ?>">Speakeri</a>
-    <a href="/admin/?tab=locatii" class="<?= ($tab ?? '') === 'locatii' ? 'active' : '' ?>">Locații</a>
-    <a href="/admin/?tab=vot" class="<?= ($tab ?? '') === 'vot' ? 'active' : '' ?>">Voturi</a>
-    <a href="/admin/?tab=colaborari" class="<?= ($tab ?? '') === 'colaborari' ? 'active' : '' ?>">Colaborări</a>
-    <a href="/admin/?tab=imagini" class="<?= ($tab ?? '') === 'imagini' ? 'active' : '' ?>">Imagini</a>
-    <a href="/admin/?tab=aspect" class="<?= ($tab ?? '') === 'aspect' ? 'active' : '' ?>">Aspect</a>
-    <a href="/admin/statistici/ab_headline.php" class="<?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/statistici') !== false && ($tab ?? '') !== 'pnl' ? 'active' : '' ?>">Test A/B</a>
+
+    <div class="bc-nav-group">
+        <span class="bc-nav-trigger <?= $__org_active ? 'active' : '' ?>">Organizare</span>
+        <div class="bc-nav-dropdown">
+            <a href="/admin/?tab=locatii" class="<?= ($tab ?? '') === 'locatii' ? 'active' : '' ?>">Locații</a>
+            <a href="/admin/?tab=colaborari" class="<?= ($tab ?? '') === 'colaborari' ? 'active' : '' ?>">Colaborări</a>
+        </div>
+    </div>
+
+    <div class="bc-nav-group">
+        <span class="bc-nav-trigger <?= $__site_active ? 'active' : '' ?>">Site</span>
+        <div class="bc-nav-dropdown">
+            <a href="/admin/?tab=vot" class="<?= ($tab ?? '') === 'vot' ? 'active' : '' ?>">Voturi</a>
+            <a href="/admin/?tab=imagini" class="<?= ($tab ?? '') === 'imagini' ? 'active' : '' ?>">Imagini</a>
+            <a href="/admin/?tab=aspect" class="<?= ($tab ?? '') === 'aspect' ? 'active' : '' ?>">Aspect</a>
+            <a href="/admin/statistici/ab_headline.php" class="<?= $__ab_active ? 'active' : '' ?>">Test A/B</a>
+        </div>
+    </div>
+
     <?php if (is_owner()): ?>
     <a href="/admin/statistici/pnl/" class="<?= ($tab ?? '') === 'pnl' ? 'active' : '' ?>">P&amp;L</a>
     <a href="/admin/?tab=config" class="<?= in_array($tab ?? '', ['config','securitate','kit'], true) ? 'active' : '' ?>">Setări</a>
@@ -75,6 +94,8 @@ $__bc_labels = [
     'mesaje' => 'Mesaje', 'marketing' => 'Marketing', 'imagini' => 'Imagini',
     'aspect' => 'Aspect', 'vot' => 'Vot cursuri', 'colaborari' => 'Colaborări',
     'config' => 'Setări', 'securitate' => 'Setări', 'kit' => 'Setări',
+    'templates' => 'Templates',
+    'cursuri-posibile' => 'Cursuri posibile',
     'pnl' => 'P&L Cursuri',
 ];
 $__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
@@ -83,3 +104,15 @@ $__bc_crumb = $__bc_labels[$tab ?? ''] ?? '';
 <?php if (!$__bc_is_home): ?>
         <div class="bc-doc-top"><a href="/admin/" class="bc-home-link">Dashboard</a></div>
 <?php endif; ?>
+<script>
+// Scurtaturi tastatura (toate paginile admin): C = Cursuri, M = Mesaje, D = Dashboard
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    var k = e.key.toLowerCase();
+    if (k === 'c') window.location.href = '/admin/?tab=cursuri';
+    if (k === 'm') window.location.href = '/admin/?tab=mesaje';
+    if (k === 'd') window.location.href = '/admin/';
+});
+</script>

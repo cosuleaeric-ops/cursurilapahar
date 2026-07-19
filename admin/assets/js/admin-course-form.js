@@ -174,7 +174,7 @@
         clearTimeout(ltFetchTimer);
         ltFetchTimer = setTimeout(async () => {
             msg.style.cssText = 'color:var(--text-muted);margin-top:8px;font-size:13px';
-            msg.textContent = 'Se preia imaginea de pe LiveTickets…';
+            msg.textContent = 'Se preia imaginea…';
 
             try {
                 const res = await fetch('/api/livetickets.php', {
@@ -196,7 +196,7 @@
                         img.style.display = 'block';
                     }
                     msg.style.color = 'var(--success)';
-                    msg.textContent = d.image_url ? '✓ Imagine preluată de pe LiveTickets.' : 'Link valid, dar nu s-a găsit imagine.';
+                    msg.textContent = d.image_url ? '✓ Imagine preluată.' : 'Link valid, dar nu s-a găsit imagine.';
                 } else {
                     msg.style.color = 'var(--danger)';
                     msg.textContent = data.message || 'Eroare la preluarea imaginii.';
@@ -207,6 +207,13 @@
             }
             updateCoursePreview();
         }, 400);
+    };
+
+    window.refetchLTImage = function () {
+        document.getElementById('f_image_url').value = '';
+        const img = document.getElementById('prev_img');
+        if (img) { img.src = ''; img.style.display = 'none'; }
+        fetchLTImage();
     };
 
     document.getElementById('f_title')?.addEventListener('input', updateCoursePreview);

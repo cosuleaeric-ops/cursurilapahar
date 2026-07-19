@@ -40,3 +40,16 @@ data/instagram_posts.json
 
 # Course publish-task state (server-side)
 data/course_publish_done.json
+
+# Course ideas — cursuri posibile (server-side data)
+data/course_ideas.json
+
+# web/ (Next.js) — build output, env & local tooling (node_modules deja ignorat mai sus)
+web/.next/
+web/.vercel/
+web/.env*.local
+web/next-env.d.ts
+web/tsconfig.tsbuildinfo
+
+# migration/ — secrete
+migration/.env

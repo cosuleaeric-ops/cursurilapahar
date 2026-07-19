@@ -25,6 +25,8 @@ function clp_cheltuiala_emoji_map(): array
         'Fast-food'          => '🍔',
         'Teambuilding'       => '☘️',
         'Fun'                => '🤘',
+        'Promovare iaBilet'  => '🎟️',
+        'Backlinks'          => '🔗',
     ];
 }
 
@@ -52,6 +54,8 @@ function clp_cheltuiala_emoji_keywords(): array
         'decont'       => '🧾',
         'rata pc'      => '🖥️',
         'fun'          => '🤘',
+        'iabilet'      => '🎟️',
+        'backlink'     => '🔗',
     ];
 }
 

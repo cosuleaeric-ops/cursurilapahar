@@ -35,16 +35,11 @@ require_once __DIR__ . '/lib/courses.php';
 require_once __DIR__ . '/lib/livetickets.php';
 require_once __DIR__ . '/lib/course_clicks.php';
 
-// ── Test A/B headline hero ────────────────────────────────────────────────────
-require_once __DIR__ . '/lib/ab_headline.php';
-$ab_variant = clp_ab_headline_assign();
-
 // ── Test A/B buton „Vreau să vin" pe cardurile de curs ────────────────────────
 require_once __DIR__ . '/lib/ab_button.php';
 $ab_button = clp_ab_button_assign();
 
 if (clp_should_count_course_click()) {
-    clp_ab_headline_track($ab_variant, 'views');
     clp_ab_button_track($ab_button, 'views');
 }
 
@@ -98,6 +93,13 @@ foreach ($courses as $c) {
     break;
 }
 
+// ── Cursurile „NOU" (link pus în ultimele 48h) apar primele, tot pe dată ──────
+usort($courses, function ($a, $b) {
+    $na = clp_course_is_new($a) ? 0 : 1;
+    $nb = clp_course_is_new($b) ? 0 : 1;
+    return $na !== $nb ? $na - $nb : strcmp($a['date_raw'] ?? '', $b['date_raw'] ?? '');
+});
+
 // ── Sold-out check via LiveTickets API (cached 15 min) ────────────────────────
 $soldout_cache_file = __DIR__ . '/data/soldout_cache.json';
 $soldout_cache = file_exists($soldout_cache_file)
@@ -132,16 +134,16 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Cursuri la Pahar">
     <meta property="og:locale" content="ro_RO">
-    <meta property="og:title" content="Cursuri la Pahar – Educație la un pahar în oraș">
-    <meta property="og:description" content="Cursuri de la care nu vrei să chiulești. Experți și profesori îți predau la un pahar, într-un bar din București.">
+    <meta property="og:title" content="Învață ceva nou la un pahar în oraș">
+    <meta property="og:description" content="Experți și profesori îți predau la un pahar, într-un bar din București.">
     <meta property="og:url" content="https://cursurilapahar.ro/">
     <meta property="og:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Cursuri la Pahar – curs ținut într-un bar plin din București">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Cursuri la Pahar – Educație la un pahar în oraș">
-    <meta name="twitter:description" content="Cursuri de la care nu vrei să chiulești. Experți și profesori îți predau la un pahar, într-un bar din București.">
+    <meta name="twitter:title" content="Învață ceva nou la un pahar în oraș">
+    <meta name="twitter:description" content="Experți și profesori îți predau la un pahar, într-un bar din București.">
     <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -227,7 +229,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
         <?php if ($hero_next_label !== ''): ?>
         <div class="hero-next-card"><span class="hero-next-dot"></span><?= htmlspecialchars($hero_next_label) ?></div>
         <?php endif; ?>
-        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $ab_variant === 'B' ? CLP_AB_HEADLINE_B : $settings['hero_title'] ?></h1>
+        <h1 class="hero-title" <?= clp_e('hero_title',$settings) ?>><?= $settings['hero_title'] ?></h1>
         <p class="hero-subtitle">Experți și profesori îți predau la un pahar, într-un bar din București.</p>
         <a href="#cursuri" class="btn btn-primary hero-cta">Vezi cursurile ↓</a>
     </div>
@@ -249,6 +251,7 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                 $badge_day = $date_raw ? date('d', strtotime($date_raw)) : '';
                 $badge_month = $date_raw ? strtoupper(date('M', strtotime($date_raw))) : '';
                 $is_sold_out = $course_soldout[$course['id'] ?? ''] ?? false;
+                $is_new = clp_course_is_new($course);
                 $datetime_label = clp_course_datetime_label($course);
                 $card_title = clp_course_title_for_card($course);
                 $discount_active = false;
@@ -281,6 +284,9 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
                     <?php endif; ?>
                     <?php if ($discount_active): ?>
                     <div class="discount-badge">−<?= $discount_pct ?>%</div>
+                    <?php endif; ?>
+                    <?php if ($is_new): ?>
+                    <div class="new-badge<?= $discount_active ? ' new-badge--below-discount' : '' ?>">NOU</div>
                     <?php endif; ?>
                 </div>
                 <div class="event-card-body">
@@ -330,10 +336,13 @@ if ($cache_dirty) @file_put_contents($soldout_cache_file, json_encode($soldout_c
 <!-- ── NEWSLETTER ─────────────────────────── -->
 <?php
 $nl_bg_data = $settings['section_bgs']['newsletter'] ?? [];
-$nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settings['hero_images'][0] ?? '/assets/images/hero1.jpg');
+$nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp('/assets/images/hero1.jpg');
 ?>
 <section class="section section-dark section-bg-blur" id="newsletter" <?= clp_section_bg('newsletter', $settings, $nl_img) ?>>
     <div class="container container-narrow">
+        <div class="newsletter-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></svg>
+        </div>
         <h2 class="section-title" <?= clp_e('newsletter_title',$settings) ?>><?= htmlspecialchars($settings['newsletter_title']) ?></h2>
         <p class="newsletter-desc" <?= clp_e('newsletter_desc',$settings) ?>><?= htmlspecialchars($settings['newsletter_desc']) ?></p>
         <form class="newsletter-form" id="newsletterForm" novalidate>
@@ -385,7 +394,7 @@ $nl_img = !empty($nl_bg_data['image']) ? $nl_bg_data['image'] : img_webp($settin
 <!-- ── FAQ ────────────────────────────────── -->
 <?php
 $faq_bg_data = $settings['section_bgs']['faq'] ?? [];
-$faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp($settings['hero_images'][1] ?? $settings['hero_images'][0] ?? '/assets/images/hero2.jpg');
+$faq_img = !empty($faq_bg_data['image']) ? $faq_bg_data['image'] : img_webp('/assets/images/hero2.jpg');
 ?>
 <section class="section section-dark section-bg-blur" id="faq" <?= clp_section_bg('faq', $settings, $faq_img) ?>>
     <div class="container container-narrow">

@@ -93,6 +93,7 @@ function clp_default_settings(): array
             ['label' => 'Invitatie',           'url' => 'https://www.canva.com/design/DAHAEaZYZHE/akhj1g2nUiwthNTGEyo0dQ/edit', 'icon' => '✉️'],
             ['label' => 'Logo',                'url' => 'https://www.canva.com/design/DAG_I_HdOsQ/eAuL52PZe88j8KLMVSAaQw/edit', 'icon' => '🎨'],
         ],
+        'templates' => [],
     ];;
 }
 

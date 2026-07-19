@@ -44,6 +44,20 @@ function clp_course_has_ticket_link(array $course): bool
     return trim($course['livetickets_url'] ?? '') !== '';
 }
 
+/** Durata în care un curs e marcat „NOU" din momentul în care i s-a pus linkul. */
+const CLP_COURSE_NEW_SECONDS = 48 * 3600;
+
+/** Curs „NOU": linkul de bilete a fost adăugat în ultimele 48h. */
+function clp_course_is_new(array $course): bool
+{
+    $added = trim($course['link_added_at'] ?? '');
+    if ($added === '') {
+        return false;
+    }
+    $ts = strtotime($added);
+    return $ts !== false && (time() - $ts) < CLP_COURSE_NEW_SECONDS;
+}
+
 /** Curs vizibil pe site-ul public (activ + link LiveTickets obligatoriu) */
 function clp_course_is_public(array $course): bool
 {
@@ -370,7 +384,7 @@ function clp_dedupe_statistici_course_rows(array $rows): array
         }
     }
     $out = array_values($by_date);
-    usort($out, fn($a, $b) => strcmp($b['date'] ?? '', $a['date'] ?? ''));
+    usort($out, fn($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
     return $out;
 }
 
@@ -443,7 +457,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
             FROM courses c
             WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
             AND (" . implode(' OR ', $visibility) . ")
-            ORDER BY c.date DESC";
+            ORDER BY c.date ASC";
         $r = $db->query($sql);
         if ($r === false) {
             $r = $db->query("SELECT c.id, c.external_id, c.name, c.date,
@@ -451,7 +465,7 @@ function clp_fetch_statistici_courses_for_month(int $year, int $month): array
                 FROM courses c
                 WHERE c.date LIKE '" . $db->escapeString($prefix) . "%'
                 AND (" . implode(' OR ', $visibility) . ")
-                ORDER BY c.date DESC");
+                ORDER BY c.date ASC");
         }
         if ($r !== false) {
             while ($row = $r->fetchArray(SQLITE3_ASSOC)) {

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/speakers.php';
+
 function clp_message_meta_file(): string {
     return dirname(__DIR__) . '/data/message_meta.json';
 }
@@ -91,15 +93,23 @@ function clp_load_grouped_messages(): array {
     $categories = clp_message_categories();
     $grouped = array_fill_keys(array_keys($categories), []);
     $meta = load_msg_meta();
+    $speakers = load_speakers();
 
     foreach (clp_read_message_log_blocks() as $block) {
         preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
         $type = trim($m[2] ?? 'contact');
         if (!isset($grouped[$type])) $type = 'contact';
         $mid = msg_id_from_block($block);
+        $fields = clp_parse_message_block_fields($block);
+        // Speakerii deja gestionați în /speakeri nu mai apar în triajul Mesaje
+        if ($type === 'sustine') {
+            $em = $fields['Email'] ?? $fields['email'] ?? '';
+            $ph = $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '';
+            if (clp_find_speaker_index_by_contact($speakers, $em, $ph) >= 0) continue;
+        }
         $grouped[$type][] = [
             'date'   => trim($m[1] ?? ''),
-            'fields' => clp_parse_message_block_fields($block),
+            'fields' => $fields,
             'id'     => $mid,
             'meta'   => $meta[$mid] ?? [],
         ];
@@ -143,6 +153,28 @@ function clp_contacted_message_leads(): array {
         ];
     }
     return $leads;
+}
+
+/**
+ * Submisiile din formularul „Prezintă un curs”, mapate pe speakerii existenți (după email/telefon).
+ * Blocurile sunt newest-first, deci prima potrivire = cea mai recentă submisie.
+ * @return array<string, array{date: string, fields: array<string, string>}> speaker_id => submisie
+ */
+function clp_speaker_form_submissions_by_speaker(array $speakers): array {
+    $map = [];
+    foreach (clp_read_message_log_blocks() as $block) {
+        preg_match('/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m', $block, $m);
+        if (trim($m[2] ?? '') !== 'sustine') continue;
+        $fields = clp_parse_message_block_fields($block);
+        $em = $fields['Email'] ?? $fields['email'] ?? '';
+        $ph = $fields['Phone'] ?? $fields['Telefon'] ?? $fields['telefon'] ?? '';
+        $idx = clp_find_speaker_index_by_contact($speakers, $em, $ph);
+        if ($idx < 0) continue;
+        $sid = $speakers[$idx]['id'] ?? '';
+        if ($sid === '' || isset($map[$sid])) continue;
+        $map[$sid] = ['date' => trim($m[1] ?? ''), 'fields' => $fields];
+    }
+    return $map;
 }
 
 function clp_mark_messages_read(): void {

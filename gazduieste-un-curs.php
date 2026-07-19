@@ -26,7 +26,7 @@ function clp_e(string $key, array $settings): string {
 
 $gazduieste_title   = $settings['gazduieste_title']   ?? 'Găzduiește un curs';
 $gazduieste_intro_1 = $settings['gazduieste_intro_1'] ?? 'Ai o locație cu vibe fain și vrei să o transformi într-un loc de întâlnire al participanților Cursuri la Pahar? Well, noi căutăm parteneri care să devină „acasă" pentru evenimentele noastre!';
-$gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong>Cursuri la Pahar</strong> la tine. Punem preț pe locurile care inspiră creativitate și care oferă cadrul perfect pentru networking și învățare relaxată.';
+$gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un pub, o cafenea</strong> sau un spațiu neconvențional care debordează de personalitate? Ne-ar plăcea să aducem conceptul <strong>Cursuri la Pahar</strong> la tine.';
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -67,6 +67,8 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
         --banner-bg:    <?= htmlspecialchars($settings['color_banner']    ?? '#FFB000') ?>;
     }
     body { padding-top: 88px; }
+    .benefits-bullets { list-style: disc; }
+    .benefits-bullets li::marker { color: var(--accent); }
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
     <?php include __DIR__ . '/includes/edit-styles.php'; ?>
@@ -112,12 +114,12 @@ $gazduieste_intro_2 = $settings['gazduieste_intro_2'] ?? 'Ai un <strong>bar, un 
             <p <?= clp_e('gazduieste_intro_1', $settings) ?>><?= $gazduieste_intro_1 ?></p>
             <p <?= clp_e('gazduieste_intro_2', $settings) ?> style="margin-top:16px;"><?= $gazduieste_intro_2 ?></p>
             <p style="margin-top:16px;"><strong>De ce să devii locație parteneră?</strong></p>
-            <ul style="margin-top:8px;padding-left:20px;">
+            <ul class="benefits-bullets" style="margin-top:8px;padding-left:20px;">
                 <li><strong>Vizibilitate:</strong> Atragi un public nou, dornic de experiențe de calitate.</li>
                 <li><strong>Comunitate:</strong> Spațiul tău devine un punct de reper pentru educație și socializare.</li>
                 <li><strong>Vibe:</strong> Îți umpli locația cu energie pozitivă și oameni pasionați.</li>
             </ul>
-            <p style="margin-top:16px;">Dacă crezi că spațiul tău se potrivește cu conceptul nostru și vrei să fim parteneri în organizarea următoarelor ediții, abia așteptăm să te cunoaștem! <strong>Completează formularul de mai jos și hai să punem ceva frumos la cale!</strong></p>
+            <p style="margin-top:16px;">Pentru a putea susține un Curs la Pahar, localul trebuie să aibă minimum <strong>40 de locuri</strong> seated, un <strong>sistem audio cu microfon</strong> și un <strong>ecran de proiecție/televizor mare</strong>, pentru prezentarea speakerilor.</p>
         </div>
 
         <div class="inner-form">

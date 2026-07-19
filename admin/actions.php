@@ -53,7 +53,7 @@
 
     // ── Save course
     if ($action === 'save_course') {
-        require_once dirname(__DIR__) . '/lib/livetickets.php';
+        require_once dirname(__DIR__) . '/lib/course_image.php';
 
         $id = trim($_POST['course_id'] ?? '');
         $title = trim($_POST['title'] ?? '');
@@ -84,7 +84,7 @@
         }
 
         if ($livetickets_url !== '' && $image_url === '') {
-            $lt = lt_fetch_event_by_url($livetickets_url);
+            $lt = clp_fetch_course_meta_by_url($livetickets_url);
             if (!empty($lt['success']) && !empty($lt['data']['image_url'])) {
                 $image_url = $lt['data']['image_url'];
                 if ($location === '' && !empty($lt['data']['location'])) {
@@ -94,6 +94,23 @@
         }
 
         $courses = clp_load_courses_for_admin();
+
+        $existing = null;
+        if ($id !== '') {
+            foreach ($courses as $c) {
+                if (($c['id'] ?? '') === $id) { $existing = $c; break; }
+            }
+        }
+
+        // „NOU" 48h: momentul în care linkul de bilete a fost pus prima dată.
+        // - link nou pus acum → timpul curent
+        // - avea deja link → păstrăm marcajul existent (gol la cursuri vechi = nu e nou)
+        $link_added_at = '';
+        if ($livetickets_url !== '') {
+            $had_link_before = $existing && trim($existing['livetickets_url'] ?? '') !== '';
+            $link_added_at = $had_link_before ? trim($existing['link_added_at'] ?? '') : date('c');
+        }
+
         $entry = [
             'id'              => $id ?: uniqid('c', true),
             'title'           => $title,
@@ -108,6 +125,9 @@
             'active'          => $livetickets_url !== '',
             'admin_stats'     => true,
         ];
+        if ($link_added_at !== '') {
+            $entry['link_added_at'] = $link_added_at;
+        }
         if ($id) {
             $found = false;
             foreach ($courses as &$c) {
@@ -296,6 +316,26 @@
         $settings['quick_links'] = $links;
         save_settings($settings);
         header('Location: /admin/?tab=config&saved=1');
+        exit;
+    }
+
+    // ── Save templates (Eric + Andy)
+    if ($action === 'save_templates') {
+        $settings = load_settings();
+        $labels = $_POST['tpl_label'] ?? [];
+        $texts  = $_POST['tpl_text']  ?? [];
+        $icons  = $_POST['tpl_icon']  ?? [];
+        $tpls   = [];
+        for ($i = 0; $i < count($labels); $i++) {
+            $lbl = trim($labels[$i] ?? '');
+            $txt = trim($texts[$i]  ?? '');
+            if ($lbl && $txt) {
+                $tpls[] = ['icon' => trim($icons[$i] ?? '') ?: '📋', 'label' => $lbl, 'text' => $txt];
+            }
+        }
+        $settings['templates'] = $tpls;
+        save_settings($settings);
+        header('Location: /admin/?tab=templates&saved=1');
         exit;
     }
 
@@ -683,12 +723,20 @@
     if ($action === 'save_speaker') {
         $id    = trim($_POST['speaker_id'] ?? '');
         $items = load_speakers();
+        // Cursurile se editează în modalul Detalii, nu în formularul de editare;
+        // dacă nu sunt trimise, păstrează-le pe cele existente ca să nu le ștergem.
+        $existing_courses = [];
+        if ($id) {
+            foreach ($items as $it0) {
+                if (($it0['id'] ?? '') === $id) { $existing_courses = $it0['courses'] ?? []; break; }
+            }
+        }
         $entry = [
             'id'      => $id ?: uniqid('sp', true),
             'name'    => trim($_POST['sp_name']    ?? ''),
             'email'   => trim($_POST['sp_email']   ?? ''),
             'phone'   => trim($_POST['sp_phone']   ?? ''),
-            'courses' => array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? []))),
+            'courses' => isset($_POST['sp_courses']) ? array_values(array_filter(array_map('trim', $_POST['sp_courses']))) : $existing_courses,
             'status'  => in_array($_POST['sp_status'] ?? '', ['RECURENT','MID','NOPE','CONTACTAT','URMEAZĂ']) ? $_POST['sp_status'] : 'MID',
             'notes'   => trim($_POST['sp_notes']   ?? ''),
         ];
@@ -747,6 +795,23 @@
         exit;
     }
 
+    // ── Save courses list for speaker (AJAX, din modalul Detalii → tab Cursuri)
+    if ($action === 'save_speaker_courses') {
+        header('Content-Type: application/json');
+        $id = trim($_POST['id'] ?? '');
+        if (!$id) { echo json_encode(['ok' => false]); exit; }
+        $courses = array_values(array_filter(array_map('trim', $_POST['sp_courses'] ?? [])));
+        $items = load_speakers();
+        $found = false;
+        foreach ($items as &$it) {
+            if (($it['id'] ?? '') === $id) { $it['courses'] = $courses; $found = true; break; }
+        }
+        unset($it);
+        if ($found) save_speakers($items);
+        echo json_encode(['ok' => $found, 'courses' => $courses]);
+        exit;
+    }
+
     // ── Save meet notes for speaker
     if ($action === 'save_meet') {
         $id    = trim($_POST['meet_speaker_id'] ?? '');
@@ -799,6 +864,34 @@
         }
         save_locations($items);
         header('Location: /admin/?tab=locatii&saved=1');
+        exit;
+    }
+
+    // ── Save course ideas (cursuri posibile)
+    if ($action === 'save_course_ideas') {
+        $emojis = (array)($_POST['cat_emoji'] ?? []);
+        $titles = (array)($_POST['cat_title'] ?? []);
+        $topics = (array)($_POST['cat_topics'] ?? []);
+        $cats = [];
+        foreach ($titles as $i => $title) {
+            $title = trim((string)$title);
+            if ($title === '') continue;
+            $lines = array_values(array_filter(
+                array_map('trim', explode("\n", (string)($topics[$i] ?? ''))),
+                fn($l) => $l !== ''
+            ));
+            $cats[] = [
+                'emoji'  => trim((string)($emojis[$i] ?? '')),
+                'title'  => $title,
+                'topics' => $lines,
+            ];
+        }
+        // array_merge peste datele existente ca să nu piardă flag-urile de migrație
+        clp_save_course_ideas(array_merge(clp_load_course_ideas(), [
+            'intro'      => trim($_POST['ideas_intro'] ?? ''),
+            'categories' => $cats,
+        ]));
+        header('Location: /admin/?tab=cursuri-posibile&saved=1');
         exit;
     }
 

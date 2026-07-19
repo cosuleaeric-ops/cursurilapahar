@@ -19,6 +19,7 @@ function clp_admin_tabs(): array {
     return [
         'dashboard', 'cursuri', 'imagini', 'aspect', 'kit', 'mesaje', 'vot',
         'competitori', 'speakeri', 'locatii', 'colaborari', 'securitate', 'config',
+        'templates', 'cursuri-posibile',
     ];
 }
 

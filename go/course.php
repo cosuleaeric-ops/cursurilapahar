@@ -15,13 +15,6 @@ if ($url === '' || empty($course['active'])) {
 if (clp_should_count_course_click()) {
     clp_increment_course_click($id);
 
-    // Test A/B headline: atribuie click-ul variantei din cookie.
-    require_once dirname(__DIR__) . '/lib/ab_headline.php';
-    $ab = (string) ($_COOKIE[CLP_AB_HEADLINE_COOKIE] ?? '');
-    if (in_array($ab, CLP_AB_HEADLINE_VARIANTS, true)) {
-        clp_ab_headline_track($ab, 'clicks');
-    }
-
     // Test A/B buton „Vreau să vin": click pe card sau buton = același redirect.
     require_once dirname(__DIR__) . '/lib/ab_button.php';
     $ab_btn = (string) ($_COOKIE[CLP_AB_BUTTON_COOKIE] ?? '');
