@@ -38,6 +38,8 @@ $files = [
     'course_ideas'    => 'course_ideas.json',
     'marketing'       => 'marketing_posts.json',
     'recurring'       => 'recurring_tasks.json',
+    'ab_button'       => 'ab_button.json',
+    'course_clicks'   => 'course_clicks.json',
 ];
 
 $bundle = ['exported_at' => date('c')];
