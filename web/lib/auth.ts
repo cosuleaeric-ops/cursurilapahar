@@ -69,8 +69,10 @@ export async function verifyMagicToken(token: string): Promise<string | null> {
 const DEV_SESSION: Session | null =
   process.env.NODE_ENV === "development" ? { username: "eric6", role: "owner" } : null;
 
-/** Citește sesiunea din cookie (null dacă lipsește/invalid/expirat). */
-export async function getSession(): Promise<Session | null> {
+export const VIEW_AS_COOKIE = "clp_view_as";
+
+/** Sesiunea REALĂ din cookie-ul JWT (ignoră impersonarea). */
+export async function getRealSession(): Promise<Session | null> {
   const store = await cookies();
   const token = store.get(COOKIE)?.value;
   if (!token) return DEV_SESSION;
@@ -80,6 +82,20 @@ export async function getSession(): Promise<Session | null> {
   } catch {
     return DEV_SESSION;
   }
+}
+
+/**
+ * Sesiunea curentă: dacă owner-ul are cookie-ul clp_view_as setat pe un user
+ * valid, întoarce acel user (impersonare, ca în lib/auth.php).
+ */
+export async function getSession(): Promise<Session | null> {
+  const real = await getRealSession();
+  if (!real || real.role !== "owner") return real;
+  const store = await cookies();
+  const viewAs = store.get(VIEW_AS_COOKIE)?.value;
+  if (!viewAs || viewAs === real.username) return real;
+  const rows = (await sql`SELECT username, role FROM users WHERE username = ${viewAs}`) as Session[];
+  return rows[0] ?? real;
 }
 
 export async function destroySession(): Promise<void> {

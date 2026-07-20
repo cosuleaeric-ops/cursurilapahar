@@ -1,12 +1,21 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { sql } from "@/lib/db";
+import { getRealSession, getSession } from "@/lib/auth";
 import { logout } from "./actions";
 import AdminNav from "./AdminNav";
+import UserSwitcher from "./UserSwitcher";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
-  if (!session) redirect("/login");
+  const real = await getRealSession();
+  if (!real) redirect("/login");
+  const session = (await getSession())!;
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  let users: string[] = [];
+  if (real.role === "owner") {
+    const rows = (await sql`SELECT username FROM users ORDER BY id`) as { username: string }[];
+    users = rows.map((r) => r.username);
+  }
 
   return (
     <>
@@ -21,9 +30,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </a>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 12, color: "#a0aec0" }}>
-            {cap(session.username)} · {session.role}
-          </span>
+          {real.role === "owner" ? (
+            <UserSwitcher realUsername={real.username} viewUsername={session.username} users={users} />
+          ) : (
+            <span style={{ fontSize: 12, color: "#a0aec0" }}>
+              {cap(session.username)} · {session.role}
+            </span>
+          )}
           <form action={logout} style={{ margin: 0 }}>
             <button type="submit" className="btn-logout">
               Deconectează-te
