@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/admin/imagini": ["./public/assets/images/**"],
   },
-  // Upload-urile făcute pe PHP-ul live nu există în web/public — până la
-  // comutarea domeniului le servim de pe site-ul live (doar dacă lipsesc local).
+  // Upload-urile vechi de pe PHP au fost copiate în Blob (scripts/copy-uploads-to-blob.mjs);
+  // referințele /assets/images/uploads/* din settings rămân valabile prin fallback.
   async rewrites() {
     return {
       beforeFiles: [],
@@ -19,11 +19,11 @@ const nextConfig: NextConfig = {
       fallback: [
         {
           source: "/assets/images/uploads/:path*",
-          destination: "https://cursurilapahar.ro/assets/images/uploads/:path*",
+          destination: "https://jn2ztrmmqtkkwxv6.public.blob.vercel-storage.com/uploads/:path*",
         },
         {
           source: "/favicon.png",
-          destination: "https://cursurilapahar.ro/favicon.png",
+          destination: "https://jn2ztrmmqtkkwxv6.public.blob.vercel-storage.com/uploads/favicon.png",
         },
       ],
     };
