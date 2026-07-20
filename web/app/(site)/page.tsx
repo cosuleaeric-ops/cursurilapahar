@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 import HeroCarousel from "./HeroCarousel";
 import { abVariant, shouldCountClick, trackAb } from "@/lib/ab";
+import DiscountCountdown from "./DiscountCountdown";
 import FaqList from "./FaqList";
 import Gallery from "./Gallery";
 import { NewsletterForm, ContactForm } from "./forms";
@@ -15,7 +16,25 @@ type EventRow = {
   image_url: string | null;
   livetickets_url: string | null;
   sold_out: boolean;
+  link_added_at: string | null;
+  discount_percent: number | null;
+  discount_ends_at: string | null;
 };
+
+const NEW_MS = 48 * 3600 * 1000;
+
+// „Următorul curs este azi / mâine / peste X (de) zile" — ca în index.php
+function heroNextLabel(events: EventRow[], todayBucharest: string): string {
+  const dates = events
+    .map((e) => (e.starts_at ? new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date(e.starts_at)) : ""))
+    .filter((d) => d && d >= todayBucharest)
+    .sort();
+  if (!dates.length) return "";
+  const days = Math.round((Date.parse(dates[0]) - Date.parse(todayBucharest)) / 86400000);
+  if (days === 0) return "Următorul curs este azi";
+  if (days === 1) return "Următorul curs este mâine";
+  return `Următorul curs este peste ${days}${days >= 20 ? " de" : ""} zile`;
+}
 
 const dayFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: "Europe/Bucharest", weekday: "long", day: "numeric", month: "long" });
 const timeFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: "Europe/Bucharest", hour: "2-digit", minute: "2-digit" });
@@ -77,12 +96,19 @@ export default async function Home() {
     { href: "/propune-un-parteneriat", img: "parteneriat", title: "Propune un parteneriat", text: "Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună." },
   ];
 
+  // Vizibil public = activ + link bilete + ziua nu a trecut (ca clp_course_is_public);
+  // cursurile „NOU" (link pus în ultimele 48h) apar primele, apoi pe dată.
+  const todayBucharest = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
   const events = (await sql`
-    SELECT id, title, starts_at, location, image_url, livetickets_url, sold_out
+    SELECT id, title, starts_at, location, image_url, livetickets_url, sold_out,
+           link_added_at, discount_percent, discount_ends_at
     FROM events
     WHERE active = true
-    ORDER BY starts_at ASC
+      AND livetickets_url IS NOT NULL AND livetickets_url <> ''
+      AND (starts_at IS NULL OR to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') >= ${todayBucharest})
+    ORDER BY (link_added_at IS NOT NULL AND link_added_at > now() - interval '48 hours') DESC, starts_at ASC
   `) as EventRow[];
+  const nextLabel = heroNextLabel(events, todayBucharest);
 
   return (
     <>
@@ -90,6 +116,12 @@ export default async function Home() {
         <HeroCarousel slides={heroSlides} />
         <div className="hero-overlay"></div>
         <div className="hero-content">
+          {nextLabel && (
+            <div className="hero-next-card">
+              <span className="hero-next-dot"></span>
+              {nextLabel}
+            </div>
+          )}
           <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: heroTitle }} />
           <p className="hero-subtitle">Experți și profesori îți predau la un pahar, într-un bar din București.</p>
           <a href="#cursuri" className="btn btn-primary hero-cta">
@@ -112,6 +144,12 @@ export default async function Home() {
             <div className="events-grid">
               {events.map((e) => {
                 const d = e.starts_at ? new Date(e.starts_at) : null;
+                const isNew = !!e.link_added_at && Date.now() - new Date(e.link_added_at).getTime() < NEW_MS;
+                const discountActive =
+                  !e.sold_out &&
+                  !!e.discount_percent &&
+                  !!e.discount_ends_at &&
+                  new Date(e.discount_ends_at).getTime() > Date.now();
                 const linkProps =
                   e.sold_out || !e.livetickets_url
                     ? {}
@@ -136,6 +174,8 @@ export default async function Home() {
                           <span className="badge-month">{badgeMonFmt.format(d).toUpperCase()}</span>
                         </div>
                       )}
+                      {discountActive && <div className="discount-badge">−{e.discount_percent}%</div>}
+                      {isNew && <div className={`new-badge${discountActive ? " new-badge--below-discount" : ""}`}>NOU</div>}
                     </div>
                     <div className="event-card-body">
                       <h3 className="event-card-title">{cardTitle(e.title)}</h3>
@@ -159,6 +199,9 @@ export default async function Home() {
                           </span>
                         )}
                       </div>
+                      {discountActive && e.discount_ends_at && (
+                        <DiscountCountdown endsAt={e.discount_ends_at} code="VARA30" />
+                      )}
                       {ab === "on" && !e.sold_out && (
                         <span className="event-card-cta">
                           Vreau să vin

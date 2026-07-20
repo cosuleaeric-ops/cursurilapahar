@@ -34,6 +34,10 @@ CREATE TABLE events (
     livetickets_url     TEXT,
     image_url           TEXT,                        -- URL (Blob/CDN), nu fișier local
 
+    link_added_at       TIMESTAMPTZ,                 -- pt badge-ul „NOU" (48h de la link)
+    discount_percent    INTEGER,                     -- reducere activă pe card (opțional)
+    discount_ends_at    TIMESTAMPTZ,
+
     active              BOOLEAN NOT NULL DEFAULT false,  -- afișat pe site
     sold_out            BOOLEAN NOT NULL DEFAULT false,  -- fost soldout_cache.json
     sold_out_checked_at TIMESTAMPTZ,
