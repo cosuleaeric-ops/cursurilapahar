@@ -20,8 +20,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     "--accent": str("color_accent", "#C9A84C"),
     "--text": str("color_text", "#F0EBE1"),
     "--text-muted": str("color_text_muted", "#8A8A8A"),
+    "--btn-hover": str("color_btn_hover", "#b8922e"),
+    "--banner-bg": str("color_banner", "#FFB000"),
     paddingTop: "88px",
   };
+  const favicon = str("favicon_path");
 
   const links: NavLink[] = Array.isArray(s.nav_links) ? (s.nav_links as NavLink[]) : [];
   const brand = str("nav_brand_text", "Cursuri la Pahar");
@@ -33,8 +36,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <link rel="stylesheet" href={FONTS} />
       <link rel="stylesheet" href="/assets/css/style.css" />
       <HeadScripts html={str("head_scripts")} />
+      {favicon && <link rel="icon" href={favicon} />}
       <div style={vars as React.CSSProperties}>
-        <SiteNav brand={brand} logo="/assets/images/logo.webp" links={links} />
+        <SiteNav brand={brand} logo={str("logo_path", "/assets/images/logo.webp")} links={links} />
         {children}
       </div>
     </>

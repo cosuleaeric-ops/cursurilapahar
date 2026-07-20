@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
           source: "/assets/images/uploads/:path*",
           destination: "https://cursurilapahar.ro/assets/images/uploads/:path*",
         },
+        {
+          source: "/favicon.png",
+          destination: "https://cursurilapahar.ro/favicon.png",
+        },
       ],
     };
   },
