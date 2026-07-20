@@ -37,8 +37,20 @@ export default async function Home() {
 
   const rawHero =
     Array.isArray(s.hero_images) && s.hero_images.length ? (s.hero_images as string[]) : ["/assets/images/hero1.jpg"];
-  // servim webp (ca site-ul real via img_webp) — mult mai mici decât jpg
-  const heroImages = rawHero.map((p) => p.replace(/\.jpe?g$/i, ".webp"));
+  const heroTransforms =
+    s.hero_transforms && typeof s.hero_transforms === "object"
+      ? (s.hero_transforms as Record<string, { x?: number; y?: number; zoom?: number }>)
+      : {};
+  // servim webp (ca site-ul real via img_webp) — mult mai mici decât jpg;
+  // transformările sunt cheiate pe URL-ul brut din settings
+  const heroSlides = rawHero.map((p) => {
+    const t = heroTransforms[p] ?? {};
+    return {
+      src: p.replace(/\.jpe?g$/i, ".webp"),
+      pos: `${t.x ?? 50}% ${t.y ?? 50}%`,
+      zoom: (t.zoom ?? 100) / 100,
+    };
+  });
   const heroTitle = str("hero_title", "Curs la Pahar");
   const coursesTitle = str("courses_title", "PROGRAM CURSURI");
   const announcement = str("announcement");
@@ -70,7 +82,7 @@ export default async function Home() {
   return (
     <>
       <section className="hero" id="hero">
-        <HeroCarousel images={heroImages} />
+        <HeroCarousel slides={heroSlides} />
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: heroTitle }} />

@@ -11,6 +11,7 @@ const TABS = [
   { href: "/admin/locatii", label: "Locații" },
   { href: "/admin/voturi", label: "Voturi" },
   { href: "/admin/colaborari", label: "Colaborări" },
+  { href: "/admin/imagini", label: "Imagini" },
   { href: "/admin/pnl", label: "P&L", owner: true },
   { href: "/admin/setari", label: "Setări", owner: true },
 ];
