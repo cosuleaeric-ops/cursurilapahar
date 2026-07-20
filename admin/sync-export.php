@@ -48,6 +48,16 @@ foreach ($files as $key => $filename) {
     $bundle[$key] = file_exists($path) ? json_decode(file_get_contents($path), true) : null;
 }
 
+// Lista fișierelor din uploads (nume + mtime) — pt migrarea imaginilor în Blob
+$uploads_dir = dirname(__DIR__) . '/assets/images/uploads';
+$bundle['uploads_list'] = [];
+if (is_dir($uploads_dir)) {
+    foreach (scandir($uploads_dir) as $f) {
+        if ($f === '.' || $f === '..' || !is_file($uploads_dir . '/' . $f)) continue;
+        $bundle['uploads_list'][] = ['name' => $f, 'size' => filesize($uploads_dir . '/' . $f)];
+    }
+}
+
 // Strip secrets din settings inainte de a le trimite
 if (is_array($bundle['settings'])) {
     foreach (['admin_password','auth_secret','webhook_secret','sync_token'] as $secret_key) {
