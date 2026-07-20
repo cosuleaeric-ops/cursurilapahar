@@ -29,6 +29,7 @@ CREATE TABLE events (
 
     title               TEXT NOT NULL,
     starts_at           TIMESTAMPTZ,                 -- date_raw + time unificate
+    speaker_name        TEXT,                        -- din card (pt taskuri post-curs)
     location            TEXT,
     livetickets_url     TEXT,
     image_url           TEXT,                        -- URL (Blob/CDN), nu fișier local
@@ -216,12 +217,21 @@ CREATE TABLE todos (
 CREATE TABLE recurring_tasks (
     id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     legacy_id   TEXT,                          -- 'sys_pc_1' etc.
-    type        TEXT NOT NULL,                 -- 'system' / ...
-    system_key  TEXT,                          -- 'post_course' / ...
+    type        TEXT NOT NULL,                 -- 'system' / 'monthly'
+    system_key  TEXT,                          -- 'post_course' / 'course_published'
     assigned_to TEXT,
     title       TEXT NOT NULL,
     schedule    TEXT,
-    description TEXT
+    description TEXT,
+    days        INTEGER[] NOT NULL DEFAULT '{}',  -- zilele din lună (monthly)
+    position    INTEGER
+);
+
+-- chei procesate de cronul zilnic (idempotență) — echivalentul state-file-urilor PHP
+-- formate: rec:<task>|<data>, postcourse:<event_id>, publish:<event_id>
+CREATE TABLE cron_state (
+    key        TEXT PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE marketing_sections (

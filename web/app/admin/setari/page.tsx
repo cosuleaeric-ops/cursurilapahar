@@ -3,23 +3,29 @@ import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { saveKit, saveBrevo, saveHeadScripts, changePassword } from "./actions";
 import QuickLinksEditor, { type QuickLink } from "./QuickLinksEditor";
+import RecurringEditor, { type RecTask } from "./RecurringEditor";
 
 export const dynamic = "force-dynamic";
 
 export default async function SetariPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; rec?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "owner") redirect("/admin");
 
-  const { saved, error } = await searchParams;
+  const { saved, error, rec } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
     WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'head_scripts')
   `) as { key: string; value: unknown }[];
+  const recTasks = (await sql`
+    SELECT id, type, system_key, assigned_to, title, schedule, description, days
+    FROM recurring_tasks ORDER BY position, id
+  `) as RecTask[];
+  const users = ((await sql`SELECT username FROM users ORDER BY id`) as { username: string }[]).map((u) => u.username);
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   const str = (k: string) => (typeof s[k] === "string" ? (s[k] as string) : "");
   const quickLinks = Array.isArray(s.quick_links) ? (s.quick_links as QuickLink[]) : [];
@@ -38,6 +44,8 @@ export default async function SetariPage({
         </p>
         <QuickLinksEditor links={quickLinks} />
       </div>
+
+      <RecurringEditor tasks={recTasks} users={users} notice={rec} />
 
       <form action={saveKit}>
         <div className="card">

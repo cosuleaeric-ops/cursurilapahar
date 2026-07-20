@@ -58,6 +58,49 @@ export async function saveHeadScripts(formData: FormData): Promise<void> {
   redirect("/admin/setari?saved=1");
 }
 
+export async function addRecurring(): Promise<void> {
+  await requireOwner();
+  await sql`
+    INSERT INTO recurring_tasks (legacy_id, type, title, assigned_to, days, position)
+    VALUES (${"rec_" + Math.random().toString(16).slice(2, 14)}, 'monthly', 'Task nou', 'eric6', '{}',
+            (SELECT COALESCE(MAX(position), 0) + 1 FROM recurring_tasks))
+  `;
+  redirect("/admin/setari?rec=ok#rec");
+}
+
+export async function saveRecurring(formData: FormData): Promise<void> {
+  await requireOwner();
+  const id = Number(g(formData, "id"));
+  const title = g(formData, "title");
+  if (!id || !title) redirect("/admin/setari#rec");
+  let assigned = g(formData, "assigned_to");
+  const valid = (await sql`SELECT username FROM users`) as { username: string }[];
+  if (!valid.some((u) => u.username === assigned)) assigned = "eric6";
+  const days = [...new Set(formData.getAll("days").map(Number).filter((d) => d >= 1 && d <= 31))].sort((a, b) => a - b);
+  await sql`
+    UPDATE recurring_tasks SET title = ${title}, assigned_to = ${assigned}, days = ${days}
+    WHERE id = ${id} AND type = 'monthly'
+  `;
+  redirect("/admin/setari?rec=ok#rec");
+}
+
+export async function saveRecurringSystemTitle(formData: FormData): Promise<void> {
+  await requireOwner();
+  const id = Number(g(formData, "id"));
+  const title = g(formData, "title");
+  if (!id || !title) redirect("/admin/setari#rec");
+  await sql`UPDATE recurring_tasks SET title = ${title} WHERE id = ${id} AND type = 'system'`;
+  redirect("/admin/setari?rec=ok#rec");
+}
+
+export async function deleteRecurring(formData: FormData): Promise<void> {
+  await requireOwner();
+  const id = Number(g(formData, "id"));
+  if (!id) redirect("/admin/setari#rec");
+  await sql`DELETE FROM recurring_tasks WHERE id = ${id} AND type = 'monthly'`;
+  redirect("/admin/setari?rec=ok#rec");
+}
+
 export async function changePassword(formData: FormData): Promise<void> {
   const s = await requireOwner();
   const pw = g(formData, "new_password");

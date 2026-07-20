@@ -23,7 +23,7 @@ function loadEnv(): void {
 loadEnv();
 
 // --- tipuri (permisive; oglindesc bundle-ul live) ---
-interface SiteCard { id: string; title: string; date_raw: string; time?: string; location?: string; livetickets_url?: string; image_url?: string; active?: boolean; }
+interface SiteCard { id: string; title: string; date_raw: string; time?: string; location?: string; livetickets_url?: string; image_url?: string; active?: boolean; speaker_name?: string; }
 interface StatCourse { id: number; name: string; date: string; created_at?: string; viza_done?: number; external_id?: string | null; }
 interface Ticket { course_id: number; participant_name: string; }
 interface Report { course_id: number; total_bilete: number; total_incasari: number; original_name?: string; uploaded_at?: string; types_json?: unknown; }
@@ -44,6 +44,16 @@ interface Bundle {
       items?: { id?: string; text?: string; link?: string; done?: boolean }[];
     }[];
   } | null;
+  recurring?: {
+    id?: string;
+    type?: string;
+    system_key?: string;
+    assigned_to?: string;
+    title?: string;
+    schedule?: string;
+    description?: string;
+    days?: (number | string)[];
+  }[] | null;
   courses: SiteCard[];
   vote_courses: Vote[];
   speakers: Speaker[];
@@ -87,7 +97,7 @@ async function main(): Promise<void> {
       events, tickets, event_files, event_reports, viza_subtips,
       speakers, locations, settings, vote_courses,
       venit_categorii, cheltuiala_categorii, venituri, cheltuieli,
-      marketing_sections, marketing_items, collaborations
+      marketing_sections, marketing_items, collaborations, recurring_tasks
       RESTART IDENTITY CASCADE`);
 
     // 1) settings (fiecare cheie -> JSONB)
@@ -99,6 +109,17 @@ async function main(): Promise<void> {
       await db.query("INSERT INTO settings(key, value) VALUES('course_ideas', $1)", [
         JSON.stringify(bundle.course_ideas),
       ]);
+    }
+
+    // recurring_tasks.json — definițiile taskurilor recurente (owner-managed)
+    const recurring = bundle.recurring ?? [];
+    for (const [ri, rt] of recurring.entries()) {
+      const days = (rt.days ?? []).map(Number).filter((d) => d >= 1 && d <= 31);
+      await db.query(
+        `INSERT INTO recurring_tasks(legacy_id, type, system_key, assigned_to, title, schedule, description, days, position)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [rt.id ?? null, rt.type ?? "monthly", rt.system_key ?? null, rt.assigned_to ?? null, rt.title ?? "", rt.schedule ?? null, rt.description ?? null, days, ri]
+      );
     }
 
     // marketing_posts.json — secțiuni + idei de postări
@@ -152,16 +173,16 @@ async function main(): Promise<void> {
         await db.query(
           `UPDATE events SET title=$1, slug=$2, legacy_card_id=$3,
              starts_at=($4::timestamp AT TIME ZONE $9),
-             location=$5, livetickets_url=$6, image_url=$7, active=$8
+             location=$5, livetickets_url=$6, image_url=$7, active=$8, speaker_name=$11
            WHERE id=$10`,
-          [card.title, slug, card.id, startsAt, card.location ?? null, card.livetickets_url ?? null, card.image_url ?? null, !!card.active, BUCHAREST, existing]
+          [card.title, slug, card.id, startsAt, card.location ?? null, card.livetickets_url ?? null, card.image_url ?? null, !!card.active, BUCHAREST, existing, card.speaker_name ?? null]
         );
         cardsMatched++;
       } else {
         await db.query(
-          `INSERT INTO events(title, slug, legacy_card_id, starts_at, location, livetickets_url, image_url, active)
-           VALUES($1,$2,$3,($4::timestamp AT TIME ZONE $9),$5,$6,$7,$8)`,
-          [card.title, slug, card.id, startsAt, card.location ?? null, card.livetickets_url ?? null, card.image_url ?? null, !!card.active, BUCHAREST]
+          `INSERT INTO events(title, slug, legacy_card_id, starts_at, location, livetickets_url, image_url, active, speaker_name)
+           VALUES($1,$2,$3,($4::timestamp AT TIME ZONE $9),$5,$6,$7,$8,$10)`,
+          [card.title, slug, card.id, startsAt, card.location ?? null, card.livetickets_url ?? null, card.image_url ?? null, !!card.active, BUCHAREST, card.speaker_name ?? null]
         );
         cardsNew++;
       }
@@ -244,6 +265,7 @@ async function main(): Promise<void> {
     console.log("✓ Migrare completă:");
     console.log(`  settings         ${Object.keys(bundle.settings ?? {}).length}`);
     console.log(`  marketing        ${marketingSections.length} secțiuni, ${marketingItems} idei`);
+    console.log(`  recurring        ${recurring.length} taskuri`);
     console.log(`  events           ${bundle.statistici.courses.length} stats + ${cardsNew} carduri noi (${cardsMatched} carduri unite)`);
     console.log(`  tickets          ${ticketsOk}${ticketsOrphan ? ` (${ticketsOrphan} orfane, ignorate)` : ""}`);
     console.log(`  event_reports    ${reportsOk}`);
@@ -254,7 +276,7 @@ async function main(): Promise<void> {
     console.log(`  cheltuiala_cat.  ${chCat.size}`);
     console.log(`  venituri         ${bundle.pnl.venituri.length}`);
     console.log(`  cheltuieli       ${bundle.pnl.cheltuieli.length}`);
-    console.log("\nNOTĂ: todos, recurring_tasks, ab_*, users, course_clicks, soldout NU sunt în bundle-ul live — se migrează separat.");
+    console.log("\nNOTĂ: todos, ab_*, users, course_clicks, soldout NU sunt în bundle-ul live — se migrează separat.");
   } catch (e) {
     await db.query("ROLLBACK");
     throw e;
