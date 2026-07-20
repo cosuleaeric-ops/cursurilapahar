@@ -44,6 +44,8 @@ interface Bundle {
       items?: { id?: string; text?: string; link?: string; done?: boolean }[];
     }[];
   } | null;
+  ab_button?: Record<string, { views?: number; clicks?: number }> | null;
+  course_clicks?: Record<string, number> | null;
   recurring?: {
     id?: string;
     type?: string;
@@ -97,7 +99,8 @@ async function main(): Promise<void> {
       events, tickets, event_files, event_reports, viza_subtips,
       speakers, locations, settings, vote_courses,
       venit_categorii, cheltuiala_categorii, venituri, cheltuieli,
-      marketing_sections, marketing_items, collaborations, recurring_tasks
+      marketing_sections, marketing_items, collaborations, recurring_tasks,
+      ab_experiments
       RESTART IDENTITY CASCADE`);
 
     // 1) settings (fiecare cheie -> JSONB)
@@ -109,6 +112,15 @@ async function main(): Promise<void> {
       await db.query("INSERT INTO settings(key, value) VALUES('course_ideas', $1)", [
         JSON.stringify(bundle.course_ideas),
       ]);
+    }
+
+    // ab_button.json — testul A/B pentru butonul „Vreau să vin"
+    const abButton = bundle.ab_button ?? {};
+    for (const [variant, m] of Object.entries(abButton)) {
+      await db.query(
+        "INSERT INTO ab_experiments(experiment, variant, views, conversions) VALUES('button', $1, $2, $3)",
+        [variant, m.views ?? 0, m.clicks ?? 0]
+      );
     }
 
     // recurring_tasks.json — definițiile taskurilor recurente (owner-managed)
@@ -186,6 +198,13 @@ async function main(): Promise<void> {
         );
         cardsNew++;
       }
+    }
+
+    // 3c) course_clicks.json — contorul de click-uri pe carduri (după ce events au legacy_card_id)
+    let clicksApplied = 0;
+    for (const [cardId, n] of Object.entries(bundle.course_clicks ?? {})) {
+      const res = await db.query("UPDATE events SET clicks=$1 WHERE legacy_card_id=$2", [n, cardId]);
+      if (res.rowCount) clicksApplied++;
     }
 
     // 4) tickets
@@ -266,6 +285,8 @@ async function main(): Promise<void> {
     console.log(`  settings         ${Object.keys(bundle.settings ?? {}).length}`);
     console.log(`  marketing        ${marketingSections.length} secțiuni, ${marketingItems} idei`);
     console.log(`  recurring        ${recurring.length} taskuri`);
+    console.log(`  ab_button        ${Object.keys(abButton).length} variante`);
+    console.log(`  course_clicks    ${clicksApplied} events actualizate`);
     console.log(`  events           ${bundle.statistici.courses.length} stats + ${cardsNew} carduri noi (${cardsMatched} carduri unite)`);
     console.log(`  tickets          ${ticketsOk}${ticketsOrphan ? ` (${ticketsOrphan} orfane, ignorate)` : ""}`);
     console.log(`  event_reports    ${reportsOk}`);

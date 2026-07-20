@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import HeroCarousel from "./HeroCarousel";
+import { abVariant, shouldCountClick, trackAb } from "@/lib/ab";
 import FaqList from "./FaqList";
 import Gallery from "./Gallery";
 import { NewsletterForm, ContactForm } from "./forms";
@@ -31,6 +32,10 @@ function datetimeLabel(iso: string | null): string {
 const cardTitle = (t: string) => t.replace(/\s+\/\/\s+.+$/u, "");
 
 export default async function Home() {
+  // Test A/B buton „Vreau să vin" — varianta e atribuită de proxy.ts (cookie)
+  const ab = await abVariant();
+  if (ab && (await shouldCountClick())) await trackAb(ab, "views");
+
   const settingsRows = (await sql`SELECT key, value FROM settings`) as { key: string; value: unknown }[];
   const s = Object.fromEntries(settingsRows.map((r) => [r.key, r.value]));
   const str = (k: string, d = "") => (typeof s[k] === "string" ? (s[k] as string) : d);
@@ -107,9 +112,10 @@ export default async function Home() {
             <div className="events-grid">
               {events.map((e) => {
                 const d = e.starts_at ? new Date(e.starts_at) : null;
-                const linkProps = e.sold_out
-                  ? {}
-                  : { href: e.livetickets_url ?? "#", target: "_blank", rel: "noopener" };
+                const linkProps =
+                  e.sold_out || !e.livetickets_url
+                    ? {}
+                    : { href: `/go/course?id=${e.id}`, target: "_blank", rel: "noopener" };
                 return (
                   <a
                     key={e.id}
@@ -153,6 +159,14 @@ export default async function Home() {
                           </span>
                         )}
                       </div>
+                      {ab === "on" && !e.sold_out && (
+                        <span className="event-card-cta">
+                          Vreau să vin
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </span>
+                      )}
                     </div>
                   </a>
                 );
