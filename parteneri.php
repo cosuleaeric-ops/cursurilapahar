@@ -90,10 +90,9 @@ $spons_gallery = [
         border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
     }
     .sp-hero h1 {
-        font-family: 'Anton', sans-serif; font-weight: 400;
-        font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.18;
-        letter-spacing: .5px; margin: 0 auto 20px; max-width: 14ch;
-        text-transform: uppercase;
+        font-family: var(--font-serif);
+        font-size: clamp(2.05rem, 5.5vw, 3.6rem); line-height: 1.15;
+        margin: 0 auto 20px; max-width: 18ch;
     }
     .sp-hero h1 span { color: var(--accent); }
     .sp-hero-sub {
@@ -113,8 +112,8 @@ $spons_gallery = [
         border-radius: 16px; padding: 22px 12px; text-align: center;
     }
     .sp-reach .rc b {
-        display: block; font-family: 'Anton', sans-serif; font-weight: 400;
-        font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--accent); line-height: 1;
+        display: block; font-family: var(--font-serif); font-weight: 700;
+        font-size: clamp(1.4rem, 3.5vw, 2rem); color: var(--accent); line-height: 1;
     }
     .sp-reach .rc small { display: block; color: var(--text-muted); font-size: 13px; margin-top: 8px; }
 
@@ -145,8 +144,8 @@ $spons_gallery = [
     }
     .sp-chan .lbl { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
     .sp-chan .big {
-        font-family: 'Anton', sans-serif; font-weight: 400;
-        font-size: 2.5rem; line-height: 1; margin: 10px 0 4px; color: var(--text);
+        font-family: var(--font-serif); font-weight: 700;
+        font-size: 2.1rem; line-height: 1; margin: 10px 0 4px; color: var(--text);
     }
     .sp-chan .unit { color: var(--accent); font-weight: 700; font-size: .95rem; }
     .sp-chan ul { list-style: none; margin: 16px 0 0; padding: 0; }
@@ -183,7 +182,7 @@ $spons_gallery = [
     }
     .sp-screen .pw { color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; font-size: 13px; }
     .sp-screen .brand {
-        font-family: 'Anton', sans-serif; font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.6rem, 4.5vw, 2.4rem);
         color: var(--accent); letter-spacing: 1px; margin-top: 6px;
     }
     .sp-screen .glass { position: absolute; bottom: 14px; right: 18px; font-size: 30px; opacity: .5; }
@@ -210,7 +209,7 @@ $spons_gallery = [
     .sp-pkg li { padding: 8px 0 8px 24px; position: relative; font-size: .94rem; line-height: 1.45; border-top: 1px solid rgba(255,255,255,.05); }
     .sp-pkg li:first-child { border-top: 0; }
     .sp-pkg li::before { content: '✓'; position: absolute; left: 0; top: 8px; color: var(--accent); font-weight: 700; }
-    .sp-pkg .price { font-family: 'Anton', sans-serif; font-size: 1.5rem; color: var(--accent); margin-bottom: 4px; }
+    .sp-pkg .price { font-family: var(--font-serif); font-weight: 700; font-size: 1.35rem; color: var(--accent); margin-bottom: 4px; }
     .sp-pkg .price small { display: block; font-family: 'Rubik', sans-serif; font-size: .8rem; color: var(--text-muted); font-weight: 400; letter-spacing: 0; }
 
     /* CTA band */
