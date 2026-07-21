@@ -1,6 +1,6 @@
 <?php
 /**
- * Cursuri la Pahar – Sponsorizare (media kit)
+ * Cursuri la Pahar – Parteneri (media kit)
  */
 
 // ── Load settings ─────────────────────────────────────────────────────────────
@@ -35,21 +35,21 @@ $spons_gallery = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sponsorizare – Cursuri la Pahar</title>
-    <meta name="description" content="Pune-ți brandul în fața unei comunități implicate: 1.900+ abonați care chiar deschid emailul, 29.000+ urmăritori pe social și evenimente săptămânale cu public plătitor în București.">
+    <title>Parteneri – Cursuri la Pahar</title>
+    <meta name="description" content="Colaborează cu Cursuri la Pahar: peste 200.000 de vizualizări pe lună pe Instagram și TikTok, un newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline în București.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Cursuri la Pahar">
     <meta property="og:locale" content="ro_RO">
-    <meta property="og:title" content="Sponsorizare – Cursuri la Pahar">
-    <meta property="og:description" content="Newsletter cu open rate dublu față de medie, social în creștere și evenimente fizice cu public plătitor. Vezi cifrele și pachetele.">
+    <meta property="og:title" content="Parteneri – Cursuri la Pahar">
+    <meta property="og:description" content="Peste 200.000 de vizualizări pe lună, newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline. Vezi cifrele și pachetele.">
     <meta property="og:url" content="https://cursurilapahar.ro/parteneri">
     <meta property="og:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Cursuri la Pahar – curs ținut într-un bar plin din București">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Sponsorizare – Cursuri la Pahar">
-    <meta name="twitter:description" content="Newsletter cu open rate dublu față de medie, social în creștere și evenimente fizice cu public plătitor.">
+    <meta name="twitter:title" content="Parteneri – Cursuri la Pahar">
+    <meta name="twitter:description" content="Peste 200.000 de vizualizări pe lună, newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline.">
     <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,7 +91,7 @@ $spons_gallery = [
     }
     .sp-hero h1 {
         font-family: 'Anton', sans-serif; font-weight: 400;
-        font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.02;
+        font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.18;
         letter-spacing: .5px; margin: 0 auto 20px; max-width: 14ch;
         text-transform: uppercase;
     }
@@ -271,10 +271,11 @@ $spons_gallery = [
 <header class="sp-hero">
     <div class="container">
         <span class="sp-eyebrow">Pentru branduri</span>
-        <h1>Pune-ți brandul în fața unor oameni care <span>chiar ascultă</span></h1>
+        <h1>Hai cu brandul tău <span>la un pahar</span></h1>
         <p class="sp-hero-sub">
-            Nu vindem impresii pierdute într-un feed. La Cursuri la Pahar ajungi la o comunitate care deschide emailul,
-            vine la eveniment și plătește bilet ca să învețe — online <strong>și</strong> față în față, în București.
+            Organizăm cursuri în fiecare săptămână, în baruri din București. Avem peste 200.000 de vizualizări
+            pe lună pe Instagram și TikTok, un newsletter citit de aproape 2.000 de oameni și săli pline la
+            fiecare eveniment. Dacă vrei ca brandul tău să ajungă la oamenii ăștia, hai să vorbim.
         </p>
         <div class="sp-hero-cta">
             <a href="#pachete" class="btn btn-accent">Vezi pachetele</a>
@@ -282,9 +283,9 @@ $spons_gallery = [
         </div>
 
         <div class="sp-reach">
-            <div class="rc"><b>~31.000</b><small>reach lunar combinat</small></div>
+            <div class="rc"><b>200.000+</b><small>vizualizări pe lună</small></div>
             <div class="rc"><b>~53%</b><small>open rate newsletter</small></div>
-            <div class="rc"><b>Săptămânal</b><small>eveniment fizic</small></div>
+            <div class="rc"><b>Săptămânal</b><small>un curs cu sala plină</small></div>
             <div class="rc"><b>București</b><small>curând în toată țara</small></div>
         </div>
     </div>
@@ -293,28 +294,28 @@ $spons_gallery = [
 <!-- ── DE CE NOI ──────────────────────────── -->
 <section class="sp-sec">
     <div class="container">
-        <h2 class="section-title">De ce merită brandul tău aici</h2>
-        <p class="sp-lead">Trei lucruri pe care un simplu banner sau un influencer nu ți le pot da în același loc.</p>
+        <h2 class="section-title">Ce primești ca partener</h2>
+        <p class="sp-lead">Pe scurt: oameni reali, care ne urmăresc constant și vin la evenimente în fiecare săptămână.</p>
         <div class="sp-values">
             <div class="sp-value">
                 <span class="ic">👀</span>
-                <h3>Audiență implicată, nu doar cifre</h3>
-                <p>Newsletterul are un open rate în jur de 50% — aproape dublul mediei din industrie. Oamenii chiar deschid, citesc și dau click, nu doar „primesc".</p>
+                <h3>Lume care chiar citește</h3>
+                <p>Peste jumătate din abonați deschid fiecare email — aproape dublu față de media din industrie. Mesajul tău ajunge la ei, pe bune.</p>
             </div>
             <div class="sp-value">
                 <span class="ic">🎟️</span>
-                <h3>Public care deja plătește</h3>
-                <p>Participanții cumpără bilet ca să vină la curs. Ajungi la oameni cu intenție de cumpărare și buget, nu la trafic rece.</p>
+                <h3>Public care cumpără bilete</h3>
+                <p>La fiecare curs vin oameni care au plătit bilet ca să fie acolo. Tineri din București care ies în oraș și încearcă lucruri noi.</p>
             </div>
             <div class="sp-value">
                 <span class="ic">🍷</span>
-                <h3>Online + fizic în aceeași ediție</h3>
-                <p>Brandul tău apare în inbox, pe social și la evenimentul fizic, printre oameni reali, la un pahar. Combinația asta nu se poate copia digital.</p>
+                <h3>Prezență online și la eveniment</h3>
+                <p>Brandul tău apare în email, pe Instagram și TikTok și la evenimentul propriu-zis, între oameni, la un pahar.</p>
             </div>
             <div class="sp-value">
                 <span class="ic">✨</span>
-                <h3>Context premium și pozitiv</h3>
-                <p>Ești asociat cu educație și o atmosferă relaxată, nu îngropat între zece reclame agresive. Un cadru în care brandul tău arată bine.</p>
+                <h3>O asociere care dă bine</h3>
+                <p>Cursurile noastre înseamnă educație și o seară plăcută în oraș. E genul de context în care orice brand arată bine.</p>
             </div>
         </div>
     </div>
@@ -324,7 +325,7 @@ $spons_gallery = [
 <section class="sp-sec alt">
     <div class="container">
         <h2 class="section-title">Canalele și cifrele</h2>
-        <p class="sp-lead">Numere reale, actualizate. Pe scurt: ai unde să fii văzut, de câte ori ai nevoie.</p>
+        <p class="sp-lead">Cifre reale, pe care le actualizăm constant.</p>
         <div class="sp-channels">
             <div class="sp-chan">
                 <div class="lbl">Newsletter</div>
@@ -338,22 +339,22 @@ $spons_gallery = [
             </div>
             <div class="sp-chan">
                 <div class="lbl">Instagram</div>
-                <div class="big">21.2k</div>
-                <div class="unit">urmăritori</div>
+                <div class="big">150k+</div>
+                <div class="unit">vizualizări pe lună</div>
                 <ul>
-                    <li>Reels, stories, postări</li>
+                    <li>21.2k urmăritori</li>
+                    <li>Reels și stories de la fiecare curs</li>
                     <li>Mențiune „Powered by"</li>
-                    <li>Public tânăr din București</li>
                 </ul>
             </div>
             <div class="sp-chan">
                 <div class="lbl">TikTok</div>
-                <div class="big">8.4k</div>
-                <div class="unit">urmăritori · 37k aprecieri</div>
+                <div class="big">50k+</div>
+                <div class="unit">vizualizări pe lună</div>
                 <ul>
-                    <li>Conținut din sală, la eveniment</li>
+                    <li>8.4k urmăritori, 37k aprecieri</li>
+                    <li>Conținut filmat la evenimente</li>
                     <li>Mențiune „Powered by"</li>
-                    <li>Format video în creștere</li>
                 </ul>
             </div>
             <div class="sp-chan">
@@ -379,7 +380,7 @@ $spons_gallery = [
             <div class="sp-fmt">
                 <span class="tag">Newsletter</span>
                 <h3>Slot dedicat în email</h3>
-                <p>O mențiune a brandului tău către 1.900+ abonați care chiar deschid emailul săptămânal.</p>
+                <p>O mențiune a brandului tău în emailul săptămânal, deschis de aproape 1.000 de oameni de fiecare dată.</p>
             </div>
             <div class="sp-fmt">
                 <span class="tag">Social</span>
@@ -411,8 +412,8 @@ $spons_gallery = [
         <div class="sp-powered">
             <div>
                 <h2 class="section-title">„Powered by" — cel mai vizibil loc</h2>
-                <p>Descrierile postărilor de pe Instagram și TikTok și emailul din săptămâna cursului pot afișa brandul tău ca sponsor oficial al ediției.</p>
-                <p>E asocierea care contează: brandul tău lângă un moment în care oamenii sunt atenți, deschiși și de bună dispoziție. Nu o reclamă pe care o dau skip — parte din experiență.</p>
+                <p>Postările de pe Instagram și TikTok și emailul din săptămâna cursului afișează brandul tău ca sponsor oficial al ediției.</p>
+                <p>Oamenii îți văd brandul exact în momentele în care sunt cu ochii pe noi: când își iau bilet, când urmăresc clipurile de la curs și când primesc emailul săptămânal.</p>
                 <a href="#contact" class="btn btn-accent">Vreau brandul meu aici</a>
             </div>
             <div class="sp-screen">
