@@ -309,7 +309,7 @@ $spons_gallery = [
             <div class="sp-value">
                 <span class="ic">🍷</span>
                 <h3>Online + fizic în aceeași ediție</h3>
-                <p>Brandul tău apare în inbox, pe social și pe ecranul din sală, printre oameni reali, la un pahar. Combinația asta nu se poate copia digital.</p>
+                <p>Brandul tău apare în inbox, pe social și la evenimentul fizic, printre oameni reali, la un pahar. Combinația asta nu se poate copia digital.</p>
             </div>
             <div class="sp-value">
                 <span class="ic">✨</span>
@@ -362,7 +362,7 @@ $spons_gallery = [
                 <div class="unit">public plătitor, live</div>
                 <ul>
                     <li>Prezență fizică în București</li>
-                    <li>Logo pe ecran în sală</li>
+                    <li>Sampling / activare la fața locului</li>
                     <li>Contact direct cu participanții</li>
                 </ul>
             </div>
@@ -387,19 +387,14 @@ $spons_gallery = [
                 <p>Story, reel sau mențiune „Powered by [brandul tău]" în descrierea postărilor de la curs.</p>
             </div>
             <div class="sp-fmt">
-                <span class="tag">În sală</span>
-                <h3>„Powered by" pe ecran</h3>
-                <p>Logo-ul tău afișat pe ecran înainte și în timpul cursului, în fața publicului plătitor.</p>
-            </div>
-            <div class="sp-fmt">
                 <span class="tag">Title sponsor</span>
                 <h3>Curs „Powered by [brand]"</h3>
-                <p>O ediție întreagă poartă numele tău: pe ecran, în social și în newsletter, pe toate canalele.</p>
+                <p>O ediție întreagă poartă numele tău: în social și în newsletter, pe toate canalele noastre.</p>
             </div>
             <div class="sp-fmt">
-                <span class="tag">Video</span>
-                <h3>Clip de promovare dedicat</h3>
-                <p>Un videoclip în care Eric prezintă cursul și menționează că e „Powered by" brandul tău.</p>
+                <span class="tag">Co-creat</span>
+                <h3>Curs în colaborare</h3>
+                <p>Construim împreună un curs pe o temă legată de brandul tău — de la subiect până la eveniment.</p>
             </div>
             <div class="sp-fmt">
                 <span class="tag">Activare</span>
@@ -416,7 +411,7 @@ $spons_gallery = [
         <div class="sp-powered">
             <div>
                 <h2 class="section-title">„Powered by" — cel mai vizibil loc</h2>
-                <p>Înainte de fiecare curs, ecranul din sală și descrierile de pe Instagram și TikTok pot afișa brandul tău ca sponsor oficial al ediției.</p>
+                <p>Descrierile postărilor de pe Instagram și TikTok și emailul din săptămâna cursului pot afișa brandul tău ca sponsor oficial al ediției.</p>
                 <p>E asocierea care contează: brandul tău lângă un moment în care oamenii sunt atenți, deschiși și de bună dispoziție. Nu o reclamă pe care o dau skip — parte din experiență.</p>
                 <a href="#contact" class="btn btn-accent">Vreau brandul meu aici</a>
             </div>
@@ -451,7 +446,6 @@ $spons_gallery = [
                 <h3>Powered by ediție</h3>
                 <p class="who">Sponsor oficial al unei ediții, pe toate canalele.</p>
                 <ul>
-                    <li>Logo pe ecran în sală</li>
                     <li>„Powered by" pe Instagram &amp; TikTok</li>
                     <li>Mențiune dedicată în newsletter</li>
                     <li>Prezență / sampling la eveniment</li>
@@ -464,7 +458,7 @@ $spons_gallery = [
                 <p class="who">4 ediții, prezență constantă, preț cu discount.</p>
                 <ul>
                     <li>Tot din „Powered by ediție", ×4</li>
-                    <li>Videoclip de promovare dedicat</li>
+                    <li>Un curs în colaborare cu brandul tău</li>
                     <li>Prioritate la date și subiecte</li>
                     <li>Discount pentru angajament</li>
                 </ul>
