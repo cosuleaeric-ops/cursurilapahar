@@ -34,7 +34,7 @@ $subjects = [
     'gazduieste'          => 'Cerere nouă: Găzduiește un curs',
     'gazduieste-un-curs'  => 'Cerere nouă: Găzduiește un curs',
     'parteneriat'         => 'Cerere nouă: Propune un parteneriat',
-    'sponsorizare'        => 'Cerere nouă: Sponsorizare',
+    'sponsorizare'        => 'Cerere nouă: Parteneriat',
 ];
 $subject = ($subjects[$form_type] ?? 'Mesaj nou') . ' — Cursuri la Pahar';
 
@@ -112,10 +112,10 @@ if ($brevo_key) {
                        . '<p style="margin:0">Ținem legătura!</p>',
         ],
         'sponsorizare' => [
-            'subject' => 'Am primit cererea ta de sponsorizare 🍷',
+            'subject' => 'Am primit cererea ta de parteneriat 🍷',
             'body'    => '<p style="margin:0 0 14px">Salutare!</p>'
-                       . '<p style="margin:0 0 14px">Îți mulțumim pentru interesul de a-ți promova brandul alături de Cursuri la Pahar. 🍷</p>'
-                       . '<p style="margin:0 0 14px">Am primit cererea ta și îți pregătim <b>kitul complet cu cifre, formate și pachete</b>, ajustat pe ce ne-ai spus. Revenim cu o ofertă personalizată în cel mai scurt timp.</p>'
+                       . '<p style="margin:0 0 14px">Îți mulțumim pentru interesul de a fi partener Cursuri la Pahar. 🍷</p>'
+                       . '<p style="margin:0 0 14px">Am primit cererea ta. Ne gândim la cum putem colabora și revenim cu un răspuns în cel mai scurt timp.</p>'
                        . '<p style="margin:0 0 14px">Între timp, ne găsești oricând pe <a href="'.$ig.'" style="'.$lnk.'">Instagram</a>.</p>'
                        . '<p style="margin:0">Ținem legătura!</p>',
         ],
