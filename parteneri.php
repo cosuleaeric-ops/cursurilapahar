@@ -217,7 +217,7 @@ $spons_gallery = [
     <div class="container">
         <div class="sp-hero-grid">
             <div>
-                <h1>Hai cu brandul tău <span>la un pahar</span></h1>
+                <h1>Căutăm parteneri care <span>susțin educația</span></h1>
                 <p class="sp-hero-sub">
                     Organizăm cursuri în fiecare săptămână, în baruri din București. Avem peste
                     <strong>200.000 de vizualizări pe lună</strong> pe Instagram și TikTok,
