@@ -32,12 +32,12 @@ $spons_gallery = [
 
 // Chips pentru banda cu cifre (duplicate în HTML pentru loop-ul de marquee)
 $spons_chips = [
-    '150.000+ vizualizări pe lună pe Instagram 📈',
-    '50.000+ vizualizări pe lună pe TikTok 🎥',
-    '~1.000 de deschideri la fiecare email 📬',
-    '~53% open rate la newsletter 🔥',
-    'Săli pline în fiecare săptămână 🍻',
-    'Public care plătește bilet 🎟️',
+    '150.000+ vizualizări pe lună pe Instagram',
+    '50.000+ vizualizări pe lună pe TikTok',
+    '~1.000 de deschideri la fiecare email',
+    '~53% open rate la newsletter',
+    'Săli pline în fiecare săptămână',
+    'Public care plătește bilet',
 ];
 ?>
 <!DOCTYPE html>
@@ -80,146 +80,170 @@ $spons_chips = [
     }
     body { padding-top: 88px; }
 
-    /* ── Parteneri (scoped) — stil advertise.tldr.tech ─────── */
-    .sp-wrap { overflow-x: clip; }
+    /* ── Parteneri — layout TLDR, stil Morning Brew ─────────
+       Paletă: alb, text #231F20, pastele #BDE1FF / #F1E8D5 /
+       #FFCFFA / #BCF46E / #E2F1FF, colțuri 16-24px, umbre moi */
+    .sp-wrap {
+        /* re-scopez variabilele site-ului pe tema deschisă,
+           ca FAQ-ul și galeria să se adapteze singure */
+        --text: #231F20;
+        --text-muted: #55504c;
+        --text-faint: rgba(0,0,0,.3);
+        --surface: #FAF9F5;
+        --accent: #231F20;
+        background: #fff; color: #231F20; overflow-x: clip;
+    }
     .sp-wrap .container { max-width: 1140px; }
+    .sp-wrap .section-title { color: #231F20; letter-spacing: -.02em; }
+    .sp-lead { color: #6f6a66; text-align: center; max-width: 60ch; margin: 0 auto 42px; line-height: 1.65; }
 
     /* Hero: text stânga + formular dreapta */
-    .sp-hero { padding: 64px 0 72px; }
+    .sp-hero { padding: 72px 0; }
     .sp-hero-grid {
         display: grid; grid-template-columns: 1.05fr .95fr;
         gap: 56px; align-items: start;
     }
     .sp-hero h1 {
         font-family: var(--font-serif);
-        font-size: clamp(2.3rem, 4.6vw, 3.7rem);
-        line-height: 1.15; margin: 0 0 22px;
+        font-size: clamp(2.3rem, 4.6vw, 3.8rem);
+        line-height: 1.12; letter-spacing: -.02em;
+        margin: 0 0 22px; color: #231F20;
     }
-    .sp-hero h1 span { color: var(--accent); }
-    .sp-hero-sub { color: var(--text-muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 18px; }
+    .sp-hero h1 span {
+        background: #FFE86B; border-radius: 10px;
+        padding: .04em .18em; box-decoration-break: clone; -webkit-box-decoration-break: clone;
+    }
+    .sp-hero-sub { color: #55504c; font-size: 1.05rem; line-height: 1.7; margin: 0 0 18px; }
+    .sp-hero-sub strong { color: #231F20; }
 
-    /* Card formular — bordură albă + umbră offset pe accent */
+    /* Card formular — off-white, rotunjit, umbră moale */
     .sp-form-card {
-        background: var(--surface);
-        border: 1px solid rgba(255,255,255,.92);
-        border-radius: 10px;
-        box-shadow: 8px 8px 0 0 var(--accent);
-        padding: 30px 28px;
+        background: #FAF9F5;
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 20px;
+        box-shadow: 0 15px 27px -4px rgba(0,0,0,.09), 0 5px 9px -3px rgba(0,0,0,.05);
+        padding: 32px 30px;
     }
     .sp-form-card label {
         display: block; font-weight: 700; font-size: .92rem;
-        margin: 0 0 6px; color: var(--text);
+        margin: 0 0 6px; color: #231F20;
     }
-    .sp-form-card label em { color: #ff5a5a; font-style: normal; }
+    .sp-form-card label em { color: #d0454c; font-style: normal; }
     .sp-form-card input,
     .sp-form-card select,
     .sp-form-card textarea {
-        width: 100%; background: #fff; color: #141414;
-        border: 1px solid #141414; border-radius: 6px;
-        box-shadow: 2px 2px 0 0 var(--accent);
-        padding: 11px 12px; font-size: .95rem; margin-bottom: 18px;
+        width: 100%; background: #fff; color: #231F20;
+        border: 1px solid rgba(0,0,0,.16); border-radius: 10px;
+        padding: 12px 13px; font-size: .95rem; margin-bottom: 18px;
     }
     .sp-form-card textarea { resize: vertical; }
     .sp-form-card input:focus,
     .sp-form-card select:focus,
-    .sp-form-card textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .sp-form-card textarea:focus { outline: 2px solid #231F20; outline-offset: 1px; }
     .sp-btn {
-        display: inline-block; background: var(--accent); color: #141414 !important;
-        font-weight: 800; font-size: 1rem; border-radius: 6px;
-        padding: 13px 26px; border: 1px solid #141414;
-        box-shadow: 3px 3px 0 0 rgba(255,255,255,.85);
-        transition: transform .12s, box-shadow .12s;
-        cursor: pointer; text-decoration: none;
+        display: inline-block; background: #231F20; color: #fff !important;
+        font-weight: 700; font-size: 1rem; border-radius: 999px;
+        padding: 13px 30px; border: none; cursor: pointer; text-decoration: none;
+        transition: transform .15s, background .15s, box-shadow .15s;
     }
-    .sp-btn:hover { transform: translate(2px,2px); box-shadow: 1px 1px 0 0 rgba(255,255,255,.85); background: var(--btn-hover); }
+    .sp-btn:hover { transform: translateY(-2px); background: #000; box-shadow: 0 10px 18px -8px rgba(0,0,0,.4); }
 
-    /* Banda marquee cu cifre */
-    .sp-marquee {
-        border-top: 1px solid rgba(255,255,255,.14);
-        border-bottom: 1px solid rgba(255,255,255,.14);
-        padding: 22px 0; overflow: hidden;
-    }
+    /* Banda marquee cu cifre — pastile pastel */
+    .sp-marquee { padding: 10px 0 26px; overflow: hidden; background: #fff; }
     .sp-marquee-track {
         display: flex; gap: 14px; width: max-content;
         animation: sp-scroll 36s linear infinite;
     }
     .sp-marquee:hover .sp-marquee-track { animation-play-state: paused; }
     .sp-chip {
-        white-space: nowrap; font-weight: 700; font-size: .95rem;
-        border: 1px solid rgba(255,255,255,.9); border-radius: 7px;
-        background: rgba(255,255,255,.03); padding: 11px 18px;
+        white-space: nowrap; font-weight: 600; font-size: .95rem;
+        color: #231F20; border-radius: 999px; padding: 12px 20px;
     }
+    .sp-chip:nth-child(6n+1) { background: #BDE1FF; }
+    .sp-chip:nth-child(6n+2) { background: #F1E8D5; }
+    .sp-chip:nth-child(6n+3) { background: #FFCFFA; }
+    .sp-chip:nth-child(6n+4) { background: #BCF46E; }
+    .sp-chip:nth-child(6n+5) { background: #E2F1FF; }
+    .sp-chip:nth-child(6n+6) { background: #FFE86B; }
     @keyframes sp-scroll { to { transform: translateX(-50%); } }
 
     /* Secțiuni */
     .sp-sec { padding: 64px 0; }
     .sp-sec .section-title { margin-bottom: 10px; }
-    .sp-lead { color: var(--text-muted); text-align: center; max-width: 60ch; margin: 0 auto 42px; line-height: 1.65; }
 
-    /* Carduri de canale (ca newsletter-cardurile TLDR) */
+    /* Carduri de canale — blocuri pastel rotunjite */
     .sp-aud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .sp-aud-card {
-        border: 1px solid rgba(255,255,255,.9); border-radius: 9px;
-        background: rgba(255,255,255,.03); padding: 24px 22px;
-        transition: box-shadow .15s, transform .15s;
+        border-radius: 18px; padding: 26px 24px; color: #231F20;
+        transition: transform .15s, box-shadow .15s;
     }
-    .sp-aud-card:hover { box-shadow: 6px 6px 0 0 var(--accent); transform: translate(-2px,-2px); }
-    .sp-aud-card h3 { margin: 0 0 8px; font-size: 1.12rem; font-weight: 800 !important; }
-    .sp-aud-card p { margin: 0 0 14px; color: var(--text-muted); font-size: .92rem; line-height: 1.55; min-height: 4.2em; }
-    .sp-aud-card .stat { color: var(--accent); font-weight: 800; font-size: .95rem; }
+    .sp-aud-card:nth-child(1) { background: #BDE1FF; }
+    .sp-aud-card:nth-child(2) { background: #F1E8D5; }
+    .sp-aud-card:nth-child(3) { background: #FFCFFA; }
+    .sp-aud-card:nth-child(4) { background: #BCF46E; }
+    .sp-aud-card:hover { transform: translateY(-4px); box-shadow: 0 15px 27px -6px rgba(0,0,0,.15); }
+    .sp-aud-card h3 { margin: 0 0 8px; font-size: 1.12rem; color: #231F20; }
+    .sp-aud-card p { margin: 0 0 14px; color: #3f3a37; font-size: .92rem; line-height: 1.55; min-height: 4.2em; }
+    .sp-aud-card .stat { color: #231F20; font-weight: 800; font-size: .95rem; }
 
     /* Powered by — text + mockup */
     .sp-powered { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
     .sp-powered .section-title { text-align: left; }
-    .sp-powered p { color: var(--text-muted); line-height: 1.7; margin: 0 0 14px; }
+    .sp-powered p { color: #55504c; line-height: 1.7; margin: 0 0 14px; }
     .sp-screen {
-        aspect-ratio: 16/10; border-radius: 10px; position: relative;
-        background: linear-gradient(150deg, #1c1c1c, #0a0a0a);
-        border: 1px solid rgba(255,255,255,.92);
-        box-shadow: 8px 8px 0 0 var(--accent);
+        aspect-ratio: 16/10; border-radius: 20px; position: relative;
+        background: #F1E8D5;
+        box-shadow: 0 15px 27px -4px rgba(0,0,0,.12);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    .sp-screen .pw { color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; font-size: 13px; }
+    .sp-screen .pw { color: #6f6a66; letter-spacing: 3px; text-transform: uppercase; font-size: 13px; }
     .sp-screen .brand {
-        font-family: var(--font-serif); font-weight: 900;
+        font-family: var(--font-serif); font-weight: 700;
         font-size: clamp(1.6rem, 4.5vw, 2.4rem);
-        color: var(--accent); letter-spacing: 1px; margin-top: 6px;
+        color: #231F20; letter-spacing: -.01em; margin-top: 6px;
     }
-    .sp-screen .glass { position: absolute; bottom: 14px; right: 18px; font-size: 30px; opacity: .5; }
+    .sp-screen .glass { position: absolute; bottom: 14px; right: 18px; font-size: 30px; opacity: .55; }
 
-    /* Tiere (ca plasările TLDR: ✅ + 👑) */
+    /* Tiere — albe cu bordură fină, cel din mijloc negru */
     .sp-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
     .sp-tier {
-        border: 1px solid rgba(255,255,255,.9); border-radius: 9px;
-        background: rgba(255,255,255,.03); padding: 28px 26px;
+        background: #fff; border: 1px solid rgba(0,0,0,.12);
+        border-radius: 18px; padding: 28px 26px;
         display: flex; flex-direction: column;
     }
     .sp-tier.feat {
-        border-color: var(--accent);
-        box-shadow: 8px 8px 0 0 var(--accent);
-        background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+        background: #231F20; border-color: #231F20; color: #fff;
+        box-shadow: 0 20px 35px -10px rgba(0,0,0,.35);
     }
-    .sp-tier h3 { margin: 0 0 6px; font-size: 1.3rem; font-weight: 800 !important; }
-    .sp-tier .who { color: var(--text-muted); font-size: .92rem; margin: 0 0 18px; min-height: 2.4em; }
+    .sp-tier h3 { margin: 0 0 6px; font-size: 1.3rem; color: inherit; }
+    .sp-tier.feat h3 { color: #fff; }
+    .sp-tier .who { color: #6f6a66; font-size: .92rem; margin: 0 0 18px; min-height: 2.4em; }
+    .sp-tier.feat .who { color: #cfcac6; }
     .sp-tier ul { list-style: none; margin: 0 0 24px; padding: 0; flex: 1; }
     .sp-tier li { padding: 7px 0; font-size: .95rem; line-height: 1.5; }
     .sp-tier .sp-btn { align-self: flex-start; }
+    .sp-tier.feat .sp-btn { background: #fff; color: #231F20 !important; }
+    .sp-tier.feat .sp-btn:hover { background: #FFE86B; }
 
     /* Galerie */
-    .sp-wrap .gallery-item img { border-radius: 8px; }
+    .sp-wrap .gallery-item img { border-radius: 14px; }
+    .sp-wrap .gslider-btn { background: #FAF9F5; border: 1px solid rgba(0,0,0,.12); color: #231F20; }
+    .sp-wrap .gslider-btn:hover { background: #F1E8D5; }
+
+    /* FAQ pe fundal alb */
+    .sp-wrap .faq-item { background: #fff; }
 
     /* CTA final */
-    .sp-cta { text-align: center; padding: 72px 0 84px; }
+    .sp-cta { text-align: center; padding: 72px 0 84px; background: #FAF9F5; }
     .sp-cta h2 {
-        font-family: var(--font-serif);
-        font-size: clamp(1.8rem, 4vw, 2.7rem); margin: 0 0 14px;
+        font-family: var(--font-serif); letter-spacing: -.02em;
+        font-size: clamp(1.8rem, 4vw, 2.7rem); margin: 0 0 14px; color: #231F20;
     }
-    .sp-cta p { color: var(--text-muted); margin: 0 0 28px; }
+    .sp-cta p { color: #6f6a66; margin: 0 0 28px; }
 
     @media (max-width: 920px) {
         .sp-hero-grid, .sp-powered { grid-template-columns: 1fr; }
         .sp-aud, .sp-tiers { grid-template-columns: 1fr 1fr; }
-        .sp-form-card { box-shadow: 6px 6px 0 0 var(--accent); }
     }
     @media (max-width: 620px) {
         .sp-aud, .sp-tiers { grid-template-columns: 1fr; }
@@ -269,7 +293,7 @@ $spons_chips = [
                 <h1>Hai cu brandul tău <span>la un pahar</span></h1>
                 <p class="sp-hero-sub">
                     Organizăm cursuri în fiecare săptămână, în baruri din București. Avem peste
-                    <strong style="color:var(--text)">200.000 de vizualizări pe lună</strong> pe Instagram și TikTok,
+                    <strong>200.000 de vizualizări pe lună</strong> pe Instagram și TikTok,
                     un newsletter citit de aproape 2.000 de oameni și săli pline la fiecare eveniment.
                 </p>
                 <p class="sp-hero-sub">
@@ -320,7 +344,7 @@ $spons_chips = [
 <!-- ── CANALE ──────────────────────────────── -->
 <section class="sp-sec">
     <div class="container">
-        <h2 class="section-title">Patru canale, aceeași comunitate 🚀</h2>
+        <h2 class="section-title">Patru canale, aceeași comunitate</h2>
         <p class="sp-lead">Cifre reale, pe care le actualizăm constant.</p>
         <div class="sp-aud">
             <div class="sp-aud-card">
@@ -352,7 +376,7 @@ $spons_chips = [
     <div class="container">
         <div class="sp-powered">
             <div>
-                <h2 class="section-title">Brandul tău, direct în fața lor ✉️</h2>
+                <h2 class="section-title">Brandul tău, direct în fața lor</h2>
                 <p>Postările de pe Instagram și TikTok și emailul din săptămâna cursului afișează brandul tău ca partener oficial al ediției.</p>
                 <p>Oamenii îți văd brandul exact în momentele în care sunt cu ochii pe noi: când își iau bilet, când urmăresc clipurile de la curs și când primesc emailul săptămânal. Iar dacă vrei să mergem mai departe, construim împreună un curs întreg pe o temă aleasă cu tine.</p>
                 <a href="#oferta" class="sp-btn">Vreau brandul meu aici</a>
@@ -369,7 +393,7 @@ $spons_chips = [
 <!-- ── TIERE ───────────────────────────────── -->
 <section class="sp-sec" id="pachete">
     <div class="container">
-        <h2 class="section-title">Alege formatul 👑</h2>
+        <h2 class="section-title">Alege formatul</h2>
         <p class="sp-lead">De la o apariție punctuală până la parteneriat de sezon. Prețul final îl potrivim pe obiectivele tale.</p>
         <div class="sp-tiers">
             <div class="sp-tier">
@@ -411,7 +435,7 @@ $spons_chips = [
 <!-- ── GALERIE ─────────────────────────────── -->
 <section class="sp-sec">
     <div class="container">
-        <h2 class="section-title">Așa arată un curs la pahar 🍻</h2>
+        <h2 class="section-title">Așa arată un curs la pahar</h2>
         <p class="sp-lead">Oameni reali, săli pline, atmosferă bună. Exact contextul în care ajunge brandul tău.</p>
         <div class="gallery-slider-wrap">
             <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
@@ -484,7 +508,7 @@ $spons_chips = [
 <!-- ── CTA FINAL ───────────────────────────── -->
 <section class="sp-cta">
     <div class="container">
-        <h2>Vrei brandul tău la un pahar? 🍻</h2>
+        <h2>Vrei brandul tău la un pahar?</h2>
         <p>Completează formularul și primești kitul de prezentare cu toate cifrele.</p>
         <a href="#oferta" class="sp-btn">Hai să vorbim</a>
     </div>
