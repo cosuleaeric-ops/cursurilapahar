@@ -263,7 +263,7 @@ $spons_gallery = [
                         <option value="altceva">Încă nu știu / altceva</option>
                     </select>
 
-                    <label for="sp_msg">Vrei să ne mai spui ceva?</label>
+                    <label for="sp_msg">Cum îți dorești să colaborăm?</label>
                     <textarea id="sp_msg" name="message" rows="3"></textarea>
 
                     <button type="submit" class="sp-btn">Hai să vorbim</button>
@@ -339,7 +339,7 @@ $spons_gallery = [
 <!-- ── CTA FINAL ───────────────────────────── -->
 <section class="sp-cta">
     <div class="container">
-        <h2>Vrei brandul tău la un pahar?</h2>
+        <h2>Susține un proiect educațional</h2>
         <p>Scrie-ne și găsim împreună cea mai bună formă de colaborare.</p>
         <a href="#oferta" class="sp-btn">Hai să vorbim</a>
     </div>
