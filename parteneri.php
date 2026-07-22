@@ -321,8 +321,7 @@ $spons_gallery = [
 <!-- ── GALERIE ─────────────────────────────── -->
 <section class="sp-sec">
     <div class="container">
-        <h2 class="section-title">Așa arată un curs la pahar</h2>
-        <p class="sp-lead">Oameni reali, săli pline, atmosferă bună. Exact contextul în care ajunge brandul tău.</p>
+        <h2 class="section-title">Curs la Pahar</h2>
         <div class="gallery-slider-wrap">
             <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
             <div class="gallery-slider">
