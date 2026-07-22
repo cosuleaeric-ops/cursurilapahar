@@ -24,12 +24,6 @@ function clp_e(string $key, array $settings): string {
     return '';
 }
 
-// Galerie – imagini din folderul commit-uit (fallback dacă nu sunt setate în admin)
-$spons_gallery = [
-    'gallery-05','gallery-11','gallery-01','gallery-25',
-    'gallery-08','gallery-32','gallery-17','gallery-06',
-];
-
 // Chips pentru banda cu cifre (duplicate în HTML pentru loop-ul de marquee)
 $spons_chips = [
     '150.000+ vizualizări pe lună pe Instagram',
@@ -184,11 +178,6 @@ $spons_chips = [
     .sp-aud-card p { margin: 0 0 14px; color: #3f3a37; font-size: .92rem; line-height: 1.55; min-height: 4.2em; }
     .sp-aud-card .stat { color: #231F20; font-weight: 800; font-size: .95rem; }
 
-    /* Galerie */
-    .sp-wrap .gallery-item img { border-radius: 14px; }
-    .sp-wrap .gslider-btn { background: #FAF9F5; border: 1px solid rgba(0,0,0,.12); color: #231F20; }
-    .sp-wrap .gslider-btn:hover { background: #F1E8D5; }
-
     /* CTA final */
     .sp-cta { text-align: center; padding: 72px 0 84px; background: #FAF9F5; }
     .sp-cta h2 {
@@ -311,25 +300,6 @@ $spons_chips = [
                 <p>Cursuri săptămânale în baruri din București, cu bilete plătite și săli pline.</p>
                 <div class="stat">Săptămânal · public plătitor</div>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── GALERIE ─────────────────────────────── -->
-<section class="sp-sec">
-    <div class="container">
-        <h2 class="section-title">Așa arată un curs la pahar</h2>
-        <p class="sp-lead">Oameni reali, săli pline, atmosferă bună. Exact contextul în care ajunge brandul tău.</p>
-        <div class="gallery-slider-wrap">
-            <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
-            <div class="gallery-slider">
-                <?php foreach ($spons_gallery as $gi => $g): $src = "/assets/images/gallery/$g.webp"; if (!file_exists(__DIR__.$src)) continue; ?>
-                <div class="gallery-item" data-index="<?= $gi ?>">
-                    <img src="<?= $src ?>" alt="Cursuri la Pahar" loading="lazy">
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <button class="gslider-btn gslider-next" aria-label="Următor">&#8250;</button>
         </div>
     </div>
 </section>
