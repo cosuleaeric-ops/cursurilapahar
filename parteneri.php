@@ -29,6 +29,16 @@ $spons_gallery = [
     'gallery-05','gallery-11','gallery-01','gallery-25',
     'gallery-08','gallery-32','gallery-17','gallery-06',
 ];
+
+// Chips pentru banda cu cifre (duplicate în HTML pentru loop-ul de marquee)
+$spons_chips = [
+    '150.000+ vizualizări pe lună pe Instagram 📈',
+    '50.000+ vizualizări pe lună pe TikTok 🎥',
+    '~1.000 de deschideri la fiecare email 📬',
+    '~53% open rate la newsletter 🔥',
+    'Săli pline în fiecare săptămână 🍻',
+    'Public care plătește bilet 🎟️',
+];
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -70,165 +80,151 @@ $spons_gallery = [
     }
     body { padding-top: 88px; }
 
-    /* ── Sponsorizare (scoped) ─────────────────────────────── */
+    /* ── Parteneri (scoped) — stil advertise.tldr.tech ─────── */
     .sp-wrap { overflow-x: clip; }
+    .sp-wrap .container { max-width: 1140px; }
 
-    .sp-hero {
-        position: relative;
-        padding: 72px 0 56px;
-        text-align: center;
-        background:
-            radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 60%),
-            var(--bg);
-        border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-    }
-    .sp-eyebrow {
-        display: inline-block;
-        font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
-        color: var(--accent); font-weight: 700; margin-bottom: 18px;
-        padding: 6px 14px; border-radius: 999px;
-        border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    /* Hero: text stânga + formular dreapta */
+    .sp-hero { padding: 64px 0 72px; }
+    .sp-hero-grid {
+        display: grid; grid-template-columns: 1.05fr .95fr;
+        gap: 56px; align-items: start;
     }
     .sp-hero h1 {
         font-family: var(--font-serif);
-        font-size: clamp(2.05rem, 5.5vw, 3.6rem); line-height: 1.15;
-        margin: 0 auto 20px; max-width: 18ch;
+        font-size: clamp(2.3rem, 4.6vw, 3.7rem);
+        font-weight: 900 !important;
+        line-height: 1.08; margin: 0 0 22px;
     }
     .sp-hero h1 span { color: var(--accent); }
-    .sp-hero-sub {
-        color: var(--text-muted); font-size: clamp(1rem, 2.2vw, 1.22rem);
-        line-height: 1.6; max-width: 62ch; margin: 0 auto 32px;
-    }
-    .sp-hero-cta { display: inline-flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .sp-hero-sub { color: var(--text-muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 18px; }
 
-    /* Reach strip */
-    .sp-reach {
-        display: grid; grid-template-columns: repeat(4, 1fr);
-        gap: 14px; max-width: 900px; margin: 44px auto 0; padding: 0 20px;
-    }
-    .sp-reach .rc {
+    /* Card formular — bordură albă + umbră offset pe accent */
+    .sp-form-card {
         background: var(--surface);
-        border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
-        border-radius: 16px; padding: 22px 12px; text-align: center;
+        border: 1px solid rgba(255,255,255,.92);
+        border-radius: 10px;
+        box-shadow: 8px 8px 0 0 var(--accent);
+        padding: 30px 28px;
     }
-    .sp-reach .rc b {
-        display: block; font-family: var(--font-serif); font-weight: 700;
-        font-size: clamp(1.4rem, 3.5vw, 2rem); color: var(--accent); line-height: 1;
+    .sp-form-card label {
+        display: block; font-weight: 700; font-size: .92rem;
+        margin: 0 0 6px; color: var(--text);
     }
-    .sp-reach .rc small { display: block; color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+    .sp-form-card label em { color: #ff5a5a; font-style: normal; }
+    .sp-form-card input,
+    .sp-form-card select,
+    .sp-form-card textarea {
+        width: 100%; background: #fff; color: #141414;
+        border: 1px solid #141414; border-radius: 6px;
+        box-shadow: 2px 2px 0 0 var(--accent);
+        padding: 11px 12px; font-size: .95rem; margin-bottom: 18px;
+    }
+    .sp-form-card textarea { resize: vertical; }
+    .sp-form-card input:focus,
+    .sp-form-card select:focus,
+    .sp-form-card textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .sp-btn {
+        display: inline-block; background: var(--accent); color: #141414 !important;
+        font-weight: 800; font-size: 1rem; border-radius: 6px;
+        padding: 13px 26px; border: 1px solid #141414;
+        box-shadow: 3px 3px 0 0 rgba(255,255,255,.85);
+        transition: transform .12s, box-shadow .12s;
+        cursor: pointer; text-decoration: none;
+    }
+    .sp-btn:hover { transform: translate(2px,2px); box-shadow: 1px 1px 0 0 rgba(255,255,255,.85); background: var(--btn-hover); }
 
-    /* Section shell */
-    .sp-sec { padding: 66px 0; }
-    .sp-sec.alt { background: color-mix(in srgb, var(--surface) 55%, var(--bg)); }
-    .sp-lead { color: var(--text-muted); text-align: center; max-width: 60ch; margin: -10px auto 40px; line-height: 1.65; }
+    /* Banda marquee cu cifre */
+    .sp-marquee {
+        border-top: 1px solid rgba(255,255,255,.14);
+        border-bottom: 1px solid rgba(255,255,255,.14);
+        padding: 22px 0; overflow: hidden;
+    }
+    .sp-marquee-track {
+        display: flex; gap: 14px; width: max-content;
+        animation: sp-scroll 36s linear infinite;
+    }
+    .sp-marquee:hover .sp-marquee-track { animation-play-state: paused; }
+    .sp-chip {
+        white-space: nowrap; font-weight: 700; font-size: .95rem;
+        border: 1px solid rgba(255,255,255,.9); border-radius: 7px;
+        background: rgba(255,255,255,.03); padding: 11px 18px;
+    }
+    @keyframes sp-scroll { to { transform: translateX(-50%); } }
 
-    /* Value grid */
-    .sp-values { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-    .sp-value {
-        background: var(--surface); border: 1px solid rgba(255,255,255,.06);
-        border-radius: 16px; padding: 26px 26px 24px;
-    }
-    .sp-value .ic { font-size: 26px; margin-bottom: 12px; display: block; }
-    .sp-value h3 { margin: 0 0 8px; font-size: 1.15rem; }
-    .sp-value p { margin: 0; color: var(--text-muted); line-height: 1.6; font-size: .96rem; }
+    /* Secțiuni */
+    .sp-sec { padding: 64px 0; }
+    .sp-sec .section-title { margin-bottom: 10px; }
+    .sp-lead { color: var(--text-muted); text-align: center; max-width: 60ch; margin: 0 auto 42px; line-height: 1.65; }
 
-    /* Channel cards (media kit numbers) */
-    .sp-channels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .sp-chan {
-        background: var(--surface); border: 1px solid rgba(255,255,255,.07);
-        border-radius: 18px; padding: 26px 22px; position: relative; overflow: hidden;
+    /* Carduri de canale (ca newsletter-cardurile TLDR) */
+    .sp-aud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .sp-aud-card {
+        border: 1px solid rgba(255,255,255,.9); border-radius: 9px;
+        background: rgba(255,255,255,.03); padding: 24px 22px;
+        transition: box-shadow .15s, transform .15s;
     }
-    .sp-chan::before {
-        content: ''; position: absolute; inset: 0 0 auto 0; height: 3px;
-        background: linear-gradient(90deg, var(--accent), transparent);
-    }
-    .sp-chan .lbl { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
-    .sp-chan .big {
-        font-family: var(--font-serif); font-weight: 700;
-        font-size: 2.1rem; line-height: 1; margin: 10px 0 4px; color: var(--text);
-    }
-    .sp-chan .unit { color: var(--accent); font-weight: 700; font-size: .95rem; }
-    .sp-chan ul { list-style: none; margin: 16px 0 0; padding: 0; }
-    .sp-chan li { color: var(--text-muted); font-size: .9rem; padding: 5px 0 5px 20px; position: relative; line-height: 1.4; }
-    .sp-chan li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+    .sp-aud-card:hover { box-shadow: 6px 6px 0 0 var(--accent); transform: translate(-2px,-2px); }
+    .sp-aud-card h3 { margin: 0 0 8px; font-size: 1.12rem; font-weight: 800 !important; }
+    .sp-aud-card p { margin: 0 0 14px; color: var(--text-muted); font-size: .92rem; line-height: 1.55; min-height: 4.2em; }
+    .sp-aud-card .stat { color: var(--accent); font-weight: 800; font-size: .95rem; }
 
-    /* Formats grid (what we can do) */
-    .sp-formats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .sp-fmt {
-        background: var(--surface); border: 1px solid rgba(255,255,255,.06);
-        border-radius: 16px; padding: 24px; transition: border-color .2s, transform .2s;
-    }
-    .sp-fmt:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); transform: translateY(-3px); }
-    .sp-fmt .tag {
-        display: inline-block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
-        color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-        border-radius: 999px; padding: 3px 10px; margin-bottom: 14px;
-    }
-    .sp-fmt h3 { margin: 0 0 8px; font-size: 1.1rem; }
-    .sp-fmt p { margin: 0; color: var(--text-muted); font-size: .95rem; line-height: 1.6; }
-
-    /* Powered-by demo */
-    .sp-powered {
-        display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center;
-    }
-    .sp-powered h2 { text-align: left; margin: 0 0 16px; }
+    /* Powered by — text + mockup */
+    .sp-powered { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+    .sp-powered .section-title { text-align: left; }
     .sp-powered p { color: var(--text-muted); line-height: 1.7; margin: 0 0 14px; }
     .sp-screen {
-        aspect-ratio: 16/10; border-radius: 18px; position: relative; overflow: hidden;
-        background: linear-gradient(150deg, #1b1b1b, #0a0a0a);
-        border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+        aspect-ratio: 16/10; border-radius: 10px; position: relative;
+        background: linear-gradient(150deg, #1c1c1c, #0a0a0a);
+        border: 1px solid rgba(255,255,255,.92);
+        box-shadow: 8px 8px 0 0 var(--accent);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        box-shadow: 0 30px 60px -30px rgba(0,0,0,.8);
     }
     .sp-screen .pw { color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; font-size: 13px; }
     .sp-screen .brand {
-        font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+        font-family: var(--font-serif); font-weight: 900;
+        font-size: clamp(1.6rem, 4.5vw, 2.4rem);
         color: var(--accent); letter-spacing: 1px; margin-top: 6px;
     }
     .sp-screen .glass { position: absolute; bottom: 14px; right: 18px; font-size: 30px; opacity: .5; }
 
-    /* Packages */
-    .sp-pkgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
-    .sp-pkg {
-        background: var(--surface); border: 1px solid rgba(255,255,255,.08);
-        border-radius: 20px; padding: 30px 26px; display: flex; flex-direction: column;
+    /* Tiere (ca plasările TLDR: ✅ + 👑) */
+    .sp-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+    .sp-tier {
+        border: 1px solid rgba(255,255,255,.9); border-radius: 9px;
+        background: rgba(255,255,255,.03); padding: 28px 26px;
+        display: flex; flex-direction: column;
     }
-    .sp-pkg.feat {
+    .sp-tier.feat {
         border-color: var(--accent);
-        background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface));
-        box-shadow: 0 20px 50px -30px color-mix(in srgb, var(--accent) 70%, transparent);
+        box-shadow: 8px 8px 0 0 var(--accent);
+        background: color-mix(in srgb, var(--accent) 7%, var(--surface));
     }
-    .sp-pkg .pop {
-        align-self: flex-start; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
-        background: var(--accent); color: #1a1400; font-weight: 800; border-radius: 999px;
-        padding: 4px 12px; margin-bottom: 14px;
-    }
-    .sp-pkg h3 { margin: 0 0 4px; font-size: 1.35rem; }
-    .sp-pkg .who { color: var(--text-muted); font-size: .9rem; margin: 0 0 18px; min-height: 2.4em; }
-    .sp-pkg ul { list-style: none; margin: 0 0 22px; padding: 0; flex: 1; }
-    .sp-pkg li { padding: 8px 0 8px 24px; position: relative; font-size: .94rem; line-height: 1.45; border-top: 1px solid rgba(255,255,255,.05); }
-    .sp-pkg li:first-child { border-top: 0; }
-    .sp-pkg li::before { content: '✓'; position: absolute; left: 0; top: 8px; color: var(--accent); font-weight: 700; }
-    .sp-pkg .price { font-family: var(--font-serif); font-weight: 700; font-size: 1.35rem; color: var(--accent); margin-bottom: 4px; }
-    .sp-pkg .price small { display: block; font-family: 'Rubik', sans-serif; font-size: .8rem; color: var(--text-muted); font-weight: 400; letter-spacing: 0; }
+    .sp-tier h3 { margin: 0 0 6px; font-size: 1.3rem; font-weight: 800 !important; }
+    .sp-tier .who { color: var(--text-muted); font-size: .92rem; margin: 0 0 18px; min-height: 2.4em; }
+    .sp-tier ul { list-style: none; margin: 0 0 24px; padding: 0; flex: 1; }
+    .sp-tier li { padding: 7px 0; font-size: .95rem; line-height: 1.5; }
+    .sp-tier .sp-btn { align-self: flex-start; }
 
-    /* CTA band */
-    .sp-band {
-        text-align: center;
-        background:
-            radial-gradient(100% 120% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 65%),
-            var(--surface);
-        border-top: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-        border-bottom: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-    }
+    /* Galerie */
+    .sp-wrap .gallery-item img { border-radius: 8px; }
 
-    @media (max-width: 900px) {
-        .sp-channels, .sp-formats, .sp-pkgs { grid-template-columns: 1fr 1fr; }
-        .sp-powered { grid-template-columns: 1fr; }
+    /* CTA final */
+    .sp-cta { text-align: center; padding: 72px 0 84px; }
+    .sp-cta h2 {
+        font-family: var(--font-serif); font-weight: 900 !important;
+        font-size: clamp(1.8rem, 4vw, 2.7rem); margin: 0 0 14px;
     }
-    @media (max-width: 640px) {
-        .sp-reach { grid-template-columns: 1fr 1fr; }
-        .sp-values, .sp-channels, .sp-formats, .sp-pkgs { grid-template-columns: 1fr; }
+    .sp-cta p { color: var(--text-muted); margin: 0 0 28px; }
+
+    @media (max-width: 920px) {
+        .sp-hero-grid, .sp-powered { grid-template-columns: 1fr; }
+        .sp-aud, .sp-tiers { grid-template-columns: 1fr 1fr; }
+        .sp-form-card { box-shadow: 6px 6px 0 0 var(--accent); }
+    }
+    @media (max-width: 620px) {
+        .sp-aud, .sp-tiers { grid-template-columns: 1fr; }
+        .sp-aud-card p { min-height: 0; }
     }
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
@@ -266,154 +262,101 @@ $spons_gallery = [
 
 <div class="sp-wrap">
 
-<!-- ── HERO ───────────────────────────────── -->
-<header class="sp-hero">
+<!-- ── HERO: text + formular ───────────────── -->
+<header class="sp-hero" id="oferta">
     <div class="container">
-        <span class="sp-eyebrow">Pentru branduri</span>
-        <h1>Hai cu brandul tău <span>la un pahar</span></h1>
-        <p class="sp-hero-sub">
-            Organizăm cursuri în fiecare săptămână, în baruri din București. Avem peste 200.000 de vizualizări
-            pe lună pe Instagram și TikTok, un newsletter citit de aproape 2.000 de oameni și săli pline la
-            fiecare eveniment. Dacă vrei ca brandul tău să ajungă la oamenii ăștia, hai să vorbim.
-        </p>
-        <div class="sp-hero-cta">
-            <a href="#pachete" class="btn btn-accent">Vezi pachetele</a>
-            <a href="#contact" class="btn btn-secondary">Cere kitul complet</a>
-        </div>
+        <div class="sp-hero-grid">
+            <div>
+                <h1>Hai cu brandul tău <span>la un pahar</span></h1>
+                <p class="sp-hero-sub">
+                    Organizăm cursuri în fiecare săptămână, în baruri din București. Avem peste
+                    <strong style="color:var(--text)">200.000 de vizualizări pe lună</strong> pe Instagram și TikTok,
+                    un newsletter citit de aproape 2.000 de oameni și săli pline la fiecare eveniment.
+                </p>
+                <p class="sp-hero-sub">
+                    Completează formularul și îți trimitem kitul de prezentare, cu toate cifrele și
+                    o ofertă pe obiectivele tale — de obicei în 24 de ore.
+                </p>
+            </div>
+            <div class="sp-form-card">
+                <form class="inner-page-form" data-form-type="sponsorizare" novalidate>
+                    <label for="sp_brand">Brand / companie <em>*</em></label>
+                    <input type="text" id="sp_brand" name="partner_name" required>
 
-        <div class="sp-reach">
-            <div class="rc"><b>200.000+</b><small>vizualizări pe lună</small></div>
-            <div class="rc"><b>~53%</b><small>open rate newsletter</small></div>
-            <div class="rc"><b>Săptămânal</b><small>un curs cu sala plină</small></div>
-            <div class="rc"><b>București</b><small>curând în toată țara</small></div>
+                    <label for="sp_email">Email <em>*</em></label>
+                    <input type="email" id="sp_email" name="email" required>
+
+                    <label for="sp_interes">Ce te interesează? <em>*</em></label>
+                    <select id="sp_interes" name="interes" required>
+                        <option value="">Alege o variantă</option>
+                        <option value="newsletter">Mențiune în newsletter</option>
+                        <option value="social">Instagram &amp; TikTok</option>
+                        <option value="powered-editie">„Powered by" o ediție</option>
+                        <option value="curs-colaborare">Un curs în colaborare</option>
+                        <option value="partener-sezon">Partener de sezon (4 ediții)</option>
+                        <option value="sampling">Sampling / activare la eveniment</option>
+                        <option value="nu-stiu">Încă nu știu, hai să discutăm</option>
+                    </select>
+
+                    <label for="sp_msg">Ce vrei să obții din colaborare?</label>
+                    <textarea id="sp_msg" name="message" rows="3"></textarea>
+
+                    <button type="submit" class="sp-btn">Cere kitul de prezentare</button>
+                    <div class="form-message" aria-live="polite"></div>
+                </form>
+            </div>
         </div>
     </div>
 </header>
 
-<!-- ── DE CE NOI ──────────────────────────── -->
+<!-- ── MARQUEE CIFRE ───────────────────────── -->
+<div class="sp-marquee" aria-hidden="true">
+    <div class="sp-marquee-track">
+        <?php for ($i = 0; $i < 2; $i++): foreach ($spons_chips as $chip): ?>
+        <span class="sp-chip"><?= htmlspecialchars($chip) ?></span>
+        <?php endforeach; endfor; ?>
+    </div>
+</div>
+
+<!-- ── CANALE ──────────────────────────────── -->
 <section class="sp-sec">
     <div class="container">
-        <h2 class="section-title">Ce primești ca partener</h2>
-        <p class="sp-lead">Pe scurt: oameni reali, care ne urmăresc constant și vin la evenimente în fiecare săptămână.</p>
-        <div class="sp-values">
-            <div class="sp-value">
-                <span class="ic">👀</span>
-                <h3>Lume care chiar citește</h3>
-                <p>Peste jumătate din abonați deschid fiecare email — aproape dublu față de media din industrie. Mesajul tău ajunge la ei, pe bune.</p>
-            </div>
-            <div class="sp-value">
-                <span class="ic">🎟️</span>
-                <h3>Public care cumpără bilete</h3>
-                <p>La fiecare curs vin oameni care au plătit bilet ca să fie acolo. Tineri din București care ies în oraș și încearcă lucruri noi.</p>
-            </div>
-            <div class="sp-value">
-                <span class="ic">🍷</span>
-                <h3>Prezență online și la eveniment</h3>
-                <p>Brandul tău apare în email, pe Instagram și TikTok și la evenimentul propriu-zis, între oameni, la un pahar.</p>
-            </div>
-            <div class="sp-value">
-                <span class="ic">✨</span>
-                <h3>O asociere care dă bine</h3>
-                <p>Cursurile noastre înseamnă educație și o seară plăcută în oraș. E genul de context în care orice brand arată bine.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── CIFRELE / MEDIA KIT ─────────────────── -->
-<section class="sp-sec alt">
-    <div class="container">
-        <h2 class="section-title">Canalele și cifrele</h2>
+        <h2 class="section-title">Patru canale, aceeași comunitate 🚀</h2>
         <p class="sp-lead">Cifre reale, pe care le actualizăm constant.</p>
-        <div class="sp-channels">
-            <div class="sp-chan">
-                <div class="lbl">Newsletter</div>
-                <div class="big">1.943</div>
-                <div class="unit">abonați</div>
-                <ul>
-                    <li>~53% open rate mediu</li>
-                    <li>Un email în fiecare săptămână</li>
-                    <li>Slot de sponsor dedicat</li>
-                </ul>
+        <div class="sp-aud">
+            <div class="sp-aud-card">
+                <h3>Instagram</h3>
+                <p>Reels și stories de la fiecare curs, cu mențiunea „Powered by" pentru partenerul ediției.</p>
+                <div class="stat">21.2k urmăritori · 150k+ vizualizări/lună</div>
             </div>
-            <div class="sp-chan">
-                <div class="lbl">Instagram</div>
-                <div class="big">150k+</div>
-                <div class="unit">vizualizări pe lună</div>
-                <ul>
-                    <li>21.2k urmăritori</li>
-                    <li>Reels și stories de la fiecare curs</li>
-                    <li>Mențiune „Powered by"</li>
-                </ul>
+            <div class="sp-aud-card">
+                <h3>TikTok</h3>
+                <p>Clipuri filmate la evenimente, pentru un public tânăr care descoperă cursurile.</p>
+                <div class="stat">8.4k urmăritori · 50k+ vizualizări/lună</div>
             </div>
-            <div class="sp-chan">
-                <div class="lbl">TikTok</div>
-                <div class="big">50k+</div>
-                <div class="unit">vizualizări pe lună</div>
-                <ul>
-                    <li>8.4k urmăritori, 37k aprecieri</li>
-                    <li>Conținut filmat la evenimente</li>
-                    <li>Mențiune „Powered by"</li>
-                </ul>
+            <div class="sp-aud-card">
+                <h3>Newsletter</h3>
+                <p>Un email pe săptămână cu următoarele cursuri, citit de o comunitate fidelă.</p>
+                <div class="stat">1.943 abonați · ~53% open rate</div>
             </div>
-            <div class="sp-chan">
-                <div class="lbl">Evenimente</div>
-                <div class="big">Săpt.</div>
-                <div class="unit">public plătitor, live</div>
-                <ul>
-                    <li>Prezență fizică în București</li>
-                    <li>Sampling / activare la fața locului</li>
-                    <li>Contact direct cu participanții</li>
-                </ul>
+            <div class="sp-aud-card">
+                <h3>Evenimente</h3>
+                <p>Cursuri săptămânale în baruri din București, cu bilete plătite și săli pline.</p>
+                <div class="stat">Săptămânal · public plătitor</div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ── FORMATE DE PROMOVARE ────────────────── -->
+<!-- ── POWERED BY ──────────────────────────── -->
 <section class="sp-sec">
-    <div class="container">
-        <h2 class="section-title">Cum îți promovăm brandul</h2>
-        <p class="sp-lead">Alegi un format sau le combini. De la o mențiune simplă până la o ediție întreagă „Powered by".</p>
-        <div class="sp-formats">
-            <div class="sp-fmt">
-                <span class="tag">Newsletter</span>
-                <h3>Slot dedicat în email</h3>
-                <p>O mențiune a brandului tău în emailul săptămânal, deschis de aproape 1.000 de oameni de fiecare dată.</p>
-            </div>
-            <div class="sp-fmt">
-                <span class="tag">Social</span>
-                <h3>Instagram &amp; TikTok</h3>
-                <p>Story, reel sau mențiune „Powered by [brandul tău]" în descrierea postărilor de la curs.</p>
-            </div>
-            <div class="sp-fmt">
-                <span class="tag">Title sponsor</span>
-                <h3>Curs „Powered by [brand]"</h3>
-                <p>O ediție întreagă poartă numele tău: în social și în newsletter, pe toate canalele noastre.</p>
-            </div>
-            <div class="sp-fmt">
-                <span class="tag">Co-creat</span>
-                <h3>Curs în colaborare</h3>
-                <p>Construim împreună un curs pe o temă legată de brandul tău — de la subiect până la eveniment.</p>
-            </div>
-            <div class="sp-fmt">
-                <span class="tag">Activare</span>
-                <h3>Sampling la eveniment</h3>
-                <p>Produsul tău ajunge direct în mâna participanților, într-un context relaxat și pozitiv.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── POWERED BY DEMO ─────────────────────── -->
-<section class="sp-sec alt">
     <div class="container">
         <div class="sp-powered">
             <div>
-                <h2 class="section-title">„Powered by" — cel mai vizibil loc</h2>
-                <p>Postările de pe Instagram și TikTok și emailul din săptămâna cursului afișează brandul tău ca sponsor oficial al ediției.</p>
-                <p>Oamenii îți văd brandul exact în momentele în care sunt cu ochii pe noi: când își iau bilet, când urmăresc clipurile de la curs și când primesc emailul săptămânal.</p>
-                <a href="#contact" class="btn btn-accent">Vreau brandul meu aici</a>
+                <h2 class="section-title">Brandul tău, direct în fața lor ✉️</h2>
+                <p>Postările de pe Instagram și TikTok și emailul din săptămâna cursului afișează brandul tău ca partener oficial al ediției.</p>
+                <p>Oamenii îți văd brandul exact în momentele în care sunt cu ochii pe noi: când își iau bilet, când urmăresc clipurile de la curs și când primesc emailul săptămânal. Iar dacă vrei să mergem mai departe, construim împreună un curs întreg pe o temă aleasă cu tine.</p>
+                <a href="#oferta" class="sp-btn">Vreau brandul meu aici</a>
             </div>
             <div class="sp-screen">
                 <span class="pw">Powered by</span>
@@ -424,55 +367,52 @@ $spons_gallery = [
     </div>
 </section>
 
-<!-- ── PACHETE ─────────────────────────────── -->
+<!-- ── TIERE ───────────────────────────────── -->
 <section class="sp-sec" id="pachete">
     <div class="container">
-        <h2 class="section-title">Pachete</h2>
-        <p class="sp-lead">Trei niveluri, de la o apariție punctuală până la parteneriat de sezon. Prețul final îl potrivim pe obiectivele tale.</p>
-        <div class="sp-pkgs">
-            <div class="sp-pkg">
+        <h2 class="section-title">Alege formatul 👑</h2>
+        <p class="sp-lead">De la o apariție punctuală până la parteneriat de sezon. Prețul final îl potrivim pe obiectivele tale.</p>
+        <div class="sp-tiers">
+            <div class="sp-tier">
                 <h3>Spot</h3>
                 <p class="who">O apariție punctuală, pe un singur canal.</p>
                 <ul>
-                    <li>Mențiune în newsletter <em>sau</em> pe social</li>
-                    <li>Link cu UTM (îți vezi click-urile)</li>
-                    <li>Ideal pentru un test rapid</li>
+                    <li>✅ Mențiune în newsletter <em>sau</em> pe social</li>
+                    <li>✅ Link cu UTM, îți vezi click-urile</li>
+                    <li>✅ Ideal pentru un test rapid</li>
                 </ul>
-                <div class="price">Preț la cerere<small>ofertă în 24h</small></div>
-                <a href="#contact" class="btn btn-secondary">Cere oferta</a>
+                <a href="#oferta" class="sp-btn">Cere oferta</a>
             </div>
-            <div class="sp-pkg feat">
-                <span class="pop">Cel mai ales</span>
-                <h3>Powered by ediție</h3>
-                <p class="who">Sponsor oficial al unei ediții, pe toate canalele.</p>
+            <div class="sp-tier feat">
+                <h3>👑 Powered by ediție</h3>
+                <p class="who">Partener oficial al unei ediții, pe toate canalele.</p>
                 <ul>
-                    <li>„Powered by" pe Instagram &amp; TikTok</li>
-                    <li>Mențiune dedicată în newsletter</li>
-                    <li>Prezență / sampling la eveniment</li>
+                    <li>✅ „Powered by" pe Instagram &amp; TikTok</li>
+                    <li>✅ Mențiune dedicată în newsletter</li>
+                    <li>✅ Prezență / sampling la eveniment</li>
+                    <li>✅ Raport cu cifrele după ediție</li>
                 </ul>
-                <div class="price">Preț la cerere<small>pe ediție</small></div>
-                <a href="#contact" class="btn btn-accent">Cere oferta</a>
+                <a href="#oferta" class="sp-btn">Cere oferta</a>
             </div>
-            <div class="sp-pkg">
+            <div class="sp-tier">
                 <h3>Partener de sezon</h3>
                 <p class="who">4 ediții, prezență constantă, preț cu discount.</p>
                 <ul>
-                    <li>Tot din „Powered by ediție", ×4</li>
-                    <li>Un curs în colaborare cu brandul tău</li>
-                    <li>Prioritate la date și subiecte</li>
-                    <li>Discount pentru angajament</li>
+                    <li>✅ Tot din „Powered by ediție", ×4</li>
+                    <li>✅ Un curs în colaborare, pe o temă aleasă împreună</li>
+                    <li>✅ Prioritate la date și subiecte</li>
+                    <li>✅ Discount pentru angajament</li>
                 </ul>
-                <div class="price">Preț la cerere<small>pachet cu discount</small></div>
-                <a href="#contact" class="btn btn-secondary">Cere oferta</a>
+                <a href="#oferta" class="sp-btn">Cere oferta</a>
             </div>
         </div>
     </div>
 </section>
 
 <!-- ── GALERIE ─────────────────────────────── -->
-<section class="sp-sec alt">
+<section class="sp-sec">
     <div class="container">
-        <h2 class="section-title">Așa arată un curs la pahar</h2>
+        <h2 class="section-title">Așa arată un curs la pahar 🍻</h2>
         <p class="sp-lead">Oameni reali, săli pline, atmosferă bună. Exact contextul în care ajunge brandul tău.</p>
         <div class="gallery-slider-wrap">
             <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
@@ -488,65 +428,66 @@ $spons_gallery = [
     </div>
 </section>
 
-<!-- ── FORMULAR ────────────────────────────── -->
-<section class="sp-sec sp-band" id="contact">
+<!-- ── FAQ ─────────────────────────────────── -->
+<section class="sp-sec">
     <div class="container container-narrow">
-        <h2 class="section-title">Hai să-ți promovăm brandul</h2>
-        <p class="sp-lead">Spune-ne ce brand reprezinți și ce vrei să obții. Revenim cu kitul complet și o ofertă potrivită, de obicei în 24 de ore.</p>
-
-        <div class="inner-form">
-            <form class="inner-page-form" data-form-type="sponsorizare" novalidate>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="sp_brand">Brand / companie *</label>
-                        <input type="text" id="sp_brand" name="partner_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sp_contact">Persoana de contact *</label>
-                        <input type="text" id="sp_contact" name="contact_person" required>
-                    </div>
+        <h2 class="section-title">Întrebări frecvente</h2>
+        <div class="faq-list" style="margin-top:36px;">
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Cât costă o colaborare?</span>
+                    <span class="faq-icon" aria-hidden="true"></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Depinde de format și de numărul de ediții. Scrie-ne ce buget și ce obiectiv ai și revenim cu o ofertă concretă, de obicei în 24 de ore.</p>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="sp_email">Email *</label>
-                        <input type="email" id="sp_email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sp_phone">Număr de telefon</label>
-                        <input type="tel" id="sp_phone" name="phone" required>
-                    </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Cum arată o mențiune „Powered by"?</span>
+                    <span class="faq-icon" aria-hidden="true"></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Numele și logo-ul brandului tău apar în postările și clipurile ediției, pe Instagram și TikTok, plus în emailul trimis în săptămâna cursului.</p>
                 </div>
-                <div class="form-group">
-                    <label>Ce te interesează</label>
-                    <div class="checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="interes[]" value="newsletter"> Slot în newsletter
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="interes[]" value="social"> Instagram &amp; TikTok
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="interes[]" value="powered-editie"> „Powered by" o ediție
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="interes[]" value="partener-sezon"> Partener de sezon (4 ediții)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="interes[]" value="sampling"> Sampling / activare la eveniment
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="interes[]" value="altceva"> Încă nu știu, hai să discutăm
-                        </label>
-                    </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Putem face un curs împreună?</span>
+                    <span class="faq-icon" aria-hidden="true"></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Da. Alegem împreună o temă care se potrivește și publicului nostru și brandului tău, iar ediția respectivă o construim în colaborare, de la subiect până la promovare.</p>
                 </div>
-                <div class="form-group">
-                    <label for="sp_msg">Ce vrei să obții din colaborare? *</label>
-                    <textarea id="sp_msg" name="message" rows="4" required></textarea>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Putem oferi produse participanților?</span>
+                    <span class="faq-icon" aria-hidden="true"></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Da, sampling-ul e printre cele mai cerute formate: produsul tău ajunge direct în mâna oamenilor, într-o seară relaxată, la un pahar.</p>
                 </div>
-                <button type="submit" class="btn btn-accent">Trimite cererea</button>
-                <div class="form-message" aria-live="polite"></div>
-            </form>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span>Cum știu ce rezultate a avut campania?</span>
+                    <span class="faq-icon" aria-hidden="true"></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Primești link-uri cu UTM și, după fiecare ediție, un raport cu cifrele reale: afișări, click-uri și numărul de participanți.</p>
+                </div>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- ── CTA FINAL ───────────────────────────── -->
+<section class="sp-cta">
+    <div class="container">
+        <h2>Vrei brandul tău la un pahar? 🍻</h2>
+        <p>Completează formularul și primești kitul de prezentare cu toate cifrele.</p>
+        <a href="#oferta" class="sp-btn">Hai să vorbim</a>
     </div>
 </section>
 
