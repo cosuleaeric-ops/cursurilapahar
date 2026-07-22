@@ -96,7 +96,7 @@ $spons_gallery = [
     .sp-hero h1 {
         font-family: var(--font-serif);
         font-size: clamp(1.7rem, 3.1vw, 2.5rem);
-        line-height: 1.18; letter-spacing: -.02em;
+        line-height: 1.32; letter-spacing: -.02em;
         margin: 0 0 22px; color: #231F20;
     }
     .sp-hero h1 span {
