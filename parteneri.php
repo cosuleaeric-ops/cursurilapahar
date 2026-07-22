@@ -155,35 +155,6 @@ $spons_gallery = [
     .sp-aud-card p { margin: 0 0 14px; color: #3f3a37; font-size: .92rem; line-height: 1.55; min-height: 4.2em; }
     .sp-aud-card .stat { color: #231F20; font-weight: 800; font-size: .95rem; }
 
-    /* De ce noi — 3 carduri charcoal + raport exemplu */
-    .sp-why { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 34px; }
-    .sp-why-card { background: #231F20; color: #fff; border-radius: 18px; padding: 30px 26px; }
-    .sp-why-card .ic { font-size: 26px; display: block; margin-bottom: 14px; }
-    .sp-why-card h3 { margin: 0 0 10px; font-size: 1.15rem; color: #fff; }
-    .sp-why-card p { margin: 0; color: #cfcac6; font-size: .94rem; line-height: 1.6; }
-
-    .sp-report {
-        background: #fff; border: 1px solid rgba(0,0,0,.12); border-radius: 20px;
-        box-shadow: 0 15px 27px -6px rgba(0,0,0,.1); padding: 32px 34px;
-    }
-    .sp-report-head {
-        display: flex; justify-content: space-between; align-items: flex-start;
-        gap: 24px; flex-wrap: wrap;
-        border-bottom: 1px solid rgba(0,0,0,.1); padding-bottom: 22px; margin-bottom: 22px;
-    }
-    .sp-report-head h3 { font-family: var(--font-serif); font-size: 1.4rem; letter-spacing: -.01em; margin: 0 0 4px; color: #231F20; }
-    .sp-report-head .sub { color: #6f6a66; font-size: .85rem; }
-    .sp-report-stats { display: flex; gap: 30px; }
-    .sp-report-stats .rs b { display: block; font-family: var(--font-serif); font-size: 1.25rem; color: #231F20; line-height: 1.1; }
-    .sp-report-stats .rs span { font-size: .78rem; color: #6f6a66; }
-    .sp-report .lbl { font-weight: 700; font-size: .9rem; margin: 0 0 14px; color: #231F20; }
-    .sp-report-brands { display: flex; flex-wrap: wrap; gap: 10px; }
-    .sp-report-brands span {
-        background: #FAF9F5; border: 1px solid rgba(0,0,0,.1); border-radius: 999px;
-        padding: 8px 16px; font-weight: 600; font-size: .92rem; color: #231F20;
-    }
-    .sp-report-note { color: #6f6a66; font-size: .82rem; margin: 16px 0 0; font-style: italic; }
-
     /* Galerie */
     .sp-wrap .gallery-item img { border-radius: 14px; }
     .sp-wrap .gslider-btn { background: #FAF9F5; border: 1px solid rgba(0,0,0,.12); color: #231F20; }
@@ -199,12 +170,11 @@ $spons_gallery = [
 
     @media (max-width: 920px) {
         .sp-hero-grid { grid-template-columns: 1fr; }
-        .sp-aud, .sp-why { grid-template-columns: 1fr 1fr; }
+        .sp-aud { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 620px) {
-        .sp-aud, .sp-why { grid-template-columns: 1fr; }
+        .sp-aud { grid-template-columns: 1fr; }
         .sp-aud-card p { min-height: 0; }
-        .sp-report-stats { gap: 20px; }
     }
     </style>
     <?php include __DIR__ . '/includes/head-scripts.php'; ?>
@@ -303,57 +273,6 @@ $spons_gallery = [
                 <p>Cursuri săptămânale în baruri din București, cu bilete plătite și săli pline.</p>
                 <div class="stat">Săptămânal · public plătitor</div>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── DE CE NOI + RAPORT ──────────────────── -->
-<section class="sp-sec">
-    <div class="container">
-        <h2 class="section-title">Brandul tău, direct în fața comunității</h2>
-        <p class="sp-lead">De ce merită să ajungi la oamenii ăștia prin noi.</p>
-        <div class="sp-why">
-            <div class="sp-why-card">
-                <span class="ic">🍺</span>
-                <h3>Lume care chiar citește</h3>
-                <p>Peste jumătate din abonați deschid fiecare email — aproape dublu față de media din industrie. Nu plătești pentru afișări moarte.</p>
-            </div>
-            <div class="sp-why-card">
-                <span class="ic">🎯</span>
-                <h3>Fără aglomerație de reclame</h3>
-                <p>Un singur partener pe ediție. Brandul tău nu se pierde printre zece alte reclame — e singurul de care aud oamenii în seara aia.</p>
-            </div>
-            <div class="sp-why-card">
-                <span class="ic">✍️</span>
-                <h3>Conținutul îl facem noi</h3>
-                <p>Scriem și filmăm totul în vocea noastră, ca să sune natural. Tu nu produci nimic — ne spui doar ce vrei să transmiți.</p>
-            </div>
-        </div>
-
-        <div class="sp-report">
-            <div class="sp-report-head">
-                <div>
-                    <h3>Cursuri la Pahar × Brandul tău</h3>
-                    <div class="sub">Raport exemplu — o ediție</div>
-                </div>
-                <div class="sp-report-stats">
-                    <div class="rs"><b>1.943</b><span>abonați</span></div>
-                    <div class="rs"><b>~1.000</b><span>deschideri/email</span></div>
-                    <div class="rs"><b>200.000+</b><span>vizualizări/lună</span></div>
-                </div>
-            </div>
-            <p class="lbl">Printre cei care ne urmăresc lucrează oameni de la:</p>
-            <div class="sp-report-brands">
-                <span>Veolia</span>
-                <span>Rossmann</span>
-                <span>MaxBet</span>
-                <span>Primăria București</span>
-                <span>Cosmo Consult</span>
-                <span>ASE</span>
-                <span>Politehnica București</span>
-                <span>UMF Carol Davila</span>
-            </div>
-            <p class="sp-report-note">+ după fiecare ediție primești un raport cu cifrele reale: afișări, click-uri și participanți.</p>
         </div>
     </div>
 </section>
