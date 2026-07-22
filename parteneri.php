@@ -86,6 +86,11 @@ $spons_gallery = [
     .sp-wrap .container { max-width: 1140px; }
     .sp-wrap .section-title { color: #231F20; letter-spacing: -.02em; }
     .sp-lead { color: #6f6a66; text-align: center; max-width: 60ch; margin: 0 auto 42px; line-height: 1.65; }
+    .sp-demo { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 760px; margin: -28px auto 42px; }
+    .sp-demo span {
+        background: #FAF9F5; border: 1px solid rgba(0,0,0,.1); border-radius: 999px;
+        padding: 9px 18px; font-weight: 600; font-size: .92rem; color: #231F20;
+    }
 
     /* Hero: text stânga + formular dreapta */
     .sp-hero { padding: 72px 0; }
@@ -273,7 +278,13 @@ $spons_gallery = [
 <section class="sp-sec">
     <div class="container">
         <h2 class="section-title">Patru canale, aceeași comunitate</h2>
-        <p class="sp-lead">Cifre reale, pe care le actualizăm constant.</p>
+        <p class="sp-lead">Un public tânăr și educat, care iese în oraș și plătește bilet ca să învețe.</p>
+        <div class="sp-demo">
+            <span>25–40 ani</span>
+            <span>Educație superioară</span>
+            <span>75% femei · 25% bărbați</span>
+            <span>Din București</span>
+        </div>
         <div class="sp-aud">
             <div class="sp-aud-card">
                 <span class="ic">📸</span>
