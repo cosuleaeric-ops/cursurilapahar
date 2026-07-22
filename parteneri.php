@@ -95,8 +95,8 @@ $spons_gallery = [
     }
     .sp-hero h1 {
         font-family: var(--font-serif);
-        font-size: clamp(2.3rem, 4.6vw, 3.8rem);
-        line-height: 1.12; letter-spacing: -.02em;
+        font-size: clamp(1.7rem, 3.1vw, 2.5rem);
+        line-height: 1.18; letter-spacing: -.02em;
         margin: 0 0 22px; color: #231F20;
     }
     .sp-hero h1 span {
@@ -225,7 +225,7 @@ $spons_gallery = [
     <div class="container">
         <div class="sp-hero-grid">
             <div>
-                <h1>Căutăm parteneri care <span>susțin educația</span></h1>
+                <h1>Brandul tău în fața a peste <span>200.000 de oameni</span> pasionați de educație</h1>
                 <p class="sp-hero-sub">
                     Organizăm cursuri în fiecare săptămână, în baruri din București. Avem peste
                     <strong>200.000 de vizualizări pe lună</strong> pe Instagram și TikTok,
