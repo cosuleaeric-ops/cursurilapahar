@@ -120,6 +120,7 @@ $spons_gallery = [
     }
     .sp-form-card label em { color: #d0454c; font-style: normal; }
     .sp-form-card input,
+    .sp-form-card select,
     .sp-form-card textarea {
         width: 100%; background: #fff; color: #231F20;
         border: 1px solid rgba(0,0,0,.16); border-radius: 10px;
@@ -127,6 +128,7 @@ $spons_gallery = [
     }
     .sp-form-card textarea { resize: vertical; }
     .sp-form-card input:focus,
+    .sp-form-card select:focus,
     .sp-form-card textarea:focus { outline: 2px solid #231F20; outline-offset: 1px; }
     .sp-btn {
         display: inline-block; background: #231F20; color: #fff !important;
@@ -150,10 +152,16 @@ $spons_gallery = [
     .sp-aud-card:nth-child(2) { background: #F1E8D5; }
     .sp-aud-card:nth-child(3) { background: #FFCFFA; }
     .sp-aud-card:nth-child(4) { background: #BCF46E; }
-    .sp-aud-card:hover { transform: translateY(-4px); box-shadow: 0 15px 27px -6px rgba(0,0,0,.15); }
-    .sp-aud-card h3 { margin: 0 0 8px; font-size: 1.12rem; color: #231F20; }
-    .sp-aud-card p { margin: 0 0 14px; color: #3f3a37; font-size: .92rem; line-height: 1.55; min-height: 4.2em; }
-    .sp-aud-card .stat { color: #231F20; font-weight: 800; font-size: .95rem; }
+    .sp-aud-card:hover { transform: translateY(-6px) rotate(-.6deg); box-shadow: 0 22px 36px -12px rgba(0,0,0,.22); }
+    .sp-aud-card .ic {
+        width: 46px; height: 46px; border-radius: 14px;
+        background: rgba(255,255,255,.6); display: flex; align-items: center; justify-content: center;
+        font-size: 24px; margin-bottom: 18px;
+    }
+    .sp-aud-card h3 { margin: 0 0 16px; font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #231F20; }
+    .sp-aud-card .big { font-family: var(--font-serif); font-size: 2.5rem; line-height: 1; letter-spacing: -.025em; color: #231F20; }
+    .sp-aud-card .biglbl { font-size: .82rem; font-weight: 700; color: #3f3a37; margin: 5px 0 14px; }
+    .sp-aud-card p { margin: 0; color: #3f3a37; font-size: .88rem; line-height: 1.5; min-height: 3.6em; }
 
     /* Galerie */
     .sp-wrap .gallery-item img { border-radius: 14px; }
@@ -230,14 +238,27 @@ $spons_gallery = [
             </div>
             <div class="sp-form-card">
                 <form class="inner-page-form" data-form-type="sponsorizare" novalidate>
-                    <label for="sp_brand">Brand / companie <em>*</em></label>
-                    <input type="text" id="sp_brand" name="partner_name" required>
+                    <label for="sp_name">Nume <em>*</em></label>
+                    <input type="text" id="sp_name" name="name" required>
+
+                    <label for="sp_company">Companie <em>*</em></label>
+                    <input type="text" id="sp_company" name="company" required>
 
                     <label for="sp_email">Email <em>*</em></label>
                     <input type="email" id="sp_email" name="email" required>
 
-                    <label for="sp_msg">Spune-ne pe scurt ce ai în minte</label>
-                    <textarea id="sp_msg" name="message" rows="4"></textarea>
+                    <label for="sp_type">Tipul de parteneriat</label>
+                    <select id="sp_type" name="partnership_type">
+                        <option value="">Alege o variantă</option>
+                        <option value="social">Promovare pe social (Instagram &amp; TikTok)</option>
+                        <option value="newsletter">Mențiune în newsletter</option>
+                        <option value="curs-colaborare">Curs în colaborare</option>
+                        <option value="sponsorizare-eveniment">Sponsorizare eveniment</option>
+                        <option value="altceva">Încă nu știu / altceva</option>
+                    </select>
+
+                    <label for="sp_msg">Vrei să ne mai spui ceva? <span style="font-weight:400;color:#6f6a66">(opțional)</span></label>
+                    <textarea id="sp_msg" name="message" rows="3"></textarea>
 
                     <button type="submit" class="sp-btn">Hai să vorbim</button>
                     <div class="form-message" aria-live="polite"></div>
@@ -254,24 +275,32 @@ $spons_gallery = [
         <p class="sp-lead">Cifre reale, pe care le actualizăm constant.</p>
         <div class="sp-aud">
             <div class="sp-aud-card">
+                <span class="ic">📸</span>
                 <h3>Instagram</h3>
-                <p>Reels și stories de la fiecare curs, pentru un public tânăr din București.</p>
-                <div class="stat">21.2k urmăritori · 150k+ vizualizări/lună</div>
+                <div class="big">150k+</div>
+                <div class="biglbl">vizualizări / lună</div>
+                <p>21.2k urmăritori · reels și stories de la fiecare curs.</p>
             </div>
             <div class="sp-aud-card">
+                <span class="ic">🎬</span>
                 <h3>TikTok</h3>
-                <p>Clipuri filmate la evenimente, pentru un public tânăr care descoperă cursurile.</p>
-                <div class="stat">8.4k urmăritori · 50k+ vizualizări/lună</div>
+                <div class="big">50k+</div>
+                <div class="biglbl">vizualizări / lună</div>
+                <p>8.4k urmăritori · clipuri filmate la evenimente.</p>
             </div>
             <div class="sp-aud-card">
+                <span class="ic">📬</span>
                 <h3>Newsletter</h3>
-                <p>Un email pe săptămână cu următoarele cursuri, citit de o comunitate fidelă.</p>
-                <div class="stat">1.943 abonați · ~53% open rate</div>
+                <div class="big">~53%</div>
+                <div class="biglbl">open rate</div>
+                <p>1.943 abonați · un email pe săptămână, citit de o comunitate fidelă.</p>
             </div>
             <div class="sp-aud-card">
+                <span class="ic">🍻</span>
                 <h3>Evenimente</h3>
-                <p>Cursuri săptămânale în baruri din București, cu bilete plătite și săli pline.</p>
-                <div class="stat">50-70 participanți · în fiecare săptămână</div>
+                <div class="big">50-70</div>
+                <div class="biglbl">participanți / curs</div>
+                <p>În fiecare săptămână, în baruri din București, cu bilete plătite.</p>
             </div>
         </div>
     </div>
