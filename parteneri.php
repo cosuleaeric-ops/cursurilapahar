@@ -247,8 +247,8 @@ $spons_gallery = [
                     <label for="sp_email">Email <em>*</em></label>
                     <input type="email" id="sp_email" name="email" required>
 
-                    <label for="sp_type">Tipul de parteneriat</label>
-                    <select id="sp_type" name="partnership_type">
+                    <label for="sp_type">Tipul de parteneriat <em>*</em></label>
+                    <select id="sp_type" name="partnership_type" required>
                         <option value="">Alege o variantă</option>
                         <option value="social">Promovare pe social (Instagram &amp; TikTok)</option>
                         <option value="newsletter">Mențiune în newsletter</option>
@@ -257,7 +257,7 @@ $spons_gallery = [
                         <option value="altceva">Încă nu știu / altceva</option>
                     </select>
 
-                    <label for="sp_msg">Vrei să ne mai spui ceva? <span style="font-weight:400;color:#6f6a66">(opțional)</span></label>
+                    <label for="sp_msg">Vrei să ne mai spui ceva?</label>
                     <textarea id="sp_msg" name="message" rows="3"></textarea>
 
                     <button type="submit" class="sp-btn">Hai să vorbim</button>
