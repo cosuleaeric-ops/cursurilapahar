@@ -24,14 +24,10 @@ function clp_e(string $key, array $settings): string {
     return '';
 }
 
-// Chips pentru banda cu cifre (duplicate în HTML pentru loop-ul de marquee)
-$spons_chips = [
-    '150.000+ vizualizări pe lună pe Instagram',
-    '50.000+ vizualizări pe lună pe TikTok',
-    '~1.000 de deschideri la fiecare email',
-    '~53% open rate la newsletter',
-    'Săli pline în fiecare săptămână',
-    'Public care plătește bilet',
+// Galerie – imagini din folderul commit-uit (fallback dacă nu sunt setate în admin)
+$spons_gallery = [
+    'gallery-05','gallery-11','gallery-01','gallery-25',
+    'gallery-08','gallery-32','gallery-17','gallery-06',
 ];
 ?>
 <!DOCTYPE html>
@@ -140,25 +136,6 @@ $spons_chips = [
     }
     .sp-btn:hover { transform: translateY(-2px); background: #000; box-shadow: 0 10px 18px -8px rgba(0,0,0,.4); }
 
-    /* Banda marquee cu cifre — pastile pastel */
-    .sp-marquee { padding: 10px 0 26px; overflow: hidden; background: #fff; }
-    .sp-marquee-track {
-        display: flex; gap: 14px; width: max-content;
-        animation: sp-scroll 36s linear infinite;
-    }
-    .sp-marquee:hover .sp-marquee-track { animation-play-state: paused; }
-    .sp-chip {
-        white-space: nowrap; font-weight: 600; font-size: .95rem;
-        color: #231F20; border-radius: 999px; padding: 12px 20px;
-    }
-    .sp-chip:nth-child(6n+1) { background: #BDE1FF; }
-    .sp-chip:nth-child(6n+2) { background: #F1E8D5; }
-    .sp-chip:nth-child(6n+3) { background: #FFCFFA; }
-    .sp-chip:nth-child(6n+4) { background: #BCF46E; }
-    .sp-chip:nth-child(6n+5) { background: #E2F1FF; }
-    .sp-chip:nth-child(6n+6) { background: #FFE86B; }
-    @keyframes sp-scroll { to { transform: translateX(-50%); } }
-
     /* Secțiuni */
     .sp-sec { padding: 64px 0; }
     .sp-sec .section-title { margin-bottom: 10px; }
@@ -206,6 +183,11 @@ $spons_chips = [
         padding: 8px 16px; font-weight: 600; font-size: .92rem; color: #231F20;
     }
     .sp-report-note { color: #6f6a66; font-size: .82rem; margin: 16px 0 0; font-style: italic; }
+
+    /* Galerie */
+    .sp-wrap .gallery-item img { border-radius: 14px; }
+    .sp-wrap .gslider-btn { background: #FAF9F5; border: 1px solid rgba(0,0,0,.12); color: #231F20; }
+    .sp-wrap .gslider-btn:hover { background: #F1E8D5; }
 
     /* CTA final */
     .sp-cta { text-align: center; padding: 72px 0 84px; background: #FAF9F5; }
@@ -295,15 +277,6 @@ $spons_chips = [
     </div>
 </header>
 
-<!-- ── MARQUEE CIFRE ───────────────────────── -->
-<div class="sp-marquee" aria-hidden="true">
-    <div class="sp-marquee-track">
-        <?php for ($i = 0; $i < 2; $i++): foreach ($spons_chips as $chip): ?>
-        <span class="sp-chip"><?= htmlspecialchars($chip) ?></span>
-        <?php endforeach; endfor; ?>
-    </div>
-</div>
-
 <!-- ── CANALE ──────────────────────────────── -->
 <section class="sp-sec">
     <div class="container">
@@ -381,6 +354,25 @@ $spons_chips = [
                 <span>UMF Carol Davila</span>
             </div>
             <p class="sp-report-note">+ după fiecare ediție primești un raport cu cifrele reale: afișări, click-uri și participanți.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── GALERIE ─────────────────────────────── -->
+<section class="sp-sec">
+    <div class="container">
+        <h2 class="section-title">Așa arată un curs la pahar</h2>
+        <p class="sp-lead">Oameni reali, săli pline, atmosferă bună. Exact contextul în care ajunge brandul tău.</p>
+        <div class="gallery-slider-wrap">
+            <button class="gslider-btn gslider-prev" aria-label="Anterior">&#8249;</button>
+            <div class="gallery-slider">
+                <?php foreach ($spons_gallery as $gi => $g): $src = "/assets/images/gallery/$g.webp"; if (!file_exists(__DIR__.$src)) continue; ?>
+                <div class="gallery-item" data-index="<?= $gi ?>">
+                    <img src="<?= $src ?>" alt="Cursuri la Pahar" loading="lazy">
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <button class="gslider-btn gslider-next" aria-label="Următor">&#8250;</button>
         </div>
     </div>
 </section>
