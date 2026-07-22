@@ -93,8 +93,7 @@ $spons_chips = [
     .sp-hero h1 {
         font-family: var(--font-serif);
         font-size: clamp(2.3rem, 4.6vw, 3.7rem);
-        font-weight: 900 !important;
-        line-height: 1.08; margin: 0 0 22px;
+        line-height: 1.15; margin: 0 0 22px;
     }
     .sp-hero h1 span { color: var(--accent); }
     .sp-hero-sub { color: var(--text-muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 18px; }
@@ -212,7 +211,7 @@ $spons_chips = [
     /* CTA final */
     .sp-cta { text-align: center; padding: 72px 0 84px; }
     .sp-cta h2 {
-        font-family: var(--font-serif); font-weight: 900 !important;
+        font-family: var(--font-serif);
         font-size: clamp(1.8rem, 4vw, 2.7rem); margin: 0 0 14px;
     }
     .sp-cta p { color: var(--text-muted); margin: 0 0 28px; }
