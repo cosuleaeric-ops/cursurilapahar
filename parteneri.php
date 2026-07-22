@@ -232,28 +232,29 @@ $spons_gallery = [
                     un newsletter citit de aproape 2.000 de oameni și săli pline la fiecare eveniment.
                 </p>
                 <p class="sp-hero-sub">
-                    Dacă vrei ca brandul tău să ajungă la oamenii ăștia, scrie-ne. Stabilim un call și
-                    găsim împreună cea mai bună formă de colaborare.
+                    Dacă vrei ca brandul tău să ajungă la acești oameni, scrie-ne și găsim împreună cea mai bună formă de colaborare.
                 </p>
             </div>
             <div class="sp-form-card">
                 <form class="inner-page-form" data-form-type="sponsorizare" novalidate>
-                    <label for="sp_name">Nume <em>*</em></label>
-                    <input type="text" id="sp_name" name="name" required>
-
-                    <label for="sp_company">Companie <em>*</em></label>
+                    <label for="sp_company">Nume companie <em>*</em></label>
                     <input type="text" id="sp_company" name="company" required>
+
+                    <label for="sp_contact">Persoana de contact <em>*</em></label>
+                    <input type="text" id="sp_contact" name="contact_person" required>
 
                     <label for="sp_email">Email <em>*</em></label>
                     <input type="email" id="sp_email" name="email" required>
 
+                    <label for="sp_phone">Număr de telefon <em>*</em></label>
+                    <input type="tel" id="sp_phone" name="phone" required>
+
                     <label for="sp_type">Tipul de parteneriat <em>*</em></label>
                     <select id="sp_type" name="partnership_type" required>
                         <option value="">Alege o variantă</option>
-                        <option value="social">Promovare pe social (Instagram &amp; TikTok)</option>
+                        <option value="financiar">Partener financiar</option>
+                        <option value="strategic">Partener strategic</option>
                         <option value="newsletter">Mențiune în newsletter</option>
-                        <option value="curs-colaborare">Curs în colaborare</option>
-                        <option value="sponsorizare-eveniment">Sponsorizare eveniment</option>
                         <option value="altceva">Încă nu știu / altceva</option>
                     </select>
 
@@ -329,7 +330,7 @@ $spons_gallery = [
 <section class="sp-cta">
     <div class="container">
         <h2>Vrei brandul tău la un pahar?</h2>
-        <p>Scrie-ne și stabilim un call ca să vedem cum colaborăm.</p>
+        <p>Scrie-ne și găsim împreună cea mai bună formă de colaborare.</p>
         <a href="#oferta" class="sp-btn">Hai să vorbim</a>
     </div>
 </section>
