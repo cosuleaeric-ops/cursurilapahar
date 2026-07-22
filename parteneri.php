@@ -271,7 +271,7 @@ $spons_gallery = [
             <div class="sp-aud-card">
                 <h3>Evenimente</h3>
                 <p>Cursuri săptămânale în baruri din București, cu bilete plătite și săli pline.</p>
-                <div class="stat">Săptămânal · public plătitor</div>
+                <div class="stat">50-70 participanți · în fiecare săptămână</div>
             </div>
         </div>
     </div>
