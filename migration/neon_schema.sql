@@ -125,6 +125,7 @@ CREATE TABLE speakers (
     status     TEXT,                          -- RECURENT / URMEAZĂ / etc.
     notes      TEXT,
     topics     TEXT[] NOT NULL DEFAULT '{}',  -- fost speakers[].courses (teme)
+    meet       JSONB NOT NULL DEFAULT '{}',   -- notițele din tabul „Meet" al modalului
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -21,17 +21,25 @@ export async function saveSpeaker(formData: FormData): Promise<void> {
   const phone = g(formData, "phone") || null;
   const status = g(formData, "status") || "MID";
   const notes = g(formData, "notes") || null;
+  // notițele din tabul „Meet" (meet_auzit, meet_ocupatie, …)
+  const meet: Record<string, string> = {};
+  for (const [k, v] of formData.entries()) {
+    if (k.startsWith("meet_")) {
+      const val = String(v).trim();
+      if (val) meet[k.slice(5)] = val;
+    }
+  }
 
   if (id) {
     await sql`
       UPDATE speakers SET name = ${name}, email = ${email}, phone = ${phone},
-        status = ${status}, notes = ${notes}, updated_at = now()
+        status = ${status}, notes = ${notes}, meet = ${JSON.stringify(meet)}::jsonb, updated_at = now()
       WHERE id = ${id}
     `;
   } else {
     await sql`
-      INSERT INTO speakers (name, email, phone, status, notes)
-      VALUES (${name}, ${email}, ${phone}, ${status}, ${notes})
+      INSERT INTO speakers (name, email, phone, status, notes, meet)
+      VALUES (${name}, ${email}, ${phone}, ${status}, ${notes}, ${JSON.stringify(meet)}::jsonb)
     `;
   }
   revalidatePath("/admin/speakeri");

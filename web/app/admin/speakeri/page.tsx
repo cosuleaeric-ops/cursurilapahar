@@ -26,6 +26,7 @@ type SpeakerRow = {
   status: string | null;
   notes: string | null;
   topics: string[] | null;
+  meet: Record<string, string> | null;
 };
 
 type MsgRow = {
@@ -42,7 +43,7 @@ const digits = (s: string | null | undefined) => (s ?? "").replace(/\D/g, "");
 
 export default async function SpeakeriPage() {
   const rows = (await sql`
-    SELECT id, name, email, phone, status, notes, topics
+    SELECT id, name, email, phone, status, notes, topics, meet
     FROM speakers
     ORDER BY
       -- ca în clp_sort_speakers(): fără status => MID (3), status necunoscut => 2
@@ -103,6 +104,7 @@ export default async function SpeakeriPage() {
       status: s.status,
       notes: s.notes,
       topics: s.topics ?? [],
+      meet: s.meet ?? {},
       form_date: sub ? dFmt.format(new Date(sub.created_at)) : null,
       form_rows,
     };

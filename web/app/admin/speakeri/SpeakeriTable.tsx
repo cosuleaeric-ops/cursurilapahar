@@ -16,6 +16,7 @@ export type Speaker = {
   topics: string[];
   form_date: string | null;
   form_rows: { label: string; value: string }[];
+  meet: Record<string, string>;
 };
 
 export type Lead = { id: number; name: string; email: string | null; phone: string | null };
@@ -118,6 +119,7 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
                                 topics: [],
                                 form_date: null,
                                 form_rows: [],
+                                meet: {},
                               })
                             }
                           >
@@ -239,13 +241,47 @@ const overlay: React.CSSProperties = {
   background: "rgba(0,0,0,.45)",
 };
 
+const MEET_FIELDS: [string, string][] = [
+  ["auzit", "Cum ai auzit de Cursuri la Pahar?"],
+  ["ocupatie", "Cu ce te ocupi?"],
+  ["pasiune", "Ce te pasionează cel mai mult la subiectul ăsta și crezi că ar fi valoros pentru oameni?"],
+  ["teme", "Ai mai avea alte idei de teme?"],
+  ["dinamica", "Cum vezi tu dinamica cu publicul? Cum ți-ar plăcea să arate?"],
+  ["experienta", "Unde ai mai ținut cursuri și cum s-au desfășurat? Ai vreo prezentare pe care ai folosit-o?"],
+  ["contract", "Contract (prezentare, durata, onorariu)"],
+  ["curiozitati", "Curiozități?"],
+  ["program", "Program pe perioada următoare"],
+];
+
+const modalTabBtn = (on: boolean): React.CSSProperties => ({
+  padding: "5px 16px",
+  border: "none",
+  borderRadius: 6,
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: "pointer",
+  background: on ? "#fff" : "none",
+  color: on ? "#1f2937" : "#6b7280",
+  boxShadow: on ? "0 1px 3px rgba(0,0,0,.1)" : undefined,
+});
+
 function SpeakerModal({ sp, onClose }: { sp: Speaker | null; onClose: () => void }) {
+  const [tab, setTab] = useState<"contact" | "meet">("contact");
   return (
     <div style={overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="card crm-form" style={{ width: "min(640px,95vw)", maxHeight: "90vh", overflowY: "auto", margin: 0, position: "relative" }}>
         <div className="card-title">{sp?.id ? "Editează speaker" : "Adaugă speaker"}</div>
         <form action={saveSpeaker}>
           <input type="hidden" name="id" value={sp?.id ?? ""} />
+          <div style={{ display: "flex", gap: 4, background: "#f1f5f9", borderRadius: 8, padding: 3, marginBottom: 20, width: "fit-content" }}>
+            <button type="button" style={modalTabBtn(tab === "contact")} onClick={() => setTab("contact")}>
+              Contact
+            </button>
+            <button type="button" style={modalTabBtn(tab === "meet")} onClick={() => setTab("meet")}>
+              Meet
+            </button>
+          </div>
+          <div style={tab === "contact" ? undefined : { display: "none" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
             <div className="form-group">
               <label>Nume *</label>
@@ -273,6 +309,15 @@ function SpeakerModal({ sp, onClose }: { sp: Speaker | null; onClose: () => void
           <div className="form-group">
             <label>Note</label>
             <textarea name="notes" rows={2} defaultValue={sp?.notes ?? ""} />
+          </div>
+          </div>
+          <div style={tab === "meet" ? undefined : { display: "none" }}>
+            {MEET_FIELDS.map(([k, lbl]) => (
+              <div className="form-group" key={k}>
+                <label>{lbl}</label>
+                <textarea name={`meet_${k}`} rows={2} defaultValue={sp?.meet?.[k] ?? ""} />
+              </div>
+            ))}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
             <button type="submit" className="btn btn-primary btn-sm">
