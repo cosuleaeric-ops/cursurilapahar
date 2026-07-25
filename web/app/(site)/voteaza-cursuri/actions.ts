@@ -1,6 +1,7 @@
 "use server";
 
 import { sql } from "@/lib/db";
+import { shouldCountClick } from "@/lib/ab";
 
 /**
  * Toggle vot: +1 (add) sau -1 (remove). Serverul face doar delta;
@@ -19,4 +20,23 @@ export async function vote(id: number, action: "add" | "remove"): Promise<number
   // curs inexistent/inactiv — întoarce valoarea curentă fără schimbare
   const cur = (await sql`SELECT likes FROM vote_courses WHERE id = ${id}`) as { likes: number }[];
   return cur[0]?.likes ?? 0;
+}
+
+/**
+ * Tracking vizite — port din api/vote_view.php + api/vote_page_view.php.
+ * Boții, prefetch-urile și adminul logat nu se numără (shouldCountClick);
+ * clientul deduplică pe sesiune, ca în JS-ul vechi.
+ */
+export async function trackVoteView(id: number): Promise<void> {
+  if (!Number.isFinite(id) || !(await shouldCountClick())) return;
+  await sql`UPDATE vote_courses SET views = views + 1 WHERE id = ${id}`;
+}
+
+export async function trackVotePageView(): Promise<void> {
+  if (!(await shouldCountClick())) return;
+  await sql`
+    INSERT INTO settings (key, value) VALUES ('vote_page_views', '1'::jsonb)
+    ON CONFLICT (key) DO UPDATE
+    SET value = to_jsonb(COALESCE((settings.value)::text::int, 0) + 1), updated_at = now()
+  `;
 }

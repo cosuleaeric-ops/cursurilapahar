@@ -46,6 +46,7 @@ interface Bundle {
   } | null;
   ab_button?: Record<string, { views?: number; clicks?: number }> | null;
   course_clicks?: Record<string, number> | null;
+  vote_views?: Record<string, number> | null;
   recurring?: {
     id?: string;
     type?: string;
@@ -266,10 +267,18 @@ async function main(): Promise<void> {
     // 8) vote_courses
     for (const v of bundle.vote_courses) {
       await db.query(
-        `INSERT INTO vote_courses(legacy_id, name, emoji, description, likes, active)
-         VALUES($1,$2,$3,$4,$5,$6)`,
-        [v.id, v.name, v.emoji ?? null, v.description ?? null, v.likes ?? 0, v.active ?? true]
+        `INSERT INTO vote_courses(legacy_id, name, emoji, description, likes, active, views)
+         VALUES($1,$2,$3,$4,$5,$6,$7)`,
+        [v.id, v.name, v.emoji ?? null, v.description ?? null, v.likes ?? 0, v.active ?? true,
+         Number(bundle.vote_views?.[v.id] ?? 0)]
       );
+    }
+    // vizitele pe pagina de vot (cheia '__page__' din vote_views.json)
+    const votePageViews = Number(bundle.vote_views?.["__page__"] ?? 0);
+    if (votePageViews) {
+      await db.query("INSERT INTO settings(key, value) VALUES('vote_page_views', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", [
+        JSON.stringify(votePageViews),
+      ]);
     }
 
     // 9) P&L — categorii de cheltuieli din valori distincte, apoi FK

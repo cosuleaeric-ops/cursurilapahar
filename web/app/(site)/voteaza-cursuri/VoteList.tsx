@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { vote } from "./actions";
+import { vote, trackVoteView, trackVotePageView } from "./actions";
 import styles from "./vote.module.css";
 
 export type VoteCourse = {
@@ -13,6 +13,8 @@ export type VoteCourse = {
 };
 
 const STORAGE_KEY = "clp_votes";
+const PAGE_VIEW_KEY = "clp_vote_page_viewed";
+const VIEW_KEY = "clp_vote_viewed";
 
 export default function VoteList({ courses }: { courses: VoteCourse[] }) {
   const [likes, setLikes] = useState<Record<number, number>>(() =>
@@ -29,6 +31,56 @@ export default function VoteList({ courses }: { courses: VoteCourse[] }) {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  // Vizita pe pagină: o dată pe sesiune (ca în JS-ul PHP).
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(PAGE_VIEW_KEY)) return;
+    } catch {
+      return;
+    }
+    trackVotePageView()
+      .then(() => {
+        try {
+          sessionStorage.setItem(PAGE_VIEW_KEY, "1");
+        } catch {
+          /* ignore */
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Vizualizare per card: la 35% vizibil, o singură dată pe sesiune.
+  useEffect(() => {
+    const cards = document.querySelectorAll<HTMLElement>("[data-vote-id]");
+    if (!cards.length) return;
+    let seen: Set<string>;
+    try {
+      seen = new Set(JSON.parse(sessionStorage.getItem(VIEW_KEY) || "[]") as string[]);
+    } catch {
+      seen = new Set();
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.35) continue;
+          const id = entry.target.getAttribute("data-vote-id");
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          try {
+            sessionStorage.setItem(VIEW_KEY, JSON.stringify([...seen]));
+          } catch {
+            /* ignore */
+          }
+          trackVoteView(Number(id)).catch(() => {});
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: [0.35] }
+    );
+    cards.forEach((c) => observer.observe(c));
+    return () => observer.disconnect();
   }, []);
 
   function persist(next: Set<number>) {
@@ -66,7 +118,7 @@ export default function VoteList({ courses }: { courses: VoteCourse[] }) {
       {courses.map((c) => {
         const has = voted.has(c.id);
         return (
-          <article key={c.id} className={styles.card}>
+          <article key={c.id} className={styles.card} data-vote-id={c.id}>
             <div className={styles.emoji}>{c.emoji || "📚"}</div>
             <div className={styles.body}>
               <h3 className={styles.name}>{c.name}</h3>
