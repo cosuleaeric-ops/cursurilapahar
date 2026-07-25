@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
 import { deleteCourse, toggleActive } from "./actions";
+import { CoursesPanel, ParticipantsPanel } from "./StatsPanels";
+import Calendar from "./Calendar";
+import { fetchMonthStats, fetchCalendarCourses, RO_MONTHS } from "./stats-data";
+import { fetchParticipants } from "@/lib/statistici";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +81,20 @@ function Row({ c }: { c: Course }) {
   );
 }
 
-export default async function CursuriPage() {
+export default async function CursuriPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ctab?: string; year?: string; month?: string }>;
+}) {
+  const sp = await searchParams;
+  const ctab = sp.ctab === "calendar" || sp.ctab === "participanti" ? sp.ctab : "cursuri";
+  const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
+  const year = Number(sp.year) || Number(todayStr.slice(0, 4));
+  const month = Number(sp.month) || Number(todayStr.slice(5, 7));
+  const prevM = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 };
+  const nextM = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 };
+  const tabHref = (t: string, y = year, m = month) => `/admin/cursuri?ctab=${t}&year=${y}&month=${m}`;
+
   const rows = (await sql`
     SELECT id, title, location, image_url, active, sold_out,
       to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS date_str,
@@ -121,6 +138,36 @@ export default async function CursuriPage() {
       {past.map((c) => (
         <Row key={c.id} c={c} />
       ))}
+
+      <div className="card" id="clp-stats-card">
+        <div className="clp-tabs" style={{ marginBottom: 16 }}>
+          <Link href={tabHref("cursuri")} className={`clp-tab-btn${ctab === "cursuri" ? " active" : ""}`}>
+            Cursuri
+          </Link>
+          <Link href={tabHref("calendar")} className={`clp-tab-btn${ctab === "calendar" ? " active" : ""}`}>
+            Calendar
+          </Link>
+          <Link href={tabHref("participanti")} className={`clp-tab-btn${ctab === "participanti" ? " active" : ""}`}>
+            Participanți
+          </Link>
+          <span className="clp-tabs-sep" aria-hidden="true"></span>
+          <Link href={tabHref(ctab, prevM.y, prevM.m)} className="clp-tab-btn" style={{ padding: "7px 12px", lineHeight: 1 }} aria-label="Luna anterioară">
+            ←
+          </Link>
+          <span className="clp-tab-btn active" style={{ cursor: "default", minWidth: 96, textAlign: "center", pointerEvents: "none" }}>
+            {RO_MONTHS[month].charAt(0).toUpperCase() + RO_MONTHS[month].slice(1)} {year}
+          </span>
+          <Link href={tabHref(ctab, nextM.y, nextM.m)} className="clp-tab-btn" style={{ padding: "7px 12px", lineHeight: 1 }} aria-label="Luna următoare">
+            →
+          </Link>
+        </div>
+
+        {ctab === "cursuri" && <CoursesPanel {...(await fetchMonthStats(year, month))} />}
+        {ctab === "calendar" && (
+          <Calendar year={year} month={month} courses={await fetchCalendarCourses(year, month)} today={todayStr} />
+        )}
+        {ctab === "participanti" && <ParticipantsPanel {...(await fetchParticipants())} />}
+      </div>
     </>
   );
 }
