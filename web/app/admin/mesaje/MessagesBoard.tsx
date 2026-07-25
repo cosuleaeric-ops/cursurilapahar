@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Cat, Comment, Msg } from "@/lib/messages";
 import { addComment, deleteComment, deleteMessage, setEvaluation, setContacted, toggleRead } from "./actions";
 
@@ -23,25 +23,36 @@ const SUSTINE_TOOLTIPS: Record<string, string> = {
 };
 
 function CopyBtn({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
   return (
     <button
       type="button"
-      className="msg-copy-btn"
+      className={`msg-copy-btn${copied ? " copied" : ""}`}
       title="Copiază"
       onClick={(e) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(value);
+        // PHP (copyField): iconița devine bifă și butonul primește .copied 2 secunde.
+        void navigator.clipboard.writeText(value).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
       }}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" />
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        {copied ? (
+          <polyline points="20 6 9 17 4 12" />
+        ) : (
+          <>
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </>
+        )}
       </svg>
     </button>
   );
 }
 
-function Card({ m, isOwner }: { m: Msg; isOwner: boolean }) {
+function Card({ m, isOwner, hidden }: { m: Msg; isOwner: boolean; hidden?: boolean }) {
   const [open, setOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
   const [text, setText] = useState("");
@@ -60,7 +71,12 @@ function Card({ m, isOwner }: { m: Msg; isOwner: boolean }) {
   };
 
   return (
-    <div className={cls.join(" ")} data-msg-id={m.id} onClick={() => setOpen(!open)}>
+    <div
+      className={cls.join(" ")}
+      data-msg-id={m.id}
+      style={hidden ? { display: "none" } : undefined}
+      onClick={() => setOpen(!open)}
+    >
       <div className="msg-card-head">
         <span className="msg-card-name">
           {m.name}
@@ -132,6 +148,8 @@ function Card({ m, isOwner }: { m: Msg; isOwner: boolean }) {
                 onClick={(ev) => {
                   ev.stopPropagation();
                   call(toggleRead);
+                  // PHP (markRead): la marcarea ca citit cardul se pliază singur.
+                  if (!m.read) setOpen(false);
                 }}
               >
                 {m.read ? "✓ Citit" : "Citit"}
@@ -141,7 +159,8 @@ function Card({ m, isOwner }: { m: Msg; isOwner: boolean }) {
                 className="msg-delete-btn"
                 onClick={(ev) => {
                   ev.stopPropagation();
-                  if (confirm("Ștergi mesajul?")) call(deleteMessage);
+                  if (!confirm("Sigur vrei să ștergi acest mesaj?")) return;
+                  call(deleteMessage);
                 }}
               >
                 Șterge
@@ -168,6 +187,7 @@ function Card({ m, isOwner }: { m: Msg; isOwner: boolean }) {
                       title="Șterge comentariu"
                       onClick={(ev) => {
                         ev.stopPropagation();
+                        if (!confirm("Ștergi comentariul?")) return;
                         call(deleteComment, { index: String(i) });
                       }}
                     >
@@ -177,7 +197,8 @@ function Card({ m, isOwner }: { m: Msg; isOwner: boolean }) {
                 </div>
               ))}
             </div>
-            <div className="msg-comment-form" style={{ display: commentOpen ? "block" : "none" }}>
+            {/* PHP deschide formularul cu display:flex — textarea și „Adaugă" pe același rând. */}
+            <div className="msg-comment-form" style={{ display: commentOpen ? "flex" : "none" }}>
               <textarea rows={2} value={text} onClick={(e) => e.stopPropagation()} onChange={(e) => setText(e.target.value)} />
               <button
                 type="button"
@@ -212,17 +233,31 @@ export default function MessagesBoard({
 }) {
   const [tab, setTab] = useState("sustine");
   const [evalFilter, setEvalFilter] = useState("all");
+  const [hiddenIds, setHiddenIds] = useState<Record<number, boolean>>({});
+
+  // PHP împarte cardurile în „De evaluat" / „Evaluați" o singură dată, când randează
+  // pagina; o evaluare dată acum lasă cardul unde e, până la reîncărcare.
+  const section = useRef<Record<number, boolean>>({});
+  const wasEvaluated = (m: Msg) => {
+    if (!(m.id in section.current)) section.current[m.id] = !!m.evaluation;
+    return section.current[m.id];
+  };
 
   const list = byCat[tab] ?? [];
-  const pending = list.filter((m) => !m.evaluation);
-  const evaluated = list.filter((m) => m.evaluation);
-  const shown = evaluated.filter((m) =>
-    evalFilter === "all"
-      ? true
-      : evalFilter === "contactat"
-        ? m.contacted
-        : m.evaluation === evalFilter && !m.contacted,
-  );
+  const pending = list.filter((m) => !wasEvaluated(m));
+  const evaluated = list.filter((m) => wasEvaluated(m));
+
+  // PHP (filterEval) fixează vizibilitatea cardurilor la click pe filtru; ratingul
+  // sau „Contactat" schimbate după aceea nu mai re-filtrează lista.
+  const applyFilter = (f: string) => {
+    setEvalFilter(f);
+    const h: Record<number, boolean> = {};
+    for (const m of evaluated) {
+      const show = f === "all" ? true : f === "contactat" ? m.contacted : m.evaluation === f && !m.contacted;
+      if (!show) h[m.id] = true;
+    }
+    setHiddenIds(h);
+  };
 
   return (
     <>
@@ -273,16 +308,17 @@ export default function MessagesBoard({
                       <button
                         key={k}
                         type="button"
+                        data-filter={k}
                         className={`msg-eval-filter-btn${evalFilter === k ? " active" : ""}`}
-                        onClick={() => setEvalFilter(k)}
+                        onClick={() => applyFilter(k)}
                       >
                         {lbl}
                       </button>
                     ))}
                   </div>
                   <div className="msg-cards">
-                    {shown.map((m) => (
-                      <Card key={m.id} m={m} isOwner={isOwner} />
+                    {evaluated.map((m) => (
+                      <Card key={m.id} m={m} isOwner={isOwner} hidden={hiddenIds[m.id]} />
                     ))}
                   </div>
                 </>

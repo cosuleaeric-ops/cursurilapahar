@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { isStatsPage } from "./AdminNav";
 
 // Wrapper-ul de conținut din admin/partials/layout-nav.php: pe dashboard clasa
 // `bc-doc--home`, pe restul paginilor breadcrumb-ul „Dashboard".
 // Include și scurtăturile de tastatură: C = Cursuri, M = Mesaje, D = Dashboard.
 export default function BcDoc({ children }: { children: React.ReactNode }) {
-  const isHome = usePathname() === "/admin";
+  const path = usePathname();
+  // layout-nav.php:90 — $__bc_is_home ține de $tab, iar paginile de sub /admin/statistici
+  // rulează tot cu $tab='dashboard', deci nici ele nu au breadcrumb.
+  const isHome = path === "/admin" || isStatsPage(path);
   const router = useRouter();
 
   useEffect(() => {

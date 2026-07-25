@@ -16,7 +16,7 @@ export default function CopyDist({ text }: { text: string }) {
         setTimeout(() => setDone(false), 1500);
       }}
     >
-      {done ? "Copiat" : "Copiaza"}
+      {done ? "Copiat ✓" : "Copiaza"}
     </button>
   );
 }

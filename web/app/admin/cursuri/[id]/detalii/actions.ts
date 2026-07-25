@@ -66,7 +66,7 @@ export async function deleteVizaSubtip(formData: FormData): Promise<void> {
   back(id);
 }
 
-/** Șterge seriile duplicate (aceeași serie + tarif + nr_unitati), păstrând prima. */
+/** Cheia de duplicat e (seria, de_la, pana_la) și se păstrează rândul cu id-ul minim. */
 export async function dedupVizaSubtips(formData: FormData): Promise<void> {
   await requireAuth();
   const id = Number(g(formData, "id"));
@@ -74,7 +74,9 @@ export async function dedupVizaSubtips(formData: FormData): Promise<void> {
   await sql`
     DELETE FROM viza_subtips v USING viza_subtips keep
     WHERE v.event_id = ${id} AND keep.event_id = v.event_id
-      AND keep.seria = v.seria AND keep.tarif = v.tarif AND keep.nr_unitati = v.nr_unitati
+      AND keep.seria = v.seria
+      AND keep.de_la IS NOT DISTINCT FROM v.de_la
+      AND keep.pana_la IS NOT DISTINCT FROM v.pana_la
       AND keep.id < v.id
   `;
   revalidatePath(`/admin/cursuri/${id}/detalii`);
@@ -124,6 +126,21 @@ export async function uploadRaport(formData: FormData): Promise<void> {
   back(id);
 }
 
+/**
+ * Rescrie seriile din textul PDF-ului. Regula din PHP: DELETE + INSERT se fac
+ * doar dacă din PDF a ieșit text, indiferent câte serii s-au potrivit.
+ */
+async function saveVizaSubtips(id: number, text: string): Promise<void> {
+  if (!text.trim()) return;
+  await sql`DELETE FROM viza_subtips WHERE event_id = ${id}`;
+  for (const s of parseVizaSubtips(text)) {
+    await sql`
+      INSERT INTO viza_subtips (event_id, seria, tarif, nr_unitati, de_la, pana_la)
+      VALUES (${id}, ${s.seria}, ${s.tarif}, ${s.nr_unitati}, ${s.de_la}, ${s.pana_la})
+    `;
+  }
+}
+
 /** Încarcă PDF-ul de viză, extrage seriile și le salvează (înlocuiește seriile existente). */
 export async function uploadViza(formData: FormData): Promise<void> {
   await requireAuth();
@@ -134,9 +151,9 @@ export async function uploadViza(formData: FormData): Promise<void> {
   if (!/\.pdf$/i.test(f.name)) redirect(`/admin/cursuri/${id}/detalii?err=${encodeURIComponent("Doar fișiere PDF sunt acceptate.")}`);
 
   const bytes = new Uint8Array(await f.arrayBuffer());
-  let subtips: Awaited<ReturnType<typeof parseVizaSubtips>> = [];
+  let text = "";
   try {
-    subtips = parseVizaSubtips(await pdfToText(bytes));
+    text = await pdfToText(bytes);
   } catch {
     redirect(`/admin/cursuri/${id}/detalii?err=${encodeURIComponent("Nu am putut citi textul din PDF.")}`);
   }
@@ -155,18 +172,35 @@ export async function uploadViza(formData: FormData): Promise<void> {
       VALUES (${id}, ${blobUrl}, ${f.name}, 'viza')
     `;
   }
-  if (subtips.length) {
-    await sql`DELETE FROM viza_subtips WHERE event_id = ${id}`;
-    for (const s of subtips) {
-      await sql`
-        INSERT INTO viza_subtips (event_id, seria, tarif, nr_unitati, de_la, pana_la)
-        VALUES (${id}, ${s.seria}, ${s.tarif}, ${s.nr_unitati}, ${s.de_la}, ${s.pana_la})
-      `;
+  await saveVizaSubtips(id, text);
+  revalidatePath(`/admin/cursuri/${id}/detalii`);
+  revalidatePath("/admin/cursuri");
+  // PHP face redirect simplu după upload, fără mesaj de succes
+  back(id);
+}
+
+/** „↻ Extrage date" — reia extragerea seriilor din PDF-ul deja urcat (reprocess_viza). */
+export async function reprocessViza(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  if (!id) return;
+  const [file] = (await sql`
+    SELECT blob_url FROM event_files
+    WHERE event_id = ${id} AND file_type = 'viza' ORDER BY uploaded_at DESC LIMIT 1
+  `) as { blob_url: string | null }[];
+  if (file?.blob_url) {
+    let text = "";
+    try {
+      const resp = await fetch(file.blob_url);
+      text = await pdfToText(new Uint8Array(await resp.arrayBuffer()));
+    } catch {
+      // dacă nu iese text din PDF, PHP lasă seriile existente neatinse
     }
+    await saveVizaSubtips(id, text);
   }
   revalidatePath(`/admin/cursuri/${id}/detalii`);
   revalidatePath("/admin/cursuri");
-  redirect(`/admin/cursuri/${id}/detalii?serii=${subtips.length}`);
+  back(id);
 }
 
 /** Șterge PDF-ul de viză (și seriile extrase din el). */
@@ -176,6 +210,8 @@ export async function deleteViza(formData: FormData): Promise<void> {
   const fileId = Number(String(formData.get("file_id") ?? ""));
   if (!id || !fileId) return;
   await sql`DELETE FROM event_files WHERE id = ${fileId} AND event_id = ${id}`;
+  // seriile extrase pleacă odată cu PDF-ul, ca în delete_viza din PHP
+  await sql`DELETE FROM viza_subtips WHERE event_id = ${id}`;
   revalidatePath(`/admin/cursuri/${id}/detalii`);
 }
 

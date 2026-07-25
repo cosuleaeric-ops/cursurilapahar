@@ -49,7 +49,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <script dangerouslySetInnerHTML={{ __html: VPH_SCRIPT }} />
       <HeadScripts html={str("head_scripts")} />
       {favicon && <link rel="icon" href={favicon} />}
-      <div style={vars as React.CSSProperties}>
+      {/* clasa e ținta regulii din AdminBar: cu bara de admin, padding-ul urcă la 120px */}
+      <div className="clp-site-shell" style={vars as React.CSSProperties}>
         <AdminBar />
         <SiteNav brand={brand} logo={str("logo_path", "/assets/images/logo.webp")} links={links} />
         {children}

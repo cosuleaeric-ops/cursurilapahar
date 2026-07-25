@@ -44,4 +44,6 @@ export async function deleteCollaboration(formData: FormData): Promise<void> {
   if (!id) return;
   await sql`DELETE FROM collaborations WHERE id = ${id}`;
   revalidatePath("/admin/colaborari");
+  // PHP: ștergerea redirecționează pe tab curat, deci pierde saved=1 și edit=…
+  redirect("/admin/colaborari");
 }

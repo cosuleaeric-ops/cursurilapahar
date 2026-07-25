@@ -20,6 +20,11 @@ export const RO_MONTHS = [
   "decembrie",
 ];
 
+/** clp_ig_post_types() (lib/instagram_posts.php:10-14) — tipurile din dropdown-ul de zi. */
+export const IG_POST_TYPES: Record<string, { label: string }> = {
+  postare_cursuri: { label: "POSTARE CURSURI" },
+};
+
 const dateRoFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", month: "long", year: "numeric" });
 const dtFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -27,6 +32,9 @@ const dtFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "2-digit", m
 export async function fetchMonthStats(year: number, month: number) {
   const prefix = `${year}-${String(month).padStart(2, "0")}`;
 
+  // Vizibilitate ca în clp_fetch_statistici_courses_for_month() (lib/courses.php:436-460):
+  // se arată doar cursurile venite din courses.json (aici: legacy_card_id) sau cele fără
+  // external_id care au statistici (raport / bilete / viză) și nu cad în aceeași zi cu un card.
   const rows = (await sql`
     SELECT e.id, e.title, e.starts_at,
            (SELECT count(*)::int FROM tickets t WHERE t.event_id = e.id) AS total_tickets,
@@ -35,6 +43,22 @@ export async function fetchMonthStats(year: number, month: number) {
     FROM events e
     LEFT JOIN event_reports r ON r.event_id = e.id
     WHERE to_char(e.starts_at AT TIME ZONE ${TZ}, 'YYYY-MM') = ${prefix}
+      AND (
+        e.legacy_card_id IS NOT NULL
+        OR (
+          coalesce(e.external_id, '') = ''
+          AND (
+            EXISTS (SELECT 1 FROM event_reports r2 WHERE r2.event_id = e.id)
+            OR EXISTS (SELECT 1 FROM tickets t2 WHERE t2.event_id = e.id)
+            OR EXISTS (SELECT 1 FROM event_files f2 WHERE f2.event_id = e.id AND f2.file_type = 'viza')
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM events e2
+            WHERE e2.legacy_card_id IS NOT NULL
+              AND (e2.starts_at AT TIME ZONE ${TZ})::date = (e.starts_at AT TIME ZONE ${TZ})::date
+          )
+        )
+      )
     ORDER BY e.starts_at ASC
   `) as {
     id: number;
@@ -88,7 +112,8 @@ export async function fetchMonthStats(year: number, month: number) {
       date_ro: r.starts_at ? dateRoFmt.format(new Date(r.starts_at)) : "",
       total_tickets: Number(r.total_tickets),
       has_report: hasReport,
-      has_viza: Number(r.viza_files) > 0 || (subtipsByEvent.get(Number(r.id))?.length ?? 0) > 0,
+      // lib/courses.php:473 — bifa de viză depinde exclusiv de fișierul încărcat.
+      has_viza: Number(r.viza_files) > 0,
       total_incasari: hasReport ? Number(r.total_incasari) : null,
       ditl_base: base,
       subtips: subtipsByEvent.get(Number(r.id)) ?? [],
@@ -98,14 +123,18 @@ export async function fetchMonthStats(year: number, month: number) {
   return { courses, sumIncasari, sumDitlBase };
 }
 
-/** Cursurile lunii pentru calendar (dată + titlu scurt). */
+/**
+ * Cursurile pentru calendar. Ca în clp_courses_stats_js_config() (lib/courses_admin.php:175):
+ * sursa e exclusiv courses.json (aici: events cu legacy_card_id), iar titlul e cel brut.
+ */
 export async function fetchCalendarCourses(year: number, month: number) {
   const prefix = `${year}-${String(month).padStart(2, "0")}`;
   const rows = (await sql`
     SELECT title, to_char(starts_at AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS date
     FROM events
-    WHERE to_char(starts_at AT TIME ZONE ${TZ}, 'YYYY-MM') = ${prefix}
+    WHERE legacy_card_id IS NOT NULL
+      AND to_char(starts_at AT TIME ZONE ${TZ}, 'YYYY-MM') = ${prefix}
     ORDER BY starts_at
   `) as { title: string; date: string }[];
-  return rows.map((r) => ({ date: r.date, title: r.title.replace(/\s*\/\/.*$/u, "").replace(/^\s*Curs la Pahar\s*[-–]\s*/u, "") }));
+  return rows.map((r) => ({ date: r.date, title: r.title }));
 }

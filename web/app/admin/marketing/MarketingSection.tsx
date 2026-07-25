@@ -41,6 +41,25 @@ function ItemRow({ item }: { item: MktItem }) {
   );
 }
 
+// admin-marketing.js:7-33 — Enter în „text" (fără Shift) sau în „link" trimite formularul;
+// dacă ambele câmpuri sunt goale nu trimite nimic, doar focusează câmpul de text.
+function addFormKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (e.key !== "Enter") return;
+  if (e.currentTarget.name === "text" && e.shiftKey) return;
+  e.preventDefault();
+  const form = e.currentTarget.form;
+  if (!form) return;
+  const textInput = form.elements.namedItem("text") as HTMLInputElement | null;
+  const linkInput = form.elements.namedItem("link") as HTMLInputElement | null;
+  const text = textInput?.value.trim() ?? "";
+  const link = linkInput?.value.trim() ?? "";
+  if (!text && !link) {
+    textInput?.focus();
+    return;
+  }
+  form.requestSubmit();
+}
+
 export default function MarketingSection({
   id,
   title,
@@ -56,7 +75,7 @@ export default function MarketingSection({
   const done = items.filter((i) => i.done);
 
   return (
-    <section className="mkt-section">
+    <section className="mkt-section" data-section={id}>
       <div className="mkt-section-head">
         <h2 className="mkt-section-title">{title}</h2>
         <button type="button" className="mkt-add-toggle" aria-expanded={showAdd} onClick={() => setShowAdd(!showAdd)}>
@@ -68,8 +87,15 @@ export default function MarketingSection({
         <input type="hidden" name="section_id" value={id} />
         <span className="mkt-check-box mkt-check-box--ghost" aria-hidden="true"></span>
         <div className="mkt-add-fields">
-          <input type="text" name="text" placeholder="Ideea de postare…" autoComplete="off" />
-          <input type="text" name="link" placeholder="Link (opțional)" autoComplete="off" inputMode="url" />
+          <input type="text" name="text" placeholder="Ideea de postare…" autoComplete="off" onKeyDown={addFormKeyDown} />
+          <input
+            type="text"
+            name="link"
+            placeholder="Link (opțional)"
+            autoComplete="off"
+            inputMode="url"
+            onKeyDown={addFormKeyDown}
+          />
         </div>
       </form>
 

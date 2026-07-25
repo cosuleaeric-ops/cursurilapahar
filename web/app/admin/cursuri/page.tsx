@@ -5,7 +5,7 @@ import CourseAddForm, { type CourseEdit } from "./CourseAddForm";
 import CoursesTable, { type CourseRow } from "./CoursesTable";
 import { CoursesPanel, ParticipantsPanel } from "./StatsPanels";
 import Calendar from "./Calendar";
-import { fetchMonthStats, fetchCalendarCourses, RO_MONTHS } from "./stats-data";
+import { fetchMonthStats, fetchCalendarCourses, IG_POST_TYPES, RO_MONTHS } from "./stats-data";
 import { fetchParticipants } from "@/lib/statistici";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +27,15 @@ type Row = {
   upcoming: boolean;
 };
 
-const dFmt = new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" });
-const dateDisplay = (raw: string | null) => (raw ? dFmt.format(new Date(`${raw}T12:00:00`)) : "");
+// `date_display` din courses.json = clp_date_display_from_raw() → clp_format_date_ro(titleCase),
+// deci luna cu majusculă: „28 Iulie 2026".
+const dateDisplay = (raw: string | null) => {
+  if (!raw) return "";
+  const [y, m, d] = raw.split("-").map(Number);
+  const month = RO_MONTHS[m] ?? "";
+  if (!month) return "";
+  return `${d} ${month.charAt(0).toUpperCase()}${month.slice(1)} ${y}`;
+};
 
 export default async function CursuriPage({
   searchParams,
@@ -54,6 +61,9 @@ export default async function CursuriPage({
       to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') >=
         to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS upcoming
     FROM events
+    -- lista vine exclusiv din cardurile de site (courses.json), ca
+    -- clp_load_courses_for_admin(); evenimentele doar-din-statistici n-au card
+    WHERE legacy_card_id IS NOT NULL
     ORDER BY starts_at ASC
   `) as Row[];
 
@@ -89,12 +99,32 @@ export default async function CursuriPage({
       }
     : null;
 
-  const speakers = (await sql`SELECT id, name, status FROM speakers ORDER BY name`) as {
+  // load_speakers_for_picker() (lib/speakers.php:138-141): aceeași ordine ca în tabul
+  // Speakeri — întâi rangul statusului, apoi numele case-insensitive; fără nume gol.
+  const speakers = (await sql`
+    SELECT id, name, status FROM speakers
+    WHERE trim(name) <> ''
+    ORDER BY
+      CASE
+        WHEN status IS NULL OR status = '' THEN 3
+        WHEN status = 'CONTACTAT' THEN 0
+        WHEN status = 'URMEAZĂ' THEN 1
+        WHEN status = 'RECURENT' THEN 2
+        WHEN status = 'MID' THEN 3
+        WHEN status = 'NOPE' THEN 4
+        ELSE 2 END,
+      lower(name)
+  `) as {
     id: number;
     name: string;
     status: string | null;
   }[];
   const locations = (await sql`SELECT id, name FROM locations ORDER BY name`) as { id: number; name: string }[];
+
+  // clp_load_ig_posts() — postările Instagram marcate pe zile, pentru chipurile din calendar.
+  const [igRow] = (await sql`SELECT value FROM settings WHERE key = 'instagram_posts'`) as { value: unknown }[];
+  const igPosts =
+    igRow?.value && typeof igRow.value === "object" ? (igRow.value as Record<string, string[]>) : {};
 
   return (
     <>
@@ -102,12 +132,18 @@ export default async function CursuriPage({
 
       {sp.saved && <div className="notice notice-success">Curs salvat.</div>}
 
+      {/* cursuri-tab.php randează câmpurile server-side la fiecare request: `key`-ul
+          remontează formularul când se schimbă cursul editat sau după o salvare,
+          ca să vină iar populat din ?edit=… și gol după adăugare. */}
       <CourseAddForm
+        key={`${editId}|${sp.saved ?? ""}`}
         action={saveCourse}
         speakers={speakers}
         locations={locations}
         edit={edit}
         error={sp.course_error}
+        year={year}
+        month={month}
       />
 
       <div className="card">
@@ -157,7 +193,14 @@ export default async function CursuriPage({
 
         {ctab === "cursuri" && <CoursesPanel {...(await fetchMonthStats(year, month))} />}
         {ctab === "calendar" && (
-          <Calendar year={year} month={month} courses={await fetchCalendarCourses(year, month)} today={todayStr} />
+          <Calendar
+            year={year}
+            month={month}
+            courses={await fetchCalendarCourses(year, month)}
+            today={todayStr}
+            igPosts={igPosts}
+            igPostTypes={IG_POST_TYPES}
+          />
         )}
         {ctab === "participanti" && <ParticipantsPanel {...(await fetchParticipants())} />}
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { saveCollaboration, deleteCollaboration } from "./actions";
 
 export type Collab = {
@@ -46,11 +46,26 @@ export function DeleteForm({ id }: { id: number }) {
 
 export default function CollabForm({ edit }: { edit: Collab | null }) {
   const [visible] = useState(!!edit);
+  const formRef = useRef<HTMLFormElement>(null);
   return (
     <div id="col-form" style={{ display: visible ? "block" : "none" }}>
       <div className="card crm-form">
         <div className="card-title">{edit ? "Editează colaborare" : "Adaugă colaborare"}</div>
-        <form action={saveCollaboration}>
+        <form
+          ref={formRef}
+          action={saveCollaboration}
+          onSubmit={() => {
+            // PHP: salvarea se termină cu redirect (reîncărcare completă), deci
+            // formularul se închide și inputurile revin goale. Amânat, ca React
+            // să apuce să citească FormData înainte de reset; display-ul se pune
+            // direct pe DOM, la fel ca la AddToggle.
+            setTimeout(() => {
+              formRef.current?.reset();
+              const el = document.getElementById("col-form");
+              if (el) el.style.display = "none";
+            }, 0);
+          }}
+        >
           <input type="hidden" name="id" value={edit?.id ?? ""} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
             <div className="form-group">

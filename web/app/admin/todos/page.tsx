@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import { TODOS_CSS } from "./styles";
 import TodosList, { type DoneGroup, type Todo, type User } from "./TodosList";
 
 export const dynamic = "force-dynamic";
+
+// <title>To-dos – Admin</title> (admin/todos/index.php:111).
+export const metadata: Metadata = { title: "To-dos – Admin" };
 
 type Row = Todo & { done_day: string | null };
 
@@ -15,10 +19,13 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const ymd = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(d);
 
 export default async function TodosPage() {
+  // Ordinea din todos.json: inserare, cel mai vechi primul (lib/todos.php:42,
+  // fără nicio sortare în admin/todos/index.php). Gruparea zilei se face STRICT
+  // după completed_at (index.php:60-61); fără el, ziua e goală → „Mai demult".
   const rows = (await sql`
     SELECT id, title, assigned_to, completed,
-      to_char(coalesce(completed_at, created_at) AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS done_day
-    FROM todos ORDER BY created_at DESC
+      to_char(completed_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS done_day
+    FROM todos ORDER BY id
   `) as Row[];
   const userRows = (await sql`SELECT username FROM users ORDER BY id`) as { username: string }[];
 

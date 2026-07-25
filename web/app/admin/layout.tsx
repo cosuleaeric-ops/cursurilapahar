@@ -35,20 +35,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             🌐 Vezi site
           </a>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {real.role === "owner" ? (
+        {/* layout-nav.php:13-49 — header-ul are TREI copii direcți (brand, user, logout),
+            deci space-between așază blocul de user la mijlocul barei. */}
+        {real.role === "owner" ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <UserSwitcher realUsername={real.username} viewUsername={session.username} users={users} />
-          ) : (
-            <span style={{ fontSize: 12, color: "#a0aec0" }}>
-              {cap(session.username)} · {session.role}
-            </span>
-          )}
-          <form action={logout} style={{ margin: 0 }}>
-            <button type="submit" className="btn-logout">
-              Deconectează-te
-            </button>
-          </form>
-        </div>
+          </div>
+        ) : (
+          // layout-nav.php:47 — non-owner-ul vede doar numele, cu prima literă mare.
+          <span style={{ fontSize: 12, color: "#a0aec0" }}>{cap(session.username)}</span>
+        )}
+        <form action={logout} style={{ margin: 0 }}>
+          <button type="submit" className="btn-logout">
+            Deconectează-te
+          </button>
+        </form>
       </header>
 
       <AdminNav role={session.role} />

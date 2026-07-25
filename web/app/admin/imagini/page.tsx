@@ -1,4 +1,4 @@
-import { readdir } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { list } from "@vercel/blob";
 import { sql } from "@/lib/db";
@@ -14,11 +14,19 @@ async function staticImages(): Promise<LibImage[]> {
   const collect = async (rel: string) => {
     try {
       const dir = join(process.cwd(), "public", rel);
-      for (const f of await readdir(dir, { withFileTypes: true })) {
-        if (f.isFile() && IMG_EXT.test(f.name)) {
-          out.push({ url: `/${rel}/${f.name}`, name: f.name, deletable: false });
-        }
-      }
+      const names = (await readdir(dir, { withFileTypes: true }))
+        .filter((f) => f.isFile() && IMG_EXT.test(f.name))
+        .map((f) => f.name);
+      // fiecare fișier poartă data lui reală, ca să intre în sortarea globală a bibliotecii
+      const withMtime = await Promise.all(
+        names.map(async (name) => ({
+          url: `/${rel}/${name}`,
+          name,
+          deletable: false,
+          mtime: await stat(join(dir, name)).then((st) => st.mtimeMs, () => 0),
+        })),
+      );
+      out.push(...withMtime);
     } catch {
       // folderul poate lipsi în unele deploy-uri — biblioteca rămâne doar cu Blob
     }
@@ -32,9 +40,12 @@ async function staticImages(): Promise<LibImage[]> {
 async function blobImages(): Promise<LibImage[]> {
   try {
     const { blobs } = await list({ prefix: "uploads/" });
-    return blobs
-      .sort((a, b) => +new Date(b.uploadedAt) - +new Date(a.uploadedAt))
-      .map((b) => ({ url: b.url, name: b.pathname.replace(/^uploads\//, ""), deletable: true }));
+    return blobs.map((b) => ({
+      url: b.url,
+      name: b.pathname.replace(/^uploads\//, ""),
+      deletable: true,
+      mtime: +new Date(b.uploadedAt),
+    }));
   } catch {
     return [];
   }
@@ -43,9 +54,9 @@ async function blobImages(): Promise<LibImage[]> {
 export default async function ImaginiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; up?: string; uperr?: string }>;
+  searchParams: Promise<{ saved?: string; up?: string; uperr?: string; nofile?: string }>;
 }) {
-  const { saved, up, uperr } = await searchParams;
+  const { saved, up, uperr, nofile } = await searchParams;
   const [rowsRaw, statics, blobs] = await Promise.all([
     sql`SELECT key, value FROM settings WHERE key IN ('hero_images', 'gallery_featured', 'hero_transforms')`,
     staticImages(),
@@ -60,18 +71,28 @@ export default async function ImaginiPage({
       ? (s.hero_transforms as Record<string, { x?: number; y?: number; zoom?: number }>)
       : {};
 
-  const library = [...blobs, ...statics];
+  // o singură sortare globală peste toate sursele, cele mai noi primele
+  const library = [...blobs, ...statics].sort((a, b) => b.mtime - a.mtime);
+  const okCount = Number(up ?? 0);
+  const errCount = Number(uperr ?? 0);
 
   return (
     <>
       <h1 className="wp-page-title">Imagini</h1>
 
       {saved && <div className="notice notice-success">Setările imaginilor au fost salvate.</div>}
-      {up !== undefined && (
-        <div className={`notice ${Number(uperr) ? "notice-error" : "notice-success"}`}>
-          {Number(up)} imagini încărcate{Number(uperr) ? `, ${uperr} eșuate` : ""}.
+      {/* reușitele și eșecurile sunt două notice-uri distincte, care pot apărea simultan */}
+      {okCount > 0 && (
+        <div className="notice notice-success">
+          {`${okCount} imagine${okCount > 1 ? "i" : ""} încărcată${okCount > 1 ? "e" : ""} cu succes.`}
         </div>
       )}
+      {errCount > 0 && (
+        <div className="notice notice-error">
+          {`${errCount} fișier${errCount > 1 ? "e" : ""} nu ${errCount > 1 ? "au" : "a"} putut fi încărcate.`}
+        </div>
+      )}
+      {nofile && <div className="notice notice-error">Niciun fișier selectat.</div>}
 
       <div className="card">
         <div className="card-title">Încarcă imagine nouă</div>

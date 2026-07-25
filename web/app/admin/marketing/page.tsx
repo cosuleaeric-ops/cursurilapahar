@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import MarketingSection, { type MktItem } from "./MarketingSection";
 
 export const dynamic = "force-dynamic";
+
+// marketing/index.php:110 — <title>Marketing — Admin</title>
+export const metadata: Metadata = { title: "Marketing — Admin" };
 
 type SectionRow = { id: number; title: string };
 type ItemRow = { id: number; section_id: number; payload: { text?: string; link?: string; done?: boolean } };
@@ -69,7 +73,8 @@ export default async function MarketingPage() {
         <MarketingSection key={s.id} id={s.id} title={s.title} items={itemsBySection.get(s.id) ?? []} />
       ))}
 
-      <section className="mkt-competitori">
+      {/* marketing/index.php:233 — ancoră pentru /admin/marketing/#competitori */}
+      <section id="competitori" className="mkt-competitori">
         <h2 className="mkt-section-title">Competitori</h2>
         <div className="comp-grid">
           {COMPETITORS.map((c) => (

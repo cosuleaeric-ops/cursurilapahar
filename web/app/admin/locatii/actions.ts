@@ -49,4 +49,6 @@ export async function deleteLocation(formData: FormData): Promise<void> {
   if (!id) return;
   await sql`DELETE FROM locations WHERE id = ${id}`;
   revalidatePath("/admin/locatii");
+  // PHP: ștergerea redirecționează pe tab curat, deci pierde saved=1 și edit=…
+  redirect("/admin/locatii");
 }

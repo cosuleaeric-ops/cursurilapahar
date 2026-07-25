@@ -45,7 +45,15 @@ const IconTrash = () => (
 );
 
 export default function CoursesTable({ list }: { list: CourseRow[] }) {
-  const [openDiscount, setOpenDiscount] = useState<number | null>(null);
+  // toggleDiscountRow() comută fiecare rând independent, deci pot fi deschise mai multe.
+  const [openDiscount, setOpenDiscount] = useState<Set<number>>(new Set());
+  const toggle = (id: number) =>
+    setOpenDiscount((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   return (
     <table className="wp-table">
@@ -61,7 +69,7 @@ export default function CoursesTable({ list }: { list: CourseRow[] }) {
       </thead>
       <tbody>
         {list.map((c) => (
-          <RowPair key={c.id} c={c} open={openDiscount === c.id} onToggle={() => setOpenDiscount(openDiscount === c.id ? null : c.id)} />
+          <RowPair key={c.id} c={c} open={openDiscount.has(c.id)} onToggle={() => toggle(c.id)} />
         ))}
       </tbody>
     </table>

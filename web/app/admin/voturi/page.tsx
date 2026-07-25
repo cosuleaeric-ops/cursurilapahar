@@ -13,9 +13,12 @@ export default async function VoturiPage({
   searchParams: Promise<{ edit?: string; saved?: string }>;
 }) {
   const sp = await searchParams;
+  // clp_sort_vote_courses() (lib/vote.php:20-28) sortează cu usort stabil:
+  // active înaintea inactivelor, apoi likes desc, iar la egalitate rămâne
+  // ordinea de adăugare din vote_courses.json → aici id crescător.
   const list = (await sql`
     SELECT id, name, emoji, description, likes, views, active
-    FROM vote_courses ORDER BY active DESC, likes DESC
+    FROM vote_courses ORDER BY active DESC, likes DESC, id ASC
   `) as VC[];
 
   const editId = Number(sp.edit) || 0;

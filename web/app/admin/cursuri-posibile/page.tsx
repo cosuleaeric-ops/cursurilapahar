@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import IdeasEditor from "./IdeasEditor";
 import { type IdeaCategory } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+// Tab-ul cursuri-posibile stă în admin/index.php:44 — <title>Admin – Cursuri la Pahar</title>.
+export const metadata: Metadata = { title: "Admin – Cursuri la Pahar" };
 
 export default async function CursuriPosibileAdminPage({
   searchParams,

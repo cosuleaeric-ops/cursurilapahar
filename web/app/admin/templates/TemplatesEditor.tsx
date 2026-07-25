@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { saveTemplates, type Template } from "./actions";
 
-type Row = Template & { _key: number };
+type Row = Template & { _key: number; _new?: boolean };
 
 export function CopyButton({
   text,
@@ -22,29 +22,44 @@ export function CopyButton({
     navigator.clipboard?.writeText(text).then(
       () => {
         setDone(true);
-        setTimeout(() => setDone(false), 1200);
+        // clpCopyTemplate revine la textul original abia după 1400 ms
+        setTimeout(() => setDone(false), 1400);
       },
       () => {}
     );
   };
+  // clpCopyTemplate înlocuiește TOT conținutul butonului cu „✅ Copiat!” și îl dezactivează
+  if (done) {
+    return (
+      <button type="button" className={className} onClick={copy} disabled>
+        ✅ Copiat!
+      </button>
+    );
+  }
   // pe dashboard butonul arată emoji + eticheta template-ului
   if (label !== undefined) {
     return (
       <button type="button" className={className} onClick={copy}>
         <span style={{ fontSize: 15 }}>{icon ?? "📋"}</span>
-        {done ? "✓ Copiat" : label}
+        {label}
       </button>
     );
   }
   return (
     <button type="button" className={className} onClick={copy}>
-      {done ? "✓ Copiat" : "📋 Copiază"}
+      📋 Copiază
     </button>
   );
 }
 
 function Card({ row, onChange, onDelete }: { row: Row; onChange: (patch: Template) => void; onDelete: () => void }) {
-  const [open, setOpen] = useState(false);
+  // addTemplateRow creează cardul cu clasa „open” și dă focus pe câmpul de titlu
+  const [open, setOpen] = useState(!!row._new);
+  const labelRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (row._new) labelRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const icon = row.icon ?? "📋";
   const label = row.label ?? "";
   const text = row.text ?? "";
@@ -72,6 +87,7 @@ function Card({ row, onChange, onDelete }: { row: Row; onChange: (patch: Templat
               style={{ width: 56, textAlign: "center", fontSize: 18 }}
             />
             <input
+              ref={labelRef}
               type="text"
               name="tpl_label"
               value={label}
@@ -118,11 +134,11 @@ export default function TemplatesEditor({ templates }: { templates: Template[] }
           />
         ))}
       </div>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
         <button
           type="button"
           className="btn btn-secondary btn-sm"
-          onClick={() => setRows([...rows, { icon: "📋", label: "", text: "", _key: nextKey.current++ }])}
+          onClick={() => setRows([...rows, { icon: "📋", label: "", text: "", _key: nextKey.current++, _new: true }])}
         >
           + Adaugă template
         </button>

@@ -14,10 +14,28 @@ const COLOR_FIELDS: Record<string, { label: string; default: string }> = {
   color_banner: { label: "Fundal banner anunț", default: "#FFB000" },
 };
 
+// mesajele de eroare la favicon, cuvânt cu cuvânt din upload_favicon
 const FVERR: Record<string, string> = {
   nofile: "Nu ai selectat niciun fișier.",
-  format: "Format neacceptat. Folosește PNG, JPG sau WEBP.",
   read: "Nu am putut citi imaginea. Încearcă alt fișier.",
+  save: "Eroare la salvare favicon. Verifică permisiunile directorului.",
+};
+
+// „Format neacceptat” include extensia efectivă a fișierului trimis
+const fverrText = (code: string, ext?: string) =>
+  code === "format"
+    ? `Format neacceptat: ${ext ?? ""}. Folosește PNG, JPG sau WEBP.`
+    : (FVERR[code] ?? "Eroare la upload.");
+
+// eroarea de favicon e o casetă roz în interiorul cardului, nu un notice global
+const FVERR_BOX: React.CSSProperties = {
+  background: "#fcf0f1",
+  border: "1px solid #f5c6cb",
+  color: "#c0392b",
+  padding: "10px 14px",
+  borderRadius: 4,
+  fontSize: 13,
+  marginBottom: 12,
 };
 
 const FILE_INPUT: React.CSSProperties = {
@@ -31,9 +49,9 @@ const FILE_INPUT: React.CSSProperties = {
 export default async function AspectPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; fverr?: string }>;
+  searchParams: Promise<{ saved?: string; fverr?: string; ext?: string }>;
 }) {
-  const { saved, fverr } = await searchParams;
+  const { saved, fverr, ext } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
     WHERE key IN ('logo_path', 'favicon_path', 'color_bg', 'color_accent', 'color_text',
@@ -46,7 +64,6 @@ export default async function AspectPage({
     <>
       <h1 className="wp-page-title">Aspect</h1>
       {saved && <div className="notice notice-success">Setările de aspect au fost salvate.</div>}
-      {fverr && <div className="notice notice-error">{FVERR[fverr] ?? "Eroare la upload."}</div>}
 
       <div className="card">
         <div className="card-title">Logo</div>
@@ -75,10 +92,10 @@ export default async function AspectPage({
         <div className="card-title">Favicon</div>
         {str("favicon_path") && (
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>
-            Favicon curent: <code>{str("favicon_path")}</code>{" "}
-            <img src={str("favicon_path")} alt="Favicon" style={{ height: 20, verticalAlign: "middle", marginLeft: 6 }} />
+            Favicon curent: <code>{str("favicon_path")}</code>
           </p>
         )}
+        {fverr && <div style={FVERR_BOX}>{fverrText(fverr, ext)}</div>}
         <form action={uploadFavicon}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <input type="file" name="favicon_file" accept=".ico,.png,.jpg,.jpeg,.webp" style={FILE_INPUT} />
@@ -86,7 +103,7 @@ export default async function AspectPage({
               Încarcă favicon
             </button>
           </div>
-          <p className="form-desc">Formate: ICO, PNG, JPG, WEBP. Imaginea e decupată circular automat.</p>
+          <p className="form-desc">Formate: ICO, PNG, JPG, WEBP. Fișierul va fi salvat în rădăcina site-ului.</p>
         </form>
       </div>
 

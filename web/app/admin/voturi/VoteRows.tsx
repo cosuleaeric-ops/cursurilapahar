@@ -31,7 +31,8 @@ export default function VoteRows({
         const conv = conversion(vc.likes, vc.views);
         return (
           <tr key={vc.id} style={vc.active ? undefined : { opacity: 0.45 }}>
-            <td style={{ fontSize: "1.4rem", textAlign: "center" }}>{vc.emoji || "📚"}</td>
+            {/* vot-tab.php:71 e h($vc['emoji'] ?? '📚'): 📚 doar dacă lipsește emoji, nu și la string gol */}
+            <td style={{ fontSize: "1.4rem", textAlign: "center" }}>{vc.emoji ?? "📚"}</td>
             <td style={{ fontWeight: 600 }}>
               {vc.name}
               {!vc.active && (

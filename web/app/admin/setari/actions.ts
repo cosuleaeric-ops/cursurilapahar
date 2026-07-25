@@ -32,7 +32,8 @@ export async function saveQuickLinks(formData: FormData): Promise<void> {
   for (let i = 0; i < labels.length; i++) {
     const label = labels[i].trim();
     const url = (urls[i] ?? "").trim();
-    if (label && url) links.push({ label, url, icon: (icons[i] ?? "🔗").trim() || "🔗" });
+    // PHP (actions.php:317): 🔗 e fallback doar dacă indexul lipsește din POST; câmpul golit rămâne gol
+    if (label && url) links.push({ label, url, icon: (icons[i] ?? "🔗").trim() });
   }
   await setSetting("quick_links", links);
   revalidatePath("/admin");
@@ -73,13 +74,15 @@ export async function saveRecurring(formData: FormData): Promise<void> {
   await requireOwner();
   const id = Number(g(formData, "id"));
   const title = g(formData, "title");
-  if (!id || !title) redirect("/admin/setari#rec");
+  if (!id) redirect("/admin/setari#rec");
   let assigned = g(formData, "assigned_to");
   const valid = (await sql`SELECT username FROM users`) as { username: string }[];
   if (!valid.some((u) => u.username === assigned)) assigned = "eric6";
   const days = [...new Set(formData.getAll("days").map(Number).filter((d) => d >= 1 && d <= 31))].sort((a, b) => a - b);
+  // PHP (actions.php:366-369): titlul gol păstrează titlul vechi, dar responsabilul și zilele se salvează oricum
   await sql`
-    UPDATE recurring_tasks SET title = ${title}, assigned_to = ${assigned}, days = ${days}
+    UPDATE recurring_tasks
+    SET title = COALESCE(NULLIF(${title}::text, ''), title), assigned_to = ${assigned}, days = ${days}
     WHERE id = ${id} AND type = 'monthly'
   `;
   redirect("/admin/setari?rec=ok#rec");
@@ -89,8 +92,9 @@ export async function saveRecurringSystemTitle(formData: FormData): Promise<void
   await requireOwner();
   const id = Number(g(formData, "id"));
   const title = g(formData, "title");
-  if (!id || !title) redirect("/admin/setari#rec");
-  await sql`UPDATE recurring_tasks SET title = ${title} WHERE id = ${id} AND type = 'system'`;
+  if (!id) redirect("/admin/setari#rec");
+  // PHP (actions.php:385-387): titlul gol nu suprascrie nimic, dar salvarea raportează tot ?rec=ok
+  if (title) await sql`UPDATE recurring_tasks SET title = ${title} WHERE id = ${id} AND type = 'system'`;
   redirect("/admin/setari?rec=ok#rec");
 }
 

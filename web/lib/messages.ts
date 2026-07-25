@@ -42,14 +42,26 @@ type Row = {
   created_at: string;
 };
 
-const dtFmt = new Intl.DateTimeFormat("ro-RO", {
+const dtFmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Europe/Bucharest",
-  day: "2-digit",
-  month: "2-digit",
   year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
 });
+
+/**
+ * Data se afișează brută, exact cum o scrie PHP-ul cu date('Y-m-d H:i:s')
+ * în antetul blocului de log (api/contact.php:57, lib/messages.php:111+223).
+ */
+export function phpDate(d: Date): string {
+  const p: Record<string, string> = {};
+  for (const part of dtFmt.formatToParts(d)) p[part.type] = part.value;
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
+}
 
 const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
 const digits = (s: string | null | undefined) => (s ?? "").replace(/\D/g, "");
@@ -90,7 +102,7 @@ export async function loadGroupedMessages(): Promise<{
       category: cat,
       name:
         String(p.Nume ?? p.nume ?? p.Name ?? p["Organizație"] ?? p.organizatie ?? r.name ?? "") || "—",
-      date: dtFmt.format(new Date(r.created_at)),
+      date: phpDate(new Date(r.created_at)),
       fields: Object.entries(p)
         .filter(([k]) => !["trimis de pe", "data"].includes(k.toLowerCase()))
         .map(([k, v]) => [k, String(v ?? "")] as [string, string]),

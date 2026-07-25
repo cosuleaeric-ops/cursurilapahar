@@ -9,11 +9,13 @@ import {
   deleteRaport,
   deleteViza,
   deleteVizaSubtip,
-  uploadRaport,
-  uploadViza,
+  reprocessViza,
 } from "./actions";
+import ConfirmButton from "./ConfirmButton";
 import CopyDist from "./CopyDist";
 import ParticipantsUpload from "./ParticipantsUpload";
+import RaportUpload from "./RaportUpload";
+import VizaUpload from "./VizaUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -27,15 +29,22 @@ const shortDate = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric
 const money = (v: number) => Number(v).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const ymd = (s: string) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(s));
 
+// layout_header.php:15 — `<title>{nume curs} — Admin</title>`
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id: idStr } = await params;
+  const [event] = (await sql`SELECT title FROM events WHERE id = ${Number(idStr) || 0}`) as { title: string }[];
+  return { title: `${event?.title ?? "Statistici"} — Admin` };
+}
+
 export default async function CourseStatsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ err?: string; serii?: string }>;
+  searchParams: Promise<{ err?: string }>;
 }) {
   const { id: idStr } = await params;
-  const { err, serii } = await searchParams;
+  const { err } = await searchParams;
   const id = Number(idStr);
   if (!id) notFound();
 
@@ -56,9 +65,20 @@ export default async function CourseStatsPage({
     uploaded_at: string;
   }[];
 
+  // view.php:254 — duplicatele (seria, de_la, pana_la) se curăță automat la fiecare
+  // încărcare a paginii, înainte de SELECT; se păstrează rândul cu id-ul minim
+  await sql`
+    DELETE FROM viza_subtips v USING viza_subtips keep
+    WHERE v.event_id = ${id} AND keep.event_id = v.event_id
+      AND keep.seria = v.seria
+      AND keep.de_la IS NOT DISTINCT FROM v.de_la
+      AND keep.pana_la IS NOT DISTINCT FROM v.pana_la
+      AND keep.id < v.id
+  `;
+  // fără tiebreak pe serie: la tarife egale rândurile rămân în ordinea extragerii din PDF
   const subtips = (await sql`
     SELECT id, seria, tarif, nr_unitati, de_la, pana_la FROM viza_subtips
-    WHERE event_id = ${id} ORDER BY tarif DESC, seria
+    WHERE event_id = ${id} ORDER BY tarif DESC, id
   `) as { id: number; seria: string; tarif: string; nr_unitati: number; de_la: string | null; pana_la: string | null }[];
 
   const [vizaFile] = (await sql`
@@ -110,7 +130,9 @@ export default async function CourseStatsPage({
       return { name, count: m ? m.size : 0, list: m ? [...new Set(m.values())] : [] };
     })
     .filter((p) => p.count > 0)
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ro"));
+    // ORDER BY … participant_name ASC pe colația BINARY: comparație pe coduri,
+    // deci majusculele înaintea minusculelor și diacriticele după literele ASCII
+    .sort((a, b) => b.count - a.count || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
   const types = (report?.types_json ?? []) as TicketType[];
   const base = report ? ditlBase(types, Number(report.total_bilete)) : 0;
@@ -132,7 +154,6 @@ export default async function CourseStatsPage({
 
       <div className="course-wrap">
         {err && <div className="error-msg" style={{ display: "block", marginBottom: 16 }}>{err}</div>}
-        {serii && <div className="notice notice-success">Viza procesată: {serii} serii extrase din PDF.</div>}
 
         <div className="course-hero">
           <a
@@ -166,15 +187,15 @@ export default async function CourseStatsPage({
               {report.original_name ? `${report.original_name} · ` : ""}
               Actualizat {ymd(report.uploaded_at)}
             </div>
-            <form
-              action={deleteRaport}
-              onSubmit={undefined}
-              style={{ marginTop: 4 }}
-            >
+            <form action={deleteRaport} style={{ marginTop: 4 }}>
               <input type="hidden" name="id" value={id} />
-              <button type="submit" className="btn btn-ghost" style={{ fontSize: 12, padding: "4px 12px", color: "var(--muted)" }}>
+              <ConfirmButton
+                message="Stergi raportul financiar?"
+                className="btn btn-ghost"
+                style={{ fontSize: 12, padding: "4px 12px", color: "var(--muted)" }}
+              >
                 Sterge raportul
-              </button>
+              </ConfirmButton>
             </form>
           </div>
         )}
@@ -255,30 +276,12 @@ export default async function CourseStatsPage({
         <div className="actions-grid">
           <div className="section-card" style={{ marginBottom: 0 }}>
             <h3>Raport eveniment</h3>
-            <form action={uploadRaport}>
-              <input type="hidden" name="id" value={id} />
-              <div className="upload-zone">
-                <input type="file" name="raport_file" accept=".xlsx,.xls" />
-                <p>{report ? "Inlocuieste raportul" : "Trage sau apasa pentru XLSX"}</p>
-              </div>
-              <button type="submit" className="btn btn-ghost" style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>
-                Incarca
-              </button>
-            </form>
+            <RaportUpload id={id} />
           </div>
 
           <div className="section-card" style={{ marginBottom: 0 }}>
             <h3>Viză bilete</h3>
-            <form action={uploadViza}>
-              <input type="hidden" name="id" value={id} />
-              <div className="upload-zone">
-                <input type="file" name="viza_file" accept=".pdf" />
-                <p>{vizaFile ? "Inlocuieste viză" : "Trage sau apasa pentru a incarca Viză PDF"}</p>
-              </div>
-              <button type="submit" className="btn btn-ghost" style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>
-                Incarca
-              </button>
-            </form>
+            <VizaUpload id={id} hasFile={!!vizaFile} />
           </div>
         </div>
 
@@ -292,12 +295,18 @@ export default async function CourseStatsPage({
                 <div className="viza-date">Incarcat {ymd(vizaFile.uploaded_at)}</div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <form action={reprocessViza} style={{ margin: 0 }}>
+                  <input type="hidden" name="id" value={id} />
+                  <button type="submit" className="reprocess-btn" title="Extrage date din PDF">
+                    ↻ Extrage date
+                  </button>
+                </form>
                 <form action={deleteViza} style={{ margin: 0 }}>
                   <input type="hidden" name="id" value={id} />
                   <input type="hidden" name="file_id" value={vizaFile.id} />
-                  <button type="submit" className="icon-btn danger" title="Sterge">
+                  <ConfirmButton message="Stergi viză?" className="icon-btn danger" title="Sterge">
                     ×
-                  </button>
+                  </ConfirmButton>
                 </form>
               </div>
             </div>
@@ -365,7 +374,7 @@ export default async function CourseStatsPage({
             ) : (
               <>
                 <p style={{ fontSize: 13, color: "var(--muted)", margin: "8px 0 0" }}>
-                  Nu s-au putut extrage datele automat. Introdu manual:
+                  Nu s-au putut extrage datele automat. Apasa „Extrage date&quot; sau introdu manual:
                 </p>
                 <form action={addVizaSubtip} style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
                   <input type="hidden" name="id" value={id} />
@@ -403,9 +412,13 @@ export default async function CourseStatsPage({
           <div className="danger-zone">
             <form action={deleteCourse}>
               <input type="hidden" name="id" value={id} />
-              <button type="submit" className="btn btn-red" style={{ fontSize: 12, padding: "5px 14px" }}>
+              <ConfirmButton
+                message={`Stergi cursul «${event.title}»? Aceasta actiune este ireversibila.`}
+                className="btn btn-red"
+                style={{ fontSize: 12, padding: "5px 14px" }}
+              >
                 Sterge cursul
-              </button>
+              </ConfirmButton>
             </form>
           </div>
         </div>

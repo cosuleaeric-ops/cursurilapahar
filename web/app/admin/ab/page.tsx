@@ -1,11 +1,16 @@
+import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+// layout_header.php:15 randează „<$__page_title> — Admin”, cu $__page_title = 'Test A/B Buton'.
+export const metadata: Metadata = { title: "Test A/B Buton — Admin" };
+
 // Port din admin/statistici/ab_headline.php.
 const VARIANTS: [string, string][] = [
   ["off", "cardurile ca înainte (fără buton)"],
-  ["on", "cardurile cu butonul „Vreau să vin”"],
+  // ab_headline.php:12 închide citatul cu ghilimea dreaptă ASCII, nu cu una curbă.
+  ["on", 'cardurile cu butonul „Vreau să vin"'],
 ];
 const LABEL: Record<string, string> = { on: "Cu buton", off: "Fără buton" };
 

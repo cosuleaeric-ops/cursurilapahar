@@ -43,7 +43,6 @@ const REC_CSS = `
 .rec-view-meta { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .rec-view-days { font-weight:600; color:var(--text); }
 .rec-edit-actions { display:flex; gap:8px; }
-.rec-title-input { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:14px; background:#fff; box-sizing:border-box; }
 `;
 
 const USER_LABEL = (u: string) => (u === "eric6" ? "Eric" : u.charAt(0).toUpperCase() + u.slice(1));
@@ -94,7 +93,7 @@ function MonthlyCard({ t, users }: { t: RecTask; users: string[] }) {
           <form action={saveRecurring}>
             <input type="hidden" name="id" value={t.id} />
             <div className="rec-top">
-              <input type="text" name="title" defaultValue={t.title} className="rec-title rec-title-input" required />
+              <input type="text" name="title" defaultValue={t.title} className="rec-title" required />
               <select
                 name="assigned_to"
                 className={`rec-assignee a-${assignee}`}
@@ -184,7 +183,7 @@ function SystemCard({ t }: { t: RecTask }) {
           <form action={saveRecurringSystemTitle}>
             <input type="hidden" name="id" value={t.id} />
             <div className="rec-label">Nume task</div>
-            <input type="text" name="title" defaultValue={t.title} className="rec-title-input" style={{ marginBottom: 14 }} />
+            <input type="text" name="title" defaultValue={t.title} style={{ width: "100%", marginBottom: 14 }} />
             <div className="rec-edit-actions">
               <button type="submit" className="btn btn-primary btn-sm">
                 Salvează
@@ -201,11 +200,27 @@ function SystemCard({ t }: { t: RecTask }) {
 }
 
 export default function RecurringEditor({ tasks, users, notice }: { tasks: RecTask[]; users: string[]; notice?: string }) {
+  // PHP (config-tab.php:76): notice-ul de succes arată câte taskuri lunare există după salvare
+  const monthlyCount = tasks.filter((t) => t.type === "monthly").length;
   return (
     <div className="card" id="rec">
       <style>{REC_CSS}</style>
       <div className="card-title">🔁 Taskuri recurente</div>
-      {notice === "ok" && <div className="notice notice-success" style={{ marginBottom: 14 }}>Salvat ✓</div>}
+      {/* PHP (config-tab.php:74-82): ?rec=ok → succes, ?rec=perm → permisiuni, orice altă valoare → eroare de scriere */}
+      {notice !== undefined &&
+        (notice === "ok" ? (
+          <div className="notice notice-success" style={{ marginBottom: 14 }}>
+            Salvat ✓ ({monthlyCount} taskuri lunare)
+          </div>
+        ) : notice === "perm" ? (
+          <div className="notice notice-error" style={{ marginBottom: 14 }}>
+            Folderul <code>data/</code> nu e scriibil pe server (permisiuni). Trebuie 755/775 pe <code>data/</code>.
+          </div>
+        ) : (
+          <div className="notice notice-error" style={{ marginBottom: 14 }}>
+            Nu am putut scrie <code>data/recurring_tasks.json</code>.
+          </div>
+        ))}
       <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 18 }}>
         Apar automat în To-dos la persoana aleasă. Cele lunare au zilele alese de tine; cele marcate „automat" au
         programare fixă (poți schimba doar numele).

@@ -6,6 +6,7 @@ import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { fetchCourseMeta, type MetaResult } from "@/lib/livetickets";
 import { COURSE_TIMES } from "./times";
+import { IG_POST_TYPES } from "./stats-data";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -31,7 +32,7 @@ export async function saveCourse(formData: FormData): Promise<void> {
   const title = g(formData, "title");
   const dateRaw = g(formData, "date_raw");
   const time = g(formData, "time");
-  const speaker = g(formData, "speaker_name");
+  const speakerId = Number(g(formData, "speaker_id")) || 0;
   const ltUrl = g(formData, "livetickets_url");
   let imageUrl = g(formData, "image_url");
   let location = g(formData, "location");
@@ -41,7 +42,13 @@ export async function saveCourse(formData: FormData): Promise<void> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateRaw)) err("Alege o dată validă.");
   if (!(COURSE_TIMES as readonly string[]).includes(time))
     err("Alege ora din listă (17:00, 17:30, 18:00, 18:30 sau 19:00).");
-  if (!speaker) err("Alege un speaker din listă.");
+  // admin/actions.php:75-79 — se salvează doar un speaker existent, căutat după id;
+  // numele scris liber în câmp nu ajunge niciodată în curs.
+  const speakerRows = speakerId
+    ? ((await sql`SELECT name FROM speakers WHERE id = ${speakerId}`) as { name: string }[])
+    : [];
+  if (!speakerRows.length) err("Alege un speaker din listă.");
+  const speaker = (speakerRows[0]?.name ?? "").trim();
 
   if (ltUrl && !imageUrl) {
     const meta = await fetchCourseMeta(ltUrl);
@@ -73,9 +80,12 @@ export async function saveCourse(formData: FormData): Promise<void> {
       WHERE id = ${id}
     `;
   } else {
+    // În courses.json fiecare card primea un id propriu (`uniqid('c', true)`); în Neon acela
+    // e `legacy_card_id`, marcajul după care cursul e recunoscut ca „card de site".
+    const cardId = `c${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
     await sql`
-      INSERT INTO events (title, starts_at, speaker_name, location, livetickets_url, image_url, active, link_added_at)
-      VALUES (${title}, (${startsAt}::timestamp AT TIME ZONE ${TZ}), ${speaker || null}, ${location || null},
+      INSERT INTO events (title, legacy_card_id, starts_at, speaker_name, location, livetickets_url, image_url, active, link_added_at)
+      VALUES (${title}, ${cardId}, (${startsAt}::timestamp AT TIME ZONE ${TZ}), ${speaker || null}, ${location || null},
               ${ltUrl || null}, ${imageUrl || null}, ${active},
               CASE WHEN ${ltUrl} = '' THEN NULL ELSE now() END)
     `;
@@ -84,8 +94,10 @@ export async function saveCourse(formData: FormData): Promise<void> {
   revalidatePath("/admin/cursuri");
   revalidatePath("/");
   const [y, m] = dateRaw.split("-");
+  // `saved` primește un marcaj unic: în PHP fiecare salvare însemna un page load nou,
+  // deci formularul revenea gol (la adăugare) sau repopulat (la editare).
   redirect(
-    `/admin/cursuri?year=${Number(y)}&month=${Number(m)}&ctab=cursuri&saved=1${id ? `&edit=${id}` : ""}`,
+    `/admin/cursuri?year=${Number(y)}&month=${Number(m)}&ctab=cursuri&saved=${Date.now()}${id ? `&edit=${id}` : ""}`,
   );
 }
 
@@ -111,18 +123,19 @@ export async function saveDiscount(formData: FormData): Promise<void> {
   }
   revalidatePath("/admin/cursuri");
   revalidatePath("/");
+  // admin/actions.php:204 — după salvare se revine pe tabul Cursuri, fără lună/edit în URL.
+  redirect("/admin/cursuri");
 }
 
-/** Ștergere permisă doar dacă evenimentul nu are bilete (protejăm istoricul financiar). */
+/** Ștergere necondiționată, ca `delete_course` din admin/actions.php:24-32. */
 export async function deleteCourse(formData: FormData): Promise<void> {
   await requireAuth();
   const id = Number(g(formData, "id"));
   if (!id) return;
-  const cnt = (await sql`SELECT count(*)::int AS n FROM tickets WHERE event_id = ${id}`) as { n: number }[];
-  if (cnt[0].n > 0) return;
   await sql`DELETE FROM events WHERE id = ${id}`;
   revalidatePath("/admin/cursuri");
   revalidatePath("/");
+  redirect("/admin/cursuri");
 }
 
 /** Toggle rapid din listă. */
@@ -133,4 +146,30 @@ export async function toggleActive(formData: FormData): Promise<void> {
   await sql`UPDATE events SET active = NOT active, updated_at = now() WHERE id = ${id}`;
   revalidatePath("/admin/cursuri");
   revalidatePath("/");
+  // admin/actions.php:50 — și toggle-ul reîncarcă pagina pe /admin/?tab=cursuri.
+  redirect("/admin/cursuri");
+}
+
+/**
+ * Bifează/debifează o postare Instagram pe o zi — fost POST /api/instagram_posts.php.
+ * Întoarce lista rămasă pentru ziua respectivă, ca `clp_toggle_ig_post()`.
+ */
+export async function toggleIgPost(date: string, type: string, on: boolean): Promise<string[]> {
+  await requireAuth();
+  // api/instagram_posts.php:20 — doar dată YYYY-MM-DD și un tip din listă.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !IG_POST_TYPES[type]) throw new Error("Invalid date or type");
+  const [row] = (await sql`SELECT value FROM settings WHERE key = 'instagram_posts'`) as { value: unknown }[];
+  const map: Record<string, string[]> =
+    row?.value && typeof row.value === "object" ? { ...(row.value as Record<string, string[]>) } : {};
+  const cur = (map[date] ?? []).filter((t) => t !== type);
+  if (on) cur.push(type);
+  if (cur.length) map[date] = cur;
+  else delete map[date];
+  await sql`
+    INSERT INTO settings (key, value) VALUES ('instagram_posts', ${JSON.stringify(map)})
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+  `;
+  revalidatePath("/admin/cursuri");
+  revalidatePath("/admin");
+  return cur;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { saveCourseIdeas, type IdeaCategory } from "./actions";
 
 type Row = { emoji: string; title: string; topics: string; _key: number };
@@ -15,6 +15,18 @@ export default function IdeasEditor({ intro, categories }: { intro: string; cate
       _key: i,
     }))
   );
+
+  const blocksRef = useRef<HTMLDivElement>(null);
+  const focusLast = useRef(false);
+
+  // ciAdd(): după adăugare, cursorul intră în titlul ultimului bloc
+  // (cursuri-posibile-tab.php:59-65).
+  useEffect(() => {
+    if (!focusLast.current) return;
+    focusLast.current = false;
+    const inputs = blocksRef.current?.querySelectorAll<HTMLInputElement>('.ci-block input[name="cat_title"]');
+    inputs?.[inputs.length - 1]?.focus();
+  }, [rows.length]);
 
   const patch = (key: number, p: Partial<Row>) => setRows(rows.map((r) => (r._key === key ? { ...r, ...p } : r)));
 
@@ -37,7 +49,9 @@ export default function IdeasEditor({ intro, categories }: { intro: string; cate
     <form action={saveCourseIdeas}>
       <div className="card">
         <div className="card-title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span>Cursuri posibile ({rows.length} categorii)</span>
+          {/* Contorul e randat server-side în PHP, deci nu se mișcă la adăugare/ștergere
+              până la salvare (cursuri-posibile-tab.php:10). */}
+          <span>Cursuri posibile ({categories.length} categorii)</span>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <a href="/cursuri-posibile" target="_blank" className="btn btn-sm btn-secondary">
               Vezi pagina ↗
@@ -51,7 +65,7 @@ export default function IdeasEditor({ intro, categories }: { intro: string; cate
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div ref={blocksRef} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         {rows.map((r) => (
           <div className="card ci-block" style={{ margin: 0 }} key={r._key}>
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
@@ -104,7 +118,10 @@ export default function IdeasEditor({ intro, categories }: { intro: string; cate
         <button
           type="button"
           className="btn btn-sm btn-secondary"
-          onClick={() => setRows([...rows, { emoji: "", title: "", topics: "", _key: nextKey.current++ }])}
+          onClick={() => {
+            focusLast.current = true;
+            setRows([...rows, { emoji: "", title: "", topics: "", _key: nextKey.current++ }]);
+          }}
         >
           + Adaugă categorie
         </button>

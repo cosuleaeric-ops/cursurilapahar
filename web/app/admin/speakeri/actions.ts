@@ -43,6 +43,8 @@ export async function saveSpeaker(formData: FormData): Promise<void> {
     `;
   }
   revalidatePath("/admin/speakeri");
+  // PHP: redirect cu &saved=1 => banda verde „Speakerul a fost salvat."
+  redirect("/admin/speakeri?saved=1");
 }
 
 /** Schimbare rapidă de status din popover-ul de pe badge. */

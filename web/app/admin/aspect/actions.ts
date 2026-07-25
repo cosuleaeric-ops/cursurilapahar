@@ -21,9 +21,10 @@ async function setSetting(key: string, value: unknown): Promise<void> {
 export async function uploadLogo(formData: FormData): Promise<void> {
   await requireAuth();
   const f = formData.get("logo_file");
-  if (!(f instanceof File) || !f.size) redirect("/admin/aspect");
+  // upload_logo redirectează cu saved=1 necondiționat, chiar și când nu s-a încărcat nimic
+  if (!(f instanceof File) || !f.size) redirect("/admin/aspect?saved=1");
   const ext = (f.name.split(".").pop() ?? "").toLowerCase();
-  if (!["jpg", "jpeg", "png", "webp", "svg"].includes(ext)) redirect("/admin/aspect");
+  if (!["jpg", "jpeg", "png", "webp", "svg"].includes(ext)) redirect("/admin/aspect?saved=1");
   const blob = await put(`uploads/logo-${Date.now()}.${ext}`, Buffer.from(await f.arrayBuffer()), {
     access: "public",
     addRandomSuffix: false,
@@ -39,20 +40,25 @@ export async function uploadFavicon(formData: FormData): Promise<void> {
   const f = formData.get("favicon_file");
   if (!(f instanceof File) || !f.size) redirect("/admin/aspect?fverr=nofile");
   const ext = (f.name.split(".").pop() ?? "").toLowerCase();
-  if (!["ico", "png", "jpg", "jpeg", "webp"].includes(ext)) redirect("/admin/aspect?fverr=format");
+  // mesajul de format neacceptat conține extensia efectivă a fișierului
+  if (!["ico", "png", "jpg", "jpeg", "webp"].includes(ext))
+    redirect(`/admin/aspect?fverr=format&ext=${encodeURIComponent(ext)}`);
+  // Center-crop pătrat → 128px → mască circulară (transparent în afara cercului) → PNG,
+  // exact ca varianta GD din admin/actions.php.
+  const SIZE = 128;
+  const circle = Buffer.from(
+    `<svg width="${SIZE}" height="${SIZE}"><circle cx="${SIZE / 2}" cy="${SIZE / 2}" r="${SIZE / 2}"/></svg>`
+  );
+  const png = await sharp(Buffer.from(await f.arrayBuffer()))
+    .rotate()
+    .resize(SIZE, SIZE, { fit: "cover" })
+    .composite([{ input: circle, blend: "dest-in" }])
+    .png()
+    .toBuffer()
+    .catch(() => null);
+  // imaginea necitibilă și scrierea eșuată au mesaje diferite
+  if (!png) redirect("/admin/aspect?fverr=read");
   try {
-    // Center-crop pătrat → 128px → mască circulară (transparent în afara cercului) → PNG,
-    // exact ca varianta GD din admin/actions.php.
-    const SIZE = 128;
-    const circle = Buffer.from(
-      `<svg width="${SIZE}" height="${SIZE}"><circle cx="${SIZE / 2}" cy="${SIZE / 2}" r="${SIZE / 2}"/></svg>`
-    );
-    const png = await sharp(Buffer.from(await f.arrayBuffer()))
-      .rotate()
-      .resize(SIZE, SIZE, { fit: "cover" })
-      .composite([{ input: circle, blend: "dest-in" }])
-      .png()
-      .toBuffer();
     const blob = await put(`uploads/favicon-${Date.now()}.png`, png, {
       access: "public",
       addRandomSuffix: false,
@@ -60,7 +66,7 @@ export async function uploadFavicon(formData: FormData): Promise<void> {
     });
     await setSetting("favicon_path", blob.url);
   } catch {
-    redirect("/admin/aspect?fverr=read");
+    redirect("/admin/aspect?fverr=save");
   }
   revalidatePath("/", "layout");
   redirect("/admin/aspect?saved=1");

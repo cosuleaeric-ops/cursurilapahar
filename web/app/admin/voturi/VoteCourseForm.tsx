@@ -23,8 +23,9 @@ export default function VoteCourseForm({
 
       <div style={{ display: "grid", gridTemplateColumns: "64px 1fr", gap: 12, alignItems: "start" }}>
         <div className="form-group" style={{ marginBottom: 0 }}>
-          <label>Emoji</label>
+          <label htmlFor="vc_emoji">Emoji</label>
           <input
+            id="vc_emoji"
             name="emoji"
             type="text"
             maxLength={4}
@@ -33,16 +34,16 @@ export default function VoteCourseForm({
           />
         </div>
         <div className="form-group" style={{ marginBottom: 0 }}>
-          <label>
+          <label htmlFor="vc_name">
             Nume curs <span style={{ color: "var(--danger)" }}>*</span>
           </label>
-          <input name="name" type="text" required defaultValue={initial?.name ?? ""} />
+          <input id="vc_name" name="name" type="text" required defaultValue={initial?.name ?? ""} />
         </div>
       </div>
 
       <div className="form-group" style={{ marginTop: 12 }}>
-        <label>Descriere</label>
-        <textarea name="description" rows={4} defaultValue={initial?.description ?? ""} />
+        <label htmlFor="vc_description">Descriere</label>
+        <textarea id="vc_description" name="description" rows={4} defaultValue={initial?.description ?? ""} />
       </div>
 
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

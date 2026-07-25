@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { getRealSession } from "@/lib/auth";
 import { logout } from "@/app/admin/actions";
 import AdminBarEditLink from "./AdminBarEditLink";
 
@@ -23,11 +23,17 @@ const CSS = `
 #clp-adminbar .bar-brand { font-weight: 600; color: #fff; }
 #clp-adminbar .bar-sep { flex: 1; }
 #clp-adminbar .bar-logout { border-right: none; border-left: 1px solid rgba(255,255,255,.07); }
+/* bar.php:43-44 — cu bara prezentă conținutul coboară la 120px (32px bară + 88px navbar).
+   În port padding-ul stă pe wrapper-ul din (site)/layout.tsx, nu pe <body>. */
+body:has(#clp-adminbar) .clp-site-shell { padding-top: 120px !important; }
 body:has(#clp-adminbar) .navbar { top: 32px !important; }
 `;
 
 export default async function AdminBar() {
-  if (!(await getSession())) return null;
+  // bar.php:16-21 — bara se randează doar pentru userul din cookie cu rol 'owner'
+  // (rolul REAL, impersonarea nu contează: bar.php citește direct clp_auth).
+  const real = await getRealSession();
+  if (real?.role !== "owner") return null;
 
   return (
     <>

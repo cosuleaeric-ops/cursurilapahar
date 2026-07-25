@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { phpDate } from "@/lib/messages";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -55,21 +56,18 @@ export async function addComment(formData: FormData): Promise<void> {
   const id = Number(g(formData, "id"));
   const text = g(formData, "text");
   if (!id || !text) return;
-  const at = new Intl.DateTimeFormat("ro-RO", {
-    timeZone: "Europe/Bucharest",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date());
-  const entry = JSON.stringify([{ at, by: session.username, text }]);
+  // PHP taie comentariul la 2000 de caractere (mb_substr, deci pe code point-uri).
+  const clipped = Array.from(text).slice(0, 2000).join("");
+  const entry = JSON.stringify([{ at: phpDate(new Date()), by: session.username, text: clipped }]);
   await sql`UPDATE messages SET comments = comments || ${entry}::jsonb WHERE id = ${id}`;
   revalidatePath("/admin/mesaje");
 }
 
 export async function deleteComment(formData: FormData): Promise<void> {
-  await requireAuth();
+  const session = await getSession();
+  if (!session) redirect("/login");
+  // Doar owner-ul șterge comentarii; pentru editor PHP-ul nu tratează deloc cererea.
+  if (session.role !== "owner") return;
   const id = Number(g(formData, "id"));
   const index = Number(g(formData, "index"));
   if (!id || Number.isNaN(index)) return;

@@ -12,22 +12,32 @@ type TodoRow = { id: number; title: string };
 type QuickLink = { url: string; icon?: string; label?: string };
 const todoPlain = (t: string) => t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1");
 
-const dFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: "Europe/Bucharest", day: "numeric", month: "long", year: "numeric" });
-const cardTitle = (t: string) => t.replace(/\s+\/\/\s+.+$/u, "");
+// PHP afișează `date_display` din courses.json, generat de clp_date_display_from_raw()
+// → clp_format_date_ro($raw, true, true), deci luna cu majusculă: „28 Iulie 2026".
+const RO_MONTHS = ["", "Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
+const ymdFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" });
+const dateDisplay = (iso: string) => {
+  const [y, m, d] = ymdFmt.format(new Date(iso)).split("-");
+  return `${Number(d)} ${RO_MONTHS[Number(m)]} ${y}`;
+};
 
 export default async function AdminHome() {
   const session = await getSession();
+  // Dashboard-ul PHP citește doar cardurile din courses.json (clp_load_courses_for_admin),
+  // nu și cursurile venite din statistici → în Neon acelea sunt rândurile fără legacy_card_id.
   const upcoming = (await sql`
     SELECT id, title, starts_at FROM events
-    WHERE to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
+    WHERE legacy_card_id IS NOT NULL
+      AND to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
           >= to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
     ORDER BY starts_at ASC LIMIT 4
   `) as EventRow[];
 
+  // PHP ia primele 5 din todos.json (ordine de inserare) = cele mai VECHI 5 necompletate.
   const todos = (await sql`
     SELECT id, title FROM todos
     WHERE completed = false AND assigned_to = ${session?.username ?? ""}
-    ORDER BY created_at DESC LIMIT 5
+    ORDER BY id ASC LIMIT 5
   `) as TodoRow[];
   const todoDot = session?.username === "andy" ? "#16a34a" : "#2563eb";
 
@@ -40,16 +50,16 @@ export default async function AdminHome() {
   const [tplRow] = (await sql`SELECT value FROM settings WHERE key = 'templates'`) as { value: unknown }[];
   const [igRow] = (await sql`SELECT value FROM settings WHERE key = 'instagram_posts'`) as { value: unknown }[];
 
-  // Calendarul de pe dashboard: toate cursurile, grupate pe zi (ora București).
+  // Calendarul de pe dashboard: doar cardurile din courses.json (legacy_card_id), grupate pe zi (ora București).
   const calRows = (await sql`
     SELECT title, to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS d
-    FROM events WHERE starts_at IS NOT NULL
+    FROM events WHERE starts_at IS NOT NULL AND legacy_card_id IS NOT NULL
   `) as { title: string; d: string }[];
   const coursesByDay: Record<string, string[]> = {};
   for (const r of calRows) (coursesByDay[r.d] ??= []).push(r.title);
   const igPosts =
     igRow?.value && typeof igRow.value === "object" ? (igRow.value as Record<string, string[]>) : {};
-  const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
+  const todayStr = ymdFmt.format(new Date());
   const templates = Array.isArray(tplRow?.value) ? (tplRow.value as { icon?: string; label?: string; text?: string }[]) : [];
   const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
   const canva = quickLinks.filter((q) => (q.url ?? "").includes("canva.com"));
@@ -92,8 +102,8 @@ export default async function AdminHome() {
                 <li key={c.id}>
                   <span className="bc-li-dot" style={{ background: "#2563eb" }}></span>
                   <span>
-                    {cardTitle(c.title)}
-                    {c.starts_at && <span className="bc-li-meta"> · {dFmt.format(new Date(c.starts_at))}</span>}
+                    {c.title}
+                    {c.starts_at && <span className="bc-li-meta"> · {dateDisplay(c.starts_at)}</span>}
                   </span>
                 </li>
               ))}

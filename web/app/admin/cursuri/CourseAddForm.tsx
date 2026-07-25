@@ -29,14 +29,18 @@ function Combobox({
   options,
   value,
   onChange,
+  onPick,
+  onBlur,
   required,
 }: {
   id: string;
-  name: string;
+  name?: string;
   label: string;
   options: Opt[];
   value: string;
   onChange: (v: string) => void;
+  onPick?: (o: Opt) => void;
+  onBlur?: () => void;
   required?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -68,6 +72,7 @@ function Combobox({
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
+        onBlur={onBlur}
       />
       {open && matches.length > 0 && (
         <div className="speaker-suggestions">
@@ -78,6 +83,7 @@ function Combobox({
               onMouseDown={(e) => {
                 e.preventDefault();
                 onChange(o.name);
+                onPick?.(o);
                 setOpen(false);
               }}
             >
@@ -91,18 +97,32 @@ function Combobox({
   );
 }
 
+// clpFormatDateRo() (admin-course-form.js:6-13) — luna cu majusculă: „28 Iulie 2026".
+const RO_MONTHS = ["", "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+function formatDateRo(ymd: string): string {
+  if (!ymd) return "";
+  const p = ymd.split("-");
+  if (p.length !== 3) return ymd;
+  const m = RO_MONTHS[parseInt(p[1], 10)] ?? "";
+  return `${parseInt(p[2], 10)} ${m ? m.charAt(0).toUpperCase() + m.slice(1) : ""} ${p[0]}`;
+}
+
 export default function CourseAddForm({
   action,
   speakers,
   locations,
   edit,
   error,
+  year,
+  month,
 }: {
   action: (fd: FormData) => void | Promise<void>;
   speakers: Opt[];
   locations: Opt[];
   edit?: CourseEdit | null;
   error?: string;
+  year: number;
+  month: number;
 }) {
   const [title, setTitle] = useState(edit?.title ?? "");
   const [dateRaw, setDateRaw] = useState(edit?.date_raw ?? "");
@@ -111,7 +131,31 @@ export default function CourseAddForm({
   const [location, setLocation] = useState(edit?.location ?? "");
   const [ltUrl, setLtUrl] = useState(edit?.livetickets_url ?? "");
   const [imageUrl, setImageUrl] = useState(edit?.image_url ?? "");
-  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [msg, setMsg] = useState<{ text: string; tone: "muted" | "ok" | "err" } | null>(null);
+
+  // Se trimite doar id-ul speakerului (cursuri-tab.php:39-40 — inputul de text nu are `name`).
+  const speakerIdRef = useRef<HTMLInputElement>(null);
+  const initialSpeakerId =
+    speakers.find((s) => s.name.trim().toLowerCase() === (edit?.speaker_name ?? "").trim().toLowerCase())?.id ?? 0;
+
+  const setSpeakerId = (v: number) => {
+    if (speakerIdRef.current) speakerIdRef.current.value = v ? String(v) : "";
+    return v;
+  };
+
+  // clpResolveSpeakerFromInput(): potrivire exactă pe nume, altfel o singură potrivire parțială.
+  function resolveSpeaker(): number {
+    const q = speaker.trim().toLowerCase();
+    if (!q) return setSpeakerId(0);
+    const exact = speakers.find((s) => s.name.toLowerCase() === q);
+    if (exact) return setSpeakerId(exact.id);
+    const partial = speakers.filter((s) => s.name.toLowerCase().includes(q));
+    if (partial.length === 1) {
+      setSpeaker(partial[0].name);
+      return setSpeakerId(partial[0].id);
+    }
+    return setSpeakerId(0);
+  }
 
   async function pullImage(force = false) {
     const url = ltUrl.trim();
@@ -121,23 +165,30 @@ export default function CourseAddForm({
       return;
     }
     if (imageUrl && !force) return;
-    setMsg({ text: "Se preia imaginea…", ok: true });
+    setMsg({ text: "Se preia imaginea…", tone: "muted" });
     const res = await lookupTicketMeta(url);
     if (res.success) {
       setImageUrl(res.data.image_url);
       if (!location.trim() && res.data.location) setLocation(res.data.location);
-      setMsg({ text: res.data.image_url ? "✓ Imagine preluată." : "Link valid, dar nu s-a găsit imagine.", ok: true });
+      setMsg({
+        text: res.data.image_url ? "✓ Imagine preluată." : "Link valid, dar nu s-a găsit imagine.",
+        tone: "ok",
+      });
     } else {
-      setMsg({ text: res.message, ok: false });
+      setMsg({ text: res.message, tone: "err" });
     }
   }
 
-  const dateDisplay = dateRaw
-    ? new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(
-        new Date(`${dateRaw}T12:00:00`),
-      )
-    : "";
-  const showPreview = title.trim() !== "" || imageUrl !== "";
+  // admin-course-form.js:232-234 — la încărcarea paginii, un curs cu link dar fără
+  // imagine își preia singur imaginea.
+  useEffect(() => {
+    if (edit?.livetickets_url && !edit.image_url) void pullImage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dateDisplay = formatDateRo(dateRaw);
+  // updateCoursePreview(): fără titlu previewul rămâne ascuns, indiferent de imagine.
+  const showPreview = title.trim() !== "";
 
   return (
     <div className="card" id="course-form-card">
@@ -148,9 +199,25 @@ export default function CourseAddForm({
           Adaugă mai întâi speakeri în tab-ul <Link href="/admin/speakeri">Speakeri</Link>.
         </p>
       ) : (
-        <form action={action} className="course-add-form">
+        <form
+          action={action}
+          className="course-add-form"
+          // validateCourseForm() (admin-course-form.js:143-156)
+          onSubmit={(e) => {
+            if (!resolveSpeaker()) {
+              e.preventDefault();
+              alert("Alege un speaker din lista de pe tab-ul Speakeri (nume exact).");
+              return;
+            }
+            if (!(COURSE_TIMES as readonly string[]).includes(time)) {
+              e.preventDefault();
+              alert("Alege ora din listă (17:00, 17:30, 18:00, 18:30 sau 19:00).");
+            }
+          }}
+        >
           {edit && <input type="hidden" name="id" value={edit.id} />}
           <input type="hidden" name="image_url" value={imageUrl} />
+          <input type="hidden" name="speaker_id" ref={speakerIdRef} defaultValue={initialSpeakerId || ""} />
           <div className="course-add-fields">
             <div className="form-group">
               <label htmlFor="f_title">Nume curs</label>
@@ -187,11 +254,15 @@ export default function CourseAddForm({
             </div>
             <Combobox
               id="f_speaker_input"
-              name="speaker_name"
               label="Speaker"
               options={speakers}
               value={speaker}
-              onChange={setSpeaker}
+              onChange={(v) => {
+                setSpeaker(v);
+                setSpeakerId(0); // tastarea invalidează id-ul rezolvat (admin-course-form.js:113)
+              }}
+              onPick={(o) => setSpeakerId(o.id)}
+              onBlur={resolveSpeaker}
               required
             />
             <Combobox
@@ -238,7 +309,14 @@ export default function CourseAddForm({
           </div>
 
           {msg && (
-            <div style={{ marginTop: 8, fontSize: 13, color: msg.ok ? "var(--text-muted)" : "var(--danger)" }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 13,
+                // admin-course-form.js: gri la încărcare, verde la reușită, roșu la eroare.
+                color: msg.tone === "ok" ? "var(--success)" : msg.tone === "err" ? "var(--danger)" : "var(--text-muted)",
+              }}
+            >
               {msg.text}
             </div>
           )}
@@ -258,8 +336,9 @@ export default function CourseAddForm({
             <button type="submit" className="btn btn-primary btn-sm">
               {edit ? "Salvează" : "Adaugă cursul"}
             </button>
+            {/* cursuri-tab.php:79 — „Anulează" păstrează luna și tabul din navigator. */}
             {edit && (
-              <Link href="/admin/cursuri" className="btn btn-secondary btn-sm">
+              <Link href={`/admin/cursuri?year=${year}&month=${month}&ctab=cursuri`} className="btn btn-secondary btn-sm">
                 Anulează
               </Link>
             )}

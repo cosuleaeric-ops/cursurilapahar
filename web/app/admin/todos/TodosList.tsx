@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { addTodo, toggleTodo, deleteTodo } from "./actions";
 
 // Port din admin/todos/index.php — titlu + „+", formular ascuns cu pastile de
@@ -87,7 +87,23 @@ export default function TodosList({
   users: User[];
 }) {
   const [open, setOpen] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
   const byName = Object.fromEntries(users.map((u) => [u.username, u]));
+
+  // toggleTodoForm(): la închidere („Anulează" sau re-click pe „+") golește
+  // câmpul de titlu, la deschidere îl focalizează (index.php:271-277).
+  const toggleForm = (forceClose?: boolean) => {
+    if (forceClose || open) {
+      setOpen(false);
+      if (titleRef.current) titleRef.current.value = "";
+    } else {
+      setOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (open) titleRef.current?.focus();
+  }, [open]);
 
   return (
     <>
@@ -96,7 +112,7 @@ export default function TodosList({
         <button
           type="button"
           className="todo-add-icon"
-          onClick={() => setOpen(!open)}
+          onClick={() => toggleForm()}
           title="Adaugă o sarcină"
           aria-label="Adaugă o sarcină"
         >
@@ -105,7 +121,7 @@ export default function TodosList({
       </div>
 
       <form action={addTodo} className={`todo-add-form${open ? " open" : ""}`}>
-        <input type="text" name="title" className="todo-add-input" required autoFocus={open} />
+        <input type="text" name="title" className="todo-add-input" required ref={titleRef} />
         <div className="todo-add-assign">
           <span className="todo-add-assign-label">Atribuie:</span>
           {users.map((u) => (
@@ -119,7 +135,7 @@ export default function TodosList({
           <button type="submit" className="todo-add-submit">
             Adaugă
           </button>
-          <button type="button" className="todo-add-cancel" onClick={() => setOpen(false)}>
+          <button type="button" className="todo-add-cancel" onClick={() => toggleForm(true)}>
             Anulează
           </button>
         </div>
@@ -138,15 +154,17 @@ export default function TodosList({
             <summary>
               <span className="todo-completed-caret">▸</span> {doneCount} completat{doneCount === 1 ? "" : "e"}
             </summary>
+            {/* Fără wrapper: .todo-done-day trebuie să rămână copil direct al
+                .todo-completed, ca selectorul :first-of-type să prindă (index.php:241-243). */}
             {doneGroups.map((g) => (
-              <div key={g.label}>
+              <Fragment key={g.label}>
                 <div className="todo-done-day">{g.label}</div>
                 <ul className="todo-items todo-completed-items">
                   {g.items.map((t) => (
                     <Item key={t.id} t={t} users={byName} done />
                   ))}
                 </ul>
-              </div>
+              </Fragment>
             ))}
           </details>
         )}

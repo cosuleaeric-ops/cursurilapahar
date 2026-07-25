@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef } from "react";
 import { regenerateSyncToken } from "./actions";
 
 // Cardul „🔄 Sync Token" din admin/partials/config-tab.php.
 export default function SyncToken({ token }: { token: string }) {
-  const [copied, setCopied] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="card">
@@ -16,22 +16,23 @@ export default function SyncToken({ token }: { token: string }) {
       </p>
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
         <input
+          ref={inputRef}
           type="text"
           value={token}
           readOnly
           style={{ fontFamily: "monospace", fontSize: 12, flex: 1 }}
           onFocus={(e) => e.currentTarget.select()}
         />
+        {/* PHP (admin-common.js:12-17): butonul selectează inputul și copiază, fără feedback vizual */}
         <button
           type="button"
           className="btn btn-secondary btn-sm"
           onClick={() => {
+            inputRef.current?.select();
             navigator.clipboard.writeText(token);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
           }}
         >
-          {copied ? "Copiat" : "Copiază"}
+          Copiază
         </button>
         <form
           action={regenerateSyncToken}

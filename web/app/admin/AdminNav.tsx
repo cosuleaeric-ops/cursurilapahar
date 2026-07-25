@@ -25,11 +25,12 @@ const NAV: Entry[] = [
   },
   {
     label: "Site",
+    // layout-nav.php:72-77 — exact 4 linkuri; „Cursuri posibile" e doar în harta de
+    // breadcrumb-uri (:98), nu în nav.
     items: [
       { href: "/admin/voturi", label: "Voturi" },
       { href: "/admin/imagini", label: "Imagini" },
       { href: "/admin/aspect", label: "Aspect" },
-      { href: "/admin/cursuri-posibile", label: "Cursuri posibile" },
       { href: "/admin/ab", label: "Test A/B" },
     ],
   },
@@ -37,9 +38,22 @@ const NAV: Entry[] = [
   { href: "/admin/setari", label: "Setări", owner: true },
 ];
 
+// admin/statistici/layout_nav.php:8-13 — orice pagină de sub /admin/statistici care
+// nu e pnl rulează cu $tab='dashboard'. În port: Test A/B (ab_headline.php) și
+// detaliile unui curs (statistici/cursuri/view.php).
+const STATS_PAGES = [/^\/admin\/ab$/, /^\/admin\/cursuri\/[^/]+\/detalii$/];
+export const isStatsPage = (path: string) => STATS_PAGES.some((re) => re.test(path));
+
 export default function AdminNav({ role }: { role: string }) {
   const path = usePathname();
-  const isActive = (t: Item) => (t.exact ? path === t.href : path.startsWith(t.href));
+  // layout-nav.php:53 + :58 — pe paginile de statistici se aprind simultan „Dashboard"
+  // (tab-ul e 'dashboard') și „Test A/B" (deci și triggerul „Site", :55).
+  const abActive = isStatsPage(path);
+  const isActive = (t: Item) => {
+    if (t.href === "/admin/ab") return abActive;
+    if (t.exact) return path === t.href || abActive;
+    return path.startsWith(t.href);
+  };
 
   return (
     <nav className="bc-botnav">

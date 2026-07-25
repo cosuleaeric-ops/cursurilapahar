@@ -27,15 +27,23 @@ export default function LocationsPanel({
   updateAction: (fd: FormData) => void | Promise<void>;
   deleteAction: (fd: FormData) => void | Promise<void>;
 }) {
-  const [open, setOpen] = useState(false);
-  const show = open || !!edit;
+  // PHP: wrapper-ul #loc-form pornește vizibil doar la ?edit=, iar butonul
+  // comută display-ul direct pe DOM — deci în modul editare primul click îl
+  // ascunde. Fiecare acțiune fiind urmată de reîncărcare completă, starea se
+  // recalculează din ?edit= ori de câte ori se schimbă locația editată.
+  const [visible, setVisible] = useState(!!edit);
+  const [editId, setEditId] = useState(edit?.id ?? null);
+  if (editId !== (edit?.id ?? null)) {
+    setEditId(edit?.id ?? null);
+    setVisible(!!edit);
+  }
 
   return (
     <>
       <div className="card">
         <div className="card-title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span>Locații ({locations.length})</span>
-          <button type="button" onClick={() => setOpen(!open)} className="btn btn-sm btn-primary">
+          <button type="button" onClick={() => setVisible(!visible)} className="btn btn-sm btn-primary">
             + Adaugă locație
           </button>
         </div>
@@ -86,10 +94,17 @@ export default function LocationsPanel({
         )}
       </div>
 
-      <div style={show ? undefined : { display: "none" }}>
+      <div style={visible ? undefined : { display: "none" }}>
         <div className="card crm-form">
           <div className="card-title">{edit ? "Editează locație" : "Adaugă locație"}</div>
-          <LocationForm action={edit ? updateAction : createAction} initial={edit} />
+          {/* cheia forțează remontarea la schimbarea locației editate, ca la
+              reîncărcarea de pagină din PHP: câmpurile vin de la server */}
+          <LocationForm
+            key={edit?.id ?? "new"}
+            action={edit ? updateAction : createAction}
+            initial={edit}
+            onSubmitted={() => setVisible(false)}
+          />
         </div>
       </div>
     </>

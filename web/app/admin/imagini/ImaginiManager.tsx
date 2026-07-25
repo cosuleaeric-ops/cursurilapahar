@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { deleteImage, saveImageSelection } from "./actions";
 
-export type LibImage = { url: string; name: string; deletable: boolean };
+export type LibImage = { url: string; name: string; deletable: boolean; mtime: number };
 type Transform = { x: number; y: number; zoom: number };
 
 const DEF: Transform = { x: 50, y: 50, zoom: 100 };
@@ -48,12 +48,29 @@ export default function ImaginiManager({
     setDirty(true);
   }
 
-  function reorder(target: "hero" | "gallery", overUrl: string) {
-    if (!dragUrl || dragUrl === overUrl) return;
+  // Poziția de inserare se calculează pe toată banda: elementul intră înaintea primului
+  // thumbnail al cărui mijloc e la dreapta cursorului; dacă nu există niciunul, ajunge ULTIMUL.
+  function dragOverStrip(e: DragEvent<HTMLDivElement>, target: "hero" | "gallery") {
+    e.preventDefault();
+    if (!dragUrl) return;
     const [list, setList] = lists[target];
-    if (!list.includes(dragUrl) || !list.includes(overUrl)) return;
+    if (!list.includes(dragUrl)) return;
+    let afterUrl: string | null = null;
+    let afterOffset = -Infinity;
+    for (const el of Array.from(e.currentTarget.querySelectorAll<HTMLElement>(".img-strip-item"))) {
+      const url = el.dataset.url;
+      if (!url || url === dragUrl) continue;
+      const box = el.getBoundingClientRect();
+      const offset = e.clientX - box.left - box.width / 2;
+      if (offset < 0 && offset > afterOffset) {
+        afterOffset = offset;
+        afterUrl = url;
+      }
+    }
     const next = list.filter((u) => u !== dragUrl);
-    next.splice(next.indexOf(overUrl), 0, dragUrl);
+    if (afterUrl === null) next.push(dragUrl);
+    else next.splice(next.indexOf(afterUrl), 0, dragUrl);
+    if (next.every((u, i) => u === list[i])) return;
     setList(next);
     setDirty(true);
   }
@@ -65,7 +82,9 @@ export default function ImaginiManager({
 
   const editorT = editorUrl ? tFor(editorUrl) : DEF;
 
-  function Strip({ target }: { target: "hero" | "gallery" }) {
+  // funcție, nu componentă: elementele rămân în arborele lui ImaginiManager, așa că
+  // reconcilierea mută nodurile existente în timpul drag-ului (o re-montare ar rupe drag-ul)
+  function strip(target: "hero" | "gallery") {
     const [list] = lists[target];
     if (!list.length) {
       return (
@@ -77,20 +96,22 @@ export default function ImaginiManager({
       );
     }
     return (
-      <div className="img-strip" data-target={target}>
+      <div
+        className="img-strip"
+        data-target={target}
+        onDragOver={(e) => dragOverStrip(e, target)}
+        onDrop={(e) => e.preventDefault()}
+      >
         {list.map((url, i) => {
           const t = tFor(url);
           return (
             <div
               key={url}
-              className="img-strip-item"
+              className={`img-strip-item${dragUrl === url ? " dragging" : ""}`}
+              data-url={url}
               draggable
               onDragStart={() => setDragUrl(url)}
               onDragEnd={() => setDragUrl(null)}
-              onDragOver={(e) => {
-                e.preventDefault();
-                reorder(target, url);
-              }}
             >
               <span className="img-strip-badge">{i + 1}</span>
               <img
@@ -137,7 +158,7 @@ export default function ImaginiManager({
             4.5s. Adaugă/scoate din Bibliotecă (butonul <span className="img-hint-chip">Hero</span>). Apasă <strong>⚙</strong>{" "}
             pe o imagine ca să-i reglezi poziția și zoom-ul.
           </p>
-          <Strip target="hero" />
+          {strip("hero")}
 
           {editorUrl && (
             <div className="hero-editor">
@@ -186,7 +207,7 @@ export default function ImaginiManager({
             Trage pentru a reordona. Adaugă/scoate imagini din Bibliotecă (butonul{" "}
             <span className="img-hint-chip img-hint-chip-gal">Galerie</span>).
           </p>
-          <Strip target="gallery" />
+          {strip("gallery")}
         </div>
 
         <div className="img-save-bar">

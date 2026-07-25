@@ -7,17 +7,6 @@ export type QuickLink = { icon?: string; label?: string; url?: string };
 
 type Row = QuickLink & { _key: number };
 
-const INPUT: React.CSSProperties = {
-  padding: "8px 10px",
-  border: "1px solid var(--border)",
-  borderRadius: "var(--radius)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  fontSize: 14,
-  boxSizing: "border-box",
-  width: "100%",
-};
-
 export default function QuickLinksEditor({ links }: { links: QuickLink[] }) {
   const nextKey = useRef(links.length);
   const [rows, setRows] = useState<Row[]>(links.map((l, i) => ({ ...l, _key: i })));
@@ -30,9 +19,10 @@ export default function QuickLinksEditor({ links }: { links: QuickLink[] }) {
             key={ql._key}
             style={{ display: "grid", gridTemplateColumns: "60px 1fr 3fr auto", gap: 8, alignItems: "center" }}
           >
-            <input type="text" name="ql_icon" defaultValue={ql.icon ?? "🔗"} style={{ ...INPUT, textAlign: "center", fontSize: 18 }} />
-            <input type="text" name="ql_label" defaultValue={ql.label ?? ""} style={INPUT} />
-            <input type="text" name="ql_url" defaultValue={ql.url ?? ""} style={INPUT} />
+            {/* PHP (config-tab.php:23-25): inputurile nu sunt în .form-group, deci rămân pe stilul implicit */}
+            <input type="text" name="ql_icon" defaultValue={ql.icon ?? "🔗"} style={{ textAlign: "center", fontSize: 18 }} />
+            <input type="text" name="ql_label" defaultValue={ql.label ?? ""} />
+            <input type="text" name="ql_url" defaultValue={ql.url ?? ""} />
             <button
               type="button"
               onClick={() => setRows(rows.filter((r) => r._key !== ql._key))}
