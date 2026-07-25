@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { CopyButton } from "./templates/TemplatesEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,8 @@ export default async function AdminHome() {
   const MSG_LABEL: Record<string, string> = { contact: "Contact", sustine: "Speakeri", gazduieste: "Locații", parteneriat: "Parteneriate" };
 
   const [qlRow] = (await sql`SELECT value FROM settings WHERE key = 'quick_links'`) as { value: unknown }[];
+  const [tplRow] = (await sql`SELECT value FROM settings WHERE key = 'templates'`) as { value: unknown }[];
+  const templates = Array.isArray(tplRow?.value) ? (tplRow.value as { icon?: string; label?: string; text?: string }[]) : [];
   const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
   const canva = quickLinks.filter((q) => (q.url ?? "").includes("canva.com"));
   const general = quickLinks.filter((q) => !(q.url ?? "").includes("canva.com"));
@@ -142,6 +145,24 @@ export default async function AdminHome() {
           )}
         </div>
       )}
+
+      <div className="dash-section" style={{ marginBottom: 24 }}>
+        <div className="dash-section-title">
+          <span>Templates</span>
+          <Link href="/admin/templates">Editează →</Link>
+        </div>
+        {templates.length === 0 ? (
+          <p className="bc-card-empty">
+            Niciun template încă. <Link href="/admin/templates" style={{ color: "var(--accent)" }}>Adaugă unul</Link>.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {templates.map((t, i) => (
+              <CopyButton key={i} className="ql-btn" text={t.text ?? ""} label={t.label ?? ""} icon={t.icon ?? "📋"} />
+            ))}
+          </div>
+        )}
+      </div>
     </>
   );
 }
