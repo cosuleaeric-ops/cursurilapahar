@@ -27,6 +27,7 @@ loadEnv();
 interface SiteCard { id: string; title: string; date_raw: string; date_display?: string; time?: string; speaker_id?: string; location?: string; livetickets_url?: string; image_url?: string; active?: boolean; speaker_name?: string; link_added_at?: string; discount_percent?: number | string; discount_ends_at?: string; }
 interface StatCourse { id: number; name: string; date: string; created_at?: string; viza_done?: number; external_id?: string | null; }
 interface Ticket { course_id: number; participant_name: string; }
+interface VizaSub { course_id: number; seria?: string; tarif?: number|string; nr_unitati?: number|string; de_la?: string|null; pana_la?: string|null; }
 interface Report { course_id: number; total_bilete: number; total_incasari: number; original_name?: string; uploaded_at?: string; types_json?: unknown; }
 interface Speaker { id: string; name: string; email?: string; phone?: string; status?: string; notes?: string; courses?: string[]; }
 interface Loc { id: string; name: string; phone?: string; maps_link?: string; days?: string; notes?: string; }
@@ -63,7 +64,7 @@ interface Bundle {
   speakers: Speaker[];
   locations: Loc[];
   collaborations?: Collab[] | null;
-  statistici: { courses: StatCourse[]; tickets: Ticket[]; course_reports: Report[] };
+  statistici: { courses: StatCourse[]; tickets: Ticket[]; course_reports: Report[]; viza_subtips?: VizaSub[] };
   pnl: { venituri: Venit[]; cheltuieli: Chelt[] };
   messages_log?: string | null;
   messages_meta?: Record<string, MsgMeta> | null;
@@ -344,6 +345,20 @@ async function main(): Promise<void> {
       reportsOk++;
     }
 
+    // 5b) viza_subtips — altfel TRUNCATE de mai sus le golește și nu le mai pune
+    //     nimeni la loc (seriile se pot re-extrage și din PDF, dar sursa e SQLite)
+    let vizaOk = 0;
+    for (const v of bundle.statistici.viza_subtips ?? []) {
+      const eid = eventByStatId.get(v.course_id);
+      if (!eid) continue;
+      await db.query(
+        `INSERT INTO viza_subtips(event_id, seria, tarif, nr_unitati, de_la, pana_la)
+         VALUES($1,$2,$3,$4,$5,$6)`,
+        [eid, v.seria ?? "", Number(v.tarif) || 0, Number(v.nr_unitati) || 0, v.de_la ?? null, v.pana_la ?? null]
+      );
+      vizaOk++;
+    }
+
     // 6) speakers (courses[] -> topics text[])
     for (const s of bundle.speakers) {
       await db.query(
@@ -413,6 +428,7 @@ async function main(): Promise<void> {
     console.log(`  events           ${bundle.statistici.courses.length} stats + ${cardsNew} carduri noi (${cardsMatched} carduri unite)`);
     console.log(`  tickets          ${ticketsOk}${ticketsOrphan ? ` (${ticketsOrphan} orfane, ignorate)` : ""}`);
     console.log(`  event_reports    ${reportsOk}`);
+    console.log(`  viza_subtips     ${vizaOk}`);
     console.log(`  speakers         ${bundle.speakers.length}`);
     console.log(`  locations        ${bundle.locations.length}`);
     console.log(`  collaborations   ${collabs.length}`);
