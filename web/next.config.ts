@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/admin/imagini": ["./public/assets/images/**"],
   },
+  // URL vechi indexat, redirecționat 301 și în .htaccess-ul PHP.
+  async redirects() {
+    return [{ source: "/sustine-un-curs", destination: "/prezinta-un-curs", permanent: true }];
+  },
   // Upload-urile vechi de pe PHP au fost copiate în Blob (scripts/copy-uploads-to-blob.mjs);
   // referințele /assets/images/uploads/* din settings rămân valabile prin fallback.
   async rewrites() {
