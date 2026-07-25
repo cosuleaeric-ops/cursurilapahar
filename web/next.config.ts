@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   turbopack: { root: import.meta.dirname },
   // Upload imagini hero la rezoluție mare prin server action.
   experimental: { serverActions: { bodySizeLimit: "25mb" } },
+  // pdfjs face require("canvas") pentru randare — noi extragem doar text, deci îl
+  // lăsăm extern ca bundler-ul să nu încerce să rezolve dependința opțională.
+  serverExternalPackages: ["pdfjs-dist"],
   // Biblioteca de imagini listează public/assets/images cu fs la runtime.
   outputFileTracingIncludes: {
     "/admin/imagini": ["./public/assets/images/**"],
