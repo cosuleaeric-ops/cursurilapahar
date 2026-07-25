@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { logout } from "@/app/admin/actions";
+import AdminBarEditLink from "./AdminBarEditLink";
 
 // Bara de admin de pe paginile publice — port din admin/bar.php.
 // Apare doar când ești logat; împinge conținutul cu 32px (navbar-ul coboară).
@@ -25,9 +26,8 @@ const CSS = `
 body:has(#clp-adminbar) .navbar { top: 32px !important; }
 `;
 
-export default async function AdminBar({ path }: { path?: string }) {
+export default async function AdminBar() {
   if (!(await getSession())) return null;
-  const onIdeas = !!path?.startsWith("/cursuri-posibile");
 
   return (
     <>
@@ -41,7 +41,7 @@ export default async function AdminBar({ path }: { path?: string }) {
         <a href="/admin/imagini">🖼 Imagini</a>
         <a href="/admin/mesaje">💬 Mesaje</a>
         <a href="/admin/voturi">❤️ Vot</a>
-        {onIdeas && <a href="/admin/cursuri-posibile">✏️ Editează pagina</a>}
+        <AdminBarEditLink />
         <span className="bar-sep"></span>
         <form action={logout} style={{ margin: 0, height: "100%" }}>
           <button type="submit" className="bar-link bar-logout">
