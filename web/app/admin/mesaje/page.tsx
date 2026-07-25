@@ -18,6 +18,7 @@ const CATS: { key: string; label: string; icon: string }[] = [
   { key: "sustine", label: "Speakeri", icon: "🎤" },
   { key: "gazduieste", label: "Locații", icon: "📍" },
   { key: "parteneriat", label: "Parteneriate", icon: "🤝" },
+  { key: "sponsorizare", label: "Sponsorizări", icon: "⭐" },
 ];
 
 const dtFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: "Europe/Bucharest", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });

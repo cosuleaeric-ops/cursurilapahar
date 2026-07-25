@@ -6,17 +6,21 @@ import { submitColaborare } from "./colaborare-action";
 export function ColaborareForm({
   formType,
   children,
+  buttonClassName = "btn btn-accent",
+  buttonLabel = "Trimite",
 }: {
-  formType: "sustine" | "gazduieste" | "parteneriat";
+  formType: "sustine" | "gazduieste" | "parteneriat" | "sponsorizare";
   children: React.ReactNode;
+  buttonClassName?: string;
+  buttonLabel?: string;
 }) {
   const [msg, action, pending] = useActionState(submitColaborare, null);
   return (
     <form className="inner-page-form" action={action}>
       <input type="hidden" name="form_type" value={formType} />
       {children}
-      <button type="submit" className="btn btn-accent" disabled={pending}>
-        {pending ? "Se trimite…" : "Trimite"}
+      <button type="submit" className={buttonClassName} disabled={pending}>
+        {pending ? "Se trimite…" : buttonLabel}
       </button>
       {msg && (
         <div className="form-message" aria-live="polite">

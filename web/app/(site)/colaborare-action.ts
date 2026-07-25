@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { sendConfirmationEmail } from "@/lib/brevo";
 
-const CATEGORIES = new Set(["sustine", "gazduieste", "parteneriat"]);
+const CATEGORIES = new Set(["sustine", "gazduieste", "parteneriat", "sponsorizare"]);
 
 export async function submitColaborare(_prev: string | null, formData: FormData): Promise<string> {
   const category = String(formData.get("form_type") ?? "");
