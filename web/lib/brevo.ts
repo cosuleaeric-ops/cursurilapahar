@@ -85,3 +85,36 @@ export async function sendConfirmationEmail(category: string, email: string, nam
     // best-effort — confirmarea nu blochează salvarea mesajului
   }
 }
+
+/** Emailul cu linkul de autentificare pentru admin. */
+export async function sendMagicLinkEmail(email: string, name: string, link: string): Promise<boolean> {
+  try {
+    const rows = (await sql`SELECT value FROM settings WHERE key = 'brevo_api_key'`) as { value: unknown }[];
+    const apiKey = String(rows[0]?.value ?? "").replace(/\s+/g, "");
+    if (!apiKey) return false;
+
+    const html =
+      '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0"><tr><td align="center">' +
+      '<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;font-family:Arial,Helvetica,sans-serif">' +
+      '<tr><td style="padding:32px;color:#2b2b2b;font-size:16px;line-height:1.6">' +
+      `<div style="font-size:22px;font-weight:bold;color:#1a1a1a;margin-bottom:16px">Intră în admin, ${name}</div>` +
+      '<p style="margin:0 0 22px">Apasă butonul de mai jos ca să te autentifici. Linkul e valabil <b>15 minute</b>.</p>' +
+      `<p style="margin:0 0 22px"><a href="${link}" style="display:inline-block;background:#2563eb;color:#fff;font-weight:bold;text-decoration:none;padding:13px 26px;border-radius:10px">Intră în admin</a></p>` +
+      '<p style="margin:0;font-size:13px;color:#6f6a66">Dacă nu ai cerut tu linkul, ignoră mesajul.</p>' +
+      "</td></tr></table></td></tr></table>";
+
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { accept: "application/json", "api-key": apiKey, "content-type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: "Cursuri la Pahar", email: "contact@cursurilapahar.ro" },
+        to: [{ email, name: name || email }],
+        subject: "Linkul tău de acces — Admin Cursuri la Pahar",
+        htmlContent: html,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

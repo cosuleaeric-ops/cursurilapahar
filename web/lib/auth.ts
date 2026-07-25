@@ -54,6 +54,16 @@ export async function createSession(s: Session): Promise<void> {
 }
 
 /** Verifică un magic-link token semnat; întoarce username-ul sau null. */
+/** Token de login prin link (valabil 15 minute), semnat cu AUTH_SECRET. */
+export async function createMagicToken(username: string): Promise<string> {
+  return new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(username)
+    .setAudience(MAGIC_AUD)
+    .setExpirationTime("15m")
+    .sign(secretKey());
+}
+
 export async function verifyMagicToken(token: string): Promise<string | null> {
   try {
     const { payload } = await jwtVerify(token, secretKey(), { audience: MAGIC_AUD });
