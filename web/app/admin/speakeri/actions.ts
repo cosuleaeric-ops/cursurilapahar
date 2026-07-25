@@ -10,41 +10,54 @@ async function requireAuth(): Promise<void> {
 }
 
 const g = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
-const parseTopics = (raw: string): string[] =>
-  raw.split("\n").map((s) => s.trim()).filter(Boolean);
 
-export async function createSpeaker(formData: FormData): Promise<void> {
+/** Salvare din modal — adaugă sau actualizează, ca `save_speaker` din PHP. */
+export async function saveSpeaker(formData: FormData): Promise<void> {
   await requireAuth();
+  const id = Number(g(formData, "id")) || 0;
   const name = g(formData, "name");
   if (!name) return;
-  await sql`
-    INSERT INTO speakers (name, email, phone, status, notes, topics)
-    VALUES (${name}, ${g(formData, "email") || null}, ${g(formData, "phone") || null},
-            ${g(formData, "status") || "MID"}, ${g(formData, "notes") || null},
-            ${parseTopics(g(formData, "topics"))})
-  `;
+  const email = g(formData, "email") || null;
+  const phone = g(formData, "phone") || null;
+  const status = g(formData, "status") || "MID";
+  const notes = g(formData, "notes") || null;
+
+  if (id) {
+    await sql`
+      UPDATE speakers SET name = ${name}, email = ${email}, phone = ${phone},
+        status = ${status}, notes = ${notes}, updated_at = now()
+      WHERE id = ${id}
+    `;
+  } else {
+    await sql`
+      INSERT INTO speakers (name, email, phone, status, notes)
+      VALUES (${name}, ${email}, ${phone}, ${status}, ${notes})
+    `;
+  }
   revalidatePath("/admin/speakeri");
-  redirect("/admin/speakeri");
 }
 
-export async function updateSpeaker(formData: FormData): Promise<void> {
+/** Schimbare rapidă de status din popover-ul de pe badge. */
+export async function setStatus(formData: FormData): Promise<void> {
   await requireAuth();
   const id = Number(g(formData, "id"));
-  const name = g(formData, "name");
-  if (!id || !name) return;
-  await sql`
-    UPDATE speakers SET
-      name = ${name},
-      email = ${g(formData, "email") || null},
-      phone = ${g(formData, "phone") || null},
-      status = ${g(formData, "status") || "MID"},
-      notes = ${g(formData, "notes") || null},
-      topics = ${parseTopics(g(formData, "topics"))},
-      updated_at = now()
-    WHERE id = ${id}
-  `;
+  const status = g(formData, "status");
+  if (!id || !status) return;
+  await sql`UPDATE speakers SET status = ${status}, updated_at = now() WHERE id = ${id}`;
   revalidatePath("/admin/speakeri");
-  redirect("/admin/speakeri");
+}
+
+/** Temele pe care le poate susține (tab-ul „Cursuri" din modalul Detalii). */
+export async function saveTopics(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  if (!id) return;
+  const topics = formData
+    .getAll("topics")
+    .map((t) => String(t).trim())
+    .filter(Boolean);
+  await sql`UPDATE speakers SET topics = ${topics}, updated_at = now() WHERE id = ${id}`;
+  revalidatePath("/admin/speakeri");
 }
 
 export async function deleteSpeaker(formData: FormData): Promise<void> {
@@ -53,4 +66,14 @@ export async function deleteSpeaker(formData: FormData): Promise<void> {
   if (!id) return;
   await sql`DELETE FROM speakers WHERE id = ${id}`;
   revalidatePath("/admin/speakeri");
+}
+
+/** „Scoate" un lead contactat din lista de speakeri (rămâne în Mesaje). */
+export async function unmarkContacted(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  if (!id) return;
+  await sql`UPDATE messages SET contacted = false WHERE id = ${id}`;
+  revalidatePath("/admin/speakeri");
+  revalidatePath("/admin/mesaje");
 }

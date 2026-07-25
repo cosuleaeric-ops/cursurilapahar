@@ -4,6 +4,7 @@ import { getRealSession, getSession } from "@/lib/auth";
 import { logout } from "./actions";
 import AdminNav from "./AdminNav";
 import UserSwitcher from "./UserSwitcher";
+import BcDoc from "./BcDoc";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const real = await getRealSession();
@@ -54,7 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <div className="wp-layout">
         <main className="wp-main">
-          <div className="bc-doc">{children}</div>
+          <BcDoc>{children}</BcDoc>
         </main>
       </div>
     </div>

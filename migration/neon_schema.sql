@@ -264,6 +264,8 @@ CREATE TABLE messages (
     email      TEXT,
     payload    JSONB NOT NULL DEFAULT '{}',   -- toate câmpurile formularului
     read       BOOLEAN NOT NULL DEFAULT false,
+    contacted  BOOLEAN NOT NULL DEFAULT false, -- lead marcat „contactat" (apare în Speakeri)
+    rating     TEXT,                           -- nope / meh / top (filtrele din Mesaje)
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

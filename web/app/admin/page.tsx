@@ -2,6 +2,7 @@ import Link from "next/link";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { CopyButton } from "./templates/TemplatesEditor";
+import MiniCal from "./MiniCal";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,18 @@ export default async function AdminHome() {
 
   const [qlRow] = (await sql`SELECT value FROM settings WHERE key = 'quick_links'`) as { value: unknown }[];
   const [tplRow] = (await sql`SELECT value FROM settings WHERE key = 'templates'`) as { value: unknown }[];
+  const [igRow] = (await sql`SELECT value FROM settings WHERE key = 'instagram_posts'`) as { value: unknown }[];
+
+  // Calendarul de pe dashboard: toate cursurile, grupate pe zi (ora București).
+  const calRows = (await sql`
+    SELECT title, to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS d
+    FROM events WHERE starts_at IS NOT NULL
+  `) as { title: string; d: string }[];
+  const coursesByDay: Record<string, string[]> = {};
+  for (const r of calRows) (coursesByDay[r.d] ??= []).push(r.title);
+  const igPosts =
+    igRow?.value && typeof igRow.value === "object" ? (igRow.value as Record<string, string[]>) : {};
+  const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
   const templates = Array.isArray(tplRow?.value) ? (tplRow.value as { icon?: string; label?: string; text?: string }[]) : [];
   const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
   const canva = quickLinks.filter((q) => (q.url ?? "").includes("canva.com"));
@@ -163,6 +176,13 @@ export default async function AdminHome() {
           </div>
         )}
       </div>
+
+      <MiniCal
+        today={todayStr}
+        coursesByDay={coursesByDay}
+        igPosts={igPosts}
+        igPostTypes={{ postare_cursuri: { label: "POSTARE CURSURI" } }}
+      />
     </>
   );
 }
