@@ -204,6 +204,8 @@ CREATE TABLE users (
     username      TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     role          TEXT NOT NULL DEFAULT 'admin',
+    email         TEXT,                          -- adresa principală (magic link)
+    emails        TEXT[] NOT NULL DEFAULT '{}',  -- toate adresele acceptate la login
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
