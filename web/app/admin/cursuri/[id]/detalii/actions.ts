@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { put } from "@vercel/blob";
+import { parseReportXlsx, parseVizaSubtips, pdfToText } from "@/lib/rapoarte";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -78,4 +80,83 @@ export async function deleteRaport(formData: FormData): Promise<void> {
   await sql`DELETE FROM event_reports WHERE event_id = ${id}`;
   revalidatePath(`/admin/cursuri/${id}/detalii`);
   back(id);
+}
+
+/** Încarcă raportul XLSX (export eveniment sau decont) → event_reports + fișierul în Blob. */
+export async function uploadRaport(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  const file = formData.get("raport_file");
+  if (!id || !(file instanceof File) || !file.size) back(id);
+  const f = file as File;
+
+  const parsed = parseReportXlsx(await f.arrayBuffer());
+  if ("error" in parsed) redirect(`/admin/cursuri/${id}/detalii?err=${encodeURIComponent(parsed.error)}`);
+
+  let blobUrl: string | null = null;
+  try {
+    const { url } = await put(`rapoarte/${id}-${Date.now()}-${f.name}`, f, { access: "public", addRandomSuffix: false });
+    blobUrl = url;
+  } catch {
+    // fișierul e opțional — cifrele parsate sunt ce contează
+  }
+
+  await sql`
+    INSERT INTO event_reports (event_id, total_bilete, total_incasari, types_json, original_name, blob_url)
+    VALUES (${id}, ${parsed.totalBilete}, ${parsed.totalIncasari},
+            ${JSON.stringify(parsed.types.map((t) => ({ denumire: t.bilet, pret: t.pret, vandute: t.vandute, refund: t.refund })))},
+            ${f.name}, ${blobUrl})
+    ON CONFLICT (event_id) DO UPDATE SET
+      total_bilete = EXCLUDED.total_bilete, total_incasari = EXCLUDED.total_incasari,
+      types_json = EXCLUDED.types_json, original_name = EXCLUDED.original_name,
+      blob_url = EXCLUDED.blob_url, uploaded_at = now()
+  `;
+  revalidatePath(`/admin/cursuri/${id}/detalii`);
+  revalidatePath("/admin/cursuri");
+  back(id);
+}
+
+/** Încarcă PDF-ul de viză, extrage seriile și le salvează (înlocuiește seriile existente). */
+export async function uploadViza(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  const file = formData.get("viza_file");
+  if (!id || !(file instanceof File) || !file.size) back(id);
+  const f = file as File;
+  if (!/\.pdf$/i.test(f.name)) redirect(`/admin/cursuri/${id}/detalii?err=${encodeURIComponent("Doar fișiere PDF sunt acceptate.")}`);
+
+  const bytes = new Uint8Array(await f.arrayBuffer());
+  let subtips: Awaited<ReturnType<typeof parseVizaSubtips>> = [];
+  try {
+    subtips = parseVizaSubtips(await pdfToText(bytes));
+  } catch {
+    redirect(`/admin/cursuri/${id}/detalii?err=${encodeURIComponent("Nu am putut citi textul din PDF.")}`);
+  }
+
+  let blobUrl: string | null = null;
+  try {
+    const { url } = await put(`viza/${id}-${Date.now()}-${f.name}`, f, { access: "public", addRandomSuffix: false });
+    blobUrl = url;
+  } catch {
+    /* fișierul e opțional */
+  }
+
+  if (blobUrl) {
+    await sql`
+      INSERT INTO event_files (event_id, blob_url, original_name, file_type)
+      VALUES (${id}, ${blobUrl}, ${f.name}, 'viza')
+    `;
+  }
+  if (subtips.length) {
+    await sql`DELETE FROM viza_subtips WHERE event_id = ${id}`;
+    for (const s of subtips) {
+      await sql`
+        INSERT INTO viza_subtips (event_id, seria, tarif, nr_unitati, de_la, pana_la)
+        VALUES (${id}, ${s.seria}, ${s.tarif}, ${s.nr_unitati}, ${s.de_la}, ${s.pana_la})
+      `;
+    }
+  }
+  revalidatePath(`/admin/cursuri/${id}/detalii`);
+  revalidatePath("/admin/cursuri");
+  redirect(`/admin/cursuri/${id}/detalii?serii=${subtips.length}`);
 }

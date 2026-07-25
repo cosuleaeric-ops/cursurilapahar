@@ -62,8 +62,8 @@ export async function fetchMonthStats(year: number, month: number) {
       const list = subtipsByEvent.get(eid) ?? [];
       list.push({
         seria: s.seria,
-        de_la: dtFmt.format(new Date(s.de_la)),
-        pana_la: dtFmt.format(new Date(s.pana_la)),
+        de_la: s.de_la ?? "",
+        pana_la: s.pana_la ?? "",
         vandute: vanduteForTarif(types, Number(s.tarif), Number(s.nr_unitati)),
         nr_unitati: Number(s.nr_unitati),
         tarif: Number(s.tarif),

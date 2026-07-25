@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { ditlBase, vanduteForTarif, participantNameKey, type TicketType } from "@/lib/statistici";
-import { updateParticipants, addVizaSubtip, deleteVizaSubtip, dedupVizaSubtips, deleteRaport } from "./actions";
+import { updateParticipants, addVizaSubtip, deleteVizaSubtip, dedupVizaSubtips, deleteRaport, uploadRaport, uploadViza } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +11,15 @@ const dateFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, weekday: "long"
 const dtFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "2-digit", month: "2-digit", year: "numeric" });
 const ron = (v: number) => `${Number(v).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RON`;
 
-export default async function CourseStatsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CourseStatsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ err?: string; serii?: string }>;
+}) {
   const { id: idStr } = await params;
+  const { err, serii } = await searchParams;
   const id = Number(idStr);
   if (!id) notFound();
 
@@ -73,12 +80,21 @@ export default async function CourseStatsPage({ params }: { params: Promise<{ id
         </Link>
       </p>
 
+      {err && <div className="notice notice-error">{err}</div>}
+      {serii && <div className="notice notice-success">Viza procesată: {serii} serii extrase din PDF.</div>}
+
       <div className="card">
         <div className="card-title">Raport eveniment</div>
+        <form action={uploadRaport} style={{ marginBottom: 14 }}>
+          <input type="hidden" name="id" value={id} />
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="file" name="raport_file" accept=".xlsx,.xls" required style={{ border: "1px solid var(--border)", padding: "6px 10px", borderRadius: 4, fontSize: 13, background: "#fff" }} />
+            <button type="submit" className="btn btn-primary btn-sm">Încarcă raportul</button>
+          </div>
+          <p className="form-desc">Exportul complet al evenimentului (foaia „Vanzari") sau decontul LiveTickets (foaia „Decont").</p>
+        </form>
         {!report ? (
-          <p style={{ color: "var(--text-muted)" }}>
-            Nu există raport încărcat pentru acest curs. Rapoartele iaBilet se încarcă deocamdată din adminul vechi.
-          </p>
+          <p style={{ color: "var(--text-muted)" }}>Niciun raport încărcat încă.</p>
         ) : (
           <>
             <div className="clp-summary-grid" style={{ marginBottom: 14 }}>
@@ -178,8 +194,8 @@ export default async function CourseStatsPage({ params }: { params: Promise<{ id
                     <td>
                       <span className="clp-seria">{s.seria}</span>
                     </td>
-                    <td style={{ textAlign: "right" }}>{s.de_la ? dtFmt.format(new Date(s.de_la)) : "—"}</td>
-                    <td style={{ textAlign: "right" }}>{s.pana_la ? dtFmt.format(new Date(s.pana_la)) : "—"}</td>
+                    <td style={{ textAlign: "right" }}>{s.de_la || "—"}</td>
+                    <td style={{ textAlign: "right" }}>{s.pana_la || "—"}</td>
                     <td style={{ textAlign: "right" }}>{vandute != null ? <strong>{vandute}</strong> : "—"}</td>
                     <td style={{ textAlign: "right" }}>{s.nr_unitati}</td>
                     <td style={{ textAlign: "right" }}>{Number(s.tarif).toLocaleString("ro-RO", { maximumFractionDigits: 0 })} RON</td>
@@ -199,6 +215,15 @@ export default async function CourseStatsPage({ params }: { params: Promise<{ id
           </table>
         )}
 
+        <form action={uploadViza} style={{ marginBottom: 14 }}>
+          <input type="hidden" name="id" value={id} />
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="file" name="viza_file" accept=".pdf" required style={{ border: "1px solid var(--border)", padding: "6px 10px", borderRadius: 4, fontSize: 13, background: "#fff" }} />
+            <button type="submit" className="btn btn-primary btn-sm">Încarcă PDF viză</button>
+          </div>
+          <p className="form-desc">Seriile se extrag automat din PDF și înlocuiesc lista de mai jos.</p>
+        </form>
+
         <form action={addVizaSubtip} className="crm-form">
           <input type="hidden" name="id" value={id} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
@@ -216,11 +241,11 @@ export default async function CourseStatsPage({ params }: { params: Promise<{ id
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>De la</label>
-              <input type="date" name="de_la" />
+              <input type="text" name="de_la" />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Până la</label>
-              <input type="date" name="pana_la" />
+              <input type="text" name="pana_la" />
             </div>
             <button type="submit" className="btn btn-primary btn-sm">
               Adaugă seria

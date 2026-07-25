@@ -83,8 +83,8 @@ CREATE TABLE viza_subtips (
     seria      TEXT NOT NULL,
     tarif      NUMERIC(10,2) NOT NULL,
     nr_unitati INTEGER NOT NULL,
-    de_la      TIMESTAMPTZ NOT NULL,
-    pana_la    TIMESTAMPTZ NOT NULL
+    de_la      TEXT,                          -- numarul de serie (nu data)
+    pana_la    TEXT
 );
 
 
