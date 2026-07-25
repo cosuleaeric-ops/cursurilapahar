@@ -21,7 +21,7 @@ export async function createLocation(formData: FormData): Promise<void> {
             ${g(formData, "days") || null}, ${g(formData, "notes") || null})
   `;
   revalidatePath("/admin/locatii");
-  redirect("/admin/locatii");
+  redirect("/admin/locatii?saved=1");
 }
 
 export async function updateLocation(formData: FormData): Promise<void> {
@@ -40,7 +40,7 @@ export async function updateLocation(formData: FormData): Promise<void> {
     WHERE id = ${id}
   `;
   revalidatePath("/admin/locatii");
-  redirect("/admin/locatii");
+  redirect("/admin/locatii?saved=1");
 }
 
 export async function deleteLocation(formData: FormData): Promise<void> {

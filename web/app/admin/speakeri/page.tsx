@@ -120,7 +120,6 @@ export default async function SpeakeriPage() {
 
   return (
     <>
-      <h1 className="wp-page-title">Speakeri</h1>
       <SpeakeriTable speakers={speakers} leads={leads} />
     </>
   );

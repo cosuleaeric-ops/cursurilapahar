@@ -17,7 +17,6 @@ export default async function ColaborariPage({
 
   return (
     <>
-      <h1 className="wp-page-title">Colaborări</h1>
 
       {saved && <div className="notice notice-success">Colaborarea a fost salvată.</div>}
 

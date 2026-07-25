@@ -23,7 +23,7 @@ export default function LocationForm({
     <form action={action}>
       {editing && <input type="hidden" name="id" value={initial.id} />}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
         <div className="form-group">
           <label>
             Nume <span style={{ color: "var(--danger)" }}>*</span>
@@ -53,11 +53,9 @@ export default function LocationForm({
         <button type="submit" className="btn btn-primary btn-sm">
           {editing ? "Salvează" : "Adaugă locația"}
         </button>
-        {editing && (
-          <Link href="/admin/locatii" className="btn btn-secondary btn-sm">
-            Anulează
-          </Link>
-        )}
+        <Link href="/admin/locatii" className="btn btn-secondary btn-sm">
+          Anulează
+        </Link>
       </div>
     </form>
   );

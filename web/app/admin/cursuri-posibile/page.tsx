@@ -18,7 +18,6 @@ export default async function CursuriPosibileAdminPage({
 
   return (
     <>
-      <h1 className="wp-page-title">Cursuri posibile</h1>
 
       {saved && <div className="notice notice-success">Lista a fost salvată.</div>}
 
