@@ -8,6 +8,7 @@
  * Re-rulabil: golește (TRUNCATE) tabelele țintă și reîncarcă, totul într-o tranzacție.
  */
 import { readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { Client } from 'pg';
 
 // --- încărcare .env minimală (fără dependință externă) ---
@@ -64,7 +65,17 @@ interface Bundle {
   collaborations?: Collab[] | null;
   statistici: { courses: StatCourse[]; tickets: Ticket[]; course_reports: Report[] };
   pnl: { venituri: Venit[]; cheltuieli: Chelt[] };
+  messages_log?: string | null;
+  messages_meta?: Record<string, MsgMeta> | null;
+  instagram_posts?: Record<string, string[]> | null;
 }
+
+type MsgMeta = {
+  read?: boolean;
+  evaluation?: string;
+  contacted?: boolean;
+  comments?: { at?: string; by?: string; text?: string }[];
+};
 
 const BUCHAREST = "Europe/Bucharest";
 
@@ -85,6 +96,50 @@ function slugFromUrl(u?: string | null): string | null {
 }
 
 const asJson = (v: unknown): string => (typeof v === "string" ? v : JSON.stringify(v ?? []));
+
+/**
+ * messages.log — blocuri `=== <data> | <tip> ===` urmate de linii `Cheie: valoare`.
+ * Metadatele (citit/evaluare/contactat/comentarii) sunt cheiate pe primele 12
+ * caractere din md5-ul blocului, exact ca msg_id_from_block() din PHP.
+ */
+function parseMessageLog(raw: string, meta: Record<string, MsgMeta>) {
+  const out = [];
+  for (const chunk of raw.split(/(?=^===)/m)) {
+    const block = chunk.trim();
+    if (!block) continue;
+    const head = block.match(/^===\s*(.*?)\s*\|\s*(\S+)\s*===/m);
+    if (!head) continue;
+
+    const fields: Record<string, string> = {};
+    let lastKey: string | null = null;
+    for (const line of block.replace(/^===.*===\n?/m, "").trim().split("\n").map((l) => l.trim())) {
+      if (line === "---") break;
+      if (!line) continue;
+      const sep = line.indexOf(":");
+      if (sep !== -1 && sep <= 40) {
+        lastKey = line.slice(0, sep).trim();
+        fields[lastKey] = line.slice(sep + 1).trim();
+      } else if (lastKey) {
+        fields[lastKey] += ` ${line}`;
+      }
+    }
+
+    const m = meta[createHash("md5").update(block).digest("hex").slice(0, 12)] ?? {};
+    const parsed = new Date(head[1].replace(" ", "T"));
+    out.push({
+      category: head[2] || "contact",
+      name: fields.Nume ?? fields.nume ?? fields.Name ?? fields["Organizație"] ?? fields.organizatie ?? null,
+      email: fields.Email ?? fields.email ?? null,
+      fields,
+      read: Boolean(m.read),
+      rating: m.evaluation || null,
+      contacted: Boolean(m.contacted),
+      comments: m.comments ?? [],
+      createdAt: Number.isNaN(parsed.getTime()) ? new Date() : parsed,
+    });
+  }
+  return out;
+}
 
 async function main(): Promise<void> {
   if (!process.env.DATABASE_URL) throw new Error("Setează DATABASE_URL în .env");
@@ -113,6 +168,26 @@ async function main(): Promise<void> {
       await db.query("INSERT INTO settings(key, value) VALUES('course_ideas', $1)", [
         JSON.stringify(bundle.course_ideas),
       ]);
+    }
+
+    // instagram_posts.json — zilele marcate pe calendarul de cursuri
+    if (bundle.instagram_posts && Object.keys(bundle.instagram_posts).length) {
+      await db.query("INSERT INTO settings(key, value) VALUES('instagram_posts', $1)", [
+        JSON.stringify(bundle.instagram_posts),
+      ]);
+    }
+
+    // messages.log + message_meta.json — mesajele din formulare, cu evaluări,
+    // marcajul „contactat" și comentariile. Re-import complet la fiecare rulare.
+    if (bundle.messages_log) {
+      await db.query("TRUNCATE messages RESTART IDENTITY");
+      for (const m of parseMessageLog(bundle.messages_log, bundle.messages_meta ?? {})) {
+        await db.query(
+          `INSERT INTO messages(category, name, email, payload, read, rating, contacted, comments, created_at)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+          [m.category, m.name, m.email, JSON.stringify(m.fields), m.read, m.rating, m.contacted, JSON.stringify(m.comments), m.createdAt]
+        );
+      }
     }
 
     // ab_button.json — testul A/B pentru butonul „Vreau să vin"

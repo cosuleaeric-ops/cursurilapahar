@@ -4,7 +4,7 @@
 // speakers, locations, collaborations) pentru a sincroniza un mediu local.
 // Protejat printr-un token din data/settings.json (sync_token) — auto-generat
 // la prima rulare a admin-ului.
-// Exclude: users.json (parole), messages.log (privacy).
+// Exclude: users.json (parole).
 
 $data_dir = dirname(__DIR__) . '/data';
 $settings_file = $data_dir . '/settings.json';
@@ -48,6 +48,21 @@ foreach ($files as $key => $filename) {
     $path = $data_dir . '/' . $filename;
     $bundle[$key] = file_exists($path) ? json_decode(file_get_contents($path), true) : null;
 }
+
+// Mesajele din formulare (log brut + meta cu evaluări/contactați/comentarii).
+// Necesare pentru admin-ul nou; bundle-ul e deja protejat de sync_token.
+$log_path  = $data_dir . '/messages.log';
+$meta_path = $data_dir . '/message_meta.json';
+$bundle['messages_log']  = file_exists($log_path) ? file_get_contents($log_path) : '';
+$bundle['messages_meta'] = file_exists($meta_path)
+    ? (json_decode(file_get_contents($meta_path), true) ?: [])
+    : [];
+
+// Postările marcate pe calendarul de cursuri (POSTARE CURSURI)
+$ig_path = $data_dir . '/instagram_posts.json';
+$bundle['instagram_posts'] = file_exists($ig_path)
+    ? (json_decode(file_get_contents($ig_path), true) ?: [])
+    : [];
 
 // Lista fișierelor din uploads (nume + mtime) — pt migrarea imaginilor în Blob
 $uploads_dir = dirname(__DIR__) . '/assets/images/uploads';
