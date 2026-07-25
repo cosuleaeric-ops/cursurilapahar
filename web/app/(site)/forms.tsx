@@ -15,7 +15,7 @@ export function NewsletterForm() {
         </button>
       </div>
       <p className="newsletter-note">100% gratuit. Te poți dezabona oricând.</p>
-      <div className="form-message" aria-live="polite">{msg}</div>
+      <div className={`form-message ${msg ? (msg.startsWith("✓") ? "success" : "error") : ""}`} aria-live="polite">{msg}</div>
     </form>
   );
 }
@@ -41,7 +41,7 @@ export function ContactForm() {
       <button type="submit" className="btn btn-accent" disabled={pending}>
         {pending ? "Se trimite…" : "Trimite mesajul"}
       </button>
-      {msg && <div className="form-message" aria-live="polite">{msg}</div>}
+      {msg && <div className={`form-message ${msg.startsWith("✓") ? "success" : "error"}`} aria-live="polite">{msg}</div>}
     </form>
   );
 }

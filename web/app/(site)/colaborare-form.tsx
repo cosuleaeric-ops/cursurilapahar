@@ -22,8 +22,9 @@ export function ColaborareForm({
       <button type="submit" className={buttonClassName} disabled={pending}>
         {pending ? "Se trimite…" : buttonLabel}
       </button>
+      {/* CSS: .form-message e display:none; devine vizibil doar cu .success/.error */}
       {msg && (
-        <div className="form-message" aria-live="polite">
+        <div className={`form-message ${msg.startsWith("✓") ? "success" : "error"}`} aria-live="polite">
           {msg}
         </div>
       )}
