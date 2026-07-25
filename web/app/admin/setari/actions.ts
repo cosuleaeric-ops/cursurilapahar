@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
 
@@ -108,5 +109,16 @@ export async function changePassword(formData: FormData): Promise<void> {
   if (!pw || pw !== confirm || pw.length < 6) redirect("/admin/setari?error=1");
   const hash = await bcrypt.hash(pw, 10);
   await sql`UPDATE users SET password_hash = ${hash} WHERE username = ${s.username}`;
+  redirect("/admin/setari?saved=1");
+}
+
+/** Regenerează tokenul folosit de sync-export.php (fost `regenerate_sync_token`). */
+export async function regenerateSyncToken(): Promise<void> {
+  await requireOwner();
+  const token = randomBytes(32).toString("hex");
+  await sql`
+    INSERT INTO settings(key, value) VALUES('sync_token', ${JSON.stringify(token)}::jsonb)
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+  `;
   redirect("/admin/setari?saved=1");
 }

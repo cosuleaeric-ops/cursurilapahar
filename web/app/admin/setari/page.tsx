@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { saveKit, saveBrevo, saveHeadScripts, changePassword } from "./actions";
+import SyncToken from "./SyncToken";
 import QuickLinksEditor, { type QuickLink } from "./QuickLinksEditor";
 import RecurringEditor, { type RecTask } from "./RecurringEditor";
 
@@ -19,7 +20,7 @@ export default async function SetariPage({
   const { saved, error, rec } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
-    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'head_scripts')
+    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'head_scripts', 'sync_token')
   `) as { key: string; value: unknown }[];
   const recTasks = (await sql`
     SELECT id, type, system_key, assigned_to, title, schedule, description, days
@@ -140,6 +141,8 @@ export default async function SetariPage({
           Parola se schimbă pentru contul tău ({session.username}) în baza Neon.
         </p>
       </div>
+
+      <SyncToken token={str("sync_token")} />
     </>
   );
 }
