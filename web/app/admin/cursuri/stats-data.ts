@@ -35,7 +35,7 @@ export async function fetchMonthStats(year: number, month: number) {
     FROM events e
     LEFT JOIN event_reports r ON r.event_id = e.id
     WHERE to_char(e.starts_at AT TIME ZONE ${TZ}, 'YYYY-MM') = ${prefix}
-    ORDER BY e.starts_at DESC
+    ORDER BY e.starts_at ASC
   `) as {
     id: number;
     title: string;
