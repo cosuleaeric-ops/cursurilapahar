@@ -16,7 +16,13 @@ export type MetaResult = { success: true; data: CourseMeta } | { success: false;
 
 async function httpGet(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "*/*" }, cache: "no-store" });
+    // CURLOPT_TIMEOUT = 12 în lib/livetickets.php: LiveTickets blocat nu are voie
+    // să țină pagina publică, degradează în „nu e sold out"
+    const res = await fetch(url, {
+      headers: { "User-Agent": UA, Accept: "*/*" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(12_000),
+    });
     return res.ok ? await res.text() : null;
   } catch {
     return null;
@@ -52,6 +58,19 @@ async function ltSlugFromUrl(url: string): Promise<string> {
 }
 
 type LtImage = { path?: string; token?: string; name?: string; size?: string };
+type LtItem = { soldout?: unknown };
+
+export type LtEvent = {
+  id?: unknown;
+  name?: unknown;
+  start_date?: unknown;
+  startDate?: unknown;
+  location?: unknown;
+  images?: unknown;
+  items?: unknown;
+  remaining_count?: unknown;
+  ticket_count?: unknown;
+};
 
 function ltImageUrl(images: LtImage[]): string {
   let fallback = "";
@@ -78,6 +97,64 @@ function ogContent(html: string, property: string): string {
   return html.match(re2)?.[1] ?? "";
 }
 
+/**
+ * Port lt_get_event_by_url(): evenimentul după slug; dacă `items` lipsește din
+ * getbyurl, biletele vin separat de la get-tickets.
+ */
+export async function ltGetEventByUrl(rawUrl: string): Promise<LtEvent | null> {
+  const slug = await ltSlugFromUrl(rawUrl.trim());
+  if (!slug) return null;
+
+  const resp = await httpGet(`https://api.livetickets.ro/public/events/getbyurl?url=${encodeURIComponent(slug)}`);
+  if (!resp) return null;
+
+  let ev: LtEvent;
+  try {
+    ev = JSON.parse(resp) as LtEvent;
+  } catch {
+    return null;
+  }
+  if (!ev || typeof ev !== "object" || ev.id === undefined || ev.id === null) return null;
+
+  if (!Array.isArray(ev.items) || ev.items.length === 0) {
+    const tresp = await httpGet(`https://api.livetickets.ro/public/events/get-tickets?url=${encodeURIComponent(slug)}`);
+    if (tresp) {
+      try {
+        const tickets = JSON.parse(tresp);
+        if (Array.isArray(tickets)) ev.items = tickets;
+      } catch {
+        // răspuns invalid — rămânem fără items, ca în PHP
+      }
+    }
+  }
+
+  return ev;
+}
+
+/** Port lt_image_url_from_event(). */
+export function ltImageUrlFromEvent(event: LtEvent): string {
+  return ltImageUrl(Array.isArray(event.images) ? (event.images as LtImage[]) : []);
+}
+
+/**
+ * Port lt_is_sold_out(): epuizat dacă TOATE biletele au soldout; fără items,
+ * dacă remaining_count e 0 iar ticket_count > 0.
+ */
+export function ltIsSoldOut(event: LtEvent): boolean {
+  const items = Array.isArray(event.items) ? (event.items as LtItem[]) : [];
+  if (items.length > 0) {
+    for (const item of items) {
+      if (!item || typeof item !== "object") continue;
+      // empty() din PHP: 0, "", "0", false, null → nu e epuizat
+      if (!item.soldout || item.soldout === "0") return false;
+    }
+    return true;
+  }
+
+  const total = Number(event.ticket_count);
+  return event.remaining_count === 0 && Number.isFinite(total) && total > 0;
+}
+
 const EMPTY: CourseMeta = { title: "", date_raw: "", time: "", location: "", image_url: "" };
 
 async function iabiletFetch(url: string): Promise<MetaResult> {
@@ -94,19 +171,8 @@ export async function fetchCourseMeta(rawUrl: string): Promise<MetaResult> {
   if (!url) return { success: false, message: "URL lipsă." };
   if (/iabilet\.ro/i.test(url)) return iabiletFetch(url);
 
-  const slug = await ltSlugFromUrl(url);
-  if (!slug) return { success: false, message: "Evenimentul nu a fost găsit în LiveTickets." };
-
-  const resp = await httpGet(`https://api.livetickets.ro/public/events/getbyurl?url=${encodeURIComponent(slug)}`);
-  if (!resp) return { success: false, message: "Evenimentul nu a fost găsit în LiveTickets." };
-
-  let ev: Record<string, unknown>;
-  try {
-    ev = JSON.parse(resp);
-  } catch {
-    return { success: false, message: "Răspuns invalid de la LiveTickets." };
-  }
-  if (!ev?.id) return { success: false, message: "Evenimentul nu a fost găsit în LiveTickets." };
+  const ev = await ltGetEventByUrl(url);
+  if (!ev) return { success: false, message: "Evenimentul nu a fost găsit în LiveTickets." };
 
   let date_raw = "";
   let time = "";
@@ -139,7 +205,7 @@ export async function fetchCourseMeta(rawUrl: string): Promise<MetaResult> {
       date_raw,
       time,
       location,
-      image_url: ltImageUrl(Array.isArray(ev.images) ? (ev.images as LtImage[]) : []),
+      image_url: ltImageUrlFromEvent(ev),
     },
   };
 }

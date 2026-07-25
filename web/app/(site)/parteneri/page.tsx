@@ -11,6 +11,11 @@ export const metadata: Metadata = pageMetadata({
   ogTitle: "Parteneri – Cursuri la Pahar",
   ogDescription:
     "Peste 200.000 de vizualizări pe lună, newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline. Vezi cifrele și scrie-ne.",
+  // parteneri.php:52 — pe twitter fraza „Vezi cifrele și scrie-ne." lipsește.
+  twitterDescription:
+    "Peste 200.000 de vizualizări pe lună, newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline.",
+  // parteneri.php:46 și :53 — fără `?v=2`, spre deosebire de celelalte pagini.
+  ogImage: "/assets/images/og-image.jpg",
   path: "/parteneri",
 });
 
@@ -115,7 +120,9 @@ export default function ParteneriPage() {
         <section className="sp-sec">
           <div className="container">
             <h2 className="section-title">Curs la Pahar</h2>
-            <Gallery images={GALLERY} />
+            {/* parteneri.php:322-337 randează doar sliderul; #galleryLightbox
+                există exclusiv în index.php, deci aici click-ul nu deschide nimic */}
+            <Gallery images={GALLERY} lightbox={false} />
           </div>
         </section>
 

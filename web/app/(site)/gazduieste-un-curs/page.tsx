@@ -39,6 +39,13 @@ export default async function GazduiesteUnCursPage() {
           <p style={{ marginTop: 16 }}>
             <strong>De ce să devii locație parteneră?</strong>
           </p>
+          {/* gazduieste-un-curs.php:70-71 injectează regulile în <head>, ca să anuleze
+              resetul global `ul { list-style: none }` din style.css:56 */}
+          <style
+            dangerouslySetInnerHTML={{
+              __html: ".benefits-bullets{list-style:disc}.benefits-bullets li::marker{color:var(--accent)}",
+            }}
+          />
           <ul className="benefits-bullets" style={{ marginTop: 8, paddingLeft: 20 }}>
             <li>
               <strong>Vizibilitate:</strong> Atragi un public nou, dornic de experiențe de calitate.
@@ -93,16 +100,16 @@ export default async function GazduiesteUnCursPage() {
               <label>Ce facilități deține locația?</label>
               <div className="checkbox-group">
                 <label className="checkbox-label">
-                  <input type="checkbox" name="facilities" value="audio" /> Sistem audio cu microfon
+                  <input type="checkbox" name="facilities[]" value="audio" /> Sistem audio cu microfon
                 </label>
                 <label className="checkbox-label">
-                  <input type="checkbox" name="facilities" value="projector" /> Videoproiector
+                  <input type="checkbox" name="facilities[]" value="projector" /> Videoproiector
                 </label>
                 <label className="checkbox-label">
-                  <input type="checkbox" name="facilities" value="screen" /> Ecran de proiecție
+                  <input type="checkbox" name="facilities[]" value="screen" /> Ecran de proiecție
                 </label>
                 <label className="checkbox-label">
-                  <input type="checkbox" name="facilities" value="tv" /> Televizor pentru proiecție
+                  <input type="checkbox" name="facilities[]" value="tv" /> Televizor pentru proiecție
                 </label>
               </div>
             </div>

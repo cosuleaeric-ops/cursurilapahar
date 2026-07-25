@@ -1,16 +1,20 @@
 "use server";
 
 import { sql } from "@/lib/db";
+import { EMAIL_RE, type FormResult } from "./form-shared";
 
-export async function subscribeNewsletter(_prev: string | null, formData: FormData): Promise<string> {
-  const email = String(formData.get("email") ?? "").trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Email invalid.";
+export async function subscribeNewsletter(rawEmail: string): Promise<FormResult> {
+  const email = String(rawEmail ?? "").trim();
+  // api/subscribe.php:7-8
+  if (!EMAIL_RE.test(email)) return { success: false, message: "Email invalid." };
 
   const rows = (await sql`
     SELECT key, value FROM settings WHERE key IN ('kit_api_key', 'kit_form_id')
   `) as { key: string; value: unknown }[];
   const s = Object.fromEntries(rows.map((r) => [r.key, String(r.value ?? "").replace(/\s+/g, "")]));
-  if (!s.kit_api_key || !s.kit_form_id) return "Newsletterul nu e configurat încă.";
+  // api/subscribe.php:15-16 — mesaj distinct pentru fiecare setare lipsă.
+  if (!s.kit_api_key) return { success: false, message: "API key lipsă în setări Kit." };
+  if (!s.kit_form_id) return { success: false, message: "Form ID lipsă în setări Kit." };
 
   try {
     const res = await fetch(`https://api.convertkit.com/v3/forms/${encodeURIComponent(s.kit_form_id)}/subscribe`, {
@@ -18,12 +22,23 @@ export async function subscribeNewsletter(_prev: string | null, formData: FormDa
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ api_key: s.kit_api_key, email }),
     });
-    const data = (await res.json().catch(() => null)) as { subscription?: unknown; message?: string; error?: string } | null;
-    if (res.ok && data?.subscription) {
-      return "Mulțumim! Te vom anunța cu 2 săptămâni înainte de fiecare eveniment.";
-    }
-    return data?.message ?? data?.error ?? `Eroare (HTTP ${res.status}). Încearcă din nou.`;
-  } catch {
-    return "Eroare de conexiune. Încearcă din nou.";
+    const text = await res.text();
+    const data = (() => {
+      try {
+        return JSON.parse(text) as { subscription?: unknown; message?: string; error?: string };
+      } catch {
+        return null;
+      }
+    })();
+
+    if (res.ok && data?.subscription) return { success: true };
+    // api/subscribe.php:42 — mesajul de la Kit, altfel „HTTP <cod>: <primii 200 de caractere>".
+    return {
+      success: false,
+      message: data?.message ?? data?.error ?? `HTTP ${res.status}: ${text.substring(0, 200)}`,
+    };
+  } catch (err) {
+    // api/subscribe.php:35
+    return { success: false, message: `Eroare conexiune: ${err instanceof Error ? err.message : ""}` };
   }
 }

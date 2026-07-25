@@ -43,6 +43,17 @@ const CONFIRMATIONS: Record<string, { subject: string; body: string }> = {
       '<p style="margin:0 0 14px">Apreciem enorm interesul tău de a face parte din povestea Cursuri la Pahar.</p>' +
       '<p style="margin:0">Ținem legătura!</p>',
   },
+  // api/contact.php:113-119 — formularul de pe /parteneri trimite form_type
+  // „sponsorizare" și primește confirmarea lui, nu pe cea generică de contact.
+  sponsorizare: {
+    subject: "Am primit cererea ta de parteneriat 🍷",
+    body:
+      '<p style="margin:0 0 14px">Salutare!</p>' +
+      '<p style="margin:0 0 14px">Îți mulțumim pentru interesul de a fi partener Cursuri la Pahar. 🍷</p>' +
+      '<p style="margin:0 0 14px">Am primit cererea ta. Ne gândim la cum putem colabora și revenim cu un răspuns în cel mai scurt timp.</p>' +
+      `<p style="margin:0 0 14px">Între timp, ne găsești oricând pe <a href="${IG}" style="${LNK}">Instagram</a>.</p>` +
+      '<p style="margin:0">Ținem legătura!</p>',
+  },
 };
 
 export async function sendConfirmationEmail(category: string, email: string, name: string): Promise<void> {

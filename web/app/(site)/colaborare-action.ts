@@ -3,32 +3,37 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { sendConfirmationEmail } from "@/lib/brevo";
+import { sendTeamNotification } from "./team-email";
+import { EMAIL_RE, phpPayload, phpValue, type FormResult } from "./form-shared";
 
 const CATEGORIES = new Set(["sustine", "gazduieste", "parteneriat", "sponsorizare"]);
 
-export async function submitColaborare(_prev: string | null, formData: FormData): Promise<string> {
-  const category = String(formData.get("form_type") ?? "");
-  if (!CATEGORIES.has(category)) return "Formular invalid.";
+export async function submitColaborare(formType: string, formData: FormData): Promise<FormResult> {
+  if (!CATEGORIES.has(formType)) return { success: false, message: "Formular invalid." };
 
+  // api/contact.php:23-27 — singura validare de pe server e emailul; restul câmpurilor
+  // se salvează exact cum au venit, chiar și goale.
   const email = String(formData.get("email") ?? "").trim();
-  if (!email) return "Completează adresa de email.";
-  const name = String(formData.get("name") ?? formData.get("contact_person") ?? "").trim();
+  if (!EMAIL_RE.test(email)) return { success: false, message: "Email invalid." };
 
-  const payload: Record<string, string> = {};
-  for (const key of Array.from(new Set(formData.keys()))) {
-    if (key === "form_type" || key.startsWith("$ACTION")) continue;
-    const vals = formData
-      .getAll(key)
-      .map((v) => String(v).trim())
-      .filter(Boolean);
-    if (vals.length) payload[key] = vals.join(", ");
+  // api/contact.php:75 — numele vizitatorului: name, apoi contact_person, apoi partner_name.
+  const rawName = formData.get("name") ?? formData.get("contact_person") ?? formData.get("partner_name") ?? "";
+  const name = phpValue(String(rawName));
+
+  const payload = phpPayload(formData);
+
+  try {
+    await sql`
+      INSERT INTO messages (category, name, email, payload)
+      VALUES (${formType}, ${name || null}, ${email}, ${JSON.stringify(payload)})
+    `;
+  } catch {
+    // main.js:383-387 — clientul afișează caseta roșie și păstrează datele completate.
+    return { success: false, message: "" };
   }
 
-  await sql`
-    INSERT INTO messages (category, name, email, payload)
-    VALUES (${category}, ${name || null}, ${email}, ${JSON.stringify(payload)})
-  `;
-  await sendConfirmationEmail(category, email, name);
+  await sendTeamNotification(formType, email, payload);
+  await sendConfirmationEmail(formType, email, name);
   revalidatePath("/admin/mesaje");
-  return "✓ Trimis! Îți răspundem cât putem de repede.";
+  return { success: true };
 }

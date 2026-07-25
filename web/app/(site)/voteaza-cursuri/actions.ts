@@ -6,20 +6,17 @@ import { shouldCountClick } from "@/lib/ab";
 /**
  * Toggle vot: +1 (add) sau -1 (remove). Serverul face doar delta;
  * clientul reține ce a votat (ca în PHP-ul vechi). Scriere reală în Neon.
+ * api/vote.php:58 întoarce doar {success}, iar clientul nici nu-l citește —
+ * contorul rămâne optimist, deci nu întoarcem numărul de likes.
  */
-export async function vote(id: number, action: "add" | "remove"): Promise<number> {
+export async function vote(id: number, action: "add" | "remove"): Promise<void> {
   const delta = action === "remove" ? -1 : 1;
-  const rows = (await sql`
+  // api/vote.php:37 — un curs inactiv nu primește voturi
+  await sql`
     UPDATE vote_courses
     SET likes = GREATEST(0, likes + ${delta})
     WHERE id = ${id} AND active = true
-    RETURNING likes
-  `) as { likes: number }[];
-  if (rows.length) return rows[0].likes;
-
-  // curs inexistent/inactiv — întoarce valoarea curentă fără schimbare
-  const cur = (await sql`SELECT likes FROM vote_courses WHERE id = ${id}`) as { likes: number }[];
-  return cur[0]?.likes ?? 0;
+  `;
 }
 
 /**
@@ -29,7 +26,9 @@ export async function vote(id: number, action: "add" | "remove"): Promise<number
  */
 export async function trackVoteView(id: number): Promise<void> {
   if (!Number.isFinite(id) || !(await shouldCountClick())) return;
-  await sql`UPDATE vote_courses SET views = views + 1 WHERE id = ${id}`;
+  // lib/vote_views.php:132-151 — vizualizarea se numără doar pentru un curs
+  // care există ȘI e activ (api/vote_view.php:20-26 refuză restul cu „ID invalid")
+  await sql`UPDATE vote_courses SET views = views + 1 WHERE id = ${id} AND active = true`;
 }
 
 export async function trackVotePageView(): Promise<void> {

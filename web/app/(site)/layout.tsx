@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import SiteNav from "./SiteNav";
+import SiteFooter from "./SiteFooter";
 import HeadScripts from "./HeadScripts";
+import ScrollReveal from "./ScrollReveal";
 import AdminBar from "./AdminBar";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +20,13 @@ const VPH_SCRIPT =
 const FONTS =
   "https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap";
 
+// includes/head-scripts.php:20-33 adaugă hardcodat, pe fiecare pagină publică,
+// Plausible și analytics-ul self-hosted de pe ericcosulea.ro — pe lângă ce e în
+// settings.head_scripts.
+const PLAUSIBLE_SRC = "https://plausible.io/js/pa-3t0zbcrOJNHSBQ4-KIokx.js";
+const PLAUSIBLE_INIT =
+  "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};\n  plausible.init()";
+
 type NavLink = { url: string; label: string };
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -25,12 +34,17 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   const str = (k: string, d = "") => (typeof s[k] === "string" ? (s[k] as string) : d);
 
+  // Default-urile sunt cele din index.php:164-170 (identice pe toate paginile
+  // publice și în lib/design.php), nu cele din style.css.
   const vars: Record<string, string> = {
     "--bg": str("color_bg", "#0D0D0D"),
     "--bg-surface": str("color_surface", "#161616"),
+    // index.php:167 scrie și `--surface` din aceeași setare; CSS-ul local al
+    // paginilor voteaza-cursuri / parteneri o consumă.
+    "--surface": str("color_surface", "#161616"),
     "--accent": str("color_accent", "#C9A84C"),
-    "--text": str("color_text", "#F0EBE1"),
-    "--text-muted": str("color_text_muted", "#8A8A8A"),
+    "--text": str("color_text", "#E8E4DC"),
+    "--text-muted": str("color_text_muted", "#9CA3AF"),
     "--btn-hover": str("color_btn_hover", "#b8922e"),
     "--banner-bg": str("color_banner", "#FFB000"),
     paddingTop: "88px",
@@ -48,12 +62,22 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <link rel="stylesheet" href="/assets/css/style.css" />
       <script dangerouslySetInnerHTML={{ __html: VPH_SCRIPT }} />
       <HeadScripts html={str("head_scripts")} />
+      <script async src={PLAUSIBLE_SRC} />
+      <script dangerouslySetInnerHTML={{ __html: PLAUSIBLE_INIT }} />
+      <script
+        defer
+        data-website-id="dfid_a1e25f0ab3"
+        data-domain="cursurilapahar.ro"
+        src="https://www.ericcosulea.ro/js/script.js"
+      />
       {favicon && <link rel="icon" href={favicon} />}
       {/* clasa e ținta regulii din AdminBar: cu bara de admin, padding-ul urcă la 120px */}
       <div className="clp-site-shell" style={vars as React.CSSProperties}>
         <AdminBar />
         <SiteNav brand={brand} logo={str("logo_path", "/assets/images/logo.webp")} links={links} />
         {children}
+        <SiteFooter />
+        <ScrollReveal />
       </div>
     </>
   );

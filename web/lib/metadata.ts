@@ -17,9 +17,16 @@ export function pageMetadata(opts: {
   path: string;
   ogTitle?: string;
   ogDescription?: string;
+  // Pe PHP twitter:description e scris separat și e adesea mai scurt decât
+  // og:description (ex. parteneri.php:44 vs :52, cursuri-posibile.php:37 vs :45).
+  twitterDescription?: string;
+  // parteneri.php:46 și :53 folosesc og-image.jpg FĂRĂ `?v=2`.
+  ogImage?: string;
 }): Metadata {
   const ogTitle = opts.ogTitle ?? opts.title;
   const ogDescription = opts.ogDescription ?? opts.description;
+  const twitterDescription = opts.twitterDescription ?? ogDescription;
+  const imageUrl = opts.ogImage ?? OG_IMAGE.url;
   return {
     metadataBase: new URL("https://cursurilapahar.ro"),
     title: opts.title,
@@ -31,13 +38,13 @@ export function pageMetadata(opts: {
       title: ogTitle,
       description: ogDescription,
       url: opts.path,
-      images: [OG_IMAGE],
+      images: [{ ...OG_IMAGE, url: imageUrl }],
     },
     twitter: {
       card: "summary_large_image",
       title: ogTitle,
-      description: ogDescription,
-      images: [OG_IMAGE.url],
+      description: twitterDescription,
+      images: [imageUrl],
     },
   };
 }

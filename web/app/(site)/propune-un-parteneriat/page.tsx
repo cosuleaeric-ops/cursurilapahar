@@ -64,19 +64,19 @@ export default async function PropuneUnParteneriatPage() {
               <label>Tipul parteneriatului</label>
               <div className="checkbox-group">
                 <label className="checkbox-label">
-                  <input type="checkbox" name="partnership_type" value="media" /> Parteneriat Media (vizibilitate,
+                  <input type="checkbox" name="partnership_type[]" value="media" /> Parteneriat Media (vizibilitate,
                   promovare, PR)
                 </label>
                 <label className="checkbox-label">
-                  <input type="checkbox" name="partnership_type" value="product" /> Activare de produs (sampling,
+                  <input type="checkbox" name="partnership_type[]" value="product" /> Activare de produs (sampling,
                   experiență directă cu participanții)
                 </label>
                 <label className="checkbox-label">
-                  <input type="checkbox" name="partnership_type" value="strategic" /> Parteneriat Strategic / Financiar
+                  <input type="checkbox" name="partnership_type[]" value="strategic" /> Parteneriat Strategic / Financiar
                   (sponsorizare)
                 </label>
                 <label className="checkbox-label">
-                  <input type="checkbox" name="partnership_type" value="other" /> Altul
+                  <input type="checkbox" name="partnership_type[]" value="other" /> Altul
                 </label>
               </div>
             </div>
