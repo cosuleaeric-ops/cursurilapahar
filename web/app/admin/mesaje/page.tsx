@@ -1,101 +1,17 @@
-import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import MessagesBoard, { type Cat, type Comment, type Msg } from "./MessagesBoard";
+import { CATS, loadGroupedMessages } from "@/lib/messages";
+import MessagesBoard from "./MessagesBoard";
 
 export const dynamic = "force-dynamic";
 
-type Row = {
-  id: number;
-  category: string;
-  name: string | null;
-  email: string | null;
-  payload: Record<string, unknown>;
-  read: boolean;
-  rating: string | null;
-  contacted: boolean;
-  comments: Comment[] | null;
-  created_at: string;
-};
-
-// Aceleași categorii ca clp_message_categories().
-const CATS: Cat[] = [
-  { key: "sustine", label: "Speakeri", icon: "🎤" },
-  { key: "contact", label: "Contact", icon: "💬" },
-  { key: "gazduieste", label: "Locații", icon: "📍" },
-  { key: "parteneriat", label: "Parteneriate", icon: "🤝" },
-  { key: "sponsorizare", label: "Sponsorizări", icon: "⭐" },
-];
-
-const dtFmt = new Intl.DateTimeFormat("ro-RO", {
-  timeZone: "Europe/Bucharest",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 export default async function MesajePage() {
   const session = await getSession();
-  const rows = (await sql`
-    SELECT id, category, name, email, payload, read, rating, contacted, comments, created_at
-    FROM messages ORDER BY created_at DESC
-  `) as Row[];
-  const speakers = (await sql`SELECT email, phone FROM speakers`) as { email: string | null; phone: string | null }[];
-
-  const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
-  const digits = (s: string | null | undefined) => (s ?? "").replace(/\D/g, "");
-  const isSpeaker = (email: string, phone: string) =>
-    speakers.some(
-      (s) =>
-        (email && norm(s.email) === norm(email)) ||
-        (phone && digits(phone).length >= 6 && digits(s.phone) === digits(phone)),
-    );
-
-  const byCat: Record<string, Msg[]> = {};
-  const counts: Record<string, number> = {};
-
-  for (const r of rows) {
-    const p = r.payload ?? {};
-
-    // Ca în clp_load_grouped_messages(): candidații care au deja fișă de speaker
-    // nu mai apar în triajul din Mesaje — sunt gestionați în /speakeri.
-    if (r.category === "sustine") {
-      const em = String(p.Email ?? p.email ?? r.email ?? "");
-      const ph = String(p.Phone ?? p.Telefon ?? p.telefon ?? "");
-      if (isSpeaker(em, ph)) continue;
-    }
-    const fields = Object.entries(p)
-      .filter(([k]) => !["trimis de pe", "data"].includes(k.toLowerCase()))
-      .map(([k, v]) => [k, String(v ?? "")] as [string, string]);
-
-    const name =
-      String(p.Nume ?? p.nume ?? p.Name ?? p["Organizație"] ?? p.organizatie ?? r.name ?? "") || "—";
-    const courseName = String(p["Course name"] ?? "").trim();
-
-    const msg: Msg = {
-      id: r.id,
-      category: r.category,
-      name,
-      date: dtFmt.format(new Date(r.created_at)),
-      fields,
-      read: r.read,
-      evaluation: r.rating ?? "",
-      contacted: r.contacted,
-      comments: Array.isArray(r.comments) ? r.comments : [],
-      course_first: courseName ? courseName.split(/(?<=[.!?])\s+|\s*[\r\n]+\s*/u)[0] : "",
-    };
-
-    (byCat[r.category] ??= []).push(msg);
-    // Badge-ul de pe tab = mesajele care încă cer o acțiune.
-    const pendingHere = r.category === "sustine" ? !r.rating : !r.read;
-    if (pendingHere) counts[r.category] = (counts[r.category] ?? 0) + 1;
-  }
+  const { byCat, tabCounts } = await loadGroupedMessages();
 
   return (
     <>
       <h1 className="wp-page-title">Mesaje</h1>
-      <MessagesBoard cats={CATS} byCat={byCat} counts={counts} isOwner={session?.role === "owner"} />
+      <MessagesBoard cats={CATS} byCat={byCat} counts={tabCounts} isOwner={session?.role === "owner"} />
     </>
   );
 }

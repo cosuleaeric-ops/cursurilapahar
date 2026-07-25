@@ -1,27 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import type { Cat, Comment, Msg } from "@/lib/messages";
 import { addComment, deleteComment, deleteMessage, setEvaluation, setContacted, toggleRead } from "./actions";
 
 // Port din admin/partials/messages-tab.php + clp_render_message_card()
 // (lib/messages.php) + admin/assets/js/admin-mesaje.js.
 
-export type Comment = { at?: string; by?: string; text?: string };
-
-export type Msg = {
-  id: number;
-  category: string;
-  name: string;
-  date: string;
-  fields: [string, string][];
-  read: boolean;
-  evaluation: string;
-  contacted: boolean;
-  comments: Comment[];
-  course_first: string;
-};
-
-export type Cat = { key: string; label: string; icon: string };
 
 const SUSTINE_TOOLTIPS: Record<string, string> = {
   Name: "Nume și prenume",

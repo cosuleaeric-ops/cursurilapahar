@@ -3,6 +3,7 @@ import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { CopyButton } from "./templates/TemplatesEditor";
 import MiniCal from "./MiniCal";
+import { CATS, loadGroupedMessages } from "@/lib/messages";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +29,10 @@ export default async function AdminHome() {
   `) as TodoRow[];
   const todoDot = session?.username === "andy" ? "#16a34a" : "#2563eb";
 
-  const unreadMsgs = (await sql`
-    SELECT category, count(*)::int n FROM messages WHERE read = false GROUP BY category
-  `) as { category: string; n: number }[];
-  const MSG_LABEL: Record<string, string> = { contact: "Contact", sustine: "Speakeri", gazduieste: "Locații", parteneriat: "Parteneriate" };
+  // Aceleași numere ca tab_counts din Mesaje: Speakeri = neevaluați (fără cei
+  // care au deja fișă de speaker), restul = necitite.
+  const { tabCounts } = await loadGroupedMessages();
+  const msgLines = CATS.filter((c) => (tabCounts[c.key] ?? 0) > 0).map((c) => ({ label: c.label, n: tabCounts[c.key] }));
 
   const [qlRow] = (await sql`SELECT value FROM settings WHERE key = 'quick_links'`) as { value: unknown }[];
   const [tplRow] = (await sql`SELECT value FROM settings WHERE key = 'templates'`) as { value: unknown }[];
@@ -63,9 +64,7 @@ export default async function AdminHome() {
             <span className="bc-card-icon">✅</span>
             <span className="bc-card-title">To-dos</span>
           </div>
-          {todos.length === 0 ? (
-            <p className="bc-card-empty">Niciun to-do.</p>
-          ) : (
+          {todos.length > 0 && (
             <ul className="bc-card-list">
               {todos.map((t) => (
                 <li key={t.id}>
@@ -106,15 +105,15 @@ export default async function AdminHome() {
             <span className="bc-card-icon">💬</span>
             <span className="bc-card-title">Mesaje</span>
           </div>
-          {unreadMsgs.length === 0 ? (
+          {msgLines.length === 0 ? (
             <p className="bc-card-empty">Toate mesajele sunt citite.</p>
           ) : (
             <ul className="bc-card-list">
-              {unreadMsgs.map((m) => (
-                <li key={m.category}>
+              {msgLines.slice(0, 4).map((m) => (
+                <li key={m.label}>
                   <span className="bc-li-dot" style={{ background: "#e8a317" }}></span>
                   <span>
-                    {MSG_LABEL[m.category] ?? m.category}
+                    {m.label}
                     <span className="bc-li-meta"> · {m.n} noi</span>
                   </span>
                 </li>
