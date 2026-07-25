@@ -45,10 +45,16 @@ export default async function SpeakeriPage() {
     SELECT id, name, email, phone, status, notes, topics
     FROM speakers
     ORDER BY
-      CASE status
-        WHEN 'CONTACTAT' THEN 0 WHEN 'URMEAZĂ' THEN 1 WHEN 'RECURENT' THEN 2
-        WHEN 'MID' THEN 3 WHEN 'NOPE' THEN 4 ELSE 3 END,
-      name
+      -- ca în clp_sort_speakers(): fără status => MID (3), status necunoscut => 2
+      CASE
+        WHEN status IS NULL OR status = '' THEN 3
+        WHEN status = 'CONTACTAT' THEN 0
+        WHEN status = 'URMEAZĂ' THEN 1
+        WHEN status = 'RECURENT' THEN 2
+        WHEN status = 'MID' THEN 3
+        WHEN status = 'NOPE' THEN 4
+        ELSE 2 END,
+      lower(name)
   `) as SpeakerRow[];
 
   // Submisiile din formularul „Prezintă un curs", cele mai noi primele.

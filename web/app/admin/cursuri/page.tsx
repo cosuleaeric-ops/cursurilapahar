@@ -51,7 +51,8 @@ export default async function CursuriPage({
       discount_percent,
       to_char(discount_ends_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD"T"HH24:MI') AS discount_ends_local,
       discount_ends_at > now() AS discount_active,
-      starts_at >= now() AS upcoming
+      to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') >=
+        to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS upcoming
     FROM events
     ORDER BY starts_at ASC
   `) as Row[];

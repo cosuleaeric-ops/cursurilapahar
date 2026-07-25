@@ -19,7 +19,9 @@ export default async function AdminHome() {
   const session = await getSession();
   const upcoming = (await sql`
     SELECT id, title, starts_at FROM events
-    WHERE starts_at >= now() ORDER BY starts_at ASC LIMIT 4
+    WHERE to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
+          >= to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
+    ORDER BY starts_at ASC LIMIT 4
   `) as EventRow[];
 
   const todos = (await sql`

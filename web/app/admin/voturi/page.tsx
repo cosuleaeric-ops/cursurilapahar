@@ -18,7 +18,7 @@ type VC = {
 export default async function VoturiPage() {
   const list = (await sql`
     SELECT id, name, emoji, description, likes, views, active
-    FROM vote_courses ORDER BY likes DESC, name ASC
+    FROM vote_courses ORDER BY active DESC, likes DESC
   `) as VC[];
   const pageViewsRow = (await sql`SELECT value FROM settings WHERE key = 'vote_page_views'`) as { value: unknown }[];
   const pageViews = Number(pageViewsRow[0]?.value ?? 0);

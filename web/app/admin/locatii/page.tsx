@@ -16,7 +16,7 @@ type Loc = {
 
 export default async function LocatiiPage() {
   const locations = (await sql`
-    SELECT id, name, phone, maps_link, days, notes FROM locations ORDER BY name
+    SELECT id, name, phone, maps_link, days, notes FROM locations ORDER BY position, id
   `) as Loc[];
 
   return (
