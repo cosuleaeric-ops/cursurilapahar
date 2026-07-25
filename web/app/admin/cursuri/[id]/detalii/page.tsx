@@ -9,11 +9,11 @@ import {
   deleteRaport,
   deleteViza,
   deleteVizaSubtip,
-  updateParticipants,
   uploadRaport,
   uploadViza,
 } from "./actions";
 import CopyDist from "./CopyDist";
+import ParticipantsUpload from "./ParticipantsUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -249,18 +249,7 @@ export default async function CourseStatsPage({
           ) : (
             <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Niciun participant inregistrat.</p>
           )}
-          <form action={updateParticipants} style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 14 }}>
-            <input type="hidden" name="id" value={id} />
-            <div className="form-group">
-              <label style={{ fontSize: 12, color: "var(--muted)" }}>Un nume pe linie</label>
-              <textarea name="participants" rows={8} defaultValue={tickets.map((t) => t.participant_name).join("\n")} />
-            </div>
-            <div className="update-submit" style={{ display: "block" }}>
-              <button type="submit" className="btn btn-green" style={{ width: "100%", justifyContent: "center", padding: 10 }}>
-                {sortedNames.length === 0 ? "Salveaza lista" : "Inlocuieste lista"}
-              </button>
-            </div>
-          </form>
+          <ParticipantsUpload id={id} hasList={sortedNames.length > 0} />
         </div>
 
         <div className="actions-grid">

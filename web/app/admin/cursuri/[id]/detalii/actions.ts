@@ -19,10 +19,18 @@ export async function updateParticipants(formData: FormData): Promise<void> {
   await requireAuth();
   const id = Number(g(formData, "id"));
   if (!id) return;
-  const names = g(formData, "participants")
-    .split("\n")
-    .map((n) => n.trim())
-    .filter(Boolean);
+  // lista vine ca JSON din parserul XLSX/CSV (participants_json), ca pe live
+  let names: string[] = [];
+  const raw = g(formData, "participants_json");
+  if (raw) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) names = parsed.map((n) => String(n).trim()).filter(Boolean);
+    } catch {
+      return;
+    }
+  }
+  if (!names.length) return;
   await sql`DELETE FROM tickets WHERE event_id = ${id}`;
   for (const name of names) {
     await sql`INSERT INTO tickets (event_id, participant_name) VALUES (${id}, ${name})`;
