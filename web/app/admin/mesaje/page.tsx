@@ -41,12 +41,30 @@ export default async function MesajePage() {
     SELECT id, category, name, email, payload, read, rating, contacted, comments, created_at
     FROM messages ORDER BY created_at DESC
   `) as Row[];
+  const speakers = (await sql`SELECT email, phone FROM speakers`) as { email: string | null; phone: string | null }[];
+
+  const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
+  const digits = (s: string | null | undefined) => (s ?? "").replace(/\D/g, "");
+  const isSpeaker = (email: string, phone: string) =>
+    speakers.some(
+      (s) =>
+        (email && norm(s.email) === norm(email)) ||
+        (phone && digits(phone).length >= 6 && digits(s.phone) === digits(phone)),
+    );
 
   const byCat: Record<string, Msg[]> = {};
   const counts: Record<string, number> = {};
 
   for (const r of rows) {
     const p = r.payload ?? {};
+
+    // Ca în clp_load_grouped_messages(): candidații care au deja fișă de speaker
+    // nu mai apar în triajul din Mesaje — sunt gestionați în /speakeri.
+    if (r.category === "sustine") {
+      const em = String(p.Email ?? p.email ?? r.email ?? "");
+      const ph = String(p.Phone ?? p.Telefon ?? p.telefon ?? "");
+      if (isSpeaker(em, ph)) continue;
+    }
     const fields = Object.entries(p)
       .filter(([k]) => !["trimis de pe", "data"].includes(k.toLowerCase()))
       .map(([k, v]) => [k, String(v ?? "")] as [string, string]);
