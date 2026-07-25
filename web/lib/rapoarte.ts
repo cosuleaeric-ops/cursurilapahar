@@ -112,6 +112,61 @@ export function parseVizaSubtips(raw: string): VizaSubtip[] {
     out.push({ nr_unitati: Number(m[1]), tarif: toNum(m[2]), seria, de_la: m[3], pana_la: m[4] });
   }
 
+  // 4) Rând căruia îi lipsește „La nr." de pe linie, fiindcă celula seriei se rupe în PDF:
+  //    „Bilet standard - ONLINE 55 50.00 2,750.00 WAD 0001 - WAD" … „0055"
+  const partialRe = /^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/gmu;
+  for (const m of text.matchAll(partialRe)) {
+    const seria = m[3].trim();
+    const key = `${seria}_${m[4]}_${toNum(m[2])}`;
+    if (seen.has(key)) continue;
+    // pana_la = primul număr de 4+ cifre singur pe linie, în următoarele 400 de caractere
+    const end = (m.index ?? 0) + m[0].length;
+    const nm = /^\s*(\d{4,})\s*$/m.exec(text.slice(end, end + 400));
+    if (!nm) continue;
+    seen.add(key);
+    out.push({ nr_unitati: Number(m[1]), tarif: toNum(m[2]), seria, de_la: m[4], pana_la: nm[1] });
+  }
+
+  // 5) Seria stă pe linii proprii, în jurul rândului cu cifre:
+  //    „WAD 0001 - WAD" / „Bilet standard - ONLINE 55 50.00 2,750.00" / „0055"
+  const lines = text.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const sm = /^\s*([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/u.exec(lines[i]);
+    if (!sm) continue;
+    const seria = sm[1].trim();
+    const deLa = sm[2];
+
+    let pana: string | null = null;
+    for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+      const nm = /^\s*(\d{3,})\s*$/.exec(lines[j]);
+      if (nm) {
+        pana = nm[1];
+        break;
+      }
+    }
+    if (pana === null) continue;
+
+    // corpul rândului: o linie vecină care se termină în „nr tarif total" și n-are serie proprie
+    let row: RegExpExecArray | null = null;
+    for (const j of [i + 1, i - 1, i + 2]) {
+      if (j < 0 || j >= lines.length) continue;
+      const cand = lines[j];
+      if (/^\s*TOTAL\b/iu.test(cand)) continue;
+      if (/[A-Z]{2,}\s+\d+\s*-/u.test(cand)) continue;
+      const rm = /^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s*$/u.exec(cand);
+      if (rm) {
+        row = rm;
+        break;
+      }
+    }
+    if (!row) continue;
+
+    const key = `${seria}_${deLa}_${toNum(row[2])}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ nr_unitati: Number(row[1]), tarif: toNum(row[2]), seria, de_la: deLa, pana_la: pana });
+  }
+
   return out;
 }
 
