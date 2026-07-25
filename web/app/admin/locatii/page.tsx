@@ -17,7 +17,7 @@ export default async function LocatiiPage({
   `) as Loc[];
 
   const editId = Number(sp.edit) || 0;
-  const edit = editId ? locations.find((l) => l.id === editId) : undefined;
+  const edit = editId ? locations.find((l) => Number(l.id) === editId) : undefined;
 
   return (
     <>

@@ -85,7 +85,7 @@ export default async function CursuriPage({
     }));
 
   const editId = Number(sp.edit) || 0;
-  const src = editId ? rows.find((c) => c.id === editId) : null;
+  const src = editId ? rows.find((c) => Number(c.id) === editId) : null;
   const edit: CourseEdit | null = src
     ? {
         id: src.id,

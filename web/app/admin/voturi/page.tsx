@@ -22,7 +22,7 @@ export default async function VoturiPage({
   `) as VC[];
 
   const editId = Number(sp.edit) || 0;
-  const edit = editId ? list.find((v) => v.id === editId) : undefined;
+  const edit = editId ? list.find((v) => Number(v.id) === editId) : undefined;
 
   return (
     <>
