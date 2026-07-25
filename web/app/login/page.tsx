@@ -9,6 +9,14 @@ export default function LoginPage() {
   return (
     <>
       <link rel="stylesheet" href="/assets/css/admin.css" />
+      <style>{`.login-box input[type="email"] {
+  width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 14px; margin-bottom: 12px; background: var(--surface); color: var(--text);
+  transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
+}
+.login-box input[type="email"]:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}`}</style>
       <div className="login-wrap">
         <form className="login-box" action={action}>
           <h1>Cursuri la Pahar — Admin</h1>
