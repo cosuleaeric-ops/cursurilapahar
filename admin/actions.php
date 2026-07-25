@@ -165,7 +165,11 @@
         clp_process_course_publish_tasks();
 
         [$redirect_year, $redirect_month] = array_pad(explode('-', $entry['date_raw']), 2, '');
-        $redirect = '/admin/?tab=cursuri&year=' . (int)$redirect_year . '&month=' . (int)$redirect_month . '&ctab=cursuri&saved=1&edit=' . urlencode($entry['id']);
+        $redirect = '/admin/?tab=cursuri&year=' . (int)$redirect_year . '&month=' . (int)$redirect_month . '&ctab=cursuri&saved=1';
+        // La editare rămânem pe cursul modificat; la adăugare lăsăm formularul gol, ca să poți adăuga altul.
+        if ($id !== '') {
+            $redirect .= '&edit=' . urlencode($entry['id']);
+        }
         header('Location: ' . $redirect);
         exit;
     }

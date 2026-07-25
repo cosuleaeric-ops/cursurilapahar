@@ -8,6 +8,7 @@ RewriteRule ^prezinta-un-curs/?$ /prezinta-un-curs.php [L]
 RewriteRule ^sustine-un-curs/?$ /prezinta-un-curs [R=301,L]
 RewriteRule ^gazduieste-un-curs/?$ /gazduieste-un-curs.php [L]
 RewriteRule ^propune-un-parteneriat/?$ /propune-un-parteneriat.php [L]
+RewriteRule ^parteneri/?$ /parteneri.php [L]
 RewriteRule ^voteaza-cursuri/?$ /voteaza-cursuri.php [L]
 RewriteRule ^cursuri-posibile/?$ /cursuri-posibile.php [L]
 

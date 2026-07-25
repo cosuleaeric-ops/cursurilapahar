@@ -36,14 +36,14 @@ $settings = array_merge($_defaults, $_loaded);
     <meta property="og:title" content="Cursuri posibile – Cursuri la Pahar">
     <meta property="og:description" content="Idei de teme pentru un curs la pahar: știință, istorie, psihologie, film, muzică și multe altele. Caută inspirație și prezintă un curs.">
     <meta property="og:url" content="https://cursurilapahar.ro/cursuri-posibile">
-    <meta property="og:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
+    <meta property="og:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg?v=2">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Cursuri la Pahar – curs ținut într-un bar plin din București">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Cursuri posibile – Cursuri la Pahar">
     <meta name="twitter:description" content="Idei de teme pentru un curs la pahar: știință, istorie, psihologie, film, muzică și multe altele.">
-    <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg">
+    <meta name="twitter:image" content="https://cursurilapahar.ro/assets/images/og-image.jpg?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
