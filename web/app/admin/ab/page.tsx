@@ -2,63 +2,81 @@ import { sql } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const VARIANTS: Record<string, string> = {
-  off: "cardurile ca înainte (fără buton)",
-  on: "cardurile cu butonul „Vreau să vin”",
-};
+// Port din admin/statistici/ab_headline.php.
+const VARIANTS: [string, string][] = [
+  ["off", "cardurile ca înainte (fără buton)"],
+  ["on", "cardurile cu butonul „Vreau să vin”"],
+];
+const LABEL: Record<string, string> = { on: "Cu buton", off: "Fără buton" };
+
+const nf = new Intl.NumberFormat("en-US");
+const pct = (n: number) => n.toFixed(2);
 
 export default async function AbPage() {
   const rows = (await sql`
     SELECT variant, views, conversions FROM ab_experiments WHERE experiment = 'button'
   `) as { variant: string; views: number; conversions: number }[];
   const stats = Object.fromEntries(rows.map((r) => [r.variant, r]));
-  const ctr = (v: string) => {
-    const s = stats[v];
-    return s && s.views > 0 ? (s.conversions / s.views) * 100 : 0;
-  };
-  const totalViews = rows.reduce((a, r) => a + r.views, 0);
+  const views = (v: string) => stats[v]?.views ?? 0;
+  const clicks = (v: string) => stats[v]?.conversions ?? 0;
+  const ctr = (v: string) => (views(v) > 0 ? (clicks(v) / views(v)) * 100 : 0);
+
+  const totalViews = views("on") + views("off");
   const leader = totalViews > 0 && ctr("on") !== ctr("off") ? (ctr("on") > ctr("off") ? "on" : "off") : "";
+  const other = leader === "on" ? "off" : "on";
 
   return (
     <>
-      <h1 className="wp-page-title">Test A/B — Buton „Vreau să vin"</h1>
+      <h1 className="wp-page-title">Test A/B — Buton „Vreau să vin&quot;</h1>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>
-        Jumătate din vizitatori (aleatoriu, cookie 90 de zile) văd un buton galben „Vreau să vin" pe fiecare card de
-        curs, jumătate nu. Click = ajungere pe pagina de bilete prin card sau buton. Boții și prefetch-urile nu sunt
+        Jumătate din vizitatori (aleatoriu, cookie 90 de zile) văd un buton galben „Vreau să vin&quot; pe fiecare card
+        de curs, jumătate nu. Click = ajungere pe pagina de bilete prin card sau buton. Boții și prefetch-urile nu sunt
         numărate.
       </p>
 
-      <div className="card">
-        <div style={{ overflowX: "auto" }}>
-          <table className="wp-table" style={{ maxWidth: 980 }}>
-            <thead>
-              <tr>
-                <th>Variantă</th>
-                <th>Afișări</th>
-                <th>Click-uri</th>
-                <th>CTR</th>
+      <div style={{ overflowX: "auto" }}>
+        <table className="table" style={{ maxWidth: 980 }}>
+          <thead>
+            <tr>
+              <th>Variantă</th>
+              <th>Descriere</th>
+              <th style={{ textAlign: "right" }}>Afișări</th>
+              <th style={{ textAlign: "right" }}>Click-uri cursuri</th>
+              <th style={{ textAlign: "right" }}>CTR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {VARIANTS.map(([v, desc]) => (
+              <tr key={v}>
+                <td style={{ fontWeight: 700 }}>
+                  {LABEL[v]}
+                  {v === leader ? " 🏆" : ""}
+                </td>
+                <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{desc}</td>
+                <td style={{ textAlign: "right" }}>{nf.format(views(v))}</td>
+                <td style={{ textAlign: "right" }}>{nf.format(clicks(v))}</td>
+                <td style={{ textAlign: "right", fontWeight: 600 }}>{pct(ctr(v))}%</td>
               </tr>
-            </thead>
-            <tbody>
-              {Object.entries(VARIANTS).map(([v, label]) => (
-                <tr key={v} style={leader === v ? { fontWeight: 700 } : undefined}>
-                  <td>
-                    <strong>{v.toUpperCase()}</strong>{" "}
-                    <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>— {label}</span>
-                    {leader === v && " 🏆"}
-                  </td>
-                  <td>{stats[v]?.views ?? 0}</td>
-                  <td>{stats[v]?.conversions ?? 0}</td>
-                  <td>{ctr(v).toFixed(1)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {totalViews === 0 && (
-          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 10 }}>Nu există date încă.</p>
-        )}
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {totalViews === 0 ? (
+        <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 16 }}>
+          Nu există date încă — testul pornește la primele vizite pe pagina principală.
+        </p>
+      ) : leader !== "" ? (
+        <p style={{ fontSize: 13, marginTop: 16 }}>
+          Varianta <strong>{leader === "on" ? "cu buton" : "fără buton"}</strong> conduce cu un CTR de{" "}
+          <strong>{pct(ctr(leader))}%</strong> (față de {pct(ctr(other))}% cealaltă variantă).{" "}
+          {totalViews < 750 && (
+            <span style={{ color: "var(--text-muted)" }}>
+              Sub ~750 de afișări totale diferența poate fi zgomot — mai lasă testul să ruleze.
+            </span>
+          )}
+        </p>
+      ) : null}
     </>
   );
 }

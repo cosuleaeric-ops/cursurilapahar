@@ -1,241 +1,230 @@
 import { redirect } from "next/navigation";
-import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { addVenit, addCheltuiala, deleteVenit, deleteCheltuiala } from "./actions";
+import { CHELTUIALA_EMOJI, CHELTUIALA_EMOJI_KEYWORDS } from "./emoji";
 
 export const dynamic = "force-dynamic";
 
-const lei0 = (n: number) => new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 0 }).format(n) + " lei";
-const lei2 = (n: number) => new Intl.NumberFormat("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + " lei";
-const roMonth = (ym: string) => {
-  const [y, m] = ym.split("-");
-  const d = new Date(Number(y), Number(m) - 1, 1);
-  const s = new Intl.DateTimeFormat("ro-RO", { month: "long", year: "numeric" }).format(d);
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
-
-type Row = Record<string, string | number | null>;
-
+// Port 1:1 din admin/statistici/pnl/index.php — același markup, același
+// stylesheet (public/admin/statistici/style.css) și același script
+// (public/admin/statistici/pnl/app.js), care vorbește cu /api/pnl.
 export default async function PnlPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  if (session.role !== "owner") redirect("/admin");
 
-  const [tot] = (await sql`
-    SELECT
-      (SELECT COALESCE(sum(suma),0)::float FROM venituri) AS venituri,
-      (SELECT COALESCE(sum(ch.suma),0)::float FROM cheltuieli ch JOIN cheltuiala_categorii cc ON cc.id=ch.categorie_id WHERE lower(cc.nume) <> 'dividende') AS chelt_op,
-      (SELECT COALESCE(sum(ch.suma),0)::float FROM cheltuieli ch JOIN cheltuiala_categorii cc ON cc.id=ch.categorie_id WHERE lower(cc.nume) = 'dividende') AS dividende
-  `) as Row[];
-  const venituri = Number(tot.venituri);
-  const cheltOp = Number(tot.chelt_op);
-  const dividende = Number(tot.dividende);
-  const profit = venituri - cheltOp;
-
-  const vLuni = (await sql`SELECT to_char(data,'YYYY-MM') m, sum(suma)::float s FROM venituri GROUP BY 1`) as Row[];
-  const cLuni = (await sql`
-    SELECT to_char(ch.data,'YYYY-MM') m, sum(ch.suma)::float s
-    FROM cheltuieli ch JOIN cheltuiala_categorii cc ON cc.id=ch.categorie_id
-    WHERE lower(cc.nume) <> 'dividende' GROUP BY 1`) as Row[];
-  const months = new Map<string, { v: number; c: number }>();
-  for (const r of vLuni) months.set(String(r.m), { v: Number(r.s), c: 0 });
-  for (const r of cLuni) {
-    const cur = months.get(String(r.m)) ?? { v: 0, c: 0 };
-    cur.c = Number(r.s);
-    months.set(String(r.m), cur);
-  }
-  const monthly = [...months.entries()].sort((a, b) => b[0].localeCompare(a[0]));
-
-  const cats = (await sql`
-    SELECT cc.nume, COALESCE(sum(ch.suma),0)::float s
-    FROM cheltuiala_categorii cc LEFT JOIN cheltuieli ch ON ch.categorie_id=cc.id
-    GROUP BY cc.nume HAVING COALESCE(sum(ch.suma),0) > 0 ORDER BY s DESC`) as Row[];
-
-  const catList = (await sql`SELECT id, nume FROM cheltuiala_categorii ORDER BY nume`) as Row[];
-  const recentV = (await sql`SELECT id, data, descriere, suma::float FROM venituri ORDER BY data DESC, id DESC LIMIT 12`) as Row[];
-  const recentC = (await sql`
-    SELECT ch.id, ch.data, ch.descriere, ch.suma::float, cc.nume categorie
-    FROM cheltuieli ch JOIN cheltuiala_categorii cc ON cc.id=ch.categorie_id
-    ORDER BY ch.data DESC, ch.id DESC LIMIT 12`) as Row[];
-
-  const section: React.CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 };
-  const td: React.CSSProperties = { textAlign: "right", fontVariantNumeric: "tabular-nums" };
-  const delBtn = { border: "none", background: "none", color: "var(--danger)", cursor: "pointer", fontSize: 12, fontWeight: 600 };
+  const cfg = JSON.stringify({
+    csrf: "",
+    api: "/api/pnl",
+    cheltuialaEmoji: CHELTUIALA_EMOJI,
+    cheltuialaEmojiKeywords: CHELTUIALA_EMOJI_KEYWORDS,
+  });
 
   return (
     <>
-      <h1 className="wp-page-title">P&amp;L Cursuri</h1>
+      <link rel="stylesheet" href="/admin/statistici/style.css" />
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" />
+      <script dangerouslySetInnerHTML={{ __html: `window.PNL = ${cfg};` }} />
 
-      <div className="dash-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
-        <div className="dash-card accent-green">
-          <div className="dash-label">Venituri</div>
-          <div className="dash-value">{lei0(venituri)}</div>
-        </div>
-        <div className="dash-card accent-red">
-          <div className="dash-label">Cheltuieli operaționale</div>
-          <div className="dash-value">{lei0(cheltOp)}</div>
-        </div>
-        <div className="dash-card accent-blue">
-          <div className="dash-label">Profit</div>
-          <div className={`dash-value ${profit >= 0 ? "positive" : "negative"}`}>{lei0(profit)}</div>
-        </div>
-        <div className="dash-card accent-gold">
-          <div className="dash-label">Dividende</div>
-          <div className="dash-value">{lei0(dividende)}</div>
-        </div>
+      <div style={{maxWidth: "1200px", margin: "0 auto"}}>
+
+      <a href="/admin/" style={{fontSize: "12px", color: "var(--text-muted)", textDecoration: "none", display: "inline-block", marginBottom: "12px"}}>← Dashboard</a>
+
+      <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px"}}>
+          <h1 className="wp-page-title" style={{marginBottom: "0"}}>P&L Cursuri</h1>
+          <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+              <a href="/api/pnl/export" download style={{display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 14px", background: "#2271b1", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: "600", textDecoration: "none"}} title="Exportă toate datele pentru Claude">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export
+              </a>
+              <button className="btn-hide" id="btnHide" title="Ascunde valorile">👁</button>
+              <span className="last-entry-badge" id="lastEntryBadge"></span>
+              <div style={{display: "flex", alignItems: "center", gap: "6px"}}>
+                  <button className="nav-arrow" id="btnPrevMonth">‹</button>
+                  <select className="year-select" id="yearSelect"></select>
+                  <button className="nav-arrow" id="btnNextMonth">›</button>
+              </div>
+          </div>
       </div>
 
-      <div style={section}>
-        <div className="dash-section">
-          <div className="dash-section-title">Lunar</div>
-          <table className="dash-table">
-            <tbody>
-              <tr style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase" }}>
-                <td>Luna</td>
-                <td style={td}>Venituri</td>
-                <td style={td}>Cheltuieli</td>
-                <td style={td}>Profit</td>
-              </tr>
-              {monthly.map(([m, x]) => (
-                <tr key={m}>
-                  <td>{roMonth(m)}</td>
-                  <td style={td}>{lei0(x.v)}</td>
-                  <td style={td}>{lei0(x.c)}</td>
-                  <td style={{ ...td, color: x.v - x.c >= 0 ? "var(--success)" : "var(--danger)", fontWeight: 600 }}>
-                    {lei0(x.v - x.c)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Quick Add Bar */}
+        <div className="quick-add-bar">
+          <button type="button" className="quick-add-btn quick-add-cheltuiala" id="topBtnCheltuiala">
+            <span className="qab-icon">−</span>
+            <span className="qab-text">Adaugă cheltuială</span>
+          </button>
+          <button type="button" className="quick-add-btn quick-add-venit" id="topBtnVenit">
+            <span className="qab-icon">+</span>
+            <span className="qab-text">Adaugă venit</span>
+          </button>
         </div>
 
-        <div className="dash-section">
-          <div className="dash-section-title">Cheltuieli pe categorii</div>
-          <table className="dash-table">
-            <tbody>
-              {cats.map((r) => (
-                <tr key={String(r.nume)}>
-                  <td>{String(r.nume)}</td>
-                  <td style={td}>{lei0(Number(r.s))}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Stats */}
+        <div className="stats-grid">
+          <div className="stat-card accent-green">
+            <div className="label">Venituri totale</div>
+            <div className="value green" id="statVenituri">—</div>
+            <div className="sub" id="statVenituriSub"></div>
+          </div>
+          <div className="stat-card accent-red">
+            <div className="label">Cheltuieli totale</div>
+            <div className="value red" id="statCheltuieli">—</div>
+            <div className="sub" id="statCheltuieliSub"></div>
+          </div>
+          <div className="stat-card accent-gold">
+            <div className="label">Profit net</div>
+            <div className="value" id="statProfit">—</div>
+            <div className="sub" id="statProfitSub"></div>
+          </div>
+          <div className="stat-card accent-blue">
+            <div className="label">Marjă profit</div>
+            <div className="value" id="statMarja">—</div>
+            <div className="sub">din venituri</div>
+          </div>
         </div>
-      </div>
 
-      <div style={section}>
-        <div className="dash-section">
-          <div className="dash-section-title">Adaugă venit</div>
-          <form action={addVenit}>
-            <div style={{ display: "flex", gap: 10 }}>
-              <div className="form-group" style={{ flex: "0 0 140px", marginBottom: 10 }}>
-                <label>Data</label>
-                <input name="data" type="date" required />
-              </div>
-              <div className="form-group" style={{ flex: 1, marginBottom: 10 }}>
-                <label>Descriere</label>
-                <input name="descriere" type="text" required />
-              </div>
-              <div className="form-group" style={{ flex: "0 0 110px", marginBottom: 10 }}>
-                <label>Sumă</label>
-                <input name="suma" type="number" step="0.01" required />
+        {/* Charts row */}
+        <div className="chart-card" style={{marginBottom: "16px"}}>
+          <h3>Venituri vs Cheltuieli</h3>
+          <div className="chart-wrap">
+            <canvas id="chartMonthly"></canvas>
+          </div>
+        </div>
+
+        {/* Top Categories */}
+        <div className="chart-card" id="topCatCard" style={{display: "none", marginBottom: "28px"}}>
+          <h3>Top categorii</h3>
+          <div id="topCatWrap" style={{position: "relative"}}>
+            <canvas id="chartTopCat"></canvas>
+          </div>
+          <div className="chart-card-footer" id="topCatFooter" style={{display: "none"}}>
+            <button type="button" className="chart-toggle-link" id="btnAllCategories">▼ Vezi toate</button>
+          </div>
+        </div>
+
+        {/* Transactions */}
+        <div className="tx-section">
+        <div className="section-header">
+          <h2>Tranzacții</h2>
+          <div className="tab-group">
+            <button className="tab-btn active" data-tab="toate">Toate</button>
+            <button className="tab-btn" data-tab="venituri">Venituri</button>
+            <button className="tab-btn" data-tab="cheltuieli">Cheltuieli</button>
+          </div>
+          <div className="add-btns">
+            <button className="btn btn-green" id="btnAddVenit">+ Venit</button>
+            <button className="btn btn-red"   id="btnAddCheltuiala">+ Cheltuiala</button>
+          </div>
+        </div>
+
+        <div className="tx-cat-filters" id="txCatFilters" style={{display: "none"}}>
+          <div className="tx-cat-filter-list" id="txCatFilterList"></div>
+          <div className="tx-cat-filter-footer" id="txCatFilterFooter" style={{display: "none"}}>
+            <button type="button" className="chart-toggle-link" id="btnTxCatToggle">▼ Vezi toate</button>
+          </div>
+        </div>
+
+        <div className="table-card">
+          <div className="table-scroll">
+            <table className="tx-table">
+              <thead>
+                <tr>
+                  <th className="col-date">Data</th>
+                  <th>Categorie</th>
+                  <th className="right col-sum">Sumă (lei)</th>
+                  <th className="col-actions"></th>
+                </tr>
+              </thead>
+              <tbody id="txBody"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>{/* /tx-section */}
+
+      {/* Modal: Adaugă / Editează Venit */}
+      <div className="pnl-modal-overlay" id="modalVenit">
+        <div className="pnl-modal">
+          <button type="button" className="pnl-modal-close" data-close="modalVenit">×</button>
+          <h2 id="modalVenitTitle">Adaugă venit</h2>
+          <div className="error-msg" id="errorVenit"></div>
+          <form id="formVenit">
+            <input type="hidden" name="id" id="venitId" />
+            <div className="form-group">
+              <label>Data</label>
+              <input type="date" name="data" id="venitData" required />
+              <div className="date-nav">
+                <button type="button" className="nav-arrow" id="venitDataPrev">‹</button>
+                <button type="button" className="nav-arrow" id="venitDataNext">›</button>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary btn-sm">
-              Adaugă venit
-            </button>
-          </form>
-        </div>
-
-        <div className="dash-section">
-          <div className="dash-section-title">Adaugă cheltuială</div>
-          <form action={addCheltuiala}>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <div className="form-group" style={{ flex: "0 0 130px", marginBottom: 10 }}>
-                <label>Data</label>
-                <input name="data" type="date" required />
-              </div>
-              <div className="form-group" style={{ flex: 1, minWidth: 120, marginBottom: 10 }}>
-                <label>Descriere</label>
-                <input name="descriere" type="text" required />
-              </div>
-              <div className="form-group" style={{ flex: "0 0 100px", marginBottom: 10 }}>
-                <label>Sumă</label>
-                <input name="suma" type="number" step="0.01" required />
-              </div>
-              <div className="form-group" style={{ flex: "0 0 150px", marginBottom: 10 }}>
-                <label>Categorie</label>
-                <select name="categorie_id" required defaultValue="">
-                  <option value="" disabled>
-                    —
-                  </option>
-                  {catList.map((c) => (
-                    <option key={String(c.id)} value={String(c.id)}>
-                      {String(c.nume)}
-                    </option>
-                  ))}
-                </select>
+            <div className="form-group">
+              <label>Categorie</label>
+              <div className="categorie-combobox">
+                <input type="text" id="venitCategorie" autoComplete="off" placeholder="Scrie sau alege categoria..." />
+                <button type="button" className="cat-combobox-arrow" tabIndex={-1} aria-label="Arată categoriile">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div id="venitCategorieSuggestions" className="categorie-suggestions" hidden></div>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary btn-sm">
-              Adaugă cheltuială
-            </button>
+            <div className="form-group">
+              <label>Sumă (lei)</label>
+              <input type="number" name="suma" id="venitSuma" step="0.01" min="0.01" required />
+            </div>
+            <div className="pnl-modal-actions">
+              <button type="button" className="btn btn-ghost" data-close="modalVenit">Anulează</button>
+              <button type="submit" className="btn btn-green" id="venitSubmit">Salvează</button>
+            </div>
           </form>
         </div>
       </div>
 
-      <div style={section}>
-        <div className="dash-section">
-          <div className="dash-section-title">Ultimele venituri</div>
-          <table className="dash-table">
-            <tbody>
-              {recentV.map((r) => (
-                <tr key={String(r.id)}>
-                  <td style={{ whiteSpace: "nowrap", color: "var(--text-muted)", fontSize: 12 }}>{String(r.data)}</td>
-                  <td>{String(r.descriere)}</td>
-                  <td style={td}>{lei2(Number(r.suma))}</td>
-                  <td style={{ textAlign: "right", width: 1 }}>
-                    <form action={deleteVenit} style={{ margin: 0 }}>
-                      <input type="hidden" name="id" value={String(r.id)} />
-                      <button type="submit" style={delBtn}>
-                        ✕
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="dash-section">
-          <div className="dash-section-title">Ultimele cheltuieli</div>
-          <table className="dash-table">
-            <tbody>
-              {recentC.map((r) => (
-                <tr key={String(r.id)}>
-                  <td style={{ whiteSpace: "nowrap", color: "var(--text-muted)", fontSize: 12 }}>{String(r.data)}</td>
-                  <td>
-                    {String(r.descriere)}
-                    <span style={{ color: "var(--text-muted)", fontSize: 11 }}> · {String(r.categorie)}</span>
-                  </td>
-                  <td style={td}>{lei2(Number(r.suma))}</td>
-                  <td style={{ textAlign: "right", width: 1 }}>
-                    <form action={deleteCheltuiala} style={{ margin: 0 }}>
-                      <input type="hidden" name="id" value={String(r.id)} />
-                      <button type="submit" style={delBtn}>
-                        ✕
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Modal: Adaugă / Editează Cheltuiala */}
+      <div className="pnl-modal-overlay" id="modalCheltuiala">
+        <div className="pnl-modal">
+          <button type="button" className="pnl-modal-close" data-close="modalCheltuiala">×</button>
+          <h2 id="modalCheltuialaTitle">Adaugă cheltuiala</h2>
+          <div className="error-msg" id="errorCheltuiala"></div>
+          <form id="formCheltuiala">
+            <input type="hidden" name="id" id="cheltuialaId" />
+            <div className="form-group">
+              <label>Data</label>
+              <input type="date" name="data" id="cheltuialaData" required />
+              <div className="date-nav">
+                <button type="button" className="nav-arrow" id="cheltuialaDataPrev">‹</button>
+                <button type="button" className="nav-arrow" id="cheltuialaDataNext">›</button>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Categorie</label>
+              <div className="categorie-combobox">
+                <input type="text" id="cheltuialaCategorie" autoComplete="off" placeholder="Scrie sau alege categoria..." />
+                <button type="button" className="cat-combobox-arrow" tabIndex={-1} aria-label="Arată categoriile">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div id="cheltuialaCategorieSuggestions" className="categorie-suggestions" hidden></div>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Sumă (lei)</label>
+              <input type="number" name="suma" id="cheltuialaSuma" step="0.01" min="0.01" required />
+            </div>
+            <div className="form-group" id="serviceFeeGroup">
+              <label>Banca</label>
+              <input type="number" id="cheltuialaServiceFee" step="0.01" min="0.01" placeholder="ex: 0,45" />
+            </div>
+            <div className="form-group">
+              <label>Detalii</label>
+              <input type="text" id="cheltuialaDetalii" autoComplete="off" />
+            </div>
+            <div className="pnl-modal-actions">
+              <button type="button" className="btn btn-ghost" data-close="modalCheltuiala">Anulează</button>
+              <button type="submit" className="btn btn-red" id="cheltuialaSubmit">Salvează</button>
+            </div>
+          </form>
         </div>
       </div>
+      </div>{/* /max-width */}
+
+      <script src="/admin/statistici/pnl/app.js" defer />
     </>
   );
 }
