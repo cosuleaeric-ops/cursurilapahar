@@ -24,7 +24,7 @@ function loadEnv(): void {
 loadEnv();
 
 // --- tipuri (permisive; oglindesc bundle-ul live) ---
-interface SiteCard { id: string; title: string; date_raw: string; time?: string; location?: string; livetickets_url?: string; image_url?: string; active?: boolean; speaker_name?: string; link_added_at?: string; discount_percent?: number | string; discount_ends_at?: string; }
+interface SiteCard { id: string; title: string; date_raw: string; date_display?: string; time?: string; speaker_id?: string; location?: string; livetickets_url?: string; image_url?: string; active?: boolean; speaker_name?: string; link_added_at?: string; discount_percent?: number | string; discount_ends_at?: string; }
 interface StatCourse { id: number; name: string; date: string; created_at?: string; viza_done?: number; external_id?: string | null; }
 interface Ticket { course_id: number; participant_name: string; }
 interface Report { course_id: number; total_bilete: number; total_incasari: number; original_name?: string; uploaded_at?: string; types_json?: unknown; }
@@ -276,31 +276,40 @@ async function main(): Promise<void> {
     }
 
     // 3) îmbogățire din cardurile de site (match pe external_id == card.id); altfel insert nou
+    // speaker_id din card e id-ul legacy din speakers.json -> id-ul nou din Neon
+    const speakerByLegacy = new Map<string, number>();
+    for (const r of (await db.query("SELECT id, legacy_id FROM speakers WHERE legacy_id IS NOT NULL")).rows) {
+      speakerByLegacy.set(String(r.legacy_id), Number(r.id));
+    }
     let cardsMatched = 0, cardsNew = 0;
     for (const card of bundle.courses) {
       const startsAt = `${card.date_raw} ${card.time || "00:00"}`;
       const slug = slugFromUrl(card.livetickets_url);
       const existing = eventByExternal.get(card.id);
+      const speakerId = speakerByLegacy.get(String(card.speaker_id ?? "")) ?? null;
       if (existing) {
         await db.query(
           `UPDATE events SET title=$1, slug=$2, legacy_card_id=$3,
              starts_at=($4::timestamp AT TIME ZONE $9),
              location=$5, livetickets_url=$6, image_url=$7, active=$8, speaker_name=$11,
              link_added_at=($12::timestamp AT TIME ZONE $9),
-             discount_percent=$13, discount_ends_at=($14::timestamp AT TIME ZONE $9)
+             discount_percent=$13, discount_ends_at=($14::timestamp AT TIME ZONE $9),
+             speaker_id=$15, date_display=$16
            WHERE id=$10`,
           [card.title, slug, card.id, startsAt, card.location ?? null, card.livetickets_url ?? null, card.image_url ?? null, !!card.active, BUCHAREST, existing, card.speaker_name ?? null,
-           card.link_added_at || null, Number(card.discount_percent) || null, card.discount_ends_at || null]
+           card.link_added_at || null, Number(card.discount_percent) || null, card.discount_ends_at || null,
+           speakerId, card.date_display ?? null]
         );
         cardsMatched++;
       } else {
         await db.query(
           `INSERT INTO events(title, slug, legacy_card_id, starts_at, location, livetickets_url, image_url, active, speaker_name,
-                              link_added_at, discount_percent, discount_ends_at)
+                              link_added_at, discount_percent, discount_ends_at, speaker_id, date_display)
            VALUES($1,$2,$3,($4::timestamp AT TIME ZONE $9),$5,$6,$7,$8,$10,
-                  ($11::timestamp AT TIME ZONE $9),$12,($13::timestamp AT TIME ZONE $9))`,
+                  ($11::timestamp AT TIME ZONE $9),$12,($13::timestamp AT TIME ZONE $9),$14,$15)`,
           [card.title, slug, card.id, startsAt, card.location ?? null, card.livetickets_url ?? null, card.image_url ?? null, !!card.active, BUCHAREST, card.speaker_name ?? null,
-           card.link_added_at || null, Number(card.discount_percent) || null, card.discount_ends_at || null]
+           card.link_added_at || null, Number(card.discount_percent) || null, card.discount_ends_at || null,
+           speakerId, card.date_display ?? null]
         );
         cardsNew++;
       }

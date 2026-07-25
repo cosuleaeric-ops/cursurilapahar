@@ -13,12 +13,14 @@ export const dynamic = "force-dynamic";
 type Row = {
   id: number;
   title: string;
+  speaker_id: number | null;
   speaker_name: string | null;
   location: string | null;
   image_url: string | null;
   livetickets_url: string | null;
   active: boolean;
   clicks: number;
+  date_display: string | null;
   date_raw: string | null;
   time_str: string | null;
   discount_percent: number | null;
@@ -27,8 +29,8 @@ type Row = {
   upcoming: boolean;
 };
 
-// `date_display` din courses.json = clp_date_display_from_raw() → clp_format_date_ro(titleCase),
-// deci luna cu majusculă: „28 Iulie 2026".
+// Fallback pentru rândurile fără `date_display` în DB: aceeași regulă ca
+// clp_date_display_from_raw() → clp_format_date_ro(titleCase), luna cu majusculă („28 Iulie 2026").
 const dateDisplay = (raw: string | null) => {
   if (!raw) return "";
   const [y, m, d] = raw.split("-").map(Number);
@@ -52,7 +54,8 @@ export default async function CursuriPage({
   const tabHref = (t: string, y = year, m = month) => `/admin/cursuri?ctab=${t}&year=${y}&month=${m}`;
 
   const rows = (await sql`
-    SELECT id, title, speaker_name, location, image_url, livetickets_url, active, clicks,
+    SELECT id, title, speaker_id, speaker_name, location, image_url, livetickets_url, active, clicks,
+      date_display,
       to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS date_raw,
       to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'HH24:MI') AS time_str,
       discount_percent,
@@ -73,7 +76,9 @@ export default async function CursuriPage({
       id: c.id,
       title: c.title,
       speaker_name: c.speaker_name,
-      date_display: dateDisplay(c.date_raw),
+      // lib/courses_admin.php:107 — în tabel se arată textul STOCAT (`date_display`),
+      // nu unul recalculat; data brută rămâne doar ca plasă de siguranță.
+      date_display: c.date_display ?? dateDisplay(c.date_raw),
       date_raw: c.date_raw,
       livetickets_url: c.livetickets_url,
       image_url: c.image_url,
@@ -92,6 +97,8 @@ export default async function CursuriPage({
         title: src.title,
         date_raw: src.date_raw ?? "",
         time: src.time_str ?? "",
+        // cursuri-tab.php:40 — hidden-ul pornește din `speaker_id`-ul salvat, nu din nume.
+        speaker_id: src.speaker_id ?? 0,
         speaker_name: src.speaker_name ?? "",
         location: src.location ?? "",
         livetickets_url: src.livetickets_url ?? "",

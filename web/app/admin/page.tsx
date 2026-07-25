@@ -7,13 +7,13 @@ import { CATS, loadGroupedMessages } from "@/lib/messages";
 
 export const dynamic = "force-dynamic";
 
-type EventRow = { id: number; title: string; starts_at: string | null };
+type EventRow = { id: number; title: string; starts_at: string | null; date_display: string | null };
 type TodoRow = { id: number; title: string };
 type QuickLink = { url: string; icon?: string; label?: string };
 const todoPlain = (t: string) => t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1");
 
-// PHP afișează `date_display` din courses.json, generat de clp_date_display_from_raw()
-// → clp_format_date_ro($raw, true, true), deci luna cu majusculă: „28 Iulie 2026".
+// dashboard-tab.php:53 afișează textul STOCAT în `date_display`; funcția de mai jos e doar
+// fallback-ul, cu aceeași regulă ca clp_date_display_from_raw() (luna cu majusculă).
 const RO_MONTHS = ["", "Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
 const ymdFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" });
 const dateDisplay = (iso: string) => {
@@ -26,7 +26,7 @@ export default async function AdminHome() {
   // Dashboard-ul PHP citește doar cardurile din courses.json (clp_load_courses_for_admin),
   // nu și cursurile venite din statistici → în Neon acelea sunt rândurile fără legacy_card_id.
   const upcoming = (await sql`
-    SELECT id, title, starts_at FROM events
+    SELECT id, title, starts_at, date_display FROM events
     WHERE legacy_card_id IS NOT NULL
       AND to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
           >= to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
@@ -98,15 +98,18 @@ export default async function AdminHome() {
             <p className="bc-card-empty">Niciun curs programat.</p>
           ) : (
             <ul className="bc-card-list">
-              {upcoming.map((c) => (
-                <li key={c.id}>
-                  <span className="bc-li-dot" style={{ background: "#2563eb" }}></span>
-                  <span>
-                    {c.title}
-                    {c.starts_at && <span className="bc-li-meta"> · {dateDisplay(c.starts_at)}</span>}
-                  </span>
-                </li>
-              ))}
+              {upcoming.map((c) => {
+                const disp = c.date_display ?? (c.starts_at ? dateDisplay(c.starts_at) : "");
+                return (
+                  <li key={c.id}>
+                    <span className="bc-li-dot" style={{ background: "#2563eb" }}></span>
+                    <span>
+                      {c.title}
+                      {disp && <span className="bc-li-meta"> · {disp}</span>}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Link>

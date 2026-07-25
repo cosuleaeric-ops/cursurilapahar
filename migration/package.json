@@ -8,7 +8,8 @@
     "schema": "tsx src/schema.ts",
     "migrate": "tsx src/migrate.ts",
     "verify": "tsx src/verify.ts",
-    "seed-users": "tsx src/seed-users.ts"
+    "seed-users": "tsx src/seed-users.ts",
+    "dedupe-speakers": "tsx src/dedupe-speakers.ts"
   },
   "dependencies": {
     "pg": "^8.13.1"

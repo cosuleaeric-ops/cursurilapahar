@@ -30,6 +30,8 @@ CREATE TABLE events (
     title               TEXT NOT NULL,
     starts_at           TIMESTAMPTZ,                 -- date_raw + time unificate
     speaker_name        TEXT,                        -- din card (pt taskuri post-curs)
+    speaker_id          BIGINT,                      -- FK adăugată mai jos (speakers se creează după events)
+    date_display        TEXT,                        -- textul stocat la salvare („11 August 2026")
     location            TEXT,
     livetickets_url     TEXT,
     image_url           TEXT,                        -- URL (Blob/CDN), nu fișier local
@@ -129,6 +131,10 @@ CREATE TABLE speakers (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- FK-ul se adaugă abia acum: `events` e declarată înaintea lui `speakers`.
+ALTER TABLE events ADD CONSTRAINT events_speaker_id_fkey
+    FOREIGN KEY (speaker_id) REFERENCES speakers(id);
 
 -- config site (60 chei heterogene, valori string sau array) -> key/value JSONB
 CREATE TABLE settings (

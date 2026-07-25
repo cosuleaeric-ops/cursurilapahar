@@ -6,7 +6,7 @@ import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { fetchCourseMeta, type MetaResult } from "@/lib/livetickets";
 import { COURSE_TIMES } from "./times";
-import { IG_POST_TYPES } from "./stats-data";
+import { IG_POST_TYPES, RO_MONTHS } from "./stats-data";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -14,6 +14,18 @@ async function requireAuth(): Promise<void> {
 
 const g = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const TZ = "Europe/Bucharest";
+
+/**
+ * clp_date_display_from_raw() (lib/dates.php:82) → clp_format_date_ro($raw, true, true):
+ * luna cu majusculă, cu an — „11 August 2026". În PHP textul se generează o dată, la
+ * salvare (admin/actions.php:121), și e cel afișat mai târziu în listă și pe dashboard.
+ */
+function dateDisplayFromRaw(dateRaw: string): string {
+  const [y, m, d] = dateRaw.split("-");
+  const month = RO_MONTHS[Number(m)] ?? "";
+  if (!month) return "";
+  return `${Number(d)} ${month.charAt(0).toUpperCase()}${month.slice(1)} ${y}`;
+}
 
 /** Preia imaginea/locația dintr-un link de bilete (fost /api/livetickets.php). */
 export async function lookupTicketMeta(url: string): Promise<MetaResult> {
@@ -60,13 +72,16 @@ export async function saveCourse(formData: FormData): Promise<void> {
 
   const startsAt = `${dateRaw} ${time}`;
   const active = ltUrl !== "";
+  const dateDisplay = dateDisplayFromRaw(dateRaw);
 
   if (id) {
     // „NOU" 48h: marcajul se pune doar când linkul de bilete apare prima dată.
     await sql`
       UPDATE events SET
         title = ${title},
+        date_display = ${dateDisplay},
         starts_at = (${startsAt}::timestamp AT TIME ZONE ${TZ}),
+        speaker_id = ${speakerId},
         speaker_name = ${speaker || null},
         location = ${location || null},
         livetickets_url = ${ltUrl || null},
@@ -84,8 +99,8 @@ export async function saveCourse(formData: FormData): Promise<void> {
     // e `legacy_card_id`, marcajul după care cursul e recunoscut ca „card de site".
     const cardId = `c${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
     await sql`
-      INSERT INTO events (title, legacy_card_id, starts_at, speaker_name, location, livetickets_url, image_url, active, link_added_at)
-      VALUES (${title}, ${cardId}, (${startsAt}::timestamp AT TIME ZONE ${TZ}), ${speaker || null}, ${location || null},
+      INSERT INTO events (title, legacy_card_id, date_display, starts_at, speaker_id, speaker_name, location, livetickets_url, image_url, active, link_added_at)
+      VALUES (${title}, ${cardId}, ${dateDisplay}, (${startsAt}::timestamp AT TIME ZONE ${TZ}), ${speakerId}, ${speaker || null}, ${location || null},
               ${ltUrl || null}, ${imageUrl || null}, ${active},
               CASE WHEN ${ltUrl} = '' THEN NULL ELSE now() END)
     `;

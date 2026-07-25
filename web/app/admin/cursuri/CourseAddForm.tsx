@@ -14,6 +14,7 @@ export type CourseEdit = {
   title: string;
   date_raw: string;
   time: string;
+  speaker_id: number;
   speaker_name: string;
   location: string;
   livetickets_url: string;
@@ -134,9 +135,10 @@ export default function CourseAddForm({
   const [msg, setMsg] = useState<{ text: string; tone: "muted" | "ok" | "err" } | null>(null);
 
   // Se trimite doar id-ul speakerului (cursuri-tab.php:39-40 — inputul de text nu are `name`).
+  // La editare pornește din `speaker_id`-ul salvat, ca în PHP; dacă lipsește, îl rezolvă
+  // clpResolveSpeakerFromInput() la blur/submit, din numele afișat.
   const speakerIdRef = useRef<HTMLInputElement>(null);
-  const initialSpeakerId =
-    speakers.find((s) => s.name.trim().toLowerCase() === (edit?.speaker_name ?? "").trim().toLowerCase())?.id ?? 0;
+  const initialSpeakerId = edit?.speaker_id ?? 0;
 
   const setSpeakerId = (v: number) => {
     if (speakerIdRef.current) speakerIdRef.current.value = v ? String(v) : "";
