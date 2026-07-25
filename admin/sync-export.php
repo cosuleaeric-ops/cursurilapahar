@@ -28,6 +28,51 @@ if (!hash_equals($sync_token, (string)$provided)) {
     exit;
 }
 
+// ── Descarcare binar din admin/statistici/uploads ────────────────────────────
+// ?token=...&file=<nume>  ->  intoarce fisierul brut (viza PDF / raport XLSX).
+// Doar basename, doar fisiere care exista chiar in uploads/, doar extensiile
+// folosite de admin. Fara asta nu se pot muta binarele in Blob.
+if (isset($_GET['file'])) {
+    $stats_uploads_dir = __DIR__ . '/statistici/uploads';
+    $req = (string)$_GET['file'];
+
+    $valid = $req !== ''
+        && strpos($req, "\0") === false
+        && $req === basename($req)          // taie orice "/" sau "\" si "../"
+        && $req !== '.' && $req !== '..'
+        && preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*$/', $req) === 1;
+
+    $ext = $valid ? strtolower(pathinfo($req, PATHINFO_EXTENSION)) : '';
+    $types = [
+        'pdf'  => 'application/pdf',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xls'  => 'application/vnd.ms-excel',
+        'txt'  => 'text/plain; charset=utf-8',
+    ];
+    if (!$valid || !isset($types[$ext])) {
+        http_response_code(400);
+        header('Content-Type: text/plain');
+        echo "Bad file name.";
+        exit;
+    }
+
+    // realpath: fisierul trebuie sa fie chiar in uploads/, nu un symlink in afara
+    $real = realpath($stats_uploads_dir . '/' . $req);
+    $base = realpath($stats_uploads_dir);
+    if ($real === false || $base === false || dirname($real) !== $base || !is_file($real)) {
+        http_response_code(404);
+        header('Content-Type: text/plain');
+        echo "Not found.";
+        exit;
+    }
+
+    header('Content-Type: ' . $types[$ext]);
+    header('Content-Length: ' . filesize($real));
+    header('Content-Disposition: attachment; filename="' . $req . '"');
+    readfile($real);
+    exit;
+}
+
 $files = [
     'settings'        => 'settings.json',
     'courses'         => 'courses.json',
@@ -100,6 +145,15 @@ try {
             'tickets'        => sync_fetch_all($db, 'SELECT * FROM tickets'),
             'course_reports' => sync_fetch_all($db, 'SELECT * FROM course_reports'),
         ];
+        // Fisierele (viza PDF / raport) si subtipurile din viza. Separat, ca o tabela
+        // lipsa sa nu darame restul exportului.
+        foreach (['course_files' => 'course_files', 'viza_subtips' => 'viza_subtips'] as $key => $table) {
+            try {
+                $bundle['statistici'][$key] = sync_fetch_all($db, 'SELECT * FROM ' . $table);
+            } catch (Throwable $e) {
+                $bundle['statistici'][$key] = [];
+            }
+        }
         $db->close();
     }
     if (file_exists($stats_dir . '/pnl.sqlite')) {
@@ -112,6 +166,51 @@ try {
     }
 } catch (Exception $e) {
     // bazele lipsesc sau nu pot fi citite — bundle-ul JSON ramane valid
+}
+
+// Fisierele fizice din admin/statistici/uploads (viza PDF, raport XLSX). SQLite tine
+// doar numele (course_files.filename / course_reports.filename); binarul se ia separat
+// cu ?token=...&file=<name>.
+$stats_uploads_dir = __DIR__ . '/statistici/uploads';
+$bundle['stats_uploads_list'] = [];
+if (is_dir($stats_uploads_dir)) {
+    $by_name = [];
+    foreach (($bundle['statistici']['course_files'] ?? []) as $cf) {
+        if (($cf['filename'] ?? '') === '') continue;
+        $by_name[$cf['filename']] = [
+            'kind'           => $cf['file_type'] ?? 'viza',
+            'course_id'      => (int)$cf['course_id'],
+            'course_file_id' => (int)$cf['id'],
+            'original_name'  => $cf['original_name'] ?? '',
+            'uploaded_at'    => $cf['uploaded_at'] ?? '',
+        ];
+    }
+    foreach (($bundle['statistici']['course_reports'] ?? []) as $cr) {
+        if (($cr['filename'] ?? '') === '') continue;
+        $by_name[$cr['filename']] = [
+            'kind'          => 'raport',
+            'course_id'     => (int)$cr['course_id'],
+            'report_id'     => (int)$cr['id'],
+            'original_name' => $cr['original_name'] ?? '',
+            'uploaded_at'   => $cr['uploaded_at'] ?? '',
+        ];
+    }
+    foreach (scandir($stats_uploads_dir) as $f) {
+        if ($f === '.' || $f === '..' || $f === '.htaccess') continue;
+        $p = $stats_uploads_dir . '/' . $f;
+        if (!is_file($p)) continue;
+        $entry = ['name' => $f, 'size' => filesize($p), 'mtime' => date('c', filemtime($p))];
+        if (isset($by_name[$f])) {
+            $entry += $by_name[$f];
+        } elseif (preg_match('/^viza_debug_(\d+)\.txt$/', $f, $m)) {
+            // text brut salvat la parsarea vizei, legat de curs prin nume
+            $entry['kind'] = 'viza_debug';
+            $entry['course_id'] = (int)$m[1];
+        } else {
+            $entry['kind'] = 'orphan'; // fisier fara rand in SQLite
+        }
+        $bundle['stats_uploads_list'][] = $entry;
+    }
 }
 
 header('Content-Type: application/json; charset=utf-8');
