@@ -1,24 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 
-// Picker nativ + câmp text sincronizate (înlocuiește Coloris din PHP).
+// Aceleași câmpuri ca în aspect-tab.php: un singur input text cu `data-coloris`,
+// inițializat de Coloris cu paleta din admin/assets/js/admin-aspect.js.
+const SWATCHES = ["#0D0D0D", "#161616", "#1A1A1A", "#ffffff", "#C9A84C", "#b8922e", "#FFB000", "#E8E4DC", "#9CA3AF"];
+
+declare global {
+  interface Window {
+    Coloris?: (opts: Record<string, unknown>) => void;
+  }
+}
+
+/** Încarcă scriptul Coloris și îl pornește pe câmpurile [data-coloris]. */
+export function ColorisInit() {
+  useEffect(() => {
+    const start = () =>
+      window.Coloris?.({
+        el: "[data-coloris]",
+        format: "hex",
+        forceAlpha: false,
+        focusInput: false,
+        selectInput: true,
+        clearButton: false,
+        swatches: SWATCHES,
+      });
+
+    if (window.Coloris) {
+      start();
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = "/assets/js/coloris.min.js";
+    s.onload = start;
+    document.body.appendChild(s);
+  }, []);
+
+  return null;
+}
+
 export default function ColorField({ name, label, value }: { name: string; label: string; value: string }) {
-  const [val, setVal] = useState(value);
-  const pickerVal = /^#[0-9a-fA-F]{6}$/.test(val) ? val : "#000000";
   return (
     <div className="form-group" style={{ margin: 0 }}>
       <label>{label}</label>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <input
-          type="color"
-          value={pickerVal}
-          onChange={(e) => setVal(e.target.value)}
-          style={{ width: 44, height: 34, padding: 2, border: "1px solid var(--border)", borderRadius: 6, background: "#fff", cursor: "pointer" }}
-          aria-label={`Alege ${label}`}
-        />
-        <input type="text" name={name} value={val} onChange={(e) => setVal(e.target.value)} style={{ flex: 1 }} />
-      </div>
+      <input type="text" name={name} defaultValue={value} data-coloris="" />
     </div>
   );
 }

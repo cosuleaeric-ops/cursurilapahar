@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { uploadLogo, uploadFavicon, saveDesign } from "./actions";
-import ColorField from "./ColorField";
+import ColorField, { ColorisInit } from "./ColorField";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +90,7 @@ export default async function AspectPage({
         </form>
       </div>
 
+      <ColorisInit />
       <form action={saveDesign}>
         <div className="card" style={{ marginTop: 20 }}>
           <div className="card-title">Culori</div>
