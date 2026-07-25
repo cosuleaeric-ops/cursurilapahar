@@ -213,6 +213,7 @@ CREATE TABLE todos (
     title       TEXT NOT NULL,
     assigned_to TEXT,
     completed   BOOLEAN NOT NULL DEFAULT false,
+    completed_at TIMESTAMPTZ,                  -- gruparea pe zile din pagina To-dos
     created_by  TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()

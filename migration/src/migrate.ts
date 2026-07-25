@@ -68,7 +68,18 @@ interface Bundle {
   messages_log?: string | null;
   messages_meta?: Record<string, MsgMeta> | null;
   instagram_posts?: Record<string, string[]> | null;
+  todos?: TodoJson[] | null;
 }
+
+type TodoJson = {
+  id?: string;
+  title?: string;
+  assigned_to?: string;
+  created_by?: string;
+  completed?: boolean;
+  created_at?: string;
+  completed_at?: string;
+};
 
 type MsgMeta = {
   read?: boolean;
@@ -186,6 +197,19 @@ async function main(): Promise<void> {
           `INSERT INTO messages(category, name, email, payload, read, rating, contacted, comments, created_at)
            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
           [m.category, m.name, m.email, JSON.stringify(m.fields), m.read, m.rating, m.contacted, JSON.stringify(m.comments), m.createdAt]
+        );
+      }
+    }
+
+    // todos.json — lista de sarcini (live-ul e sursa de adevăr, re-import complet)
+    if (Array.isArray(bundle.todos)) {
+      await db.query("TRUNCATE todos RESTART IDENTITY");
+      for (const t of bundle.todos) {
+        await db.query(
+          `INSERT INTO todos(legacy_id, title, assigned_to, created_by, completed, created_at, completed_at)
+           VALUES($1,$2,$3,$4,$5,coalesce($6::timestamptz, now()),$7)`,
+          [t.id ?? null, t.title ?? "", t.assigned_to ?? null, t.created_by ?? null,
+           Boolean(t.completed), t.created_at ?? null, t.completed_at ?? null]
         );
       }
     }

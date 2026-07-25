@@ -40,6 +40,7 @@ $files = [
     'recurring'       => 'recurring_tasks.json',
     'ab_button'       => 'ab_button.json',
     'course_clicks'   => 'course_clicks.json',
+    'todos'           => 'todos.json',
     'vote_views'      => 'vote_views.json',
 ];
 

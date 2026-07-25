@@ -1,148 +1,63 @@
 import { sql } from "@/lib/db";
-import { addTodo, toggleTodo, deleteTodo } from "./actions";
-import type { ReactNode } from "react";
+import { TODOS_CSS } from "./styles";
+import TodosList, { type DoneGroup, type Todo, type User } from "./TodosList";
 
 export const dynamic = "force-dynamic";
 
-type Todo = {
-  id: number;
-  title: string;
-  assigned_to: string | null;
-  completed: boolean;
-};
+type Row = Todo & { done_day: string | null };
 
-const USERS: Record<string, { name: string; color: string }> = {
-  eric6: { name: "Eric", color: "#2563eb" },
-  andy: { name: "Andy", color: "#16a34a" },
-};
+const DISPLAY: Record<string, string> = { eric6: "Eric", andy: "Andy" };
+const COLORS: Record<string, string> = { eric6: "#2563eb", andy: "#16a34a" };
+const INITIALS: Record<string, string> = { eric6: "E", andy: "A" };
+const RO_MONTHS = ["", "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
 
-// Render [text](url) ca linkuri; restul ca text.
-function renderTitle(title: string): ReactNode[] {
-  const parts: ReactNode[] = [];
-  const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let i = 0;
-  while ((m = re.exec(title)) !== null) {
-    if (m.index > last) parts.push(title.slice(last, m.index));
-    parts.push(
-      <a key={i++} href={m[2]} target="_blank" rel="noopener" style={{ color: "var(--accent)" }}>
-        {m[1]}
-      </a>
-    );
-    last = m.index + m[0].length;
-  }
-  if (last < title.length) parts.push(title.slice(last));
-  return parts;
-}
-
-function Assignee({ user }: { user: string | null }) {
-  const u = user ? USERS[user] : null;
-  if (!u) return null;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: 11,
-        fontWeight: 700,
-        color: "#fff",
-        background: u.color,
-        borderRadius: 999,
-        padding: "2px 9px",
-        flexShrink: 0,
-      }}
-    >
-      {u.name}
-    </span>
-  );
-}
-
-function TodoRow({ t }: { t: Todo }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "8px 0", borderBottom: "1px solid var(--border)", opacity: t.completed ? 0.5 : 1 }}>
-      <form action={toggleTodo} style={{ margin: 0, display: "flex" }}>
-        <input type="hidden" name="id" value={t.id} />
-        <button
-          type="submit"
-          aria-label={t.completed ? "Redeschide" : "Finalizează"}
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 6,
-            border: `1.5px solid ${t.completed ? "var(--success)" : "var(--border-strong)"}`,
-            background: t.completed ? "var(--success)" : "transparent",
-            color: "#fff",
-            cursor: "pointer",
-            fontSize: 12,
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          {t.completed ? "✓" : ""}
-        </button>
-      </form>
-      <span style={{ flex: 1, fontSize: 14, textDecoration: t.completed ? "line-through" : "none" }}>{renderTitle(t.title)}</span>
-      <Assignee user={t.assigned_to} />
-      <form action={deleteTodo} style={{ margin: 0 }}>
-        <input type="hidden" name="id" value={t.id} />
-        <button type="submit" style={{ border: "none", background: "none", color: "var(--danger)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-          ✕
-        </button>
-      </form>
-    </div>
-  );
-}
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const ymd = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(d);
 
 export default async function TodosPage() {
-  const all = (await sql`SELECT id, title, assigned_to, completed FROM todos ORDER BY created_at DESC`) as Todo[];
-  const pending = all.filter((t) => !t.completed);
-  const done = all.filter((t) => t.completed);
+  const rows = (await sql`
+    SELECT id, title, assigned_to, completed,
+      to_char(coalesce(completed_at, created_at) AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS done_day
+    FROM todos ORDER BY created_at DESC
+  `) as Row[];
+  const userRows = (await sql`SELECT username FROM users ORDER BY id`) as { username: string }[];
+
+  const users: User[] = userRows.map((u) => ({
+    username: u.username,
+    name: DISPLAY[u.username] ?? cap(u.username),
+    color: COLORS[u.username] ?? "#6b7280",
+    initial: INITIALS[u.username] ?? u.username.charAt(0).toUpperCase(),
+    avatar: `/assets/images/avatars/${u.username}.png`,
+  }));
+
+  const pending = rows.filter((t) => !t.completed);
+  const done = rows.filter((t) => t.completed);
+
+  const today = ymd(new Date());
+  const yesterday = ymd(new Date(Date.now() - 86400000));
+  const dayLabel = (day: string | null) => {
+    if (!day) return "Mai demult";
+    if (day === today) return "Azi";
+    if (day === yesterday) return "Ieri";
+    const [y, m, d] = day.split("-");
+    return `${Number(d)} ${RO_MONTHS[Number(m)]} ${y}`;
+  };
+
+  // Grupare pe ziua finalizării, cele mai recente primele (krsort în PHP).
+  const map = new Map<string, Todo[]>();
+  for (const t of done) {
+    const k = t.done_day ?? "";
+    if (!map.has(k)) map.set(k, []);
+    map.get(k)!.push(t);
+  }
+  const doneGroups: DoneGroup[] = [...map.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([day, items]) => ({ label: dayLabel(day || null), items }));
 
   return (
     <>
-      <h1 className="wp-page-title">To-dos</h1>
-
-      <div className="card crm-form">
-        <div className="card-title">Adaugă to-do</div>
-        <form action={addTodo}>
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div className="form-group" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
-              <label>Descriere</label>
-              <input name="title" type="text" required />
-            </div>
-            <div className="form-group" style={{ flex: "0 0 140px", marginBottom: 0 }}>
-              <label>Pentru</label>
-              <select name="assigned_to" defaultValue="eric6">
-                <option value="eric6">Eric</option>
-                <option value="andy">Andy</option>
-              </select>
-            </div>
-            <button type="submit" className="btn btn-primary">
-              Adaugă
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="card">
-        <div className="card-title">De făcut ({pending.length})</div>
-        {pending.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Niciun to-do. 🎉</p>
-        ) : (
-          pending.map((t) => <TodoRow key={t.id} t={t} />)
-        )}
-      </div>
-
-      {done.length > 0 && (
-        <div className="card">
-          <div className="card-title">Finalizate ({done.length})</div>
-          {done.map((t) => (
-            <TodoRow key={t.id} t={t} />
-          ))}
-        </div>
-      )}
+      <style dangerouslySetInnerHTML={{ __html: TODOS_CSS }} />
+      <TodosList pending={pending} doneGroups={doneGroups} doneCount={done.length} users={users} />
     </>
   );
 }
