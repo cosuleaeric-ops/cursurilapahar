@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
 import { BackLink, ColaborareForm } from "../colaborare-form";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Propune un parteneriat – Cursuri la Pahar",
   description:
-    "Propune un parteneriat cu Cursuri la Pahar. Hai să explorăm ce putem construi împreună.",
-};
+    "Propune un parteneriat cu Cursuri la Pahar. Construiește ceva frumos alături de noi.",
+  path: "/propune-un-parteneriat",
+});
 
 const DEFAULTS = {
   parteneriat_title: "Propune un parteneriat",

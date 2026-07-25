@@ -1,8 +1,18 @@
+import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import SiteNav from "./SiteNav";
 import HeadScripts from "./HeadScripts";
 
 export const dynamic = "force-dynamic";
+
+// Meta OG/Twitter se construiesc per pagină cu pageMetadata() din lib/metadata.ts
+// (Next înlocuiește integral openGraph/twitter, nu le merge-uiește).
+
+// Înălțime viewport reală în px, blocată pe scroll (se schimbă doar la rotație/
+// lățime) — hero-ul nu-și mai schimbă înălțimea când se retrage bara browserului
+// in-app (Instagram). Identic cu scriptul din index.php.
+const VPH_SCRIPT =
+  "(function(){var w=window.innerWidth;function s(){document.documentElement.style.setProperty('--vph',window.innerHeight+'px');}s();window.addEventListener('resize',function(){if(window.innerWidth!==w){w=window.innerWidth;s();}});window.addEventListener('orientationchange',function(){w=window.innerWidth;s();});})();";
 
 const FONTS =
   "https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Poppins:wght@800&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap";
@@ -35,6 +45,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       <link rel="stylesheet" href={FONTS} />
       <link rel="stylesheet" href="/assets/css/style.css" />
+      <script dangerouslySetInnerHTML={{ __html: VPH_SCRIPT }} />
       <HeadScripts html={str("head_scripts")} />
       {favicon && <link rel="icon" href={favicon} />}
       <div style={vars as React.CSSProperties}>

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
 import { BackLink, ColaborareForm } from "../colaborare-form";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Prezintă un curs – Cursuri la Pahar",
   description:
     "Prezintă un curs la Cursuri la Pahar. Vino să împărtășești expertiza ta cu comunitatea noastră.",
-};
+  path: "/prezinta-un-curs",
+});
 
 const DEFAULTS = {
   sustine_title: "Prezintă un curs",

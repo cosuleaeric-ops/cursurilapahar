@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
 import HeroCarousel from "./HeroCarousel";
 import { abVariant, shouldCountClick, trackAb } from "@/lib/ab";
@@ -7,6 +9,14 @@ import Gallery from "./Gallery";
 import { NewsletterForm, ContactForm } from "./forms";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Cursuri la Pahar – Educație la un pahar în oraș",
+  description: "Cursuri ținute de experți într-un cadru relaxat, la un pahar în oraș.",
+  ogTitle: "Învață ceva nou la un pahar în oraș",
+  ogDescription: "Experți și profesori îți predau la un pahar, într-un bar din București.",
+  path: "/",
+});
 
 type EventRow = {
   id: number;
@@ -84,6 +94,36 @@ export default async function Home() {
   const collabSubtitle = str("collab_subtitle");
   const faqTitle = str("faq_title", "ÎNTREBĂRI FRECVENTE");
   const faqItems = Array.isArray(s.faq_items) ? (s.faq_items as { q: string; a: string }[]) : [];
+  // Fundaluri de secțiune (port clp_section_bg): imagine + blur/overlay din settings.
+  // Servim webp, ca peste tot pe site. Newsletter și FAQ au imagini implicite.
+  const sectionBgs = (s.section_bgs && typeof s.section_bgs === "object" ? s.section_bgs : {}) as Record<
+    string,
+    { image?: string; blur?: number; overlay?: number }
+  >;
+  const bgFor = (id: string, defaultImg = "") => {
+    const bg = sectionBgs[id] ?? {};
+    const img = (typeof bg.image === "string" && bg.image ? bg.image : defaultImg).replace(/\.jpe?g$/i, ".webp");
+    return {
+      hasBg: !!img,
+      attrs: {
+        "data-section-bg": id,
+        style: img
+          ? ({
+              "--section-bg-img": `url('${img}')`,
+              "--section-blur": `${bg.blur ?? 6}px`,
+              "--section-overlay": `${bg.overlay ?? 0.72}`,
+            } as React.CSSProperties)
+          : undefined,
+      },
+    };
+  };
+  const cursuriBg = bgFor("cursuri");
+  const newsletterBg = bgFor("newsletter", "/assets/images/hero1.webp");
+  const colaborareBg = bgFor("colaborare");
+  const faqBg = bgFor("faq", "/assets/images/hero2.webp");
+  const galerieBg = bgFor("galerie");
+  const contactBg = bgFor("contact");
+
   const galleryTitle = str("gallery_title", "GALERIE");
   const galleryImages = Array.isArray(s.gallery_featured) ? (s.gallery_featured as string[]) : [];
   const contactTitle = str("contact_title", "CONTACT");
@@ -130,7 +170,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="section" id="cursuri">
+      <section className={`section${cursuriBg.hasBg ? " section-bg-blur section-dark" : ""}`} id="cursuri" {...cursuriBg.attrs}>
         <div className="container">
           <h2 className="section-title">{coursesTitle}</h2>
 
@@ -221,7 +261,7 @@ export default async function Home() {
 
       {announcement && <div className="announcement-banner">{announcement}</div>}
 
-      <section className="section section-dark" id="newsletter">
+      <section className="section section-dark section-bg-blur" id="newsletter" {...newsletterBg.attrs}>
         <div className="container container-narrow">
           <h2 className="section-title">{newsletterTitle}</h2>
           <p className="newsletter-desc">{newsletterDesc}</p>
@@ -229,7 +269,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="section" id="colaborare">
+      <section className={`section${colaborareBg.hasBg ? " section-bg-blur section-dark" : ""}`} id="colaborare" {...colaborareBg.attrs}>
         <div className="container">
           <h2 className="section-title">{collabTitle}</h2>
           <p className="section-subtitle">{collabSubtitle}</p>
@@ -249,7 +289,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="section section-dark" id="faq">
+      <section className="section section-dark section-bg-blur" id="faq" {...faqBg.attrs}>
         <div className="container container-narrow">
           <h2 className="section-title">{faqTitle}</h2>
           <FaqList items={faqItems} />
@@ -257,7 +297,7 @@ export default async function Home() {
       </section>
 
       {galleryImages.length > 0 && (
-        <section className="section" id="galerie">
+        <section className={`section${galerieBg.hasBg ? " section-bg-blur section-dark" : ""}`} id="galerie" {...galerieBg.attrs}>
           <div className="container">
             <h2 className="section-title">{galleryTitle}</h2>
             <Gallery images={galleryImages} />
@@ -265,7 +305,7 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="section section-dark" id="contact">
+      <section className={`section section-dark${contactBg.hasBg ? " section-bg-blur" : ""}`} id="contact" {...contactBg.attrs}>
         <div className="container container-narrow">
           <h2 className="section-title">{contactTitle}</h2>
           <p className="section-subtitle">{contactSubtitle}</p>
@@ -304,6 +344,11 @@ export default async function Home() {
               <a href="https://www.facebook.com/profile.php?id=61585669450450" target="_blank" rel="noopener" aria-label="Facebook">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </a>
+              <a href="https://cesaicumpar.ro/" target="_blank" rel="noopener" aria-label="Ce să îi cumpăr">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 7h-1.31A3.49 3.49 0 0019 5.5 3.5 3.5 0 0015.5 2c-1.4 0-2.6.83-3.16 2.02L12 4.62l-.34-.6A3.49 3.49 0 008.5 2 3.5 3.5 0 005 5.5c0 .55.13 1.06.31 1.5H4a2 2 0 00-2 2v2a1 1 0 001 1h8V7h2v4h8a1 1 0 001-1V9a2 2 0 00-2-2zm-11.5 0a1.5 1.5 0 110-3c.83 0 1.5.67 1.5 1.5V7H8.5zm7 0H14V5.5c0-.83.67-1.5 1.5-1.5a1.5 1.5 0 110 3zM4 13v7a2 2 0 002 2h5v-9H4zm9 9h5a2 2 0 002-2v-7h-7v9z" />
                 </svg>
               </a>
             </div>

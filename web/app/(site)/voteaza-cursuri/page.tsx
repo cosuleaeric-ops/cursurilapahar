@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
 import Link from "next/link";
 import VoteList, { type VoteCourse } from "./VoteList";
 import styles from "./vote.module.css";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Votează cursuri – Cursuri la Pahar",
+  description:
+    "Votează temele de curs care te interesează. Cele mai apreciate teme au șanse mai mari să devină cursuri viitoare.",
+  path: "/voteaza-cursuri",
+});
 
 export default async function VotePage() {
   const courses = (await sql`

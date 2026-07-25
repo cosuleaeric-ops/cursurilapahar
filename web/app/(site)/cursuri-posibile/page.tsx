@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
 import { BackLink } from "../colaborare-form";
 import styles from "./ideas.module.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Cursuri posibile – Cursuri la Pahar",
   description:
-    "Idei de teme pentru un curs la pahar. Caută inspirație și aplică să susții un curs în cadrul evenimentelor noastre.",
-};
+    "Idei de teme pentru un curs la pahar: știință, istorie, psihologie, film, muzică și multe altele. Caută inspirație și prezintă un curs.",
+  path: "/cursuri-posibile",
+});
 
 type IdeaCategory = { emoji?: string; title?: string; topics?: string[] };
 type CourseIdeas = { intro?: string; categories?: IdeaCategory[] };
