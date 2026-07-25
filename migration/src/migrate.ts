@@ -411,7 +411,9 @@ async function main(): Promise<void> {
     console.log(`  cheltuiala_cat.  ${chCat.size}`);
     console.log(`  venituri         ${bundle.pnl.venituri.length}`);
     console.log(`  cheltuieli       ${bundle.pnl.cheltuieli.length}`);
-    console.log("\nNOTĂ: todos, ab_*, users, course_clicks, soldout NU sunt în bundle-ul live — se migrează separat.");
+    console.log(`  todos            ${bundle.todos?.length ?? 0}`);
+    console.log(`  messages         ${bundle.messages_log ? parseMessageLog(bundle.messages_log, bundle.messages_meta ?? {}).length : 0}`);
+    console.log("\nNOTĂ: users și soldout NU sunt în bundle-ul live — se migrează separat.");
   } catch (e) {
     await db.query("ROLLBACK");
     throw e;
