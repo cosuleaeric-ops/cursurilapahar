@@ -38,7 +38,7 @@ export async function updateVoteCourse(formData: FormData): Promise<void> {
   `;
   revalidatePath("/admin/voturi");
   revalidatePath("/voteaza-cursuri");
-  redirect("/admin/voturi");
+  redirect("/admin/voturi?saved=1");
 }
 
 export async function toggleVoteActive(formData: FormData): Promise<void> {

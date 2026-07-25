@@ -1,47 +1,33 @@
-import Link from "next/link";
 import { sql } from "@/lib/db";
-import { createVoteCourse, toggleVoteActive, deleteVoteCourse } from "./actions";
+import { createVoteCourse, updateVoteCourse, toggleVoteActive, deleteVoteCourse } from "./actions";
 import VoteCourseForm from "./VoteCourseForm";
+import VoteRows, { type VC } from "./VoteRows";
 
 export const dynamic = "force-dynamic";
 
-type VC = {
-  id: number;
-  name: string;
-  emoji: string | null;
-  description: string | null;
-  likes: number;
-  views: number;
-  active: boolean;
-};
-
-export default async function VoturiPage() {
+// Port din admin/partials/vot-tab.php — fără titlu de pagină, formular inline
+// (?edit=), tabel wp-table vc-table cu Emoji | Nume | Vizite | Voturi | Conv.
+export default async function VoturiPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string; saved?: string }>;
+}) {
+  const sp = await searchParams;
   const list = (await sql`
     SELECT id, name, emoji, description, likes, views, active
     FROM vote_courses ORDER BY active DESC, likes DESC
   `) as VC[];
-  const pageViewsRow = (await sql`SELECT value FROM settings WHERE key = 'vote_page_views'`) as { value: unknown }[];
-  const pageViews = Number(pageViewsRow[0]?.value ?? 0);
 
-  // conversie = voturi / vizualizări ale cardului (ca clp_format_vote_conversion)
-  const conversion = (likes: number, views: number) =>
-    views > 0 ? `${((likes / views) * 100).toFixed(1).replace(".", ",")}%` : "—";
-
-  const th: React.CSSProperties = { textAlign: "left", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", color: "var(--text-muted)", padding: "0 0 10px", borderBottom: "1px solid var(--border)" };
-  const td: React.CSSProperties = { padding: "12px 0", borderBottom: "1px solid var(--border)", verticalAlign: "middle" };
+  const editId = Number(sp.edit) || 0;
+  const edit = editId ? list.find((v) => v.id === editId) : undefined;
 
   return (
     <>
-      <h1 className="wp-page-title">Voturi</h1>
-
-      <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: -6 }}>
-        Pagina de votare a fost vizitată de <strong>{pageViews}</strong> ori. Conversia = voturi raportate la cât de des a
-        fost văzut cardul.
-      </p>
+      {sp.saved && <div className="notice notice-success">Cursul a fost salvat.</div>}
 
       <div className="card">
-        <div className="card-title">Adaugă idee de curs</div>
-        <VoteCourseForm action={createVoteCourse} />
+        <div className="card-title">{edit ? "Editează cursul" : "Adaugă idee de curs"}</div>
+        <VoteCourseForm action={edit ? updateVoteCourse : createVoteCourse} initial={edit} />
       </div>
 
       <div className="card">
@@ -51,61 +37,25 @@ export default async function VoturiPage() {
             Vezi pagina ↗
           </a>
         </div>
-
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ ...th, width: 48, textAlign: "center" }}>Emoji</th>
-              <th style={th}>Nume</th>
-              <th style={{ ...th, width: 80, textAlign: "center" }}>Voturi</th>
-              <th style={{ ...th, width: 80, textAlign: "center" }}>Vizite</th>
-              <th style={{ ...th, width: 90, textAlign: "center" }}>Conv.</th>
-              <th style={{ ...th, width: 190 }}>Acțiuni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((vc) => (
-              <tr key={vc.id} style={{ opacity: vc.active ? 1 : 0.45 }}>
-                <td style={{ ...td, fontSize: "1.4rem", textAlign: "center" }}>{vc.emoji || "📚"}</td>
-                <td style={td}>
-                  <div style={{ fontWeight: 600 }}>
-                    {vc.name}
-                    {!vc.active && (
-                      <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 400, marginLeft: 6 }}>(dezactivat)</span>
-                    )}
-                  </div>
-                  {vc.description && (
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {vc.description}
-                    </div>
-                  )}
-                </td>
-                <td style={{ ...td, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>❤️ {vc.likes}</td>
-                <td style={{ ...td, textAlign: "center", fontVariantNumeric: "tabular-nums", color: "var(--text-muted)" }}>{vc.views}</td>
-                <td style={{ ...td, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{conversion(vc.likes, vc.views)}</td>
-                <td style={td}>
-                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <Link className="btn btn-sm btn-secondary" href={`/admin/voturi/${vc.id}`}>
-                      Editează
-                    </Link>
-                    <form action={toggleVoteActive} style={{ margin: 0 }}>
-                      <input type="hidden" name="id" value={vc.id} />
-                      <button type="submit" className={`btn btn-sm ${vc.active ? "status-active" : "status-inactive"}`}>
-                        {vc.active ? "Activ" : "Inactiv"}
-                      </button>
-                    </form>
-                    <form action={deleteVoteCourse} style={{ margin: 0 }}>
-                      <input type="hidden" name="id" value={vc.id} />
-                      <button type="submit" className="btn btn-sm btn-danger">
-                        ✕
-                      </button>
-                    </form>
-                  </div>
-                </td>
+        {list.length === 0 ? (
+          <p style={{ color: "var(--text-muted)" }}>Nu există idei de cursuri adăugate încă.</p>
+        ) : (
+          <table className="wp-table vc-table">
+            <thead>
+              <tr>
+                <th style={{ width: 48 }}>Emoji</th>
+                <th>Nume</th>
+                <th style={{ width: 64, whiteSpace: "nowrap" }}>Vizite</th>
+                <th style={{ width: 72, whiteSpace: "nowrap" }}>Voturi</th>
+                <th style={{ width: 72, whiteSpace: "nowrap" }}>Conv.</th>
+                <th style={{ width: 210 }}>Acțiuni</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <VoteRows list={list} toggle={toggleVoteActive} remove={deleteVoteCourse} />
+            </tbody>
+          </table>
+        )}
       </div>
     </>
   );
