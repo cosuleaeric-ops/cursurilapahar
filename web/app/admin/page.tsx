@@ -16,11 +16,6 @@ const todoPlain = (t: string) => t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)
 // fallback-ul, cu aceeași regulă ca clp_date_display_from_raw() (luna cu majusculă).
 const RO_MONTHS = ["", "Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
 const ymdFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" });
-const dateDisplay = (iso: string) => {
-  const [y, m, d] = ymdFmt.format(new Date(iso)).split("-");
-  return `${Number(d)} ${RO_MONTHS[Number(m)]} ${y}`;
-};
-
 export default async function AdminHome() {
   const session = await getSession();
   // Dashboard-ul PHP citește doar cardurile din courses.json (clp_load_courses_for_admin),
@@ -99,13 +94,14 @@ export default async function AdminHome() {
           ) : (
             <ul className="bc-card-list">
               {upcoming.map((c) => {
-                const disp = c.date_display ?? (c.starts_at ? dateDisplay(c.starts_at) : "");
+                const disp = c.date_display ?? "";
                 return (
                   <li key={c.id}>
                     <span className="bc-li-dot" style={{ background: "#2563eb" }}></span>
                     <span>
                       {c.title}
-                      {disp && <span className="bc-li-meta"> · {disp}</span>}
+                      {/* dashboard-tab.php:53 randează mereu span-ul cu „ · ", și când data lipsește */}
+                      <span className="bc-li-meta"> · {disp}</span>
                     </span>
                   </li>
                 );

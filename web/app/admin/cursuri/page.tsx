@@ -29,16 +29,6 @@ type Row = {
   upcoming: boolean;
 };
 
-// Fallback pentru rândurile fără `date_display` în DB: aceeași regulă ca
-// clp_date_display_from_raw() → clp_format_date_ro(titleCase), luna cu majusculă („28 Iulie 2026").
-const dateDisplay = (raw: string | null) => {
-  if (!raw) return "";
-  const [y, m, d] = raw.split("-").map(Number);
-  const month = RO_MONTHS[m] ?? "";
-  if (!month) return "";
-  return `${d} ${month.charAt(0).toUpperCase()}${month.slice(1)} ${y}`;
-};
-
 export default async function CursuriPage({
   searchParams,
 }: {
@@ -76,9 +66,9 @@ export default async function CursuriPage({
       id: c.id,
       title: c.title,
       speaker_name: c.speaker_name,
-      // lib/courses_admin.php:107 — în tabel se arată textul STOCAT (`date_display`),
-      // nu unul recalculat; data brută rămâne doar ca plasă de siguranță.
-      date_display: c.date_display ?? dateDisplay(c.date_raw),
+      // lib/courses_admin.php:107 — `$c['date_display'] ?? $c['date_raw'] ?? ''`: când lipsește
+      // textul STOCAT se arată data BRUTĂ („2026-08-11"), nu una reformatată.
+      date_display: c.date_display ?? c.date_raw ?? "",
       date_raw: c.date_raw,
       livetickets_url: c.livetickets_url,
       image_url: c.image_url,

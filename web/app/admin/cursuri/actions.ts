@@ -27,6 +27,18 @@ function dateDisplayFromRaw(dateRaw: string): string {
   return `${Number(d)} ${month.charAt(0).toUpperCase()}${month.slice(1)} ${y}`;
 }
 
+/**
+ * admin/actions.php:70 cere ȘI `strtotime($date_raw)`, nu doar formatul, așa că
+ * „2026-13-45" pică cu „Alege o dată validă.". Aici verificăm că ziua chiar există
+ * (an/lună/zi reale); altfel `date_display` ar ieși gol și cast-ul ::timestamp ar crăpa.
+ */
+function isRealDate(dateRaw: string): boolean {
+  const [y, m, d] = dateRaw.split("-").map(Number);
+  const dt = new Date(0);
+  dt.setUTCFullYear(y, m - 1, d);
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
 /** Preia imaginea/locația dintr-un link de bilete (fost /api/livetickets.php). */
 export async function lookupTicketMeta(url: string): Promise<MetaResult> {
   await requireAuth();
@@ -51,7 +63,7 @@ export async function saveCourse(formData: FormData): Promise<void> {
 
   const err = (m: string) => redirect(`/admin/cursuri?course_error=${encodeURIComponent(m)}`);
   if (!title) err("Completează numele cursului.");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateRaw)) err("Alege o dată validă.");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateRaw) || !isRealDate(dateRaw)) err("Alege o dată validă.");
   if (!(COURSE_TIMES as readonly string[]).includes(time))
     err("Alege ora din listă (17:00, 17:30, 18:00, 18:30 sau 19:00).");
   // admin/actions.php:75-79 — se salvează doar un speaker existent, căutat după id;
