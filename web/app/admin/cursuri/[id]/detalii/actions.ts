@@ -160,3 +160,23 @@ export async function uploadViza(formData: FormData): Promise<void> {
   revalidatePath("/admin/cursuri");
   redirect(`/admin/cursuri/${id}/detalii?serii=${subtips.length}`);
 }
+
+/** Șterge PDF-ul de viză (și seriile extrase din el). */
+export async function deleteViza(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(String(formData.get("id") ?? ""));
+  const fileId = Number(String(formData.get("file_id") ?? ""));
+  if (!id || !fileId) return;
+  await sql`DELETE FROM event_files WHERE id = ${fileId} AND event_id = ${id}`;
+  revalidatePath(`/admin/cursuri/${id}/detalii`);
+}
+
+/** Danger zone — șterge cursul cu tot cu bilete/rapoarte (ON DELETE CASCADE). */
+export async function deleteCourse(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(String(formData.get("id") ?? ""));
+  if (!id) return;
+  await sql`DELETE FROM events WHERE id = ${id}`;
+  revalidatePath("/admin/cursuri");
+  redirect("/admin/cursuri");
+}
