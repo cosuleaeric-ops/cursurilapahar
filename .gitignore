@@ -53,3 +53,4 @@ web/tsconfig.tsbuildinfo
 
 # migration/ — secrete
 migration/.env
+migration/backup/
