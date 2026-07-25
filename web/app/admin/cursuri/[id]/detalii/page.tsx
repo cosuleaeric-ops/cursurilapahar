@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
-import { ditlBase, vanduteForTarif, participantNameKey, type TicketType } from "@/lib/statistici";
+import { ditlBase, vanduteForTarif, type TicketType } from "@/lib/statistici";
 import { VIEW_CSS } from "./styles";
 import {
   addVizaSubtip,
@@ -21,7 +21,8 @@ export const dynamic = "force-dynamic";
 // section-card, actions-grid, subtip-table) și același stylesheet.
 
 const TZ = "Europe/Bucharest";
-const roDate = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" });
+// ro_date() = clp_format_date_ro($d, true, false) — „19 iulie 2026", fără ziua săptămânii
+const roDate = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", month: "long", year: "numeric" });
 const shortDate = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", month: "long", year: "numeric" });
 const money = (v: number) => Number(v).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const ymd = (s: string) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(s));
@@ -88,20 +89,26 @@ export default async function CourseStatsPage({
 
   // Participanți fideli: aceeași cheie normalizată de nume, la alte cursuri.
   const others = (await sql`
-    SELECT t.participant_name, e.title, to_char(e.starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS d
+    SELECT t.participant_name, t.event_id, e.title,
+           to_char(e.starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS d
     FROM tickets t JOIN events e ON e.id = t.event_id
     WHERE t.event_id <> ${id}
-  `) as { participant_name: string; title: string; d: string | null }[];
-  const otherByKey = new Map<string, Set<string>>();
+  `) as { participant_name: string; event_id: number; title: string; d: string | null }[];
+  const exactKey = (n: string) => n.trim().toLowerCase();
+  const otherByKey = new Map<string, Map<number, string>>();
   for (const o of others) {
-    const k = participantNameKey(o.participant_name);
-    if (!otherByKey.has(k)) otherByKey.set(k, new Set());
-    otherByKey.get(k)!.add(`${o.title}|||${o.d ?? ""}`);
+    const k = exactKey(o.participant_name);
+    if (!otherByKey.has(k)) otherByKey.set(k, new Map());
+    otherByKey.get(k)!.set(o.event_id, `${o.title}|||${o.d ?? ""}`);
   }
+  // num_other = COUNT(DISTINCT course_id); lista afișată e array_unique pe nume+dată
   const returning = [...nameCounts.keys()]
-    .map((name) => ({ name, list: [...(otherByKey.get(participantNameKey(name)) ?? [])] }))
-    .filter((p) => p.list.length > 0)
-    .sort((a, b) => b.list.length - a.list.length);
+    .map((name) => {
+      const m = otherByKey.get(exactKey(name));
+      return { name, count: m ? m.size : 0, list: m ? [...new Set(m.values())] : [] };
+    })
+    .filter((p) => p.count > 0)
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ro"));
 
   const types = (report?.types_json ?? []) as TicketType[];
   const base = report ? ditlBase(types, Number(report.total_bilete)) : 0;
@@ -206,7 +213,7 @@ export default async function CourseStatsPage({
             <ul className="returning-list">
               {returning.map((rp) => (
                 <li key={rp.name}>
-                  <span className="returning-badge">×{rp.list.length}</span>
+                  <span className="returning-badge">×{rp.count}</span>
                   <strong>{rp.name}</strong>
                   <span className="returning-courses">
                     {rp.list.map((c, i) => {
