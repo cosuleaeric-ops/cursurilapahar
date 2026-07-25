@@ -266,6 +266,7 @@ CREATE TABLE messages (
     read       BOOLEAN NOT NULL DEFAULT false,
     contacted  BOOLEAN NOT NULL DEFAULT false, -- lead marcat „contactat" (apare în Speakeri)
     rating     TEXT,                           -- nope / meh / top (filtrele din Mesaje)
+    comments   JSONB NOT NULL DEFAULT '[]',     -- [{at, by, text}] pe candidații speakeri
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

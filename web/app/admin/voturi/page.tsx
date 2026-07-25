@@ -59,7 +59,7 @@ export default async function VoturiPage() {
               <th style={th}>Nume</th>
               <th style={{ ...th, width: 80, textAlign: "center" }}>Voturi</th>
               <th style={{ ...th, width: 80, textAlign: "center" }}>Vizite</th>
-              <th style={{ ...th, width: 90, textAlign: "center" }}>Conversie</th>
+              <th style={{ ...th, width: 90, textAlign: "center" }}>Conv.</th>
               <th style={{ ...th, width: 190 }}>Acțiuni</th>
             </tr>
           </thead>
