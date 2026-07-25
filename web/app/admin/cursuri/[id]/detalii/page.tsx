@@ -67,7 +67,9 @@ export default async function CourseStatsPage({
   `) as { id: number; original_name: string; blob_url: string; uploaded_at: string }[];
 
   const tickets = (await sql`
-    SELECT participant_name FROM tickets WHERE event_id = ${id} ORDER BY participant_name
+    -- fără ORDER BY pe nume: live-ul citește biletele în ordinea inserării, iar
+    -- arsort() păstrează ordinea aia la egalitate de număr
+    SELECT participant_name FROM tickets WHERE event_id = ${id} ORDER BY id
   `) as { participant_name: string }[];
 
   // Distribuție: câte comenzi au cumpărat N bilete (o comandă = un nume).
