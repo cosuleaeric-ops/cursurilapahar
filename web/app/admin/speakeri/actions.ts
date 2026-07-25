@@ -36,6 +36,10 @@ export async function saveSpeaker(formData: FormData): Promise<void> {
         status = ${status}, notes = ${notes}, meet = ${JSON.stringify(meet)}::jsonb, updated_at = now()
       WHERE id = ${id}
     `;
+    // clp_normalize_course() re-rezolvă speaker_name din speaker_id la fiecare
+    // încărcare de admin, deci pe live redenumirea unui speaker se propagă în
+    // cursurile lui. Aici o facem la sursă, când se schimbă numele.
+    await sql`UPDATE events SET speaker_name = ${name}, updated_at = now() WHERE speaker_id = ${id}`;
   } else {
     await sql`
       INSERT INTO speakers (name, email, phone, status, notes, meet)
