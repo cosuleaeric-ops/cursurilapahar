@@ -18,7 +18,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <>
+    <div data-theme="corporate">
+      {/* Aceleași stiluri ca admin/index.php — DaisyUI + Tailwind (fără preflight) + Coloris */}
+      <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" />
+      <script dangerouslySetInnerHTML={{ __html: "tailwind={config:{corePlugins:{preflight:false}}}" }} />
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link rel="stylesheet" href="/assets/css/coloris.min.css" />
       <link rel="stylesheet" href="/assets/css/admin.css" />
       <header className="wp-header">
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -52,6 +57,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="bc-doc">{children}</div>
         </main>
       </div>
-    </>
+    </div>
   );
 }

@@ -7,7 +7,8 @@ export default function LoginPage() {
   const [msg, action, pending] = useActionState(requestMagicLink, null);
 
   return (
-    <>
+    <div data-theme="corporate">
+      <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" />
       <link rel="stylesheet" href="/assets/css/admin.css" />
       <style>{`.login-box input[type="email"] {
   width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius);
@@ -33,6 +34,6 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
-    </>
+    </div>
   );
 }
