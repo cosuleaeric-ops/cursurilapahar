@@ -1,15 +1,28 @@
 import type { Metadata } from "next";
-import { sql } from "@/lib/db";
+import { getSettings } from "@/lib/settings";
 import SiteNav from "./SiteNav";
 import SiteFooter from "./SiteFooter";
 import HeadScripts from "./HeadScripts";
 import ScrollReveal from "./ScrollReveal";
 import AdminBar from "./AdminBar";
 
-export const dynamic = "force-dynamic";
-
 // Meta OG/Twitter se construiesc per pagină cu pageMetadata() din lib/metadata.ts
 // (Next înlocuiește integral openGraph/twitter, nu le merge-uiește).
+
+// Test A/B buton „Vreau să vin". Atribuirea variantei stătea în proxy.ts și se
+// citea la render; homepage-ul fiind acum cache-uit, HTML-ul e identic pentru toți,
+// deci varianta se aplică în browser. Scriptul rulează în <head>, înainte de orice
+// pixel desenat, așa că butonul nu apare și dispare. Aceeași împărțire 50/50 și
+// același cookie de 90 de zile ca înainte.
+const AB_SCRIPT =
+  "(function(){var m=document.cookie.match(/(?:^|;\\s*)clp_ab_btn=(on|off)/),v=m&&m[1];" +
+  "if(!v){v=Math.random()<0.5?'off':'on';document.cookie='clp_ab_btn='+v+';path=/;max-age=7776000;samesite=lax';}" +
+  "document.documentElement.setAttribute('data-ab-btn',v);})();";
+
+// Inline, nu în style.css: regula trebuie să ajungă odată cu markup-ul, altfel un
+// stylesheet vechi din cache ar arăta butonul și celor din varianta „off".
+const AB_CSS =
+  '.event-card-cta{display:none !important}html[data-ab-btn="on"] .event-card-cta{display:flex !important}';
 
 // Înălțime viewport reală în px, blocată pe scroll (se schimbă doar la rotație/
 // lățime) — hero-ul nu-și mai schimbă înălțimea când se retrage bara browserului
@@ -30,8 +43,7 @@ const PLAUSIBLE_INIT =
 type NavLink = { url: string; label: string };
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const rows = (await sql`SELECT key, value FROM settings`) as { key: string; value: unknown }[];
-  const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  const s = await getSettings();
   const str = (k: string, d = "") => (typeof s[k] === "string" ? (s[k] as string) : d);
 
   // Default-urile sunt cele din index.php:164-170 (identice pe toate paginile
@@ -61,6 +73,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <link rel="stylesheet" href={FONTS} />
       <link rel="stylesheet" href="/assets/css/style.css" />
       <script dangerouslySetInnerHTML={{ __html: VPH_SCRIPT }} />
+      <style dangerouslySetInnerHTML={{ __html: AB_CSS }} />
+      <script dangerouslySetInnerHTML={{ __html: AB_SCRIPT }} />
       <HeadScripts html={str("head_scripts")} />
       <script async src={PLAUSIBLE_SRC} />
       <script dangerouslySetInnerHTML={{ __html: PLAUSIBLE_INIT }} />

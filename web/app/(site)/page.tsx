@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
+import { after } from "next/server";
 import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
+import { getSettings } from "@/lib/settings";
 import HeroCarousel from "./HeroCarousel";
-import { abVariant, shouldCountClick, trackAb } from "@/lib/ab";
+import AbView from "./AbView";
 import DiscountCountdown from "./DiscountCountdown";
 import FaqList from "./FaqList";
 import Gallery from "./Gallery";
 import { NewsletterForm, ContactForm } from "./forms";
 import { ltGetEventByUrl, ltImageUrlFromEvent, ltIsSoldOut } from "@/lib/livetickets";
 
-export const dynamic = "force-dynamic";
+// Pagina se prerandează și se servește din cache-ul CDN. Modificările din admin o
+// invalidează imediat (revalidatePath("/") din app/admin/*/actions.ts); fereastra
+// de mai jos e doar pentru ce ține de trecerea timpului — sold-out-ul împrospătat
+// în after(), badge-ul „NOU" la 48h, reducerile expirate, schimbarea zilei.
+export const revalidate = 120;
 
 export const metadata: Metadata = pageMetadata({
   title: "Cursuri la Pahar – Educație la un pahar în oraș",
@@ -94,41 +100,30 @@ async function backfillImages(): Promise<void> {
 
 /**
  * index.php:103-125 — sold-out din LiveTickets, cu cache (fost
- * data/soldout_cache.json, aici events.sold_out + sold_out_checked_at):
- * TTL 900s, doar 60s dacă e deja epuizat. Fără link de bilete → nu e epuizat.
+ * data/soldout_cache.json, aici events.sold_out + sold_out_checked_at).
+ * Cardurile se randează din coloana `sold_out`; asta doar o împrospătează, în
+ * `after()`, ca apelurile către LiveTickets să nu mai stea pe calea critică.
+ * TTL 600s (sub cele 15 minute cerute, chiar cu fereastra de revalidare a
+ * paginii deasupra), doar 60s dacă e deja epuizat — ca în PHP.
  */
-async function refreshSoldOut(events: EventRow[]): Promise<Map<number, boolean>> {
+async function refreshSoldOut(events: EventRow[]): Promise<void> {
   const now = Date.now();
-  const out = new Map<number, boolean>();
   await Promise.all(
     events.map(async (e) => {
       const url = e.livetickets_url?.trim() ?? "";
-      if (!url) {
-        out.set(e.id, false);
-        return;
-      }
-      const ttl = e.sold_out ? 60_000 : 900_000;
+      if (!url) return;
+      const ttl = e.sold_out ? 60_000 : 600_000;
       const checkedAt = e.sold_out_checked_at ? new Date(e.sold_out_checked_at).getTime() : 0;
-      if (now - checkedAt < ttl) {
-        out.set(e.id, e.sold_out);
-        return;
-      }
+      if (now - checkedAt < ttl) return;
       const ev = await ltGetEventByUrl(url);
       const sold = ev ? ltIsSoldOut(ev) : false;
-      out.set(e.id, sold);
       await sql`UPDATE events SET sold_out = ${sold}, sold_out_checked_at = now() WHERE id = ${e.id}`;
     }),
   );
-  return out;
 }
 
 export default async function Home() {
-  // Test A/B buton „Vreau să vin" — varianta e atribuită de proxy.ts (cookie)
-  const ab = await abVariant();
-  if (ab && (await shouldCountClick())) await trackAb(ab, "views");
-
-  const settingsRows = (await sql`SELECT key, value FROM settings`) as { key: string; value: unknown }[];
-  const s = Object.fromEntries(settingsRows.map((r) => [r.key, r.value]));
+  const s = await getSettings();
   const str = (k: string, d = "") => (typeof s[k] === "string" ? (s[k] as string) : d);
 
   // index.php:212-224 iterează exact lista din settings: dacă adminul o golește,
@@ -201,7 +196,6 @@ export default async function Home() {
   // Vizibil public = activ + link bilete + ziua nu a trecut (ca clp_course_is_public);
   // cursurile „NOU" (link pus în ultimele 48h) apar primele, apoi pe dată.
   const todayBucharest = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
-  await backfillImages();
   const events = (await sql`
     SELECT id, title, starts_at, location, image_url, livetickets_url, sold_out, sold_out_checked_at,
            link_added_at, discount_percent, discount_ends_at
@@ -212,10 +206,17 @@ export default async function Home() {
     ORDER BY (link_added_at IS NOT NULL AND link_added_at > now() - interval '48 hours') DESC, starts_at ASC
   `) as EventRow[];
   const nextLabel = heroNextLabel(events, todayBucharest);
-  const soldOutById = await refreshSoldOut(events);
+
+  // Cele două tururi la LiveTickets (poster lipsă + sold-out) plus scrierile lor în
+  // baza de date se mută după răspuns. `after` nu face ruta dinamică: pe o pagină
+  // cache-uită rulează la fiecare regenerare.
+  after(async () => {
+    await Promise.all([backfillImages(), refreshSoldOut(events)]);
+  });
 
   return (
     <>
+      <AbView />
       <section className="hero" id="hero">
         <HeroCarousel slides={heroSlides} />
         <div className="hero-overlay"></div>
@@ -249,7 +250,7 @@ export default async function Home() {
               {events.map((e) => {
                 const d = e.starts_at ? new Date(e.starts_at) : null;
                 const isNew = !!e.link_added_at && Date.now() - new Date(e.link_added_at).getTime() < NEW_MS;
-                const soldOut = soldOutById.get(e.id) ?? false;
+                const soldOut = e.sold_out;
                 const discountActive =
                   !soldOut &&
                   !!e.discount_percent &&
@@ -307,7 +308,9 @@ export default async function Home() {
                       {discountActive && e.discount_ends_at && (
                         <DiscountCountdown endsAt={e.discount_ends_at} code="VARA30" />
                       )}
-                      {ab === "on" && !soldOut && (
+                      {/* Vizibil doar în varianta „on" a testului A/B — comutarea
+                          se face din CSS-ul inline al layout-ului, pe data-ab-btn. */}
+                      {!soldOut && (
                         <span className="event-card-cta">
                           Vreau să vin
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

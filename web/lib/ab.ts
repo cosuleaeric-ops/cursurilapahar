@@ -22,13 +22,6 @@ const BOT_PATTERNS = [
   "ia_archiver", "archive.org", "mediapartners-google",
 ];
 
-/** Varianta atribuită vizitatorului (cookie sau header-ul pus de proxy la prima vizită). */
-export async function abVariant(): Promise<AbVariant | null> {
-  const store = await cookies();
-  const v = store.get(AB_COOKIE)?.value ?? (await headers()).get("x-ab-btn") ?? "";
-  return (AB_VARIANTS as readonly string[]).includes(v) ? (v as AbVariant) : null;
-}
-
 /** True doar pentru navigări umane: fără boți, prefetch-uri sau adminul logat. */
 export async function shouldCountClick(): Promise<boolean> {
   const h = await headers();

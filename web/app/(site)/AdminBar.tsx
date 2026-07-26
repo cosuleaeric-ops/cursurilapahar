@@ -1,9 +1,15 @@
-import { getRealSession } from "@/lib/auth";
+"use client";
+
+import { useEffect, useState } from "react";
 import { logout } from "@/app/admin/actions";
 import AdminBarEditLink from "./AdminBarEditLink";
 
 // Bara de admin de pe paginile publice — port din admin/bar.php.
 // Apare doar când ești logat; împinge conținutul cu 32px (navbar-ul coboară).
+//
+// Se randează pe client: HTML-ul paginilor publice e cache-uit la CDN și e
+// identic pentru toată lumea, deci nu mai poate depinde de cookie-ul de sesiune.
+// `clp_bar` e marcajul nesecret ținut sincron cu sesiunea reală din proxy.ts.
 const CSS = `
 #clp-adminbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
@@ -29,11 +35,14 @@ body:has(#clp-adminbar) .clp-site-shell { padding-top: 120px !important; }
 body:has(#clp-adminbar) .navbar { top: 32px !important; }
 `;
 
-export default async function AdminBar() {
-  // bar.php:16-21 — bara se randează doar pentru userul din cookie cu rol 'owner'
-  // (rolul REAL, impersonarea nu contează: bar.php citește direct clp_auth).
-  const real = await getRealSession();
-  if (real?.role !== "owner") return null;
+export default function AdminBar() {
+  // bar.php:16-21 — bara se randează doar pentru userul cu rol 'owner' (rolul
+  // REAL, impersonarea nu contează: bar.php citește direct clp_auth).
+  const [owner, setOwner] = useState(false);
+  useEffect(() => {
+    setOwner(/(?:^|;\s*)clp_bar=1(?:;|$)/.test(document.cookie));
+  }, []);
+  if (!owner) return null;
 
   return (
     <>
