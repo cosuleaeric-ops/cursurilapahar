@@ -11,6 +11,14 @@ admin/statistici/data/pnl.sqlite
 admin/statistici/data/clp.sqlite
 admin/statistici/uploads/
 
+# SQLite journal files (temporare, apar la fiecare deschidere a bazei)
+*.sqlite-shm
+*.sqlite-wal
+data/clp.sqlite
+
+# A/B button state (server-side data)
+data/ab_button.json
+
 # Preview & dev files
 preview.html
 server.py
