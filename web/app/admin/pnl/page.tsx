@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { CHELTUIALA_EMOJI, CHELTUIALA_EMOJI_KEYWORDS } from "./emoji";
+import PnlApp from "./PnlApp";
 
 export const dynamic = "force-dynamic";
 
@@ -11,18 +12,17 @@ export default async function PnlPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const cfg = JSON.stringify({
+  const cfg = {
     csrf: "",
     api: "/api/pnl",
     cheltuialaEmoji: CHELTUIALA_EMOJI,
     cheltuialaEmojiKeywords: CHELTUIALA_EMOJI_KEYWORDS,
-  });
+  };
 
   return (
     <>
       <link rel="stylesheet" href="/admin/statistici/style.css" />
-      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" />
-      <script dangerouslySetInnerHTML={{ __html: `window.PNL = ${cfg};` }} />
+      <PnlApp config={cfg} />
 
       <div style={{maxWidth: "1200px", margin: "0 auto"}}>
 
@@ -223,8 +223,6 @@ export default async function PnlPage() {
         </div>
       </div>
       </div>{/* /max-width */}
-
-      <script src="/admin/statistici/pnl/app.js" defer />
     </>
   );
 }

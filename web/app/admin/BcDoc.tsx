@@ -15,6 +15,9 @@ export default function BcDoc({ children }: { children: React.ReactNode }) {
   const isHome = path === "/admin" || isStatsPage(path);
   const router = useRouter();
 
+  // Pe P&L, C și V sunt ale paginii (cheltuială / venit), deci C nu mai duce la Cursuri.
+  const isPnl = path === "/admin/pnl";
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -22,13 +25,13 @@ export default function BcDoc({ children }: { children: React.ReactNode }) {
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable))
         return;
       const k = e.key.toLowerCase();
-      if (k === "c") router.push("/admin/cursuri");
+      if (k === "c" && !isPnl) router.push("/admin/cursuri");
       if (k === "m") router.push("/admin/mesaje");
       if (k === "d") router.push("/admin");
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [router, isPnl]);
 
   return (
     <div className={`bc-doc${isHome ? " bc-doc--home" : ""}`}>
