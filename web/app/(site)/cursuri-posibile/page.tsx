@@ -4,7 +4,10 @@ import { sql } from "@/lib/db";
 import { BackLink } from "../colaborare-form";
 import styles from "./ideas.module.css";
 
-export const dynamic = "force-dynamic";
+// Prerandată: singura sursă e settings.course_ideas, iar salvarea din admin
+// cheamă deja revalidatePath("/cursuri-posibile"). Fereastra e doar plasă de
+// siguranță pentru modificări făcute direct în baza de date.
+export const revalidate = 120;
 
 export const metadata: Metadata = pageMetadata({
   title: "Cursuri posibile – Cursuri la Pahar",

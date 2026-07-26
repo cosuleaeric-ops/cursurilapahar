@@ -3,7 +3,9 @@ import { pageMetadata } from "@/lib/metadata";
 import { sql } from "@/lib/db";
 import { BackLink, ColaborareForm } from "../colaborare-form";
 
-export const dynamic = "force-dynamic";
+// Prerandată: conținutul vine din trei chei de settings, fără nimic per-vizitator.
+// Formularul rămâne un server action, care merge la fel pe o pagină cache-uită.
+export const revalidate = 120;
 
 export const metadata: Metadata = pageMetadata({
   title: "Propune un parteneriat – Cursuri la Pahar",
