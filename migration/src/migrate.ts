@@ -65,7 +65,7 @@ interface Bundle {
   locations: Loc[];
   collaborations?: Collab[] | null;
   statistici: { courses: StatCourse[]; tickets: Ticket[]; course_reports: Report[]; viza_subtips?: VizaSub[] };
-  pnl: { venituri: Venit[]; cheltuieli: Chelt[] };
+  pnl: { venituri: Venit[]; cheltuieli: Chelt[]; venit_categorii?: { id: number; nume: string }[] };
   messages_log?: string | null;
   messages_meta?: Record<string, MsgMeta> | null;
   instagram_posts?: Record<string, string[]> | null;
@@ -404,7 +404,14 @@ async function main(): Promise<void> {
       ]);
     }
 
-    // 9) P&L — categorii de cheltuieli din valori distincte, apoi FK
+    // 9) P&L — categoriile de venituri (tabel curatat in pnl.sqlite, cu fallback pe
+    // descrierile existente daca bundle-ul e mai vechi decat exportul cu ele)
+    for (const nume of bundle.pnl.venit_categorii?.length
+      ? bundle.pnl.venit_categorii.map((c) => c.nume)
+      : [...new Set(bundle.pnl.venituri.map((v) => v.descriere))]) {
+      await db.query("INSERT INTO venit_categorii(nume) VALUES($1) ON CONFLICT (nume) DO NOTHING", [nume]);
+    }
+    // categorii de cheltuieli din valori distincte, apoi FK
     const chCat = new Map<string, number>();
     for (const nume of [...new Set(bundle.pnl.cheltuieli.map((c) => c.categorie))]) {
       const { rows } = await db.query("INSERT INTO cheltuiala_categorii(nume) VALUES($1) RETURNING id", [nume]);

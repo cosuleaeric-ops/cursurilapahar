@@ -159,8 +159,11 @@ try {
     if (file_exists($stats_dir . '/pnl.sqlite')) {
         $db = new SQLite3($stats_dir . '/pnl.sqlite', SQLITE3_OPEN_READONLY);
         $bundle['pnl'] = [
-            'venituri'   => sync_fetch_all($db, 'SELECT * FROM venituri'),
-            'cheltuieli' => sync_fetch_all($db, 'SELECT * FROM cheltuieli'),
+            'venituri'        => sync_fetch_all($db, 'SELECT * FROM venituri'),
+            'cheltuieli'      => sync_fetch_all($db, 'SELECT * FROM cheltuieli'),
+            // categoriile de venituri sunt curatate manual, nu se pot reconstrui
+            // din descrieri, deci pleaca in bundle ca sa ajunga in Neon
+            'venit_categorii' => sync_fetch_all($db, 'SELECT * FROM venit_categorii ORDER BY id'),
         ];
         $db->close();
     }
