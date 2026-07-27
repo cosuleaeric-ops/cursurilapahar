@@ -19,6 +19,7 @@ export type Clip = {
 
 const CULOARE: Record<string, string> = {
   disponibil: "#16a34a",
+  propus: "#0891b2",
   folosit: "#a16207",
   respins: "#dc2626",
 };
@@ -84,6 +85,7 @@ export default function ListaClipuri({ clipuri, generat }: { clipuri: Clip[]; ge
         <select className="input" value={stare} onChange={(e) => setStare(e.target.value)}>
           <option value="">Orice stare</option>
           <option value="disponibil">disponibil</option>
+          <option value="propus">propus (văzut, neales)</option>
           <option value="folosit">folosit</option>
           <option value="respins">respins</option>
         </select>

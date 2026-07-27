@@ -2,10 +2,10 @@ import { redirect } from "next/navigation";
 import { getRealSession } from "@/lib/auth";
 import date from "@/data/videoclipuri.json";
 import ListaClipuri, { type Clip } from "./ListaClipuri";
+import Reguli, { type Regula } from "./Reguli";
 
 export const dynamic = "force-dynamic";
 
-type Regula = { regula: string; detaliu: string; unde: string };
 type Folder = { nume: string; n: number; folosite: number; respinse: number; locatii: string[] };
 
 export default async function VideoclipuriPage() {
@@ -34,7 +34,7 @@ export default async function VideoclipuriPage() {
     { eticheta: "Pe disc", val: d.total_pe_disc, sub: "fișiere video în Drive" },
     { eticheta: "Scanate", val: d.total_catalogate, sub: "analizate cadru cu cadru" },
     { eticheta: "Disponibile", val: d.disponibile, sub: "gata de folosit" },
-    { eticheta: "Folosite", val: d.folosite, sub: "livrate deja, blocate" },
+    { eticheta: "În montaje finale", val: d.folosite, sub: "blocate definitiv" },
     { eticheta: "Respinse", val: d.respinse, sub: "eliminate de tine" },
     { eticheta: "Necatalogate", val: d.necatalogate, sub: "cursuri noi, de scanat" },
   ];
@@ -53,21 +53,7 @@ export default async function VideoclipuriPage() {
         ))}
       </div>
 
-      <div className="card">
-        <div className="card-title">Regulile pe care mi le-ai dat ({d.reguli.length})</div>
-        <p className="form-desc" style={{ marginTop: 0 }}>
-          Toate se aplică automat la fiecare montaj. Dacă vrei una nouă, spune-mi și o adaug aici.
-        </p>
-        <ol style={{ margin: 0, paddingLeft: 20, lineHeight: 1.6 }}>
-          {d.reguli.map((r) => (
-            <li key={r.regula} style={{ marginBottom: 10 }}>
-              <strong>{r.regula}</strong>
-              <div style={{ fontSize: 13, opacity: 0.8 }}>{r.detaliu}</div>
-              <code style={{ fontSize: 11, opacity: 0.55 }}>{r.unde}</code>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <Reguli reguli={d.reguli} />
 
       <div className="card">
         <div className="card-title">Foldere ({d.foldere.length})</div>
