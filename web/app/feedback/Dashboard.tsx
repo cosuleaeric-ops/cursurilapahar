@@ -188,24 +188,6 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
             {noteMedii.map((n) => (n.val != null ? <Bara key={n.label} label={n.label} val={n.val} /> : null))}
           </div>
           <div className="fb-card">
-            <h3>Ce se repetă în comentarii <small>(click pe o temă ca să filtrezi)</small></h3>
-            <div className="fb-teme">
-              {TEME.map((t) => (
-                <button
-                  key={t.key}
-                  className={tema === t.key ? "on" : ""}
-                  onClick={() => setTema(tema === t.key ? "" : t.key)}
-                >
-                  {t.label} <b>{temeCount[t.key]}</b>
-                </button>
-              ))}
-            </div>
-            <p className="fb-hint">
-              Cel mai des cerut: locație mai încăpătoare și scaune mai comode, apoi mai multă interactivitate
-              (jocuri, Q&amp;A, socializare). Laudele domină: atmosfera, speakerii și inițiativa în sine.
-            </p>
-          </div>
-          <div className="fb-card">
             <h3>Cât de probabil ar mai veni? (1–5) — {stats.revTotal} voturi</h3>
             {[5, 4, 3, 2, 1].map((v) => (
               <BaraCount
@@ -234,6 +216,24 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
                 total={stats.pretTotal}
               />
             ))}
+          </div>
+          <div className="fb-card">
+            <h3>Ce se repetă în comentarii <small>(click pe o temă ca să filtrezi)</small></h3>
+            <div className="fb-teme">
+              {TEME.map((t) => (
+                <button
+                  key={t.key}
+                  className={tema === t.key ? "on" : ""}
+                  onClick={() => setTema(tema === t.key ? "" : t.key)}
+                >
+                  {t.label} <b>{temeCount[t.key]}</b>
+                </button>
+              ))}
+            </div>
+            <p className="fb-hint">
+              Cel mai des cerut: locație mai încăpătoare și scaune mai comode, apoi mai multă interactivitate
+              (jocuri, Q&amp;A, socializare). Laudele domină: atmosfera, speakerii și inițiativa în sine.
+            </p>
           </div>
         </div>
       </section>
