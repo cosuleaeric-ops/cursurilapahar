@@ -206,10 +206,7 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
             </p>
           </div>
           <div className="fb-card">
-            <h3>
-              Cât de probabil ar mai veni? (1–5) — medie{" "}
-              {stats.revNum ? stats.revNum.toFixed(2) : "—"}/5, {stats.revTotal} note
-            </h3>
+            <h3>Cât de probabil ar mai veni? (1–5) — {stats.revTotal} voturi</h3>
             {[5, 4, 3, 2, 1].map((v) => (
               <BaraCount
                 key={v}
