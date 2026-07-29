@@ -52,7 +52,7 @@ function BaraCount({ label, n, max, total }: { label: string; n: number; max: nu
       <div className="fb-bara-track">
         <div className="fb-bara-fill" style={{ width: max ? `${(n / max) * 100}%` : 0 }} />
       </div>
-      <span className="fb-bara-val">{n} ({total ? Math.round((n / total) * 100) : 0}%)</span>
+      <span className="fb-bara-val">{total ? Math.round((n / total) * 100) : 0}%</span>
     </div>
   );
 }
