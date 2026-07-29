@@ -1,0 +1,306 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+export type Row = {
+  id: number;
+  curs: string;
+  data_curs: string | null;
+  tema: string;
+  tip: string;
+  experienta: number | null;
+  speaker: number | null;
+  continut: number | null;
+  locatie: number | null;
+  durata: number | null;
+  pret: string | null;
+  revenire: string | null;
+  intrebare: string | null;
+  text: string | null;
+};
+
+const LUNI = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"];
+function dataScurta(iso: string | null): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${LUNI[m - 1]} ${y}`;
+}
+
+function norm(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+// Teme recurente în comentarii — chip-urile filtrează lista când dai click pe ele.
+const TEME = [
+  { key: "locatie", label: "🪑 Locație & confort", re: /scaun|locati|spati[uo]|mes[ae]|lipicio|inghesu|frig|vizibil|acustic|vedere|ecran|incapere|sala|miros/ },
+  { key: "interactiv", label: "🎲 Interactivitate & socializare", re: /interactiv|joc|social|networking|q&a|intrebari|dezbat|cunoastere/ },
+  { key: "continut", label: "🧠 Conținut & speakeri", re: /superficial|profund|structur|specializ|slide|prezentar|speaker|aprofund/ },
+  { key: "timp", label: "⏱️ Punctualitate & durată", re: /punctual|intarz|durat|mai lung|prea scurt|pauz|sa dureze/ },
+  { key: "laude", label: "❤️ Laude", re: /felicit|super|minunat|perfect|excelent|bravo|placut|multumim|fain|\btop\b|genial/ },
+];
+
+const CATEGORII = ["Îmbunătățire", "Teme dorite", "Speakeri", "Altele", "Mesaj speaker (Delia)"];
+
+function categoria(r: Row): string {
+  return r.tip === "raspuns" ? "Răspuns cu note" : (r.intrebare ?? "Altele");
+}
+
+function Bara({ label, val }: { label: string; val: number }) {
+  return (
+    <div className="fb-bara">
+      <span className="fb-bara-label">{label}</span>
+      <div className="fb-bara-track">
+        <div className="fb-bara-fill" style={{ width: `${(val / 5) * 100}%` }} />
+      </div>
+      <span className="fb-bara-val">{val.toFixed(2)}</span>
+    </div>
+  );
+}
+
+function medie(vals: (number | null)[]): number | null {
+  const v = vals.filter((x): x is number => x != null);
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
+
+export default function Dashboard({ rows }: { rows: Row[] }) {
+  const [curs, setCurs] = useState("");
+  const [cat, setCat] = useState("");
+  const [tema, setTema] = useState("");
+  const [q, setQ] = useState("");
+
+  // Cursurile în ordine cronologică, cu tema și data lor.
+  const cursuri = useMemo(() => {
+    const map = new Map<string, { tema: string; data: string | null; n: number }>();
+    for (const r of rows) {
+      const c = map.get(r.curs);
+      if (c) c.n++;
+      else map.set(r.curs, { tema: r.tema, data: r.data_curs, n: 1 });
+    }
+    return [...map.entries()];
+  }, [rows]);
+
+  const notate = useMemo(() => rows.filter((r) => r.tip === "raspuns"), [rows]);
+
+  const stats = useMemo(() => {
+    const exp = medie(notate.map((r) => r.experienta));
+    // „revenire" e text („Clar da") la cursurile vechi și notă 1–5 la cele noi.
+    const revText = rows.filter((r) => r.revenire && !/^\d$/.test(r.revenire));
+    const revDa = revText.filter((r) => /da/i.test(r.revenire!)).length;
+    const revNum = medie(rows.filter((r) => r.revenire && /^\d$/.test(r.revenire)).map((r) => Number(r.revenire)));
+    const pret = rows.filter((r) => r.pret);
+    const pretOk = pret.filter((r) => r.pret === "Potrivit" || r.pret === "Ieftin").length;
+    return { exp, revDa, revTotal: revText.length, revNum, pretOk, pretTotal: pret.length };
+  }, [rows, notate]);
+
+  const temeCount = useMemo(() => {
+    const cnt: Record<string, number> = {};
+    for (const t of TEME) cnt[t.key] = rows.filter((r) => r.text && t.re.test(norm(r.text))).length;
+    return cnt;
+  }, [rows]);
+
+  const noteMedii = useMemo(
+    () => [
+      { label: "Experiența", val: medie(notate.map((r) => r.experienta)) },
+      { label: "Speakerul", val: medie(notate.map((r) => r.speaker)) },
+      { label: "Conținutul", val: medie(notate.map((r) => r.continut)) },
+      { label: "Locația", val: medie(notate.map((r) => r.locatie)) },
+    ],
+    [notate],
+  );
+
+  const filtrate = useMemo(() => {
+    const temaDef = TEME.find((t) => t.key === tema);
+    const nq = norm(q.trim());
+    return rows.filter((r) => {
+      if (curs && r.curs !== curs) return false;
+      if (cat && categoria(r) !== cat) return false;
+      if (temaDef && !(r.text && temaDef.re.test(norm(r.text)))) return false;
+      if (nq && !norm(`${r.tema} ${r.text ?? ""} ${r.revenire ?? ""}`).includes(nq)) return false;
+      return true;
+    });
+  }, [rows, curs, cat, tema, q]);
+
+  return (
+    <div className="fb">
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@300;400;500;600;700&display=swap"
+      />
+      <style>{CSS}</style>
+
+      <header className="fb-header">
+        <h1>Feedback participanți</h1>
+        <p>
+          Tot ce ne-au scris participanții după cursuri — {rows.length} răspunsuri, {cursuri.length} cursuri,{" "}
+          {dataScurta(cursuri[0]?.[1].data)} → {dataScurta(cursuri[cursuri.length - 1]?.[1].data)}.
+        </p>
+      </header>
+
+      <section className="fb-stats">
+        <div className="fb-stat">
+          <b>{rows.length}</b>
+          <span>răspunsuri</span>
+        </div>
+        <div className="fb-stat">
+          <b>{cursuri.length}</b>
+          <span>cursuri</span>
+        </div>
+        <div className="fb-stat">
+          <b>{stats.exp ? stats.exp.toFixed(2) : "—"}<i>/5</i></b>
+          <span>experiența (medie, {notate.length} note)</span>
+        </div>
+        <div className="fb-stat">
+          <b>{stats.revTotal ? Math.round((stats.revDa / stats.revTotal) * 100) : 0}%</b>
+          <span>ar reveni („da”){stats.revNum ? ` · notă medie ${stats.revNum.toFixed(1)}/5` : ""}</span>
+        </div>
+        <div className="fb-stat">
+          <b>{stats.pretTotal ? Math.round((stats.pretOk / stats.pretTotal) * 100) : 0}%</b>
+          <span>zic că prețul e potrivit sau ieftin</span>
+        </div>
+      </section>
+
+      <section className="fb-rezumat">
+        <h2>Rezumat</h2>
+        <div className="fb-rezumat-grid">
+          <div className="fb-card">
+            <h3>Note medii (cursurile cu formular cu note)</h3>
+            {noteMedii.map((n) => (n.val != null ? <Bara key={n.label} label={n.label} val={n.val} /> : null))}
+          </div>
+          <div className="fb-card">
+            <h3>Ce se repetă în comentarii <small>(click pe o temă ca să filtrezi)</small></h3>
+            <div className="fb-teme">
+              {TEME.map((t) => (
+                <button
+                  key={t.key}
+                  className={tema === t.key ? "on" : ""}
+                  onClick={() => setTema(tema === t.key ? "" : t.key)}
+                >
+                  {t.label} <b>{temeCount[t.key]}</b>
+                </button>
+              ))}
+            </div>
+            <p className="fb-hint">
+              Cel mai des cerut: locație mai încăpătoare și scaune mai comode, apoi mai multă interactivitate
+              (jocuri, Q&amp;A, socializare). Laudele domină: atmosfera, speakerii și inițiativa în sine.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="fb-filtre">
+        <select value={curs} onChange={(e) => setCurs(e.target.value)} aria-label="Curs">
+          <option value="">Toate cursurile</option>
+          {cursuri.map(([cod, c]) => (
+            <option key={cod} value={cod}>
+              {dataScurta(c.data)} — {c.tema} ({c.n})
+            </option>
+          ))}
+        </select>
+        <select value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Categorie">
+          <option value="">Toate categoriile</option>
+          <option>Răspuns cu note</option>
+          {CATEGORII.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Caută" />
+        <span className="fb-count">{filtrate.length} rezultate</span>
+      </section>
+
+      <section className="fb-lista">
+        {filtrate.map((r) => (
+          <article key={r.id} className="fb-item">
+            <div className="fb-item-meta">
+              <span className="fb-item-curs">{r.tema}</span>
+              <span className="fb-item-data">{dataScurta(r.data_curs)}</span>
+              <span className={`fb-badge ${r.tip === "raspuns" ? "note" : ""}`}>{categoria(r)}</span>
+            </div>
+            {r.tip === "raspuns" && (
+              <div className="fb-note">
+                {r.experienta != null && <span>Experiență <b>{r.experienta}</b></span>}
+                {r.speaker != null && <span>Speaker <b>{r.speaker}</b></span>}
+                {r.continut != null && <span>Conținut <b>{r.continut}</b></span>}
+                {r.locatie != null && <span>Locație <b>{r.locatie}</b></span>}
+                {r.durata != null && <span>Durată <b>{r.durata}</b></span>}
+                {r.pret && <span>Preț: <b>{r.pret}</b></span>}
+                {r.revenire && <span>Ar reveni: <b>{r.revenire}{/^\d$/.test(r.revenire) ? "/5" : ""}</b></span>}
+              </div>
+            )}
+            {r.text && <p className="fb-text">{r.text}</p>}
+          </article>
+        ))}
+        {!filtrate.length && <p className="fb-gol">Niciun rezultat cu filtrele astea.</p>}
+      </section>
+    </div>
+  );
+}
+
+const CSS = `
+  .fb {
+    min-height: 100vh; background: #0D0D0D; color: #F5F0E6;
+    font-family: 'Rubik', sans-serif; padding: 40px 20px 80px;
+  }
+  .fb > * { max-width: 960px; margin-left: auto; margin-right: auto; }
+  .fb-header h1 {
+    font-family: 'Anton', sans-serif; font-weight: 400; text-transform: uppercase;
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.2; color: #F5F0E6;
+  }
+  .fb-header p { color: #9a9a9a; margin: 8px 0 28px; font-size: 15px; }
+  .fb-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 28px;
+  }
+  .fb-stat {
+    background: #161616; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px;
+  }
+  .fb-stat b { font-size: 26px; color: #C9A84C; display: block; font-weight: 600; }
+  .fb-stat b i { font-style: normal; font-size: 15px; color: #8a7639; }
+  .fb-stat span { font-size: 12.5px; color: #9a9a9a; }
+  .fb-rezumat h2, .fb h2 {
+    font-family: 'Anton', sans-serif; font-weight: 400; text-transform: uppercase;
+    font-size: 22px; line-height: 1.2; margin-bottom: 14px;
+  }
+  .fb-rezumat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+  @media (max-width: 720px) { .fb-rezumat-grid { grid-template-columns: 1fr; } }
+  .fb-card { background: #161616; border: 1px solid #2a2a2a; border-radius: 12px; padding: 18px; }
+  .fb-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: #cfc9bb; }
+  .fb-card h3 small { font-weight: 400; color: #8a8a8a; }
+  .fb-bara { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .fb-bara-label { width: 90px; font-size: 13px; color: #9a9a9a; }
+  .fb-bara-track { flex: 1; height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden; }
+  .fb-bara-fill { height: 100%; background: #C9A84C; border-radius: 4px; }
+  .fb-bara-val { width: 38px; font-size: 13px; color: #C9A84C; font-weight: 600; text-align: right; }
+  .fb-teme { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .fb-teme button {
+    background: #0D0D0D; border: 1px solid #333; color: #cfc9bb; border-radius: 999px;
+    padding: 7px 13px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .fb-teme button b { color: #C9A84C; }
+  .fb-teme button.on { border-color: #C9A84C; background: rgba(201, 168, 76, .12); }
+  .fb-hint { font-size: 13px; color: #9a9a9a; line-height: 1.5; }
+  .fb-filtre {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px;
+    position: sticky; top: 0; background: rgba(13, 13, 13, .95); padding: 12px 0; z-index: 5;
+  }
+  .fb-filtre select, .fb-filtre input {
+    background: #161616; border: 1px solid #333; color: #F5F0E6; border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; font-family: inherit; max-width: 100%;
+  }
+  .fb-filtre input { flex: 1; min-width: 140px; }
+  .fb-filtre select { max-width: 320px; }
+  .fb-filtre :focus { outline: none; border-color: #C9A84C; }
+  .fb-count { font-size: 13px; color: #9a9a9a; white-space: nowrap; }
+  .fb-lista { display: flex; flex-direction: column; gap: 10px; }
+  .fb-item { background: #161616; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; }
+  .fb-item-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .fb-item-curs { font-weight: 600; font-size: 14px; }
+  .fb-item-data { color: #8a8a8a; font-size: 13px; }
+  .fb-badge {
+    font-size: 11.5px; border: 1px solid #3a3a3a; color: #9a9a9a; border-radius: 999px; padding: 2px 9px;
+  }
+  .fb-badge.note { border-color: #C9A84C; color: #C9A84C; }
+  .fb-note { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #9a9a9a; margin-bottom: 8px; }
+  .fb-note b { color: #C9A84C; }
+  .fb-text { font-size: 14.5px; line-height: 1.55; color: #ddd6c8; white-space: pre-line; }
+  .fb-gol { color: #9a9a9a; padding: 30px 0; text-align: center; }
+`;
