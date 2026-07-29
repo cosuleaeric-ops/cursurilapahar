@@ -95,22 +95,23 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
 
   const stats = useMemo(() => {
     const exp = medie(notate.map((r) => r.experienta));
-    // „revenire" e text („Clar da") la cursurile vechi și notă 1–5 la cele noi.
-    const revNote = rows.filter((r) => r.revenire && /^\d$/.test(r.revenire)).map((r) => Number(r.revenire));
+    // „revenire" e notă 1–5 la cursurile noi și text la primele („Clar da" = 5, „Probabil da" = 4),
+    // ca totalul să acopere toate voturile.
+    const revNote: number[] = [];
+    for (const r of rows) {
+      if (!r.revenire) continue;
+      if (/^\d$/.test(r.revenire)) revNote.push(Number(r.revenire));
+      else if (/clar da/i.test(r.revenire)) revNote.push(5);
+      else if (/probabil da/i.test(r.revenire)) revNote.push(4);
+    }
     const revDist: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     for (const v of revNote) revDist[v]++;
     const revNum = medie(revNote);
-    const revTextDist = new Map<string, number>();
-    for (const r of rows) {
-      if (r.revenire && !/^\d$/.test(r.revenire)) {
-        revTextDist.set(r.revenire, (revTextDist.get(r.revenire) ?? 0) + 1);
-      }
-    }
     const pretDist = new Map<string, number>();
     for (const p of ["Ieftin", "Potrivit", "Scump"]) pretDist.set(p, 0);
     for (const r of rows) if (r.pret) pretDist.set(r.pret, (pretDist.get(r.pret) ?? 0) + 1);
     const pretTotal = [...pretDist.values()].reduce((a, b) => a + b, 0);
-    return { exp, revDist, revNum, revTotal: revNote.length, revTextDist, pretDist, pretTotal };
+    return { exp, revDist, revNum, revTotal: revNote.length, pretDist, pretTotal };
   }, [rows, notate]);
 
   const temeCount = useMemo(() => {
@@ -152,7 +153,7 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
       <header className="fb-header">
         <h1>Feedback participanți</h1>
         <p>
-          Tot ce ne-au scris participanții după cursuri — {rows.length} răspunsuri, {cursuri.length} cursuri,{" "}
+          {rows.length} răspunsuri, {cursuri.length} cursuri,{" "}
           {dataScurta(cursuri[0]?.[1].data)} → {dataScurta(cursuri[cursuri.length - 1]?.[1].data)}.
         </p>
       </header>
@@ -194,12 +195,9 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
                 total={stats.revTotal}
               />
             ))}
-            {stats.revTextDist.size > 0 && (
-              <p className="fb-hint">
-                La primele cursuri întrebarea avea răspuns text:{" "}
-                {[...stats.revTextDist.entries()].map(([k, n]) => `${n}× „${k}”`).join(", ")}.
-              </p>
-            )}
+            <p className="fb-hint">
+              La primele cursuri răspunsul era text: „Clar da” s-a numărat ca 5, „Probabil da” ca 4.
+            </p>
           </div>
           <div className="fb-card">
             <h3>Cum li s-a părut prețul biletului? ({stats.pretTotal} voturi)</h3>
