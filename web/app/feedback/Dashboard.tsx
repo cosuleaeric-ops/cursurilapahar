@@ -174,10 +174,6 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
           <b>{stats.revNum ? stats.revNum.toFixed(2) : "—"}<i>/5</i></b>
           <span>cât de probabil ar reveni (medie, {stats.revTotal} note)</span>
         </div>
-        <div className="fb-stat">
-          <b>{stats.pretTotal}</b>
-          <span>voturi despre preț</span>
-        </div>
       </section>
 
       <section className="fb-rezumat">
