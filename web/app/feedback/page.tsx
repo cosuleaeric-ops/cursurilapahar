@@ -29,12 +29,25 @@ async function areAcces(): Promise<boolean> {
 export default async function FeedbackPage() {
   if (!(await areAcces())) return <PasswordGate />;
 
-  const rows = (await sql`
+  // Fără recomandările de speakeri și temele dorite — pagina arată doar feedback-ul propriu-zis.
+  const raw = (await sql`
     SELECT id, curs, data_curs::text AS data_curs, tema, tip,
            experienta, speaker, continut, locatie, durata, pret, revenire, intrebare, text
     FROM feedback
+    WHERE intrebare IS NULL OR intrebare NOT IN ('Teme dorite', 'Speakeri')
     ORDER BY data_curs, id
   `) as Row[];
+
+  // În textele cu note, sugestiile vin lipite ca „… | Teme: … | Speakeri: …" — le tăiem.
+  const rows = raw.map((r) => ({
+    ...r,
+    text: r.text
+      ? r.text
+          .split(" | ")
+          .filter((p) => !/^(Teme|Speakeri):/i.test(p.trim()))
+          .join(" | ") || null
+      : null,
+  }));
 
   return <Dashboard rows={rows} />;
 }

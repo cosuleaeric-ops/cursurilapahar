@@ -10,35 +10,36 @@ export default function PasswordGate() {
     <div className="fb-gate">
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
       />
       <style>{`
         .fb-gate {
           min-height: 100vh; display: flex; align-items: center; justify-content: center;
-          background: #0D0D0D; font-family: 'Rubik', sans-serif; padding: 24px;
+          background: #ffffff; font-family: 'Poppins', sans-serif; padding: 24px;
         }
         .fb-gate form {
-          background: #161616; border: 1px solid #2a2a2a; border-radius: 14px;
+          background: #fafafa; border: 1px solid #e5e5e5; border-radius: 14px;
           padding: 36px 32px; width: 100%; max-width: 380px; text-align: center;
         }
         .fb-gate h1 {
-          font-family: 'Anton', sans-serif; text-transform: uppercase; line-height: 1.2;
-          color: #F5F0E6; font-size: 26px; font-weight: 400; margin-bottom: 6px;
+          text-transform: uppercase; line-height: 1.2;
+          color: #171717; font-size: 24px; font-weight: 800; margin-bottom: 6px;
         }
-        .fb-gate p { color: #9a9a9a; font-size: 14px; margin-bottom: 20px; }
+        .fb-gate p { color: #6b6b6b; font-size: 14px; margin-bottom: 20px; }
         .fb-gate input {
-          width: 100%; padding: 12px 14px; border: 1px solid #333; border-radius: 8px;
-          background: #0D0D0D; color: #F5F0E6; font-size: 15px; margin-bottom: 12px;
+          width: 100%; padding: 12px 14px; border: 1px solid #d4d4d4; border-radius: 8px;
+          background: #ffffff; color: #171717; font-size: 15px; margin-bottom: 12px;
+          font-family: inherit;
         }
         .fb-gate input:focus { outline: none; border-color: #C9A84C; }
         .fb-gate button {
-          width: 100%; padding: 12px; border-radius: 8px; background: #C9A84C; color: #0D0D0D;
-          font-weight: 600; font-size: 15px; border: none; cursor: pointer;
+          width: 100%; padding: 12px; border-radius: 8px; background: #C9A84C; color: #171717;
+          font-weight: 600; font-size: 15px; border: none; cursor: pointer; font-family: inherit;
         }
-        .fb-gate button:hover { background: #d9b95e; }
+        .fb-gate button:hover { background: #b9983c; }
         .fb-gate button:disabled { opacity: .6; cursor: default; }
         .fb-gate .err {
-          background: rgba(220, 68, 68, .12); color: #e07a7a; border: 1px solid rgba(220, 68, 68, .3);
+          background: #fdeaea; color: #c04040; border: 1px solid #f2c5c5;
           border-radius: 8px; padding: 9px 12px; font-size: 13px; margin-bottom: 12px;
         }
       `}</style>
