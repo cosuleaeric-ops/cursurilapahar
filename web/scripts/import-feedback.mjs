@@ -54,7 +54,9 @@ const str = (v) => (String(v ?? "").trim() === "" ? null : String(v).trim());
 
 let ok = 0;
 for (const r of rows) {
-  const [id, curs, data, tema, tip, ts, exp, spk, cont, loc, dur, pret, rev, intrebare, text] = r;
+  const [id, curs, data, tema, tip, ts, exp, spk, cont, loc, dur, pret, rev, intrebareRaw, text] = r;
+  // Mesajele pentru speakeri (ex. „Mesaj speaker (Delia)") intră la Altele — nu au categorie proprie pe pagină.
+  const intrebare = /^Mesaj speaker/i.test(String(intrebareRaw).trim()) ? "Altele" : intrebareRaw;
   // data: "23.01.2026" sau "~04.04.2026" (aproximativă) → ISO
   const m = String(data).replace("~", "").trim().match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   const iso = m ? `${m[3]}-${m[2]}-${m[1]}` : null;

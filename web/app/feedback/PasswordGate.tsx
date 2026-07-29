@@ -31,12 +31,12 @@ export default function PasswordGate() {
           background: #ffffff; color: #171717; font-size: 15px; margin-bottom: 12px;
           font-family: inherit;
         }
-        .fb-gate input:focus { outline: none; border-color: #C9A84C; }
+        .fb-gate input:focus { outline: none; border-color: #8E1B1B; }
         .fb-gate button {
-          width: 100%; padding: 12px; border-radius: 8px; background: #C9A84C; color: #171717;
+          width: 100%; padding: 12px; border-radius: 8px; background: #8E1B1B; color: #ffffff;
           font-weight: 600; font-size: 15px; border: none; cursor: pointer; font-family: inherit;
         }
-        .fb-gate button:hover { background: #b9983c; }
+        .fb-gate button:hover { background: #741414; }
         .fb-gate button:disabled { opacity: .6; cursor: default; }
         .fb-gate .err {
           background: #fdeaea; color: #c04040; border: 1px solid #f2c5c5;

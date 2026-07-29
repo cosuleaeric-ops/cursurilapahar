@@ -39,10 +39,22 @@ const TEME = [
   { key: "laude", label: "❤️ Laude", re: /felicit|super|minunat|perfect|excelent|bravo|placut|multumim|fain|\btop\b|genial/ },
 ];
 
-const CATEGORII = ["Îmbunătățire", "Altele", "Mesaj speaker (Delia)"];
+const CATEGORII = ["Îmbunătățire", "Altele"];
 
 function categoria(r: Row): string {
   return r.tip === "raspuns" ? "Răspuns cu note" : (r.intrebare ?? "Altele");
+}
+
+function BaraCount({ label, n, max, total }: { label: string; n: number; max: number; total: number }) {
+  return (
+    <div className="fb-bara">
+      <span className="fb-bara-label">{label}</span>
+      <div className="fb-bara-track">
+        <div className="fb-bara-fill" style={{ width: max ? `${(n / max) * 100}%` : 0 }} />
+      </div>
+      <span className="fb-bara-val">{n} ({total ? Math.round((n / total) * 100) : 0}%)</span>
+    </div>
+  );
 }
 
 function Bara({ label, val }: { label: string; val: number }) {
@@ -84,12 +96,21 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
   const stats = useMemo(() => {
     const exp = medie(notate.map((r) => r.experienta));
     // „revenire" e text („Clar da") la cursurile vechi și notă 1–5 la cele noi.
-    const revText = rows.filter((r) => r.revenire && !/^\d$/.test(r.revenire));
-    const revDa = revText.filter((r) => /da/i.test(r.revenire!)).length;
-    const revNum = medie(rows.filter((r) => r.revenire && /^\d$/.test(r.revenire)).map((r) => Number(r.revenire)));
-    const pret = rows.filter((r) => r.pret);
-    const pretOk = pret.filter((r) => r.pret === "Potrivit" || r.pret === "Ieftin").length;
-    return { exp, revDa, revTotal: revText.length, revNum, pretOk, pretTotal: pret.length };
+    const revNote = rows.filter((r) => r.revenire && /^\d$/.test(r.revenire)).map((r) => Number(r.revenire));
+    const revDist: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const v of revNote) revDist[v]++;
+    const revNum = medie(revNote);
+    const revTextDist = new Map<string, number>();
+    for (const r of rows) {
+      if (r.revenire && !/^\d$/.test(r.revenire)) {
+        revTextDist.set(r.revenire, (revTextDist.get(r.revenire) ?? 0) + 1);
+      }
+    }
+    const pretDist = new Map<string, number>();
+    for (const p of ["Ieftin", "Potrivit", "Scump"]) pretDist.set(p, 0);
+    for (const r of rows) if (r.pret) pretDist.set(r.pret, (pretDist.get(r.pret) ?? 0) + 1);
+    const pretTotal = [...pretDist.values()].reduce((a, b) => a + b, 0);
+    return { exp, revDist, revNum, revTotal: revNote.length, revTextDist, pretDist, pretTotal };
   }, [rows, notate]);
 
   const temeCount = useMemo(() => {
@@ -150,12 +171,12 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
           <span>experiența (medie, {notate.length} note)</span>
         </div>
         <div className="fb-stat">
-          <b>{stats.revTotal ? Math.round((stats.revDa / stats.revTotal) * 100) : 0}%</b>
-          <span>ar reveni („da”){stats.revNum ? ` · notă medie ${stats.revNum.toFixed(1)}/5` : ""}</span>
+          <b>{stats.revNum ? stats.revNum.toFixed(2) : "—"}<i>/5</i></b>
+          <span>cât de probabil ar reveni (medie, {stats.revTotal} note)</span>
         </div>
         <div className="fb-stat">
-          <b>{stats.pretTotal ? Math.round((stats.pretOk / stats.pretTotal) * 100) : 0}%</b>
-          <span>zic că prețul e potrivit sau ieftin</span>
+          <b>{stats.pretTotal}</b>
+          <span>voturi despre preț</span>
         </div>
       </section>
 
@@ -183,6 +204,39 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
               Cel mai des cerut: locație mai încăpătoare și scaune mai comode, apoi mai multă interactivitate
               (jocuri, Q&amp;A, socializare). Laudele domină: atmosfera, speakerii și inițiativa în sine.
             </p>
+          </div>
+          <div className="fb-card">
+            <h3>
+              Cât de probabil ar mai veni? (1–5) — medie{" "}
+              {stats.revNum ? stats.revNum.toFixed(2) : "—"}/5, {stats.revTotal} note
+            </h3>
+            {[5, 4, 3, 2, 1].map((v) => (
+              <BaraCount
+                key={v}
+                label={`Nota ${v}`}
+                n={stats.revDist[v]}
+                max={Math.max(...Object.values(stats.revDist))}
+                total={stats.revTotal}
+              />
+            ))}
+            {stats.revTextDist.size > 0 && (
+              <p className="fb-hint">
+                La primele cursuri întrebarea avea răspuns text:{" "}
+                {[...stats.revTextDist.entries()].map(([k, n]) => `${n}× „${k}”`).join(", ")}.
+              </p>
+            )}
+          </div>
+          <div className="fb-card">
+            <h3>Cum li s-a părut prețul biletului? ({stats.pretTotal} voturi)</h3>
+            {[...stats.pretDist.entries()].map(([k, n]) => (
+              <BaraCount
+                key={k}
+                label={k}
+                n={n}
+                max={Math.max(...stats.pretDist.values())}
+                total={stats.pretTotal}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -253,8 +307,8 @@ const CSS = `
   .fb-stat {
     background: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px;
   }
-  .fb-stat b { font-size: 26px; color: #a68930; display: block; font-weight: 700; }
-  .fb-stat b i { font-style: normal; font-size: 15px; color: #c5b68a; }
+  .fb-stat b { font-size: 26px; color: #8E1B1B; display: block; font-weight: 700; }
+  .fb-stat b i { font-style: normal; font-size: 15px; color: #c99a9a; }
   .fb-stat span { font-size: 12.5px; color: #6b6b6b; }
   .fb-rezumat h2, .fb h2 {
     font-weight: 800; text-transform: uppercase;
@@ -268,15 +322,15 @@ const CSS = `
   .fb-bara { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .fb-bara-label { width: 90px; font-size: 13px; color: #6b6b6b; }
   .fb-bara-track { flex: 1; height: 8px; background: #ececec; border-radius: 4px; overflow: hidden; }
-  .fb-bara-fill { height: 100%; background: #C9A84C; border-radius: 4px; }
-  .fb-bara-val { width: 38px; font-size: 13px; color: #a68930; font-weight: 600; text-align: right; }
+  .fb-bara-fill { height: 100%; background: #8E1B1B; border-radius: 4px; }
+  .fb-bara-val { min-width: 64px; font-size: 13px; color: #8E1B1B; font-weight: 600; text-align: right; white-space: nowrap; }
   .fb-teme { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .fb-teme button {
     background: #ffffff; border: 1px solid #d4d4d4; color: #444; border-radius: 999px;
     padding: 7px 13px; font-size: 13px; cursor: pointer; font-family: inherit;
   }
-  .fb-teme button b { color: #a68930; }
-  .fb-teme button.on { border-color: #C9A84C; background: rgba(201, 168, 76, .14); }
+  .fb-teme button b { color: #8E1B1B; }
+  .fb-teme button.on { border-color: #8E1B1B; background: rgba(142, 27, 27, .08); }
   .fb-hint { font-size: 13px; color: #6b6b6b; line-height: 1.5; }
   .fb-filtre {
     display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px;
@@ -288,7 +342,7 @@ const CSS = `
   }
   .fb-filtre input { flex: 1; min-width: 140px; }
   .fb-filtre select { max-width: 320px; }
-  .fb-filtre :focus { outline: none; border-color: #C9A84C; }
+  .fb-filtre :focus { outline: none; border-color: #8E1B1B; }
   .fb-count { font-size: 13px; color: #6b6b6b; white-space: nowrap; }
   .fb-lista { display: flex; flex-direction: column; gap: 10px; }
   .fb-item { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px; padding: 14px 16px; }
@@ -298,9 +352,9 @@ const CSS = `
   .fb-badge {
     font-size: 11.5px; border: 1px solid #d4d4d4; color: #6b6b6b; border-radius: 999px; padding: 2px 9px;
   }
-  .fb-badge.note { border-color: #C9A84C; color: #a68930; }
+  .fb-badge.note { border-color: #8E1B1B; color: #8E1B1B; }
   .fb-note { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #6b6b6b; margin-bottom: 8px; }
-  .fb-note b { color: #a68930; }
+  .fb-note b { color: #8E1B1B; }
   .fb-text { font-size: 14.5px; line-height: 1.55; color: #333; white-space: pre-line; }
   .fb-gol { color: #6b6b6b; padding: 30px 0; text-align: center; }
 `;
