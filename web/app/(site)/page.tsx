@@ -190,7 +190,7 @@ export default async function Home() {
   const collabCards = [
     { href: "/prezinta-un-curs", img: "sustine", title: "Prezintă un curs", text: "Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre." },
     { href: "/gazduieste-un-curs", img: "gazduieste", title: "Găzduiește un curs", text: "Ai o locație cu vibe fain? Transformă-o în spațiul unde se nasc conexiunile și ideile noi." },
-    { href: "/propune-un-parteneriat", img: "parteneriat", title: "Propune un parteneriat", text: "Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună." },
+    { href: "/parteneri", img: "parteneriat", title: "Propune un parteneriat", text: "Reprezinți un brand sau o platformă media? Hai să explorăm ce putem construi împreună." },
   ];
 
   // Vizibil public = activ + link bilete + ziua nu a trecut (ca clp_course_is_public);

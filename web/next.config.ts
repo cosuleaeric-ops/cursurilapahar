@@ -15,7 +15,12 @@ const nextConfig: NextConfig = {
   },
   // URL vechi indexat, redirecționat 301 și în .htaccess-ul PHP.
   async redirects() {
-    return [{ source: "/sustine-un-curs", destination: "/prezinta-un-curs", statusCode: 301 }];
+    return [
+      { source: "/sustine-un-curs", destination: "/prezinta-un-curs", statusCode: 301 },
+      // Votarea temelor e scoasă din meniu și închisă publicului; pagina și datele
+      // rămân în cod, doar accesul e redirecționat (temporar, deci 307).
+      { source: "/voteaza-cursuri", destination: "/", permanent: false },
+    ];
   },
   // Upload-urile vechi de pe PHP au fost copiate în Blob (scripts/copy-uploads-to-blob.mjs);
   // referințele /assets/images/uploads/* din settings rămân valabile prin fallback.
