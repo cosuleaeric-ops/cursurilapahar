@@ -301,6 +301,58 @@ export type DemoRow = { key: string; age: string; gender: string } & CostBreakdo
 
 const GENDER_RO: Record<string, string> = { female: "Femei", male: "Bărbați", unknown: "Necunoscut" };
 
+/** Defalcare generică: plasare, dispozitiv, regiune, oră etc. */
+export async function getCampaignBreakdown(
+  campaignId: string,
+  breakdowns: string,
+  label: (r: Record<string, string | undefined>) => string,
+): Promise<(CostBreakdown & { key: string; label: string })[]> {
+  const res = await graph<{ data: (RawCostInsight & Record<string, string | undefined>)[] }>(
+    `${campaignId}/insights`,
+    { date_preset: "maximum", breakdowns, fields: COST_FIELDS, limit: "200" },
+  );
+  return res.data
+    .map((r) => ({ key: label(r), label: label(r), ...toCost(r) }))
+    .sort((a, b) => b.spend - a.spend);
+}
+
+const PLATFORM_RO: Record<string, string> = {
+  facebook: "Facebook",
+  instagram: "Instagram",
+  audience_network: "Audience Network",
+  messenger: "Messenger",
+  threads: "Threads",
+};
+
+const POSITION_RO: Record<string, string> = {
+  feed: "feed",
+  instagram_stories: "stories",
+  facebook_stories: "stories",
+  story: "stories",
+  instagram_reels: "reels",
+  facebook_reels: "reels",
+  reels: "reels",
+  instream_video: "video in-stream",
+  right_hand_column: "coloana dreapta",
+  marketplace: "marketplace",
+  search: "căutare",
+  explore: "explore",
+  video_feeds: "feed video",
+  profile_feed: "feed profil",
+  biz_disco_feed: "descoperire",
+  classic: "clasic",
+  rewarded_video: "video cu recompensă",
+};
+
+export const placementLabel = (r: Record<string, string | undefined>): string => {
+  const plat = PLATFORM_RO[r.publisher_platform ?? ""] ?? r.publisher_platform ?? "?";
+  const pos = POSITION_RO[r.platform_position ?? ""] ?? r.platform_position ?? "";
+  return pos ? `${plat} · ${pos}` : plat;
+};
+
+export const deviceLabel = (r: Record<string, string | undefined>): string => r.impression_device ?? "?";
+export const regionLabel = (r: Record<string, string | undefined>): string => r.region ?? "?";
+
 export async function getCampaignDemographics(campaignId: string): Promise<DemoRow[]> {
   const res = await graph<{ data: (RawCostInsight & { age?: string; gender?: string })[] }>(
     `${campaignId}/insights`,

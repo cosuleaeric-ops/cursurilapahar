@@ -2,7 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { getCampaignDemographics, getCampaignName, metaToken, type DemoRow } from "@/lib/meta";
+import {
+  getCampaignBreakdown,
+  getCampaignDemographics,
+  getCampaignName,
+  metaToken,
+  placementLabel,
+  deviceLabel,
+  regionLabel,
+  type CostBreakdown,
+} from "@/lib/meta";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +28,8 @@ const lei = (v: number) => `${v.toFixed(2).replace(/\.00$/, "")} lei`;
 const nr = (v: number) => v.toLocaleString("ro-RO");
 const NUM: React.CSSProperties = { textAlign: "right", whiteSpace: "nowrap" };
 
-/** Bară proporțională cu cea mai mare valoare din coloană. */
+type Seg = CostBreakdown & { key: string; label: string };
+
 function Bar({ v, max, color }: { v: number; max: number; color: string }) {
   if (max <= 0) return null;
   return (
@@ -29,7 +39,7 @@ function Bar({ v, max, color }: { v: number; max: number; color: string }) {
   );
 }
 
-function Table({ rows, title, note }: { rows: DemoRow[]; title: string; note?: string }) {
+function Table({ rows, title, note }: { rows: Seg[]; title: string; note?: string }) {
   const maxSpend = Math.max(...rows.map((r) => r.spend), 0);
   const totalSpend = rows.reduce((s, r) => s + r.spend, 0);
   const totalPurch = rows.reduce((s, r) => s + r.purchases, 0);
@@ -59,9 +69,7 @@ function Table({ rows, title, note }: { rows: DemoRow[]; title: string; note?: s
               return (
                 <tr key={r.key}>
                   <td style={{ minWidth: 150 }}>
-                    <div style={{ fontWeight: r.purchases > 0 ? 700 : 500 }}>
-                      {r.gender} {r.age}
-                    </div>
+                    <div style={{ fontWeight: r.purchases > 0 ? 700 : 500 }}>{r.label}</div>
                     <Bar v={r.spend} max={maxSpend} color={r.purchases > 0 ? "#1a7f37" : "var(--text-muted)"} />
                   </td>
                   <td style={NUM}>{lei(r.spend)}</td>
@@ -102,22 +110,31 @@ export default async function AudientaPage({ params }: { params: Promise<{ id: s
   if (!(await metaToken())) redirect("/admin/meta-ads");
 
   let name = id;
-  let rows: DemoRow[] = [];
+  let demo: Awaited<ReturnType<typeof getCampaignDemographics>> = [];
+  let placement: Seg[] = [];
+  let device: Seg[] = [];
+  let region: Seg[] = [];
   let apiError: string | null = null;
   try {
-    [name, rows] = await Promise.all([getCampaignName(id), getCampaignDemographics(id)]);
+    [name, demo, placement, device, region] = await Promise.all([
+      getCampaignName(id),
+      getCampaignDemographics(id),
+      getCampaignBreakdown(id, "publisher_platform,platform_position", placementLabel),
+      getCampaignBreakdown(id, "impression_device", deviceLabel),
+      getCampaignBreakdown(id, "region", regionLabel),
+    ]);
   } catch (e) {
     apiError = e instanceof Error ? e.message : "Eroare Meta API";
   }
 
   // Agregare pe gen și pe vârstă separat, ca să se vadă tiparul fără zgomot.
-  const agg = (keyOf: (r: DemoRow) => string, label: (r: DemoRow) => { age: string; gender: string }): DemoRow[] => {
-    const map = new Map<string, DemoRow>();
-    for (const r of rows) {
+  const agg = (keyOf: (r: (typeof demo)[number]) => string): Seg[] => {
+    const map = new Map<string, Seg>();
+    for (const r of demo) {
       const k = keyOf(r);
       const cur = map.get(k);
       if (!cur) {
-        map.set(k, { ...r, key: k, ...label(r) });
+        map.set(k, { ...r, key: k, label: k });
         continue;
       }
       cur.spend += r.spend;
@@ -132,14 +149,7 @@ export default async function AudientaPage({ params }: { params: Promise<{ id: s
     return [...map.values()].sort((a, b) => b.spend - a.spend);
   };
 
-  const byGender = agg(
-    (r) => r.gender,
-    (r) => ({ age: "", gender: r.gender }),
-  );
-  const byAge = agg(
-    (r) => r.age,
-    (r) => ({ age: r.age, gender: "" }),
-  );
+  const detailed: Seg[] = demo.map((r) => ({ ...r, label: `${r.gender} ${r.age}` }));
 
   return (
     <>
@@ -159,14 +169,21 @@ export default async function AudientaPage({ params }: { params: Promise<{ id: s
         <div className="card-title">👥 Cine vede reclama — {name}</div>
         <p style={{ fontSize: 13, margin: 0 }}>
           Meta decide singură cui livrează, în limitele setate de tine. Tabelele arată unde s-au dus banii și cine a
-          cumpărat efectiv.
+          cumpărat efectiv. Segmentele sub ~100 de persoane sunt ascunse de Meta din motive de confidențialitate.
         </p>
       </div>
 
-      <Table rows={byGender} title="După gen" />
-      <Table rows={byAge} title="După vârstă" />
       <Table
-        rows={rows}
+        rows={placement}
+        title="După plasare"
+        note="Unde a apărut reclama. Aici se vede risipa: dacă Audience Network mănâncă buget fără achiziții, merită exclus."
+      />
+      <Table rows={agg((r) => r.gender)} title="După gen" />
+      <Table rows={agg((r) => r.age)} title="După vârstă" />
+      <Table rows={device} title="După dispozitiv" note="iPhone-urile blochează des pixelul, deci conversiile reale de pe iOS pot fi mai multe decât se raportează." />
+      <Table rows={region} title="După regiune" />
+      <Table
+        rows={detailed}
         title="Detaliat (gen × vârstă)"
         note="Ordonat după cheltuială. La numere mici de conversii, un segment câștigător poate fi pură întâmplare — nu restrânge audiența pe baza a 2-3 achiziții."
       />
