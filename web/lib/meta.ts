@@ -273,6 +273,28 @@ export async function getCampaignName(campaignId: string): Promise<string> {
   return res.name ?? campaignId;
 }
 
+export type CampaignBudget = {
+  name: string;
+  status: string;
+  dailyBudgetBani: number;
+  /** obiectul care poartă bugetul: setul de reclame, sau campania dacă bugetul e la nivel de campanie */
+  budgetObjectId: string;
+};
+
+export async function getCampaignBudget(campaignId: string): Promise<CampaignBudget> {
+  const c = await graph<RawCampaign>(campaignId, {
+    fields: "id,name,effective_status,daily_budget,adsets{id,name,daily_budget,effective_status}",
+  });
+  const adsets = c.adsets?.data ?? [];
+  const budgetAdset = adsets.find((a) => num(a.daily_budget) > 0) ?? null;
+  return {
+    name: c.name,
+    status: c.effective_status,
+    dailyBudgetBani: num(c.daily_budget) || adsets.reduce((s, a) => s + num(a.daily_budget), 0),
+    budgetObjectId: num(c.daily_budget) > 0 ? c.id : (budgetAdset?.id ?? c.id),
+  };
+}
+
 // ---------------------------------------------------------------- audiență
 
 export type DemoRow = { key: string; age: string; gender: string } & CostBreakdown;

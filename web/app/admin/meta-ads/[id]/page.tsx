@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { getCampaignCreatives, getCampaignCosts, getCampaignName, metaToken } from "@/lib/meta";
+import { getCampaignCreatives, getCampaignCosts, getCampaignBudget, metaToken, DAILY_CAP_BANI } from "@/lib/meta";
+import { saveBudget } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
-    return { title: `${await getCampaignName(id)} — Meta Ads` };
+    return { title: `${(await getCampaignBudget(id)).name} — Meta Ads` };
   } catch {
     return { title: "Campanie — Meta Ads" };
   }
@@ -44,27 +45,35 @@ const GRID: React.CSSProperties = {
   gap: 10,
 };
 
-export default async function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CampaignDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ err?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "owner") redirect("/admin");
   const { id } = await params;
+  const { err } = await searchParams;
 
   if (!(await metaToken())) redirect("/admin/meta-ads");
 
-  let name = id;
+  let budget = null as Awaited<ReturnType<typeof getCampaignBudget>> | null;
   let costs = null as Awaited<ReturnType<typeof getCampaignCosts>> | null;
   let ads: Awaited<ReturnType<typeof getCampaignCreatives>> = [];
   let apiError: string | null = null;
   try {
-    [name, costs, ads] = await Promise.all([
-      getCampaignName(id),
+    [budget, costs, ads] = await Promise.all([
+      getCampaignBudget(id),
       getCampaignCosts(id),
       getCampaignCreatives(id),
     ]);
   } catch (e) {
     apiError = e instanceof Error ? e.message : "Eroare Meta API";
   }
+  const name = budget?.name ?? id;
 
   const cpaColor = !costs?.costPerPurchase
     ? undefined
@@ -82,6 +91,11 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
         <Link href={`/admin/meta-ads/${id}/audienta`}>Cine vede reclama →</Link>
       </div>
 
+      {err && (
+        <div className="card" style={{ borderLeft: "4px solid #d63638" }}>
+          <strong>Eroare:</strong> {err}
+        </div>
+      )}
       {apiError && (
         <div className="card" style={{ borderLeft: "4px solid #d63638" }}>
           <strong>Meta API:</strong> {apiError}
@@ -90,6 +104,58 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
 
       <div className="card">
         <div className="card-title">📣 {name}</div>
+
+        {budget && (
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-end",
+              flexWrap: "wrap",
+              paddingBottom: 18,
+              marginBottom: 18,
+              borderBottom: "1px solid var(--border)",
+            }}
+          >
+            <form action={saveBudget} style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+              <input type="hidden" name="object_id" value={budget.budgetObjectId} />
+              <input type="hidden" name="campaign_id" value={id} />
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: ".05em",
+                    color: "var(--text-muted)",
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  Buget zilnic
+                </label>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <input
+                    type="number"
+                    name="budget_lei"
+                    defaultValue={budget.dailyBudgetBani / 100}
+                    min={1}
+                    step={1}
+                    style={{ width: 90, padding: "6px 8px", fontSize: 15, fontWeight: 700 }}
+                  />
+                  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>lei/zi</span>
+                  <button type="submit" className="btn btn-primary btn-sm">
+                    Salvează
+                  </button>
+                </div>
+              </div>
+            </form>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, paddingBottom: 6 }}>
+              Plafon total pe campaniile active: {lei(DAILY_CAP_BANI / 100)}. Creșterile peste 20% pe zi resetează faza
+              de învățare a campaniei.
+            </p>
+          </div>
+        )}
 
         {costs && (
           <>
