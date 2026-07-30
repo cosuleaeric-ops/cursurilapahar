@@ -27,16 +27,6 @@ if (!$email) {
 }
 
 $form_type = preg_replace('/[^a-z0-9-]/', '', $body['form_type'] ?? 'contact');
-$subjects = [
-    'contact'             => 'Mesaj nou de pe site',
-    'sustine'             => 'Cerere nouă: Prezintă un curs',
-    'sustine-un-curs'     => 'Cerere nouă: Prezintă un curs',
-    'gazduieste'          => 'Cerere nouă: Găzduiește un curs',
-    'gazduieste-un-curs'  => 'Cerere nouă: Găzduiește un curs',
-    'parteneriat'         => 'Cerere nouă: Propune un parteneriat',
-    'sponsorizare'        => 'Cerere nouă: Parteneriat',
-];
-$subject = ($subjects[$form_type] ?? 'Mesaj nou') . ' — Cursuri la Pahar';
 
 $lines = [];
 foreach ($body as $key => $value) {
@@ -58,13 +48,8 @@ if (!is_dir($log_dir)) @mkdir($log_dir, 0755, true);
     FILE_APPEND | LOCK_EX
 );
 
-// Send email (best-effort, skip if mail() not available)
-if (function_exists('mail')) {
-    $headers  = "From: noreply@robotache.ro\r\n";
-    $headers .= "Reply-To: $email\r\n";
-    $headers .= "Content-Type: text/plain; charset=UTF-8";
-    @mail('contact@cursurilapahar.ro', $subject, $body_text, $headers);
-}
+// Notificarea internă către contact@cursurilapahar.ro a fost scoasă; rămâne doar
+// logul de mai sus și confirmarea către vizitator.
 
 // Confirmare automată către vizitator (Brevo), best-effort
 $settings_file = dirname(__DIR__) . '/data/settings.json';
