@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession, type Session } from "@/lib/auth";
-import { getCampaigns, setCampaignStatus, setDailyBudget, DAILY_CAP_BANI } from "@/lib/meta";
+import { getCampaigns, setCampaignStatus, setDailyBudget, DAILY_CAP_BANI, type MetaCampaign } from "@/lib/meta";
+import { logDecision } from "@/lib/meta-log";
 
 async function requireOwner(): Promise<Session> {
   const s = await getSession();
@@ -16,40 +17,80 @@ function back(msg?: string): never {
   redirect(msg ? `/admin/meta-ads?err=${encodeURIComponent(msg)}` : "/admin/meta-ads");
 }
 
+/** Cifrele campaniei în momentul deciziei — ca jurnalul să spună și „de ce", nu doar „ce". */
+const snapshot = (c: MetaCampaign | undefined) => ({
+  spend: c?.spend ?? null,
+  purchases: c?.purchases ?? null,
+  cpa: c && c.purchases > 0 ? Number((c.spend / c.purchases).toFixed(2)) : null,
+});
+
 export async function toggleCampaign(formData: FormData): Promise<void> {
-  await requireOwner();
+  const session = await requireOwner();
   const id = String(formData.get("campaign_id") ?? "");
   const status = String(formData.get("status") ?? "") === "ACTIVE" ? "ACTIVE" : "PAUSED";
+
+  let campaign: MetaCampaign | undefined;
   try {
+    campaign = (await getCampaigns()).find((c) => c.id === id);
     await setCampaignStatus(id, status);
   } catch (e) {
     back(e instanceof Error ? e.message : "Eroare Meta API");
   }
+
+  await logDecision({
+    campaignId: id,
+    campaignName: campaign?.name ?? null,
+    action: status === "ACTIVE" ? "resume" : "pause",
+    detail: status === "ACTIVE" ? "pornită" : "pusă pe pauză",
+    context: snapshot(campaign),
+    actor: session.username,
+  });
+
   revalidatePath("/admin/meta-ads");
   redirect("/admin/meta-ads");
 }
 
 export async function saveBudget(formData: FormData): Promise<void> {
-  await requireOwner();
+  const session = await requireOwner();
   const objectId = String(formData.get("object_id") ?? "");
   const campaignId = String(formData.get("campaign_id") ?? "");
   const lei = Number(String(formData.get("budget_lei") ?? "").replace(",", "."));
   if (!objectId || !Number.isFinite(lei) || lei < 1) back("Buget invalid.");
   const budgetBani = Math.round(lei * 100);
 
-  // Plafonul de 100 lei/zi pe totalul campaniilor active.
+  let campaign: MetaCampaign | undefined;
+  let oldBani = 0;
   try {
     const campaigns = await getCampaigns();
+    campaign = campaigns.find((c) => c.id === campaignId);
+    oldBani = campaign?.dailyBudgetBani ?? 0;
+    if (oldBani === budgetBani) redirect("/admin/meta-ads");
+
+    // Plafonul de 100 lei/zi pe totalul campaniilor active.
     const totalActive = campaigns
       .filter((c) => c.status === "ACTIVE")
       .reduce((s, c) => s + (c.id === campaignId ? budgetBani : c.dailyBudgetBani), 0);
     if (totalActive > DAILY_CAP_BANI) {
-      back(`Peste plafonul de ${DAILY_CAP_BANI / 100} lei/zi: totalul campaniilor active ar fi ${(totalActive / 100).toFixed(0)} lei.`);
+      back(
+        `Peste plafonul de ${DAILY_CAP_BANI / 100} lei/zi: totalul campaniilor active ar fi ${(totalActive / 100).toFixed(0)} lei.`,
+      );
     }
     await setDailyBudget(objectId, budgetBani);
   } catch (e) {
+    // redirect() aruncă intern — nu-l transforma în eroare de API.
+    if (e && typeof e === "object" && "digest" in e) throw e;
     back(e instanceof Error ? e.message : "Eroare Meta API");
   }
+
+  await logDecision({
+    campaignId,
+    campaignName: campaign?.name ?? null,
+    action: "budget",
+    detail: `${(oldBani / 100).toFixed(0)} → ${lei.toFixed(0)} lei/zi`,
+    context: snapshot(campaign),
+    actor: session.username,
+  });
+
   revalidatePath("/admin/meta-ads");
   redirect("/admin/meta-ads");
 }

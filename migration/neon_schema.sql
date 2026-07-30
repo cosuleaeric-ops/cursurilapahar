@@ -294,3 +294,17 @@ CREATE INDEX idx_venituri_data         ON venituri(data);
 CREATE INDEX idx_cheltuieli_data       ON cheltuieli(data);
 CREATE INDEX idx_cheltuieli_categorie  ON cheltuieli(categorie_id);
 CREATE INDEX idx_speakers_topics_gin   ON speakers USING GIN (topics);
+
+-- jurnal de decizii Meta Ads — fiecare modificare făcută din /admin/meta-ads
+-- (pauză/pornire, schimbare de buget), cu contextul de performanță din acel moment
+CREATE TABLE meta_ads_log (
+    id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    campaign_id   TEXT NOT NULL,
+    campaign_name TEXT,
+    action        TEXT NOT NULL,               -- 'pause' | 'resume' | 'budget'
+    detail        TEXT,                        -- „40 → 50 lei/zi"
+    context       JSONB NOT NULL DEFAULT '{}', -- {spend, purchases, cpa} la momentul deciziei
+    actor         TEXT,                        -- username, sau 'auto' când va decide cronul
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_meta_ads_log_created ON meta_ads_log(created_at DESC);

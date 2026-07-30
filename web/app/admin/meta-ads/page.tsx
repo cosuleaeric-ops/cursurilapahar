@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getCampaigns, metaToken, DAILY_CAP_BANI, type MetaCampaign } from "@/lib/meta";
+import { getLog, type LogEntry } from "@/lib/meta-log";
 import { toggleCampaign, saveBudget } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -90,6 +91,76 @@ function Head() {
   );
 }
 
+const ACTION_LABEL: Record<string, { icon: string; text: string; color: string }> = {
+  pause: { icon: "⏸", text: "Pauză", color: "#b45309" },
+  resume: { icon: "▶", text: "Pornire", color: "#1a7f37" },
+  budget: { icon: "💰", text: "Buget", color: "#2563eb" },
+};
+
+const stamp = new Intl.DateTimeFormat("ro-RO", {
+  timeZone: "Europe/Bucharest",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function Journal({ entries }: { entries: LogEntry[] }) {
+  return (
+    <div className="card">
+      <div className="card-title">📋 Jurnal de decizii</div>
+      {entries.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+          Nicio modificare încă. Aici apare fiecare pauză, pornire sau schimbare de buget făcută din panoul ăsta,
+          cu cifrele campaniei din acel moment.
+        </p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table className="wp-table">
+            <thead>
+              <tr>
+                <th>Când</th>
+                <th>Campanie</th>
+                <th>Acțiune</th>
+                <th>Cifrele la acel moment</th>
+                <th>De cine</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((e) => {
+                const a = ACTION_LABEL[e.action] ?? { icon: "•", text: e.action, color: undefined as string | undefined };
+                const ctx = e.context ?? {};
+                return (
+                  <tr key={e.id}>
+                    <td style={{ whiteSpace: "nowrap", fontSize: 12 }}>{stamp.format(new Date(e.created_at))}</td>
+                    <td style={{ minWidth: 180 }}>
+                      <Link href={`/admin/meta-ads/${e.campaign_id}`}>{e.campaign_name ?? e.campaign_id}</Link>
+                    </td>
+                    <td style={{ whiteSpace: "nowrap", color: a.color, fontWeight: 600 }}>
+                      {a.icon} {e.detail ?? a.text}
+                    </td>
+                    <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                      {ctx.spend != null ? (
+                        <>
+                          {lei2(ctx.spend)} cheltuiți · {ctx.purchases ?? 0} achiziții
+                          {ctx.cpa != null && ` · ${lei2(ctx.cpa)}/achiziție`}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td style={{ fontSize: 12 }}>{e.actor === "auto" ? "🤖 automat" : (e.actor ?? "—")}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default async function MetaAdsPage({ searchParams }: { searchParams: Promise<{ err?: string }> }) {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -114,6 +185,7 @@ export default async function MetaAdsPage({ searchParams }: { searchParams: Prom
   } catch (e) {
     apiError = e instanceof Error ? e.message : "Eroare Meta API";
   }
+  const journal = await getLog();
 
   const live = campaigns.filter((c) => c.status === "ACTIVE");
   const oprite = campaigns.filter((c) => c.status !== "ACTIVE" && c.spend > 0);
@@ -168,6 +240,8 @@ export default async function MetaAdsPage({ searchParams }: { searchParams: Prom
           <span style={{ color: "#d63638", fontWeight: 600 }}>peste 50 lei = problemă</span>
         </p>
       </div>
+
+      <Journal entries={journal} />
 
       {oprite.length > 0 && (
         <div className="card">
