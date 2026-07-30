@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { sendConfirmationEmail } from "@/lib/brevo";
-import { sendTeamNotification } from "./team-email";
 import { EMAIL_RE, phpPayload, phpValue, type FormResult } from "./form-shared";
 
 export async function submitContact(formData: FormData): Promise<FormResult> {
@@ -24,7 +23,8 @@ export async function submitContact(formData: FormData): Promise<FormResult> {
     return { success: false, message: "" };
   }
 
-  await sendTeamNotification("contact", email, payload);
+  // Notificarea internă către contact@cursurilapahar.ro a fost scoasă; mesajele
+  // se citesc doar din /admin/mesaje.
   await sendConfirmationEmail("contact", email, name);
   revalidatePath("/admin/mesaje");
   return { success: true };

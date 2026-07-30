@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { sendConfirmationEmail } from "@/lib/brevo";
-import { sendTeamNotification } from "./team-email";
 import { EMAIL_RE, phpPayload, phpValue, type FormResult } from "./form-shared";
 
 const CATEGORIES = new Set(["sustine", "gazduieste", "parteneriat", "sponsorizare"]);
@@ -32,7 +31,8 @@ export async function submitColaborare(formType: string, formData: FormData): Pr
     return { success: false, message: "" };
   }
 
-  await sendTeamNotification(formType, email, payload);
+  // Notificarea internă către contact@cursurilapahar.ro a fost scoasă; cererile
+  // se citesc doar din /admin/mesaje.
   await sendConfirmationEmail(formType, email, name);
   revalidatePath("/admin/mesaje");
   return { success: true };
