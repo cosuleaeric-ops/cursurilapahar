@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getCampaigns, metaToken, DAILY_CAP_BANI, type MetaCampaign } from "@/lib/meta";
 import { getLog, type LogEntry } from "@/lib/meta-log";
-import { toggleCampaign, saveBudget } from "./actions";
+import { toggleCampaign } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Meta Ads — Admin" };
@@ -18,7 +18,6 @@ function Row({ c }: { c: MetaCampaign }) {
   const active = c.status === "ACTIVE";
   const cpa = c.purchases > 0 ? c.spend / c.purchases : null;
   const cpaColor = cpa == null ? undefined : cpa <= 30 ? "#1a7f37" : cpa > 50 ? "#d63638" : "#b45309";
-  const budgetObject = c.budgetAdsetId ?? c.id;
   return (
     <tr>
       <td style={{ minWidth: 220 }}>
@@ -30,23 +29,7 @@ function Row({ c }: { c: MetaCampaign }) {
           <Link href={`/admin/meta-ads/${c.id}`}>detalii</Link>
         </div>
       </td>
-      <td style={{ whiteSpace: "nowrap" }}>
-        <form action={saveBudget} style={{ display: "flex", gap: 4, alignItems: "center" }}>
-          <input type="hidden" name="object_id" value={budgetObject} />
-          <input type="hidden" name="campaign_id" value={c.id} />
-          <input
-            type="number"
-            name="budget_lei"
-            defaultValue={c.dailyBudgetBani / 100}
-            min={1}
-            step={1}
-            style={{ width: 58, padding: "4px 6px", fontSize: 13 }}
-          />
-          <button type="submit" className="btn btn-sm">
-            OK
-          </button>
-        </form>
-      </td>
+      <td style={NUM}>{lei(c.dailyBudgetBani)}</td>
       <td style={NUM}>{c.spendToday > 0 ? lei2(c.spendToday) : "—"}</td>
       <td style={NUM}>{lei2(c.spend)}</td>
       <td style={NUM}>
