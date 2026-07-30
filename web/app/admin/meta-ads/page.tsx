@@ -21,9 +21,12 @@ function Row({ c }: { c: MetaCampaign }) {
   return (
     <tr>
       <td style={{ minWidth: 220 }}>
-        <div style={{ fontWeight: 600, lineHeight: 1.3 }}>{c.name}</div>
+        <Link href={`/admin/meta-ads/${c.id}`} style={{ fontWeight: 600, lineHeight: 1.3 }}>
+          {c.name}
+        </Link>
         <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
-          {active ? "🟢 Activă" : "⏸ Pauză"}
+          {active ? "🟢 Activă" : "⏸ Pauză"} ·{" "}
+          <Link href={`/admin/meta-ads/${c.id}`}>detalii</Link>
         </div>
       </td>
       <td style={{ whiteSpace: "nowrap" }}>

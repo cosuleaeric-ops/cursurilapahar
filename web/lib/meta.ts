@@ -120,6 +120,180 @@ export async function getCampaigns(): Promise<MetaCampaign[]> {
   });
 }
 
+// ---------------------------------------------------------------- detalii campanie
+
+export type AdCreative = {
+  adId: string;
+  adName: string;
+  status: string;
+  /** toate variantele de text principal */
+  bodies: string[];
+  titles: string[];
+  descriptions: string[];
+  cta: string | null;
+  link: string | null;
+  imageUrl: string | null;
+};
+
+export type CostBreakdown = {
+  spend: number;
+  impressions: number;
+  reach: number;
+  frequency: number;
+  cpm: number;
+  /** cost per clic pe link (metrica utilă) */
+  cpcLink: number;
+  /** cost per orice clic (include like-uri, expandări — arată artificial de bine) */
+  cpcAll: number;
+  ctrLink: number;
+  ctrAll: number;
+  clicksAll: number;
+  linkClicks: number;
+  landingViews: number;
+  costPerLandingView: number;
+  checkouts: number;
+  costPerCheckout: number;
+  purchases: number;
+  costPerPurchase: number;
+  purchaseValue: number;
+};
+
+type RawCreative = {
+  body?: string;
+  title?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  call_to_action_type?: string;
+  object_story_spec?: {
+    link_data?: {
+      message?: string;
+      name?: string;
+      description?: string;
+      link?: string;
+      picture?: string;
+      call_to_action?: { type?: string };
+    };
+  };
+  asset_feed_spec?: {
+    bodies?: { text?: string }[];
+    titles?: { text?: string }[];
+    descriptions?: { text?: string }[];
+    link_urls?: { website_url?: string }[];
+    call_to_action_types?: string[];
+    images?: { url?: string; permalink_url?: string }[];
+  };
+};
+
+type RawAd = { id: string; name: string; effective_status: string; creative?: RawCreative };
+
+const uniq = (xs: (string | undefined)[]): string[] =>
+  [...new Set(xs.filter((x): x is string => Boolean(x && x.trim())))];
+
+export async function getCampaignCreatives(campaignId: string): Promise<AdCreative[]> {
+  const res = await graph<{ data: RawAd[] }>(`${campaignId}/ads`, {
+    fields:
+      "id,name,effective_status,creative{body,title,image_url,thumbnail_url,call_to_action_type,object_story_spec,asset_feed_spec}",
+    limit: "25",
+  });
+  return res.data.map((ad) => {
+    const cr = ad.creative ?? {};
+    const ld = cr.object_story_spec?.link_data;
+    const afs = cr.asset_feed_spec;
+    return {
+      adId: ad.id,
+      adName: ad.name,
+      status: ad.effective_status,
+      bodies: uniq([...(afs?.bodies?.map((b) => b.text) ?? []), ld?.message, cr.body]),
+      titles: uniq([...(afs?.titles?.map((t) => t.text) ?? []), ld?.name, cr.title]),
+      descriptions: uniq([...(afs?.descriptions?.map((d) => d.text) ?? []), ld?.description]),
+      cta: afs?.call_to_action_types?.[0] ?? ld?.call_to_action?.type ?? cr.call_to_action_type ?? null,
+      link: afs?.link_urls?.[0]?.website_url ?? ld?.link ?? null,
+      imageUrl:
+        cr.image_url ?? afs?.images?.[0]?.url ?? afs?.images?.[0]?.permalink_url ?? cr.thumbnail_url ?? ld?.picture ?? null,
+    };
+  });
+}
+
+type RawCostInsight = RawInsight & {
+  reach?: string;
+  frequency?: string;
+  cpm?: string;
+  cpc?: string;
+  ctr?: string;
+  clicks?: string;
+  inline_link_click_ctr?: string;
+  cost_per_inline_link_click?: string;
+};
+
+const COST_FIELDS =
+  "spend,impressions,reach,frequency,cpm,cpc,ctr,clicks,inline_link_clicks,inline_link_click_ctr,cost_per_inline_link_click,actions,action_values";
+
+function toCost(i: RawCostInsight | undefined): CostBreakdown {
+  const spend = num(i?.spend);
+  const landingViews = pickAction(i?.actions, "landing_page_view");
+  const checkouts = pickAction(
+    i?.actions,
+    "omni_initiated_checkout",
+    "initiate_checkout",
+    "offsite_conversion.fb_pixel_initiate_checkout",
+  );
+  const purchases = pickAction(i?.actions, "omni_purchase", "purchase", "offsite_conversion.fb_pixel_purchase");
+  return {
+    spend,
+    impressions: num(i?.impressions),
+    reach: num(i?.reach),
+    frequency: num(i?.frequency),
+    cpm: num(i?.cpm),
+    cpcLink: num(i?.cost_per_inline_link_click),
+    cpcAll: num(i?.cpc),
+    ctrLink: num(i?.inline_link_click_ctr),
+    ctrAll: num(i?.ctr),
+    clicksAll: num(i?.clicks),
+    linkClicks: num(i?.inline_link_clicks),
+    landingViews,
+    costPerLandingView: landingViews ? spend / landingViews : 0,
+    checkouts,
+    costPerCheckout: checkouts ? spend / checkouts : 0,
+    purchases,
+    costPerPurchase: purchases ? spend / purchases : 0,
+    purchaseValue: pickAction(i?.action_values, "omni_purchase", "purchase", "offsite_conversion.fb_pixel_purchase"),
+  };
+}
+
+export async function getCampaignCosts(campaignId: string): Promise<CostBreakdown> {
+  const res = await graph<{ data: RawCostInsight[] }>(`${campaignId}/insights`, {
+    date_preset: "maximum",
+    fields: COST_FIELDS,
+  });
+  return toCost(res.data[0]);
+}
+
+export async function getCampaignName(campaignId: string): Promise<string> {
+  const res = await graph<{ name?: string }>(campaignId, { fields: "name" });
+  return res.name ?? campaignId;
+}
+
+// ---------------------------------------------------------------- audiență
+
+export type DemoRow = { key: string; age: string; gender: string } & CostBreakdown;
+
+const GENDER_RO: Record<string, string> = { female: "Femei", male: "Bărbați", unknown: "Necunoscut" };
+
+export async function getCampaignDemographics(campaignId: string): Promise<DemoRow[]> {
+  const res = await graph<{ data: (RawCostInsight & { age?: string; gender?: string })[] }>(
+    `${campaignId}/insights`,
+    { date_preset: "maximum", breakdowns: "age,gender", fields: COST_FIELDS, limit: "100" },
+  );
+  return res.data
+    .map((r) => ({
+      key: `${r.age}|${r.gender}`,
+      age: r.age ?? "?",
+      gender: GENDER_RO[r.gender ?? "unknown"] ?? (r.gender ?? "?"),
+      ...toCost(r),
+    }))
+    .sort((a, b) => b.spend - a.spend);
+}
+
 export async function setCampaignStatus(campaignId: string, status: "ACTIVE" | "PAUSED"): Promise<void> {
   await graph(campaignId, { status }, { method: "POST" });
 }
