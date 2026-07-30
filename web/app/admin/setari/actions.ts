@@ -53,6 +53,12 @@ export async function saveBrevo(formData: FormData): Promise<void> {
   redirect("/admin/setari?saved=1");
 }
 
+export async function saveMetaAds(formData: FormData): Promise<void> {
+  await requireOwner();
+  await setSetting("meta_ads_token", g(formData, "meta_ads_token"));
+  redirect("/admin/setari?saved=1");
+}
+
 export async function saveHeadScripts(formData: FormData): Promise<void> {
   await requireOwner();
   await setSetting("head_scripts", String(formData.get("head_scripts") ?? ""));

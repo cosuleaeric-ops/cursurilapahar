@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { saveKit, saveBrevo, saveHeadScripts, changePassword } from "./actions";
+import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, changePassword } from "./actions";
 import SyncToken from "./SyncToken";
 import QuickLinksEditor, { type QuickLink } from "./QuickLinksEditor";
 import RecurringEditor, { type RecTask } from "./RecurringEditor";
@@ -20,7 +20,7 @@ export default async function SetariPage({
   const { saved, error, rec } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
-    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'head_scripts', 'sync_token')
+    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token')
   `) as { key: string; value: unknown }[];
   const recTasks = (await sql`
     SELECT id, type, system_key, assigned_to, title, schedule, description, days
@@ -87,6 +87,31 @@ export default async function SetariPage({
                 Brevo → SMTP &amp; API → API Keys
               </a>
               . Trimite un email de confirmare automat celui care completează un formular. Lasă gol pentru a dezactiva.
+            </p>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            Salvează
+          </button>
+        </div>
+      </form>
+
+      <form action={saveMetaAds}>
+        <div className="card">
+          <div className="card-title">📣 Meta Ads</div>
+          <div className="form-group">
+            <label>Token System User</label>
+            <input type="text" name="meta_ads_token" defaultValue={str("meta_ads_token")} />
+            <p className="form-desc">
+              Tokenul de System User din{" "}
+              <a
+                href="https://business.facebook.com/settings/system-users"
+                target="_blank"
+                style={{ color: "var(--accent)" }}
+              >
+                Business Manager → Utilizatori de sistem
+              </a>
+              , cu permisiunea <code>ads_management</code> pe contul de reclame. Folosit de pagina{" "}
+              <strong>Meta Ads</strong> din admin.
             </p>
           </div>
           <button type="submit" className="btn btn-primary">
