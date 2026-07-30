@@ -36,6 +36,19 @@ const FONTS =
 // includes/head-scripts.php:20-33 adaugă hardcodat, pe fiecare pagină publică,
 // Plausible și analytics-ul self-hosted de pe ericcosulea.ro — pe lângă ce e în
 // settings.head_scripts.
+// Pixel Meta — ACELAȘI dataset ca integrarea LiveTickets (1375094074585211), ca
+// vizitatorii site-ului și cumpărătorii să intre în același bazin de audiențe:
+// site view → AddToCart/Purchase pe LiveTickets rămâne o pâlnie continuă.
+// Fără el, oricine citește site-ul fără să ajungă la bilete era invizibil pentru retargeting.
+const META_PIXEL_ID = "1375094074585211";
+const META_PIXEL_INIT =
+  "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?" +
+  "n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;" +
+  "n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;" +
+  "t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script'," +
+  "'https://connect.facebook.net/en_US/fbevents.js');" +
+  `fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`;
+
 const PLAUSIBLE_SRC = "https://plausible.io/js/pa-3t0zbcrOJNHSBQ4-KIokx.js";
 const PLAUSIBLE_INIT =
   "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};\n  plausible.init()";
@@ -76,6 +89,17 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <style dangerouslySetInnerHTML={{ __html: AB_CSS }} />
       <script dangerouslySetInnerHTML={{ __html: AB_SCRIPT }} />
       <HeadScripts html={str("head_scripts")} />
+      <script dangerouslySetInnerHTML={{ __html: META_PIXEL_INIT }} />
+      <noscript>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none" }}
+          alt=""
+          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+        />
+      </noscript>
       <script async src={PLAUSIBLE_SRC} />
       <script dangerouslySetInnerHTML={{ __html: PLAUSIBLE_INIT }} />
       <script
