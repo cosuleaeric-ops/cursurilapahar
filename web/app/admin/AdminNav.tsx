@@ -34,8 +34,8 @@ const NAV: Entry[] = [
       { href: "/admin/ab", label: "Test A/B" },
     ],
   },
-  { href: "/admin/meta-ads", label: "Meta Ads", owner: true },
-  { href: "/admin/videoclipuri", label: "Videoclipuri", owner: true },
+  // Meta Ads (/admin/meta-ads) și Videoclipuri (/admin/videoclipuri) rămân
+  // accesibile direct pe URL, dar scoase din meniu.
   { href: "/admin/pnl", label: "P&L", owner: true },
   { href: "/admin/setari", label: "Setări", owner: true },
 ];
