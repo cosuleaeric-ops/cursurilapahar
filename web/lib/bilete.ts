@@ -62,6 +62,38 @@ export async function getOrganizator() {
   };
 }
 
+/**
+ * Tipurile cu care pornește orice curs nou — aceleași ca în cererile de vizare
+ * de până acum. Tarifele și stocul se editează per curs după creare.
+ */
+export const DEFAULT_TYPES: { name: string; price: number; stock: number }[] = [
+  { name: "Bilet standard", price: 50, stock: 55 },
+  { name: "Bilet student", price: 30, stock: 25 },
+  { name: "Bilet 1+1 GRATIS", price: 50, stock: 8 },
+];
+
+/** Creează tipuri cu serii unice în cadrul cursului și le generează pool-ul. */
+export async function createTypes(
+  eventId: number,
+  defs: { name: string; price: number; stock: number }[],
+): Promise<void> {
+  const existing = (await sql`SELECT serie FROM ticket_types WHERE event_id = ${eventId}`) as { serie: string }[];
+  const taken = new Set(existing.map((r) => r.serie));
+  const [{ pos }] = (await sql`
+    SELECT COALESCE(MAX(position), -1) + 1 AS pos FROM ticket_types WHERE event_id = ${eventId}
+  `) as { pos: number }[];
+
+  for (const [i, d] of defs.entries()) {
+    const serie = randomSerie(taken);
+    const [type] = (await sql`
+      INSERT INTO ticket_types (event_id, name, price, stock, serie, position)
+      VALUES (${eventId}, ${d.name}, ${d.price}, ${d.stock}, ${serie}, ${pos + i})
+      RETURNING id
+    `) as { id: number }[];
+    await syncPool(type.id);
+  }
+}
+
 export type TypeRow = TicketType & { vandute: number; libere: number; casate: number };
 
 /** Tipurile de bilete ale unui curs, cu numărătoarea pe status. */

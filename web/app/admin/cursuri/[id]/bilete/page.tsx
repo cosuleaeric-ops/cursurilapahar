@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
-import { formatNumar, getTypes } from "@/lib/bilete";
+import { DEFAULT_TYPES, formatNumar, getTypes } from "@/lib/bilete";
 import { VIEW_CSS } from "../detalii/styles";
 import ConfirmButton from "../detalii/ConfirmButton";
-import { addType, caseazaLibere, deleteType, setVandute, toggleVizat, updateCote, updateType } from "./actions";
+import { addDefaultTypes, addType, caseazaLibere, deleteType, setVandute, toggleVizat, updateCote, updateType } from "./actions";
 import { BILETE_CSS } from "./styles";
 
 export const dynamic = "force-dynamic";
@@ -81,9 +81,20 @@ export default async function BiletePage({
           <h3>Tipuri de bilete</h3>
 
           {types.length === 0 ? (
-            <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 16 }}>
-              Niciun tip definit. Adaugă tipurile și stocul pe care vrei să-l vizezi la primărie.
-            </p>
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 10 }}>
+                Cursurile create de acum înainte pornesc cu tipurile implicite. Ăsta e mai vechi — pune-le cu un clic:
+              </p>
+              <form action={addDefaultTypes} style={{ margin: 0 }}>
+                <input type="hidden" name="id" value={id} />
+                <button type="submit" className="add-btn">
+                  Adauga tipurile implicite
+                </button>
+              </form>
+              <p className="hint">
+                {DEFAULT_TYPES.map((t) => `${t.name} — ${t.price} lei × ${t.stock}`).join(" · ")}
+              </p>
+            </div>
           ) : (
             <table className="bilete-table">
               <thead>

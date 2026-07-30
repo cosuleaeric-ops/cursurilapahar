@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { fetchCourseMeta, type MetaResult } from "@/lib/livetickets";
+import { createTypes, DEFAULT_TYPES } from "@/lib/bilete";
 import { COURSE_TIMES } from "./times";
 import { IG_POST_TYPES, RO_MONTHS } from "./stats-data";
 
@@ -110,12 +111,16 @@ export async function saveCourse(formData: FormData): Promise<void> {
     // În courses.json fiecare card primea un id propriu (`uniqid('c', true)`); în Neon acela
     // e `legacy_card_id`, marcajul după care cursul e recunoscut ca „card de site".
     const cardId = `c${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
-    await sql`
+    const [created] = (await sql`
       INSERT INTO events (title, legacy_card_id, date_display, starts_at, speaker_id, speaker_name, location, livetickets_url, image_url, active, link_added_at)
       VALUES (${title}, ${cardId}, ${dateDisplay}, (${startsAt}::timestamp AT TIME ZONE ${TZ}), ${speakerId}, ${speaker || null}, ${location || null},
               ${ltUrl || null}, ${imageUrl || null}, ${active},
               CASE WHEN ${ltUrl} = '' THEN NULL ELSE now() END)
-    `;
+      RETURNING id
+    `) as { id: number }[];
+    // Biletele fac parte din curs: tipurile implicite și pool-ul numerotat există
+    // de la creare, ca să nu fie nevoie de un pas manual înainte de vizare.
+    await createTypes(created.id, DEFAULT_TYPES);
   }
 
   revalidatePath("/admin/cursuri");

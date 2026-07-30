@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { randomSerie, syncPool } from "@/lib/bilete";
+import { createTypes, DEFAULT_TYPES, syncPool } from "@/lib/bilete";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -12,11 +12,6 @@ async function requireAuth(): Promise<void> {
 
 const g = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const back = (id: number) => redirect(`/admin/cursuri/${id}/bilete`);
-
-async function seriiLuate(eventId: number): Promise<Set<string>> {
-  const rows = (await sql`SELECT serie FROM ticket_types WHERE event_id = ${eventId}`) as { serie: string }[];
-  return new Set(rows.map((r) => r.serie));
-}
 
 /** Adaugă un tip de bilet și îi generează pool-ul numerotat. */
 export async function addType(formData: FormData): Promise<void> {
@@ -27,17 +22,17 @@ export async function addType(formData: FormData): Promise<void> {
   const stock = Number(g(formData, "stock"));
   if (!id || !name || !(price >= 0) || !(stock > 0)) back(id);
 
-  const serie = randomSerie(await seriiLuate(id));
-  const [{ pos }] = (await sql`
-    SELECT COALESCE(MAX(position), -1) + 1 AS pos FROM ticket_types WHERE event_id = ${id}
-  `) as { pos: number }[];
-  const [type] = (await sql`
-    INSERT INTO ticket_types (event_id, name, price, stock, serie, position)
-    VALUES (${id}, ${name}, ${price}, ${stock}, ${serie}, ${pos})
-    RETURNING id
-  `) as { id: number }[];
-  await syncPool(type.id);
+  await createTypes(id, [{ name, price, stock }]);
+  revalidatePath(`/admin/cursuri/${id}/bilete`);
+  back(id);
+}
 
+/** Pune tipurile implicite pe un curs creat înainte ca ele să fie automate. */
+export async function addDefaultTypes(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  if (!id) back(id);
+  await createTypes(id, DEFAULT_TYPES);
   revalidatePath(`/admin/cursuri/${id}/bilete`);
   back(id);
 }
