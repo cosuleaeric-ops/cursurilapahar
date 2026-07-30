@@ -11,7 +11,7 @@ function clp_competitors_list(): array
         ['name' => 'Brewing Minds',            'ig' => 'https://www.instagram.com/brewingminds_lectures/', 'tt' => 'https://www.tiktok.com/@brewingminds',  'web' => 'https://www.brewing-minds.com/'],
         ['name' => 'Brains and Barstools',     'ig' => 'https://www.instagram.com/brainsandbarstools/', 'tt' => 'https://www.tiktok.com/@brainsandbarstools', 'web' => 'http://brainsandbarstools.com/'],
         ['name' => 'The Social Study',         'ig' => 'https://www.instagram.com/thesocial.study/',   'tt' => 'https://www.tiktok.com/@thesocial.study',   'web' => 'https://www.thesocial.study/'],
-        ['name' => 'Sip and Learn Toronto',    'ig' => 'https://www.instagram.com/sip_and_learn_toronto/', 'tt' => 'https://www.tiktok.com/@sip_and_learn', 'web' => 'https://www.sipandlearn.ca'],
+        ['name' => 'Sip and Learn Toronto',    'ig' => 'https://www.instagram.com/sip_and_learn_ca/', 'tt' => 'https://www.tiktok.com/@sip_and_learn', 'web' => 'https://www.sipandlearn.ca'],
         ['name' => 'The Unlecture',            'ig' => 'https://www.instagram.com/theunlecture/',     'tt' => '',                                          'web' => ''],
         ['name' => 'Sip and Scholar',          'ig' => 'https://www.instagram.com/sipandscholar/',     'tt' => '',                                          'web' => 'https://www.sipandscholar.com/'],
         ['name' => 'Pint of View',             'ig' => 'https://www.instagram.com/pintofview.club/',   'tt' => '',                                          'web' => 'https://pintofview.club/'],
