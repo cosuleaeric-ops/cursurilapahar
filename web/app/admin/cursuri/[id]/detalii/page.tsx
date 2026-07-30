@@ -164,6 +164,12 @@ export default async function CourseStatsPage({
           </a>
           <h2>{event.title}</h2>
           <div className="meta">{event.starts_at ? roDate.format(new Date(event.starts_at)) : ""}</div>
+          <a
+            href={`/admin/cursuri/${id}/bilete`}
+            style={{ display: "inline-block", marginTop: 12, fontSize: 13, padding: "6px 14px", border: "1px solid var(--border)", borderRadius: 6, textDecoration: "none", color: "var(--text)" }}
+          >
+            Bilete și documente primărie →
+          </a>
         </div>
 
         {report && (
