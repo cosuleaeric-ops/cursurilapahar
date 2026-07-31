@@ -16,7 +16,7 @@ function bucharestDate(offsetDays = 0): string {
 
 function courseShortName(t: string): string {
   return t
-    .replace(/^\s*Curs la Pahar\s*[-–]\s*/u, "")
+    .replace(/^\s*Curs la Pahar\s*[--]\s*/u, "")
     .replace(/\s*\/\/.*$/u, "")
     .trim();
 }

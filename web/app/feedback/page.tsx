@@ -7,7 +7,7 @@ import Dashboard, { type Row } from "./Dashboard";
 import PasswordGate from "./PasswordGate";
 
 export const metadata: Metadata = {
-  title: "Feedback participanți — Cursuri la Pahar",
+  title: "Feedback participanți - Cursuri la Pahar",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";

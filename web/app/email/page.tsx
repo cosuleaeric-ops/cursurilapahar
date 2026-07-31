@@ -4,7 +4,7 @@ import { EMAIL_CSS } from "./styles";
 // Landing pentru abonații reci (linkul din emailurile Kit). Nu face parte din
 // grupul (site) — e o pagină de sine stătătoare, fără navbar/footer, noindex.
 export const metadata: Metadata = {
-  title: "Rămâi cu noi — Cursuri la Pahar",
+  title: "Rămâi cu noi - Cursuri la Pahar",
   robots: { index: false, follow: false },
   icons: { icon: "/favicon.png" },
 };
@@ -25,7 +25,7 @@ export default function EmailLandingPage() {
         <h1>Mă bucur că ești aici 👋</h1>
         <p>Te-am trecut înapoi pe lista activă.</p>
         <p>
-          Vei primi <strong>în continuare</strong> invitații la următoarele <strong>Cursuri la Pahar</strong> — fără
+          Vei primi <strong>în continuare</strong> invitații la următoarele <strong>Cursuri la Pahar</strong> - fără
           spam, doar ce contează.
         </p>
         <a href="/" className="cta">

@@ -33,7 +33,7 @@ const ymd = (s: string) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).fo
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params;
   const [event] = (await sql`SELECT title FROM events WHERE id = ${Number(idStr) || 0}`) as { title: string }[];
-  return { title: `${event?.title ?? "Statistici"} — Admin` };
+  return { title: `${event?.title ?? "Statistici"} - Admin` };
 }
 
 export default async function CourseStatsPage({
@@ -353,7 +353,7 @@ export default async function CourseStatsPage({
                           <td className="num">{s.pana_la ?? ""}</td>
                           {types.length > 0 && (
                             <td className={`num ${vandute != null ? "sold-match" : "no-match"}`}>
-                              {vandute != null ? `${vandute} vandute` : "—"}
+                              {vandute != null ? `${vandute} vandute` : "-"}
                             </td>
                           )}
                           <td className="num">{s.nr_unitati}</td>

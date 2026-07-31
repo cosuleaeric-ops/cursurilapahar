@@ -8,7 +8,7 @@ import { BackLink, ColaborareForm } from "../colaborare-form";
 export const revalidate = 120;
 
 export const metadata: Metadata = pageMetadata({
-  title: "Găzduiește un curs – Cursuri la Pahar",
+  title: "Găzduiește un curs - Cursuri la Pahar",
   description:
     "Găzduiește un curs la Cursuri la Pahar. Transformă-ți locația într-un spațiu de educație și socializare.",
   path: "/gazduieste-un-curs",

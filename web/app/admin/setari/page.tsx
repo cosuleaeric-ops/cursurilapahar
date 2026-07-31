@@ -39,7 +39,7 @@ export default async function SetariPage({
       {error && <div className="notice notice-error">Parolele nu coincid sau sunt prea scurte (minim 6 caractere).</div>}
 
       <div className="card">
-        <div className="card-title">🔗 Linkuri rapide — Dashboard</div>
+        <div className="card-title">🔗 Linkuri rapide - Dashboard</div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
           Aceste linkuri apar ca butoane în partea de sus a dashboard-ului.
         </p>
@@ -138,7 +138,7 @@ export default async function SetariPage({
               orice alt script. Va fi inserat automat în <code>&lt;head&gt;</code> pe <strong>toate paginile</strong>{" "}
               site-ului.
               <br />
-              <span style={{ color: "#d63638" }}>⚠ Codul este inserat fără filtrare — adaugă doar scripturi de încredere.</span>
+              <span style={{ color: "#d63638" }}>⚠ Codul este inserat fără filtrare - adaugă doar scripturi de încredere.</span>
             </p>
           </div>
           <button type="submit" className="btn btn-primary">

@@ -168,11 +168,11 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
           <span>cursuri</span>
         </div>
         <div className="fb-stat">
-          <b>{stats.exp ? stats.exp.toFixed(2) : "—"}<i>/5</i></b>
+          <b>{stats.exp ? stats.exp.toFixed(2) : "-"}<i>/5</i></b>
           <span>experiența (medie, {notate.length} note)</span>
         </div>
         <div className="fb-stat">
-          <b>{stats.revNum ? stats.revNum.toFixed(2) : "—"}<i>/5</i></b>
+          <b>{stats.revNum ? stats.revNum.toFixed(2) : "-"}<i>/5</i></b>
           <span>cât de probabil ar reveni (medie, {stats.revTotal} note)</span>
         </div>
       </section>
@@ -185,7 +185,7 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
             {noteMedii.map((n) => (n.val != null ? <Bara key={n.label} label={n.label} val={n.val} /> : null))}
           </div>
           <div className="fb-card">
-            <h3>Cât de probabil ar mai veni? (1–5) — {stats.revTotal} voturi</h3>
+            <h3>Cât de probabil ar mai veni? (1-5) - {stats.revTotal} voturi</h3>
             {[5, 4, 3, 2, 1].map((v) => (
               <BaraCount
                 key={v}
@@ -237,7 +237,7 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
           <option value="">Toate cursurile</option>
           {cursuri.map(([cod, c]) => (
             <option key={cod} value={cod}>
-              {dataScurta(c.data)} — {c.tema} ({c.n})
+              {dataScurta(c.data)} - {c.tema} ({c.n})
             </option>
           ))}
         </select>

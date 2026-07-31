@@ -76,7 +76,7 @@ export default async function BiletPage({ params }: { params: Promise<{ token: s
 
           {!valid && (
             <div className="b-warn">
-              {t.status === "casat" ? "Bilet casat — nu permite accesul." : "Bilet neemis — nu permite accesul."}
+              {t.status === "casat" ? "Bilet casat - nu permite accesul." : "Bilet neemis - nu permite accesul."}
             </div>
           )}
           {t.used_at && <div className="b-used">Deja scanat la intrare</div>}

@@ -73,7 +73,7 @@ export function CoursesPanel({ courses, sumIncasari, sumDitlBase }: { courses: M
 }
 
 function FragmentRow({ c, open, onToggle }: { c: MonthCourse; open: boolean; onToggle: () => void }) {
-  const dash = <span style={{ color: "#d1d5db" }}>—</span>;
+  const dash = <span style={{ color: "#d1d5db" }}>-</span>;
   return (
     <>
       <tr style={{ cursor: "pointer" }} onClick={() => (location.href = `/admin/cursuri/${c.id}/detalii`)}>
@@ -95,10 +95,10 @@ function FragmentRow({ c, open, onToggle }: { c: MonthCourse; open: boolean; onT
         <td style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>{c.date_ro}</td>
         <td style={{ textAlign: "right" }}>{c.total_tickets}</td>
         <td style={{ textAlign: "center" }}>
-          {c.has_report ? <span style={{ color: "#16a34a", fontSize: 16 }}>✓</span> : <span style={{ color: "#d1d5db", fontSize: 16 }}>—</span>}
+          {c.has_report ? <span style={{ color: "#16a34a", fontSize: 16 }}>✓</span> : <span style={{ color: "#d1d5db", fontSize: 16 }}>-</span>}
         </td>
         <td style={{ textAlign: "center" }}>
-          {c.has_viza ? <span style={{ color: "#16a34a", fontSize: 16 }}>✓</span> : <span style={{ color: "#d1d5db", fontSize: 16 }}>—</span>}
+          {c.has_viza ? <span style={{ color: "#16a34a", fontSize: 16 }}>✓</span> : <span style={{ color: "#d1d5db", fontSize: 16 }}>-</span>}
         </td>
         <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
           {c.total_incasari != null ? `${fmtRON(c.total_incasari)} RON` : dash}
@@ -141,7 +141,7 @@ function FragmentRow({ c, open, onToggle }: { c: MonthCourse; open: boolean; onT
                       <td style={{ padding: "5px 10px", textAlign: "right", borderBottom: "1px solid #f1f5f9" }}>{s.de_la}</td>
                       <td style={{ padding: "5px 10px", textAlign: "right", borderBottom: "1px solid #f1f5f9" }}>{s.pana_la}</td>
                       <td style={{ padding: "5px 10px", textAlign: "right", borderBottom: "1px solid #f1f5f9" }}>
-                        {s.vandute != null ? <strong>{s.vandute}</strong> : "—"}
+                        {s.vandute != null ? <strong>{s.vandute}</strong> : "-"}
                       </td>
                       <td style={{ padding: "5px 10px", textAlign: "right", borderBottom: "1px solid #f1f5f9" }}>{s.nr_unitati}</td>
                       <td style={{ padding: "5px 10px", textAlign: "right", borderBottom: "1px solid #f1f5f9" }}>

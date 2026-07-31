@@ -146,7 +146,7 @@ export default async function CursPage({
 
   return (
     <section className="curs-page">
-      {/* Hero pe toată lățimea, cu fundal blurat din aceeași imagine — ca pe
+      {/* Hero pe toată lățimea, cu fundal blurat din aceeași imagine - ca pe
           paginile de eveniment: afișul se vede întreg, fără tăieturi. */}
       <div className="eb-hero">
         {hero && <div className="eb-hero-bg" style={{ backgroundImage: `url(${hero})` }} />}
@@ -285,7 +285,7 @@ export default async function CursPage({
               items={[
                 {
                   q: "Unde are loc cursul?",
-                  a: `${e.location ?? "Locația"} — adresa exactă și harta sunt mai sus, în secțiunea Locația.`,
+                  a: `${e.location ?? "Locația"} - adresa exactă și harta sunt mai sus, în secțiunea Locația.`,
                 },
                 {
                   q: "Care e politica de retur?",

@@ -420,7 +420,7 @@ function DetailsModal({ sp, onClose }: { sp: Speaker; onClose: () => void }) {
                   {r.label}
                 </div>
                 {/* câmp trimis gol => liniuță em */}
-                <div style={{ fontSize: 13, whiteSpace: "pre-wrap" }}>{r.value || "—"}</div>
+                <div style={{ fontSize: 13, whiteSpace: "pre-wrap" }}>{r.value || "-"}</div>
               </div>
             ))
           )}

@@ -120,7 +120,7 @@ export default async function VizarePage({ params }: { params: Promise<{ id: str
 
         <p>
           Aceste abonamente/bilete ne sunt necesare pentru spectacolul {event.title}, pe care le organizăm în
-          localitatea {oras}, sediul (locul desfăşurării spectacolului) {event.location ?? ""}, în perioada {zi} –{" "}
+          localitatea {oras}, sediul (locul desfăşurării spectacolului) {event.location ?? ""}, în perioada {zi} -{" "}
           {zi}.
         </p>
 

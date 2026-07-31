@@ -8,7 +8,7 @@ const OG_IMAGE = {
   url: "/assets/images/og-image.jpg?v=2",
   width: 1200,
   height: 630,
-  alt: "Cursuri la Pahar – curs ținut într-un bar plin din București",
+  alt: "Cursuri la Pahar - curs ținut într-un bar plin din București",
 };
 
 export function pageMetadata(opts: {

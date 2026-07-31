@@ -33,7 +33,7 @@ const luna = (s: string | null) => new Intl.DateTimeFormat("en-CA", { timeZone: 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params;
   const [event] = (await sql`SELECT title FROM events WHERE id = ${Number(idStr) || 0}`) as { title: string }[];
-  return { title: `Bilete — ${event?.title ?? "Curs"} — Admin` };
+  return { title: `Bilete - ${event?.title ?? "Curs"} - Admin` };
 }
 
 export default async function BiletePage({
@@ -122,7 +122,7 @@ export default async function BiletePage({
           {types.length === 0 ? (
             <div style={{ marginBottom: 16 }}>
               <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 10 }}>
-                Cursurile create de acum înainte pornesc cu tipurile implicite. Ăsta e mai vechi — pune-le cu un clic:
+                Cursurile create de acum înainte pornesc cu tipurile implicite. Ăsta e mai vechi - pune-le cu un clic:
               </p>
               <form action={addDefaultTypes} style={{ margin: 0 }}>
                 <input type="hidden" name="id" value={id} />
@@ -131,7 +131,7 @@ export default async function BiletePage({
                 </button>
               </form>
               <p className="hint">
-                {DEFAULT_TYPES.map((t) => `${t.name} — ${t.price} lei × ${t.stock}`).join(" · ")}
+                {DEFAULT_TYPES.map((t) => `${t.name} - ${t.price} lei × ${t.stock}`).join(" · ")}
               </p>
             </div>
           ) : (
@@ -205,7 +205,7 @@ export default async function BiletePage({
                         <span>Inceput serie</span>
                         <input name="serie_start" type="number" min={1} defaultValue={t.serie_start} disabled={t.vandute > 0} />
                         <small>
-                          {formatNumar(t.serie_start)} – {formatNumar(t.serie_start + t.stock - 1)}
+                          {formatNumar(t.serie_start)} - {formatNumar(t.serie_start + t.stock - 1)}
                           {t.vandute > 0 ? " · blocat, s-au emis bilete" : ""}
                         </small>
                       </label>
@@ -270,7 +270,7 @@ export default async function BiletePage({
           </form>
           <p className="hint">
             Seria de 3 litere se generează automat, iar biletele se numerotează de la 0001. Stocul poate doar să
-            crească — ce e vizat la primărie nu se retrage, se casează la final.
+            crească - ce e vizat la primărie nu se retrage, se casează la final.
           </p>
         </div>
 
@@ -313,7 +313,7 @@ export default async function BiletePage({
             </form>
             <p className="hint">
               Art. 481 Cod fiscal: 2% la spectacolele de la alin. (1), 5% la cele „cu caracter ocazional" de la alin.
-              (2). Timbrele se scad din baza impozabilă — 0 dacă nu se aplică.
+              (2). Timbrele se scad din baza impozabilă - 0 dacă nu se aplică.
             </p>
           </div>
         )}
@@ -388,7 +388,7 @@ export default async function BiletePage({
               <button type="submit" className="add-btn">Genereaza biletele</button>
             </form>
             <p className="hint">
-              Codul nu scade prețul biletelor existente — generează bilete noi, cu serie și tarif propriu, pentru
+              Codul nu scade prețul biletelor existente - generează bilete noi, cu serie și tarif propriu, pentru
               fiecare tip normal. Altfel ai vinde la 32,50 lei un bilet dintr-o serie declarată la primărie cu 50 de
               lei. Fă codurile <strong>înainte</strong> de a depune cererea de vizare, ca seriile reduse să intre în
               ea.

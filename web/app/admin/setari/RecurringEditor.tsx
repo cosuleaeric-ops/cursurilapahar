@@ -117,7 +117,7 @@ function MonthlyCard({ t, users }: { t: RecTask; users: string[] }) {
                   value={sel || ""}
                   onChange={(e) => setDays(days.map((d, j) => (j === i ? Number(e.target.value) : d)))}
                 >
-                  <option value="">— zi —</option>
+                  <option value="">- zi -</option>
                   {Array.from({ length: 31 }, (_, d) => d + 1).map((d) => (
                     <option key={d} value={d}>
                       {d}

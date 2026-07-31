@@ -52,7 +52,7 @@ export default function ListaClipuri({ clipuri, generat }: { clipuri: Clip[]; ge
   return (
     <div className="card">
       <div className="card-title">
-        Toate clipurile scanate — {rez.length} din {clipuri.length}
+        Toate clipurile scanate - {rez.length} din {clipuri.length}
       </div>
       <p className="form-desc" style={{ marginTop: 0 }}>
         Catalog generat {generat}. Caută după titlu, folder, descriere sau id.
@@ -118,7 +118,7 @@ export default function ListaClipuri({ clipuri, generat }: { clipuri: Clip[]; ge
                 <td style={{ textAlign: "right" }}>{c.dur.toFixed(1)}s</td>
                 <td style={{ textAlign: "center" }}>{c.loc}</td>
                 <td style={{ textAlign: "center", opacity: 0.75 }}>{c.mis}</td>
-                <td style={{ textAlign: "center" }}>{c.cal ?? "—"}</td>
+                <td style={{ textAlign: "center" }}>{c.cal ?? "-"}</td>
                 <td>
                   <span style={{ color: CULOARE[c.stare], fontWeight: 600 }}>{c.stare}</span>
                   {c.motiv && <div style={{ fontSize: 10.5, opacity: 0.6 }}>{c.motiv}</div>}

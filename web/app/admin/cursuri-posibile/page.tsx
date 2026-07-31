@@ -6,7 +6,7 @@ import { type IdeaCategory } from "./actions";
 export const dynamic = "force-dynamic";
 
 // Tab-ul cursuri-posibile stă în admin/index.php:44 — <title>Admin – Cursuri la Pahar</title>.
-export const metadata: Metadata = { title: "Admin – Cursuri la Pahar" };
+export const metadata: Metadata = { title: "Admin - Cursuri la Pahar" };
 
 export default async function CursuriPosibileAdminPage({
   searchParams,

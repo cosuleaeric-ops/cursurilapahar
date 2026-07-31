@@ -20,7 +20,7 @@ export default function LoginPage() {
 }`}</style>
       <div className="login-wrap">
         <form className="login-box" action={action}>
-          <h1>Cursuri la Pahar — Admin</h1>
+          <h1>Cursuri la Pahar - Admin</h1>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14, textAlign: "center" }}>
             Scrie-ți adresa de email și îți trimitem un link de acces.
           </p>

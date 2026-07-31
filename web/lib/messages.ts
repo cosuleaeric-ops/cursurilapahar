@@ -101,7 +101,7 @@ export async function loadGroupedMessages(): Promise<{
       id: r.id,
       category: cat,
       name:
-        String(p.Nume ?? p.nume ?? p.Name ?? p["Organizație"] ?? p.organizatie ?? r.name ?? "") || "—",
+        String(p.Nume ?? p.nume ?? p.Name ?? p["Organizație"] ?? p.organizatie ?? r.name ?? "") || "-",
       date: phpDate(new Date(r.created_at)),
       fields: Object.entries(p)
         .filter(([k]) => !["trimis de pe", "data"].includes(k.toLowerCase()))

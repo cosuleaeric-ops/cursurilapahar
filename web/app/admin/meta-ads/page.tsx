@@ -8,7 +8,7 @@ import { toggleCampaign } from "./actions";
 import SubmitButton from "./SubmitButton";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Meta Ads — Admin" };
+export const metadata: Metadata = { title: "Meta Ads - Admin" };
 
 const lei = (bani: number) => `${(bani / 100).toFixed(bani % 100 ? 2 : 0)} lei`;
 const lei2 = (v: number) => `${v.toFixed(2).replace(/\.00$/, "")} lei`;
@@ -31,19 +31,19 @@ function Row({ c }: { c: MetaCampaign }) {
         </div>
       </td>
       <td style={NUM}>{lei(c.dailyBudgetBani)}</td>
-      <td style={NUM}>{c.spendToday > 0 ? lei2(c.spendToday) : "—"}</td>
+      <td style={NUM}>{c.spendToday > 0 ? lei2(c.spendToday) : "-"}</td>
       <td style={NUM}>{lei2(c.spend)}</td>
       <td style={NUM}>
-        {c.purchases || "—"}
+        {c.purchases || "-"}
         {c.purchaseValue > 0 && (
           <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{lei2(c.purchaseValue)}</div>
         )}
       </td>
       <td style={{ ...NUM, color: cpaColor, fontWeight: cpa != null ? 700 : undefined }}>
-        {cpa != null ? lei2(cpa) : "—"}
+        {cpa != null ? lei2(cpa) : "-"}
       </td>
-      <td style={NUM}>{c.checkouts || "—"}</td>
-      <td style={NUM}>{c.linkClicks || "—"}</td>
+      <td style={NUM}>{c.checkouts || "-"}</td>
+      <td style={NUM}>{c.linkClicks || "-"}</td>
       <td style={{ whiteSpace: "nowrap" }}>
         <form action={toggleCampaign}>
           <input type="hidden" name="campaign_id" value={c.id} />
@@ -132,10 +132,10 @@ function Journal({ entries }: { entries: LogEntry[] }) {
                           {ctx.cpa != null && ` · ${lei2(ctx.cpa)}/achiziție`}
                         </>
                       ) : (
-                        "—"
+                        "-"
                       )}
                     </td>
-                    <td style={{ fontSize: 12 }}>{e.actor === "auto" ? "🤖 automat" : (e.actor ?? "—")}</td>
+                    <td style={{ fontSize: 12 }}>{e.actor === "auto" ? "🤖 automat" : (e.actor ?? "-")}</td>
                   </tr>
                 );
               })}

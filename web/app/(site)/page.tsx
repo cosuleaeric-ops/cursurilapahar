@@ -18,7 +18,7 @@ import { ltGetEventByUrl, ltImageUrlFromEvent, ltIsSoldOut } from "@/lib/livetic
 export const revalidate = 120;
 
 export const metadata: Metadata = pageMetadata({
-  title: "Cursuri la Pahar – Educație la un pahar în oraș",
+  title: "Cursuri la Pahar - Educație la un pahar în oraș",
   description: "Cursuri ținute de experți într-un cadru relaxat, la un pahar în oraș.",
   ogTitle: "Învață ceva nou la un pahar în oraș",
   ogDescription: "Experți și profesori îți predau la un pahar, într-un bar din București.",
@@ -308,7 +308,7 @@ export default async function Home() {
                       {discountActive && e.discount_ends_at && (
                         <DiscountCountdown endsAt={e.discount_ends_at} code="VARA30" />
                       )}
-                      {/* Vizibil doar în varianta „on" a testului A/B — comutarea
+                      {/* Vizibil doar în varianta „on" a testului A/B - comutarea
                           se face din CSS-ul inline al layout-ului, pe data-ab-btn. */}
                       {!soldOut && (
                         <span className="event-card-cta">
@@ -332,7 +332,7 @@ export default async function Home() {
 
       <section className="section section-dark section-bg-blur" id="newsletter" {...newsletterBg.attrs}>
         <div className="container container-narrow">
-          {/* index.php:343-345 — plicul auriu de 44px de deasupra titlului */}
+          {/* index.php:343-345 - plicul auriu de 44px de deasupra titlului */}
           <div className="newsletter-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" />

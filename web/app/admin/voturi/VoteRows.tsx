@@ -12,7 +12,7 @@ export type VC = {
 
 /** clp_format_vote_conversion(): o zecimală cu virgulă, „—" când nu sunt vizite. */
 function conversion(likes: number, views: number): string {
-  if (views <= 0) return "—";
+  if (views <= 0) return "-";
   return `${(Math.round((likes / views) * 1000) / 10).toFixed(1).replace(".", ",")}%`;
 }
 
@@ -74,7 +74,7 @@ export default function VoteRows({
               style={{
                 textAlign: "center",
                 fontVariantNumeric: "tabular-nums",
-                ...(conv === "—" ? { color: "var(--text-muted)", fontWeight: 400 } : { fontWeight: 600 }),
+                ...(conv === "-" ? { color: "var(--text-muted)", fontWeight: 400 } : { fontWeight: 600 }),
               }}
             >
               {conv}

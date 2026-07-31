@@ -6,7 +6,7 @@ import TodosList, { type DoneGroup, type Todo, type User } from "./TodosList";
 export const dynamic = "force-dynamic";
 
 // <title>To-dos – Admin</title> (admin/todos/index.php:111).
-export const metadata: Metadata = { title: "To-dos – Admin" };
+export const metadata: Metadata = { title: "To-dos - Admin" };
 
 type Row = Todo & { done_day: string | null };
 

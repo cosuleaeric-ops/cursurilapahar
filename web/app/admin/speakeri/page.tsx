@@ -181,7 +181,7 @@ export default async function SpeakeriPage({
     .filter((m) => m.contacted && !matchSpeaker(m.email ?? "", phoneOf(m.payload)))
     .map((m) => ({
       id: m.id,
-      name: m.name || m.payload.Name || m.payload.Nume || "—",
+      name: m.name || m.payload.Name || m.payload.Nume || "-",
       email: m.email,
       phone: phoneOf(m.payload) || null,
     }));

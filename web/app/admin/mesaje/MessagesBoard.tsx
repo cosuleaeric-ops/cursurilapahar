@@ -80,7 +80,7 @@ function Card({ m, isOwner, hidden }: { m: Msg; isOwner: boolean; hidden?: boole
       <div className="msg-card-head">
         <span className="msg-card-name">
           {m.name}
-          {m.course_first && <span className="msg-card-course"> — {m.course_first}</span>}
+          {m.course_first && <span className="msg-card-course"> - {m.course_first}</span>}
         </span>
         <span className="msg-card-date">{m.date}</span>
       </div>
@@ -197,7 +197,7 @@ function Card({ m, isOwner, hidden }: { m: Msg; isOwner: boolean; hidden?: boole
                 </div>
               ))}
             </div>
-            {/* PHP deschide formularul cu display:flex — textarea și „Adaugă" pe același rând. */}
+            {/* PHP deschide formularul cu display:flex - textarea și „Adaugă" pe același rând. */}
             <div className="msg-comment-form" style={{ display: commentOpen ? "flex" : "none" }}>
               <textarea rows={2} value={text} onClick={(e) => e.stopPropagation()} onChange={(e) => setText(e.target.value)} />
               <button

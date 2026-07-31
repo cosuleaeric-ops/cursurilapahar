@@ -61,22 +61,22 @@ export default async function PnlPage() {
         <div className="stats-grid">
           <div className="stat-card accent-green">
             <div className="label">Venituri totale</div>
-            <div className="value green" id="statVenituri">—</div>
+            <div className="value green" id="statVenituri">-</div>
             <div className="sub" id="statVenituriSub"></div>
           </div>
           <div className="stat-card accent-red">
             <div className="label">Cheltuieli totale</div>
-            <div className="value red" id="statCheltuieli">—</div>
+            <div className="value red" id="statCheltuieli">-</div>
             <div className="sub" id="statCheltuieliSub"></div>
           </div>
           <div className="stat-card accent-gold">
             <div className="label">Profit net</div>
-            <div className="value" id="statProfit">—</div>
+            <div className="value" id="statProfit">-</div>
             <div className="sub" id="statProfitSub"></div>
           </div>
           <div className="stat-card accent-blue">
             <div className="label">Marjă profit</div>
-            <div className="value" id="statMarja">—</div>
+            <div className="value" id="statMarja">-</div>
             <div className="sub">din venituri</div>
           </div>
         </div>

@@ -10,7 +10,7 @@ import styles from "./ideas.module.css";
 export const revalidate = 120;
 
 export const metadata: Metadata = pageMetadata({
-  title: "Cursuri posibile – Cursuri la Pahar",
+  title: "Cursuri posibile - Cursuri la Pahar",
   description:
     "Idei de teme pentru un curs la pahar: știință, istorie, psihologie, film, muzică și multe altele. Caută inspirație și prezintă un curs.",
   // cursuri-posibile.php:45 — pe twitter lipsește fraza „Caută inspirație și prezintă un curs.".

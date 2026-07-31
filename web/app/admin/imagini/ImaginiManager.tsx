@@ -152,7 +152,7 @@ export default function ImaginiManager({
         <input type="hidden" name="hero_transforms" value={JSON.stringify(transforms)} />
 
         <div className="card img-select-card">
-          <div className="card-title">Hero — slideshow pagina principală</div>
+          <div className="card-title">Hero - slideshow pagina principală</div>
           <p className="img-hint">
             Trage pentru a reordona. <strong>Imaginea ① se încarcă instant</strong>; restul rulează în slideshow la fiecare
             4.5s. Adaugă/scoate din Bibliotecă (butonul <span className="img-hint-chip">Hero</span>). Apasă <strong>⚙</strong>{" "}
@@ -202,7 +202,7 @@ export default function ImaginiManager({
         </div>
 
         <div className="card img-select-card">
-          <div className="card-title">Galerie — sliderul din secțiunea „Galerie"</div>
+          <div className="card-title">Galerie - sliderul din secțiunea „Galerie"</div>
           <p className="img-hint">
             Trage pentru a reordona. Adaugă/scoate imagini din Bibliotecă (butonul{" "}
             <span className="img-hint-chip img-hint-chip-gal">Galerie</span>).
@@ -219,7 +219,7 @@ export default function ImaginiManager({
       </form>
 
       <div className="card">
-        <div className="card-title">Biblioteca — toate imaginile (cele mai noi primele)</div>
+        <div className="card-title">Biblioteca - toate imaginile (cele mai noi primele)</div>
         {library.length === 0 ? (
           <p style={{ color: "var(--text-muted)" }}>Nu există imagini.</p>
         ) : (

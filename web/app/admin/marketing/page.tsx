@@ -5,7 +5,7 @@ import MarketingSection, { type MktItem } from "./MarketingSection";
 export const dynamic = "force-dynamic";
 
 // marketing/index.php:110 — <title>Marketing — Admin</title>
-export const metadata: Metadata = { title: "Marketing — Admin" };
+export const metadata: Metadata = { title: "Marketing - Admin" };
 
 type SectionRow = { id: number; title: string };
 type ItemRow = { id: number; section_id: number; payload: { text?: string; link?: string; done?: boolean } };
@@ -67,13 +67,13 @@ export default async function MarketingPage() {
 .mkt-page .mkt-check-box--ghost { margin-top: 2px !important; }
       `}</style>
       <h1 className="mkt-title">Marketing</h1>
-      <p className="mkt-lead">Idei de postări — bifează când e gata, adaugă text și opțional un link.</p>
+      <p className="mkt-lead">Idei de postări - bifează când e gata, adaugă text și opțional un link.</p>
 
       {sections.map((s) => (
         <MarketingSection key={s.id} id={s.id} title={s.title} items={itemsBySection.get(s.id) ?? []} />
       ))}
 
-      {/* marketing/index.php:233 — ancoră pentru /admin/marketing/#competitori */}
+      {/* marketing/index.php:233 - ancoră pentru /admin/marketing/#competitori */}
       <section id="competitori" className="mkt-competitori">
         <h2 className="mkt-section-title">Competitori</h2>
         <div className="comp-grid">

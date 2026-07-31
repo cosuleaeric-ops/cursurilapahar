@@ -5,10 +5,10 @@ import Gallery from "../Gallery";
 import { SP_CSS } from "./styles";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Parteneri – Cursuri la Pahar",
+  title: "Parteneri - Cursuri la Pahar",
   description:
     "Colaborează cu Cursuri la Pahar: peste 200.000 de vizualizări pe lună pe Instagram și TikTok, un newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline în București.",
-  ogTitle: "Parteneri – Cursuri la Pahar",
+  ogTitle: "Parteneri - Cursuri la Pahar",
   ogDescription:
     "Peste 200.000 de vizualizări pe lună, newsletter cu open rate de peste 50% și cursuri săptămânale cu săli pline. Vezi cifrele și scrie-ne.",
   // parteneri.php:52 — pe twitter fraza „Vezi cifrele și scrie-ne." lipsește.
@@ -98,7 +98,7 @@ export default function ParteneriPage() {
             <h2 className="section-title">Patru canale, aceeași comunitate</h2>
             <p className="sp-lead">Un public tânăr și educat, care iese în oraș și plătește bilet ca să învețe.</p>
             <div className="sp-demo">
-              <span>25–40 ani</span>
+              <span>25-40 ani</span>
               <span>Educație superioară</span>
               <span>75% femei · 25% bărbați</span>
               <span>Din București</span>

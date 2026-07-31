@@ -73,8 +73,8 @@ export default async function VideoclipuriPage() {
                 <tr key={f.nume}>
                   <td>{f.nume}</td>
                   <td style={{ textAlign: "center" }}>{f.n}</td>
-                  <td style={{ textAlign: "center", opacity: f.folosite ? 1 : 0.3 }}>{f.folosite || "—"}</td>
-                  <td style={{ textAlign: "center", opacity: f.respinse ? 1 : 0.3 }}>{f.respinse || "—"}</td>
+                  <td style={{ textAlign: "center", opacity: f.folosite ? 1 : 0.3 }}>{f.folosite || "-"}</td>
+                  <td style={{ textAlign: "center", opacity: f.respinse ? 1 : 0.3 }}>{f.respinse || "-"}</td>
                   <td style={{ fontSize: 12, opacity: 0.7 }}>{f.locatii.join(", ")}</td>
                 </tr>
               ))}

@@ -20,7 +20,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
       <div className="card">
         <div className="card-title">📋 Mesaje template</div>
         <p className="tpl-intro">
-          Apar ca butoane pe dashboard — un click copiază textul în clipboard. Dă click pe un template ca să-l editezi.
+          Apar ca butoane pe dashboard - un click copiază textul în clipboard. Dă click pe un template ca să-l editezi.
           Le poți edita atât tu, cât și Andy.
         </p>
         <TemplatesEditor templates={templates} />

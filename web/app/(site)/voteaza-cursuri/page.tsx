@@ -7,7 +7,7 @@ import styles from "./vote.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Votează cursuri – Cursuri la Pahar",
+  title: "Votează cursuri - Cursuri la Pahar",
   description:
     "Votează temele de curs care te interesează. Cele mai apreciate teme au șanse mai mari să devină cursuri viitoare.",
   path: "/voteaza-cursuri",

@@ -14,7 +14,7 @@ export function Harta({ nume, adresa, mapsLink }: { nume: string; adresa: string
     <div className="loc-harta">
       {vizibila ? (
         <iframe
-          title={`Harta — ${nume}`}
+          title={`Harta - ${nume}`}
           src={`https://maps.google.com/maps?q=${q}&output=embed`}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"

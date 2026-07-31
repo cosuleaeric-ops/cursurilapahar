@@ -4,7 +4,7 @@ import { sql } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 // layout_header.php:15 randează „<$__page_title> — Admin”, cu $__page_title = 'Test A/B Buton'.
-export const metadata: Metadata = { title: "Test A/B Buton — Admin" };
+export const metadata: Metadata = { title: "Test A/B Buton - Admin" };
 
 // Port din admin/statistici/ab_headline.php.
 const VARIANTS: [string, string][] = [
@@ -32,7 +32,7 @@ export default async function AbPage() {
 
   return (
     <>
-      <h1 className="wp-page-title">Test A/B — Buton „Vreau să vin&quot;</h1>
+      <h1 className="wp-page-title">Test A/B - Buton „Vreau să vin&quot;</h1>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>
         Jumătate din vizitatori (aleatoriu, cookie 90 de zile) văd un buton galben „Vreau să vin&quot; pe fiecare card
         de curs, jumătate nu. Click = ajungere pe pagina de bilete prin card sau buton. Boții și prefetch-urile nu sunt
@@ -69,7 +69,7 @@ export default async function AbPage() {
 
       {totalViews === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 16 }}>
-          Nu există date încă — testul pornește la primele vizite pe pagina principală.
+          Nu există date încă - testul pornește la primele vizite pe pagina principală.
         </p>
       ) : leader !== "" ? (
         <p style={{ fontSize: 13, marginTop: 16 }}>
@@ -77,7 +77,7 @@ export default async function AbPage() {
           <strong>{pct(ctr(leader))}%</strong> (față de {pct(ctr(other))}% cealaltă variantă).{" "}
           {totalViews < 750 && (
             <span style={{ color: "var(--text-muted)" }}>
-              Sub ~750 de afișări totale diferența poate fi zgomot — mai lasă testul să ruleze.
+              Sub ~750 de afișări totale diferența poate fi zgomot - mai lasă testul să ruleze.
             </span>
           )}
         </p>

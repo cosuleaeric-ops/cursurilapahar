@@ -11,9 +11,9 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
-    return { title: `${(await getCampaignBudget(id)).name} — Meta Ads` };
+    return { title: `${(await getCampaignBudget(id)).name} - Meta Ads` };
   } catch {
-    return { title: "Campanie — Meta Ads" };
+    return { title: "Campanie - Meta Ads" };
   }
 }
 
@@ -168,7 +168,7 @@ export default async function CampaignDetailPage({
               />
               <Stat
                 label="Cost / achiziție"
-                value={costs.purchases ? lei(costs.costPerPurchase) : "—"}
+                value={costs.purchases ? lei(costs.costPerPurchase) : "-"}
                 color={cpaColor}
                 hint="sub 30 lei = bine"
               />
@@ -179,7 +179,7 @@ export default async function CampaignDetailPage({
               />
               <Stat
                 label="ROAS"
-                value={costs.spend > 0 && costs.purchaseValue > 0 ? (costs.purchaseValue / costs.spend).toFixed(2) : "—"}
+                value={costs.spend > 0 && costs.purchaseValue > 0 ? (costs.purchaseValue / costs.spend).toFixed(2) : "-"}
                 hint="lei încasați / leu cheltuit"
               />
             </div>
@@ -195,7 +195,7 @@ export default async function CampaignDetailPage({
               />
               <Stat
                 label="Cost / vizualizare pagină"
-                value={costs.landingViews ? lei(costs.costPerLandingView) : "—"}
+                value={costs.landingViews ? lei(costs.costPerLandingView) : "-"}
                 hint={`${nr(costs.landingViews)} au ajuns pe site`}
               />
             </div>
@@ -218,7 +218,7 @@ export default async function CampaignDetailPage({
               <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 14 }}>
                 Din {nr(costs.linkClicks)} clicuri pe link, {nr(costs.landingViews)} au ajuns efectiv pe pagină (
                 {pct((costs.landingViews / costs.linkClicks) * 100)}). Restul se pierd la încărcare, ad-blockere sau
-                iPhone-uri care blochează pixelul — sub 40% pierdere e normal.
+                iPhone-uri care blochează pixelul - sub 40% pierdere e normal.
               </p>
             )}
           </>

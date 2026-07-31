@@ -136,7 +136,7 @@ export default function ParticipantsUpload({ id, hasList }: { id: number; hasLis
           onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
         />
         <p style={{ fontSize: 12 }}>
-          {hasList ? "Actualizeaza lista" : "Incarca lista"} — trage sau apasa pentru XLSX / CSV
+          {hasList ? "Actualizeaza lista" : "Incarca lista"} - trage sau apasa pentru XLSX / CSV
         </p>
       </div>
 

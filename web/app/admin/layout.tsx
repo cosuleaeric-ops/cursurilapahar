@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div data-theme="corporate">
-      {/* Aceleași stiluri ca admin/index.php — DaisyUI + Tailwind (fără preflight) + Coloris */}
+      {/* Aceleași stiluri ca admin/index.php - DaisyUI + Tailwind (fără preflight) + Coloris */}
       <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" />
       <script dangerouslySetInnerHTML={{ __html: "tailwind={config:{corePlugins:{preflight:false}}}" }} />
       <script src="https://cdn.tailwindcss.com"></script>
@@ -29,13 +29,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="wp-header">
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <a href="/admin" className="brand">
-            Cursuri la Pahar <span>— Admin</span>
+            Cursuri la Pahar <span>- Admin</span>
           </a>
           <a href="/" className="wp-header-site-link">
             🌐 Vezi site
           </a>
         </div>
-        {/* layout-nav.php:13-49 — header-ul are TREI copii direcți (brand, user, logout),
+        {/* layout-nav.php:13-49 - header-ul are TREI copii direcți (brand, user, logout),
             deci space-between așază blocul de user la mijlocul barei. */}
         {real.role === "owner" ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

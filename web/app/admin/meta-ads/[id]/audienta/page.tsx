@@ -18,9 +18,9 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
-    return { title: `Audiență: ${await getCampaignName(id)} — Meta Ads` };
+    return { title: `Audiență: ${await getCampaignName(id)} - Meta Ads` };
   } catch {
-    return { title: "Audiență — Meta Ads" };
+    return { title: "Audiență - Meta Ads" };
   }
 }
 
@@ -75,12 +75,12 @@ function Table({ rows, title, note }: { rows: Seg[]; title: string; note?: strin
                   <td style={NUM}>{lei(r.spend)}</td>
                   <td style={NUM}>{nr(r.impressions)}</td>
                   <td style={NUM}>{lei(r.cpm)}</td>
-                  <td style={NUM}>{nr(r.linkClicks) || "—"}</td>
-                  <td style={NUM}>{r.linkClicks ? lei(r.cpcLink) : "—"}</td>
-                  <td style={NUM}>{r.checkouts || "—"}</td>
-                  <td style={{ ...NUM, fontWeight: r.purchases ? 700 : undefined }}>{r.purchases || "—"}</td>
+                  <td style={NUM}>{nr(r.linkClicks) || "-"}</td>
+                  <td style={NUM}>{r.linkClicks ? lei(r.cpcLink) : "-"}</td>
+                  <td style={NUM}>{r.checkouts || "-"}</td>
+                  <td style={{ ...NUM, fontWeight: r.purchases ? 700 : undefined }}>{r.purchases || "-"}</td>
                   <td style={{ ...NUM, color: cpaColor, fontWeight: cpa != null ? 700 : undefined }}>
-                    {cpa != null ? lei(cpa) : "—"}
+                    {cpa != null ? lei(cpa) : "-"}
                   </td>
                 </tr>
               );
@@ -166,7 +166,7 @@ export default async function AudientaPage({ params }: { params: Promise<{ id: s
       )}
 
       <div className="card">
-        <div className="card-title">👥 Cine vede reclama — {name}</div>
+        <div className="card-title">👥 Cine vede reclama - {name}</div>
         <p style={{ fontSize: 13, margin: 0 }}>
           Meta decide singură cui livrează, în limitele setate de tine. Tabelele arată unde s-au dus banii și cine a
           cumpărat efectiv. Segmentele sub ~100 de persoane sunt ascunse de Meta din motive de confidențialitate.
@@ -185,7 +185,7 @@ export default async function AudientaPage({ params }: { params: Promise<{ id: s
       <Table
         rows={detailed}
         title="Detaliat (gen × vârstă)"
-        note="Ordonat după cheltuială. La numere mici de conversii, un segment câștigător poate fi pură întâmplare — nu restrânge audiența pe baza a 2-3 achiziții."
+        note="Ordonat după cheltuială. La numere mici de conversii, un segment câștigător poate fi pură întâmplare - nu restrânge audiența pe baza a 2-3 achiziții."
       />
     </>
   );

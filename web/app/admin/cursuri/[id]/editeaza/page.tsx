@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [e] = (await sql`SELECT title FROM events WHERE id = ${Number(id) || 0}`) as { title: string }[];
-  return { title: `${e?.title ?? "Curs"} — Admin` };
+  return { title: `${e?.title ?? "Curs"} - Admin` };
 }
 
 export default async function EditeazaPage({

@@ -120,7 +120,7 @@ export async function sendMagicLinkEmail(email: string, name: string, link: stri
       body: JSON.stringify({
         sender: { name: "Cursuri la Pahar", email: "contact@cursurilapahar.ro" },
         to: [{ email, name: name || email }],
-        subject: "Linkul tău de acces — Admin Cursuri la Pahar",
+        subject: "Linkul tău de acces - Admin Cursuri la Pahar",
         htmlContent: html,
       }),
     });

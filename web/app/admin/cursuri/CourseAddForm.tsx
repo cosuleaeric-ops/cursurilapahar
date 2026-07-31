@@ -338,7 +338,7 @@ export default function CourseAddForm({
             <button type="submit" className="btn btn-primary btn-sm">
               {edit ? "Salvează" : "Adaugă cursul"}
             </button>
-            {/* cursuri-tab.php:79 — „Anulează" păstrează luna și tabul din navigator. */}
+            {/* cursuri-tab.php:79 - „Anulează" păstrează luna și tabul din navigator. */}
             {edit && (
               <Link href={`/admin/cursuri?year=${year}&month=${month}&ctab=cursuri`} className="btn btn-secondary btn-sm">
                 Anulează

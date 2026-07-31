@@ -4,7 +4,7 @@ import { EDITOR_CSS } from "../editor-styles";
 import { saveCourseFull } from "../editor-actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Curs nou — Admin" };
+export const metadata = { title: "Curs nou - Admin" };
 
 export default async function CursNouPage({ searchParams }: { searchParams: Promise<{ err?: string }> }) {
   const { err } = await searchParams;

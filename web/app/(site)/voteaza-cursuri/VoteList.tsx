@@ -187,7 +187,7 @@ export default function VoteList({ courses }: { courses: VoteCourse[] }) {
             <div className={styles.descWrap}>
               <div className={styles.descInner}>
                 <div className={styles.desc}>
-                  {/* voteaza-cursuri.php:287 — numărul de aprecieri se vede doar în card, după deschidere */}
+                  {/* voteaza-cursuri.php:287 - numărul de aprecieri se vede doar în card, după deschidere */}
                   <strong className={styles.likesLabel}>{likesLabel(likes[c.id] ?? 0)}</strong>
                   {c.description ?? ""}
                 </div>

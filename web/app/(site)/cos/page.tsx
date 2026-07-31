@@ -102,7 +102,7 @@ export default async function CosPage({
 
           {redus && (
             <p className="cos-warn">
-              Nu mai sunt atâtea bilete disponibile — comanda a fost ajustată la cât a mai rămas.
+              Nu mai sunt atâtea bilete disponibile - comanda a fost ajustată la cât a mai rămas.
             </p>
           )}
 

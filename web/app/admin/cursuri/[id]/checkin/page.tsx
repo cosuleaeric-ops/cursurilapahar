@@ -12,7 +12,7 @@ const roDate = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params;
   const [event] = (await sql`SELECT title FROM events WHERE id = ${Number(idStr) || 0}`) as { title: string }[];
-  return { title: `Check-in — ${event?.title ?? "Curs"}` };
+  return { title: `Check-in - ${event?.title ?? "Curs"}` };
 }
 
 export default async function CheckinPage({ params }: { params: Promise<{ id: string }> }) {
