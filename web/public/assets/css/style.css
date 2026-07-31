@@ -1397,6 +1397,9 @@ ul { list-style: none; }
    local — restul site-ului rămâne închis. Auriul se închide la text, ca să fie
    lizibil pe alb; pe fundaluri de buton rămâne cel din identitate. */
 .curs-page, .cos-page {
+  /* roșul butoanelor de pe pagina de curs */
+  --cta: #e5484d;
+  --cta-hover: #d13c41;
   --bg: #ffffff;
   --bg-surface: #f6f5f2;
   --bg-card: #ffffff;
@@ -1429,7 +1432,8 @@ ul { list-style: none; }
 
 /* Randul cu organizatorul */
 .eb-org { display: flex; align-items: center; gap: 14px; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--border); }
-.eb-avatar { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: #C9A84C; color: #0D0D0D; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center; letter-spacing: .5px; }
+.eb-avatar { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: #14110f; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.eb-avatar img { width: 68%; height: 68%; object-fit: contain; display: block; }
 .eb-org-txt { flex: 1; min-width: 0; }
 .eb-org-txt em { display: block; font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--text-muted); }
 .eb-org-txt strong { display: block; font-size: 16px; font-weight: 600; margin-top: 2px; }
@@ -1453,8 +1457,8 @@ ul { list-style: none; }
 .eb-card-pret { margin-bottom: 16px; }
 .eb-card-pret strong { display: block; font-size: 22px; font-weight: 700; }
 .eb-card-pret span { display: block; font-size: 14px; color: var(--text-muted); margin-top: 3px; }
-.eb-cta { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 15px 24px; background: #C9A84C; color: #0D0D0D; border: none; border-radius: 4px; font-size: 18px; font-weight: 700; font-family: inherit; text-decoration: none; cursor: pointer; transition: filter var(--transition); }
-.eb-cta:hover { filter: brightness(1.08); }
+.eb-cta { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 15px 24px; background: var(--cta, #e5484d); color: #fff; border: none; border-radius: 4px; font-size: 18px; font-weight: 700; font-family: inherit; text-decoration: none; cursor: pointer; transition: filter var(--transition); }
+.eb-cta:hover { background: var(--cta-hover, #d13c41); }
 
 /* Lista de bilete */
 .bt-list { border-top: 1px solid var(--border); }
@@ -1578,7 +1582,7 @@ ul { list-style: none; }
 .mb-tip-jos p { font-size: 14px; line-height: 1.55; color: #6b6675; margin: 10px 0 0; }
 .mb-step { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .mb-step button { width: 38px; height: 38px; border: none; border-radius: 8px; font-size: 20px; line-height: 1; cursor: pointer; background: #edeced; color: #1b1720; }
-.mb-step button:last-child { background: #C9A84C; color: #0D0D0D; font-weight: 700; }
+.mb-step button:last-child { background: #e5484d; color: #fff; font-weight: 700; }
 .mb-step button:disabled { opacity: .4; cursor: default; }
 .mb-step span { min-width: 26px; text-align: center; font-size: 16px; font-variant-numeric: tabular-nums; }
 .mb-foot { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 28px; border-top: 1px solid rgba(27,23,32,.12); }
@@ -1628,12 +1632,12 @@ ul { list-style: none; }
 .loc-maps:hover { text-decoration: underline; }
 
 /* ---- Întrebări frecvente ---- */
-.faq-list { border-top: 1px solid var(--border); }
-.faq-item { border-bottom: 1px solid var(--border); }
-.faq-item > button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 18px 0; background: none; border: none; font-family: inherit; font-size: 16px; font-weight: 500; color: var(--text); text-align: left; cursor: pointer; }
-.faq-item > button svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); transition: transform var(--transition); }
-.faq-item.on > button svg { transform: rotate(180deg); }
-.faq-item p { font-size: 15px; line-height: 1.65; color: var(--text-muted); margin: -4px 0 20px; max-width: 70ch; }
+.cf-list { border-top: 1px solid var(--border); }
+.cf-item { border-bottom: 1px solid var(--border); background: none; border-radius: 0; box-shadow: none; }
+.cf-item > button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 20px 0; background: none; border: none; font-family: inherit; font-size: 16px; font-weight: 600; color: var(--text); text-align: left; cursor: pointer; }
+.cf-item > button svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); transition: transform var(--transition); }
+.cf-item.on > button svg { transform: rotate(180deg); }
+.cf-item p { font-size: 15px; line-height: 1.65; color: var(--text-muted); margin: -6px 0 20px; max-width: 70ch; }
 
 /* ---- Alte cursuri ---- */
 .alte { border-top: 1px solid var(--border); }

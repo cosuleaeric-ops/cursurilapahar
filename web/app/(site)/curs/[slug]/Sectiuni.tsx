@@ -36,9 +36,9 @@ export function Harta({ nume, adresa, mapsLink }: { nume: string; adresa: string
 export function Intrebari({ items }: { items: { q: string; a: string }[] }) {
   const [deschis, setDeschis] = useState<number | null>(null);
   return (
-    <div className="faq-list">
+    <div className="cf-list">
       {items.map((it, i) => (
-        <div key={i} className={`faq-item${deschis === i ? " on" : ""}`}>
+        <div key={i} className={`cf-item${deschis === i ? " on" : ""}`}>
           <button type="button" onClick={() => setDeschis(deschis === i ? null : i)}>
             <span>{it.q}</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">

@@ -6,7 +6,7 @@ import { checkoutPropriuActiv } from "@/lib/checkout";
 export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
-  title: "Comanda mea — Curs la Pahar",
+  title: "Comanda mea - Curs la Pahar",
   description: "Biletele alese pentru cursul tău.",
   path: "/cos",
 });

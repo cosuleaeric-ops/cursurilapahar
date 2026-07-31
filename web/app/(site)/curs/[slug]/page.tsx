@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { descriereText } from "@/lib/descriere";
 import { pageMetadata } from "@/lib/metadata";
+import { getSettings } from "@/lib/settings";
 import { findDiscountCode } from "@/lib/bilete";
 import BileteModal from "./BileteModal";
 import { Harta, Intrebari } from "./Sectiuni";
@@ -62,7 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const e = await getEvent(slug);
   if (!e) return {};
   return pageMetadata({
-    title: `${curat(e.title)} — Curs la Pahar`,
+    title: `${curat(e.title)} - Curs la Pahar`,
     description: e.description ? descriereText(e.description) : "Un curs la un pahar, într-un bar din București.",
     path: `/curs/${e.slug}`,
     // landscape-ul e făcut pentru share; posterul portret rămâne pe pagină
@@ -137,6 +138,9 @@ export default async function CursPage({
     ORDER BY starts_at LIMIT 4
   `) as { id: number; slug: string | null; title: string; starts_at: string | null; location: string | null; image_url: string | null }[];
 
+  const setari = await getSettings();
+  const logoPath = typeof setari.logo_path === "string" && setari.logo_path ? setari.logo_path : "/assets/images/logo.webp";
+
   const pretMin = picker.filter((t) => t.libere > 0).reduce((m, t) => Math.min(m, t.price), Infinity);
   const hero = e.image_landscape_url || e.image_url;
 
@@ -167,8 +171,9 @@ export default async function CursPage({
           <h1 className="eb-title">{curat(e.title)}</h1>
 
           <div className="eb-org">
-            <span className="eb-avatar" aria-hidden="true">
-              CP
+            <span className="eb-avatar">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoPath} alt="Cursuri la Pahar" />
             </span>
             <div className="eb-org-txt">
               <em>ORGANIZATOR</em>
