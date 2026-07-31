@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type PickerType = { id: number; name: string; price: number; libere: number };
+export type PickerType = { id: number; name: string; description: string | null; price: number; libere: number };
 
 const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -25,47 +25,58 @@ export default function TicketPicker({ eventId, types }: { eventId: number; type
     .join(",")}`;
 
   return (
-    <div className="tp">
-      {types.map((t) => {
-        const n = qty[t.id] ?? 0;
-        const epuizat = t.libere === 0;
-        return (
-          <div key={t.id} className={`tp-row${epuizat ? " tp-row--out" : ""}`}>
-            <div className="tp-info">
-              <span className="tp-name">{t.name}</span>
-              {epuizat ? (
-                <span className="tp-left tp-left--out">epuizat</span>
-              ) : (
-                t.libere <= 10 && <span className="tp-left">ultimele {t.libere}</span>
-              )}
+    <>
+      <div className="bt-list">
+        {types.map((t) => {
+          const n = qty[t.id] ?? 0;
+          const epuizat = t.libere === 0;
+          return (
+            <div key={t.id} className={`bt-row${epuizat ? " bt-row--out" : ""}`}>
+              <div className="bt-main">
+                <h3>{t.name}</h3>
+                {t.description && <p>{t.description}</p>}
+              </div>
+              <div className="bt-price">
+                {money(t.price)} lei
+                {epuizat ? (
+                  <span className="bt-left bt-left--out">epuizat</span>
+                ) : (
+                  t.libere <= 10 && <span className="bt-left">ultimele {t.libere}</span>
+                )}
+              </div>
+              <div className="bt-stepper">
+                <button type="button" onClick={() => set(t.id, n - 1, t.libere)} disabled={epuizat || n === 0} aria-label="Mai puține">
+                  −
+                </button>
+                <span>{n}</span>
+                <button type="button" onClick={() => set(t.id, n + 1, t.libere)} disabled={epuizat || n >= Math.min(t.libere, 10)} aria-label="Mai multe">
+                  +
+                </button>
+              </div>
             </div>
-            <div className="tp-price">{money(t.price)} lei</div>
-            <div className="tp-stepper">
-              <button type="button" onClick={() => set(t.id, n - 1, t.libere)} disabled={epuizat || n === 0} aria-label="Mai puține">
-                −
-              </button>
-              <span>{n}</span>
-              <button type="button" onClick={() => set(t.id, n + 1, t.libere)} disabled={epuizat || n >= Math.min(t.libere, 10)} aria-label="Mai multe">
-                +
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
-      <div className="tp-foot">
-        <div className="tp-total">
-          <span>Total</span>
-          <strong>{money(total)} lei</strong>
+      <div className="bt-foot">
+        <div className="bt-total">
+          {bucati > 0 && (
+            <>
+              <span>
+                {bucati} {bucati === 1 ? "bilet" : "bilete"}
+              </span>
+              <strong>{money(total)} lei</strong>
+            </>
+          )}
         </div>
         {bucati > 0 ? (
-          <a href={href} className="btn btn-primary tp-cta">
-            Comandă {bucati} {bucati === 1 ? "bilet" : "bilete"}
+          <a href={href} className="btn btn-primary bt-cta">
+            Comandă bilete
           </a>
         ) : (
-          <span className="btn btn-primary tp-cta tp-cta--off">Alege câte bilete vrei</span>
+          <span className="btn btn-primary bt-cta bt-cta--off">Comandă bilete</span>
         )}
       </div>
-    </div>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { sql } from "@/lib/db";
 import { descriereText } from "@/lib/descriere";
 import { pageMetadata } from "@/lib/metadata";
 import { checkoutPropriuActiv } from "@/lib/checkout";
+import DescriereToggle from "./DescriereToggle";
 import TicketPicker, { type PickerType } from "./TicketPicker";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ const ziData = new Intl.DateTimeFormat("ro-RO", {
   year: "numeric",
 });
 const oraFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 type Ev = {
   id: number;
@@ -42,6 +44,11 @@ async function getEvent(slug: string): Promise<Ev | null> {
 
 // Titlul de card taie sufixul „// 12 mai" folosit pe LiveTickets (cardTitle din homepage).
 const curat = (t: string) => t.replace(/\s+\/\/\s+.+$/u, "");
+/** „Mojo Club, București" → { loc: „Mojo Club", oras: „București" } */
+const locOras = (s: string | null) => {
+  const p = (s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  return { loc: p[0] ?? "", oras: p.slice(1).join(", ") };
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -61,22 +68,24 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
   if (!e || !e.active) notFound();
 
   const types = (await sql`
-    SELECT t.id, t.name, t.price,
+    SELECT t.id, t.name, t.description, t.price,
            COUNT(p.id) FILTER (WHERE p.status = 'liber')::int AS libere
     FROM ticket_types t LEFT JOIN ticket_pool p ON p.type_id = t.id
     WHERE t.event_id = ${e.id}
     GROUP BY t.id ORDER BY t.position, t.id
-  `) as { id: number; name: string; price: string; libere: number }[];
+  `) as { id: number; name: string; description: string | null; price: string; libere: number }[];
 
   const picker: PickerType[] = types.map((t) => ({
     id: t.id,
     name: t.name,
+    description: t.description,
     price: Number(t.price),
     libere: t.libere,
   }));
   const areStoc = picker.some((t) => t.libere > 0);
   const checkoutPropriu = await checkoutPropriuActiv();
   const d = e.starts_at ? new Date(e.starts_at) : null;
+  const { loc, oras } = locOras(e.location);
 
   return (
     <section className="section curs-page">
@@ -100,6 +109,18 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
             <h1 className="curs-title">{curat(e.title)}</h1>
 
             <div className="curs-facts">
+              {e.location && (
+                <div className="curs-fact">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>
+                    <b>{loc}</b>
+                    {oras && `, ${oras}`}
+                  </span>
+                </div>
+              )}
               {d && (
                 <div className="curs-fact">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -112,15 +133,6 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
                   </span>
                 </div>
               )}
-              {e.location && (
-                <div className="curs-fact">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span>{e.location}</span>
-                </div>
-              )}
               {e.speaker_name && (
                 <div className="curs-fact">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -131,47 +143,44 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
                 </div>
               )}
             </div>
+
+            {e.description && <DescriereToggle html={e.description} />}
           </div>
         </div>
 
-        <div className="curs-grid">
-          <div className="curs-desc">
-            {e.description ? (
-              <div className="curs-desc-html" dangerouslySetInnerHTML={{ __html: e.description }} />
-            ) : (
-              <p className="curs-desc-gol">Detaliile cursului vin în curând.</p>
-            )}
-          </div>
+        <div className="curs-bilete" id="bilete">
+          <h2>Comandă bilete</h2>
 
-          <aside className="curs-order" id="bilete">
-            <h2>Comandă bilete</h2>
-            {e.sold_out ? (
-              <p className="curs-order-out">S-au epuizat biletele.</p>
-            ) : checkoutPropriu && areStoc ? (
-              <TicketPicker eventId={e.id} types={picker} />
-            ) : e.livetickets_url ? (
-              // Fără checkout propriu — sau fără pool definit pe cursul ăsta —
-              // vânzarea rămâne pe LiveTickets, prin același /go/course care
-              // numără clicul și conversia testului A/B.
-              <>
-                {picker.length > 0 && (
-                  <ul className="curs-preturi">
-                    {picker.map((t) => (
-                      <li key={t.id}>
-                        <span>{t.name}</span>
-                        <span>{t.price.toLocaleString("ro-RO", { minimumFractionDigits: 2 })} lei</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <a href={`/go/course?id=${e.id}`} className="btn btn-primary tp-cta" target="_blank" rel="noopener">
-                  Vreau să vin
+          {e.sold_out ? (
+            <p className="curs-order-out">S-au epuizat biletele.</p>
+          ) : checkoutPropriu && areStoc ? (
+            <TicketPicker eventId={e.id} types={picker} />
+          ) : e.livetickets_url ? (
+            // Fără checkout propriu — sau fără pool definit pe cursul ăsta —
+            // vânzarea rămâne pe LiveTickets, prin același /go/course care
+            // numără clicul și conversia testului A/B.
+            <>
+              <div className="bt-list">
+                {picker.map((t) => (
+                  <div key={t.id} className="bt-row">
+                    <div className="bt-main">
+                      <h3>{t.name}</h3>
+                      {t.description && <p>{t.description}</p>}
+                    </div>
+                    <div className="bt-price">{money(t.price)} lei</div>
+                  </div>
+                ))}
+              </div>
+              <div className="bt-foot">
+                <div className="bt-total" />
+                <a href={`/go/course?id=${e.id}`} className="btn btn-primary bt-cta" target="_blank" rel="noopener">
+                  Comandă bilete
                 </a>
-              </>
-            ) : (
-              <p className="curs-order-out">Biletele nu sunt încă puse în vânzare.</p>
-            )}
-          </aside>
+              </div>
+            </>
+          ) : (
+            <p className="curs-order-out">Biletele nu sunt încă puse în vânzare.</p>
+          )}
         </div>
       </div>
     </section>
