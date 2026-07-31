@@ -175,7 +175,7 @@ export default function CourseEditor({
       : [
           { name: "Bilet standard", price: 50, stock: 55, description: "", bundle: 1, max: 10 },
           { name: "Bilet student", price: 30, stock: 25, description: "", bundle: 1, max: 10 },
-          { name: "Bilet 1+1 GRATIS", price: 50, stock: 8, description: "", bundle: 2, max: 1 },
+          { name: "Bilet 1+1 GRATIS", price: 25, stock: 16, description: "", bundle: 2, max: 1 },
         ],
   );
   const [activa, setActiva] = useState("despre");
@@ -345,7 +345,7 @@ export default function CourseEditor({
                         <input name="tip_name" value={t.name} onChange={(e) => setTip(i, { name: e.target.value })} />
                       </div>
                       <div className="ce-field ce-field--mic">
-                        <label>Preț</label>
+                        <label>Preț / bilet</label>
                         <input
                           name="tip_price"
                           type="number"
@@ -375,7 +375,7 @@ export default function CourseEditor({
                     </div>
                     <div className="ce-row">
                       <div className="ce-field ce-field--mic">
-                        <label>Persoane</label>
+                        <label>Bilete emise</label>
                         <input
                           name="tip_bundle"
                           type="number"
@@ -383,7 +383,7 @@ export default function CourseEditor({
                           value={t.bundle}
                           onChange={(e) => setTip(i, { bundle: Number(e.target.value) })}
                         />
-                        <small>{t.bundle > 1 ? `intră ${t.bundle} pe un bilet` : "un bilet, o persoană"}</small>
+                        <small>{t.bundle > 1 ? `se emit ${t.bundle} bilete separate` : "un bilet"}</small>
                       </div>
                       <div className="ce-field ce-field--mic">
                         <label>Max / comandă</label>
@@ -394,7 +394,7 @@ export default function CourseEditor({
                           value={t.max}
                           onChange={(e) => setTip(i, { max: Number(e.target.value) })}
                         />
-                        <small>cât poate lua cineva odată</small>
+                        <small>pachete per comandă</small>
                       </div>
                       <div className="ce-field">
                         <label>Scurtă descriere</label>

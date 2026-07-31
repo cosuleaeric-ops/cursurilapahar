@@ -85,9 +85,9 @@ export type TipNou = {
   price: number;
   stock: number;
   description?: string;
-  /** Câte persoane intră pe un bilet: 2 = 1+1, 3 = 2+1. */
+  /** Câte bilete se emit la o bucată: 2 = 1+1, 3 = 2+1. Fiecare cu seria lui. */
   bundleSize?: number;
-  /** Câte bucăți poate lua cineva într-o comandă. */
+  /** Câte pachete poate lua cineva într-o comandă. */
   maxPerOrder?: number;
 };
 

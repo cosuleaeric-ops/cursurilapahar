@@ -223,7 +223,7 @@ export default async function CursPage({
                     <div className="bt-main">
                       <h3>
                         {t.name}
-                        {t.bundle > 1 && <span className="bt-pachet">pentru {t.bundle} persoane</span>}
+                        {t.bundle > 1 && <span className="bt-pachet">se iau câte {t.bundle}</span>}
                       </h3>
                       {t.description && <p>{t.description}</p>}
                     </div>

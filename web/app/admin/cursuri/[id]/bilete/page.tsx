@@ -151,7 +151,7 @@ export default async function BiletePage({
                         {cod && <em className="cod-tag">cod {cod.code}</em>}
                         {programat && <em className="cod-tag">programat</em>}
                         {t.only_with_code && !cod && <em className="cod-tag">doar cu cod</em>}
-                        {t.bundle_size > 1 && <em className="cod-tag">pachet {t.bundle_size}</em>}
+                        {t.bundle_size > 1 && <em className="cod-tag">pachet de {t.bundle_size}</em>}
                       </span>
                     </summary>
 
@@ -210,9 +210,9 @@ export default async function BiletePage({
                         </small>
                       </label>
                       <label>
-                        <span>Persoane per bilet</span>
+                        <span>Bilete emise la o bucată</span>
                         <input name="bundle_size" type="number" min={1} defaultValue={t.bundle_size} />
-                        <small>2 = un bilet, doua persoane</small>
+                        <small>2 = 1+1, se emit doua bilete separate</small>
                       </label>
 
                       <label className="check">

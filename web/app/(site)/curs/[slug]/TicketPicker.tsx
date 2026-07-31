@@ -38,6 +38,8 @@ export default function TicketPicker({
 }) {
   const [qty, setQty] = useState<Record<number, number>>({});
 
+  // La un pachet (1+1, 2+1) se emit bilete separate, deci cantitatea urcă din
+  // `bundle` în `bundle`: nu se poate lua jumătate de ofertă.
   const set = (id: number, n: number, max: number) =>
     setQty((q) => ({ ...q, [id]: Math.max(0, Math.min(n, max)) }));
 
@@ -54,13 +56,14 @@ export default function TicketPicker({
         {types.map((t) => {
           const n = qty[t.id] ?? 0;
           const epuizat = t.libere === 0 || !!t.dinData;
-          const maxim = Math.min(t.libere, t.maxPerOrder);
+          const pas = Math.max(1, t.bundle);
+          const maxim = Math.floor(Math.min(t.libere, t.maxPerOrder * pas) / pas) * pas;
           return (
             <div key={t.id} className={`bt-row${epuizat ? " bt-row--out" : ""}`}>
               <div className="bt-main">
                 <h3>
                   {t.name}
-                  {t.bundle > 1 && <span className="bt-pachet">pentru {t.bundle} persoane</span>}
+                  {t.bundle > 1 && <span className="bt-pachet">se iau câte {t.bundle}</span>}
                 </h3>
                 {t.description && <p>{t.description}</p>}
               </div>
@@ -75,11 +78,11 @@ export default function TicketPicker({
                 )}
               </div>
               <div className="bt-stepper">
-                <button type="button" onClick={() => set(t.id, n - 1, maxim)} disabled={epuizat || n === 0} aria-label="Mai puține">
+                <button type="button" onClick={() => set(t.id, n - pas, maxim)} disabled={epuizat || n === 0} aria-label="Mai puține">
                   −
                 </button>
                 <span>{n}</span>
-                <button type="button" onClick={() => set(t.id, n + 1, maxim)} disabled={epuizat || n >= maxim} aria-label="Mai multe">
+                <button type="button" onClick={() => set(t.id, n + pas, maxim)} disabled={epuizat || n + pas > maxim} aria-label="Mai multe">
                   +
                 </button>
               </div>

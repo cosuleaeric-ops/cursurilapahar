@@ -15,7 +15,6 @@ type Ticket = {
   buyer_name: string | null;
   used_at: string | null;
   tip: string;
-  bundle_size: number;
 };
 
 const ora = new Intl.DateTimeFormat("ro-RO", {
@@ -43,13 +42,13 @@ export async function POST(request: Request) {
   let found: Ticket[];
   if (/^[a-f0-9]{32}$/.test(token)) {
     found = (await sql`
-      SELECT p.id, p.event_id, p.serie, p.numar, p.status, p.buyer_name, p.used_at, t.name AS tip, t.bundle_size
+      SELECT p.id, p.event_id, p.serie, p.numar, p.status, p.buyer_name, p.used_at, t.name AS tip
       FROM ticket_pool p JOIN ticket_types t ON t.id = p.type_id
       WHERE p.qr_token = ${token}
     `) as Ticket[];
   } else if (/^[A-Z]{3}$/.test(serie) && numar > 0) {
     found = (await sql`
-      SELECT p.id, p.event_id, p.serie, p.numar, p.status, p.buyer_name, p.used_at, t.name AS tip, t.bundle_size
+      SELECT p.id, p.event_id, p.serie, p.numar, p.status, p.buyer_name, p.used_at, t.name AS tip
       FROM ticket_pool p JOIN ticket_types t ON t.id = p.type_id
       WHERE p.event_id = ${body.eventId} AND p.serie = ${serie} AND p.numar = ${numar}
     `) as Ticket[];
@@ -73,6 +72,5 @@ export async function POST(request: Request) {
   `) as { used_at: string }[];
   if (!marked.length) return Response.json({ ok: false, msg: "Deja scanat", eticheta, nume: t.buyer_name });
 
-  const msg = t.bundle_size > 1 ? `${t.tip} — ${t.bundle_size} persoane` : t.tip;
-  return Response.json({ ok: true, msg, eticheta, nume: t.buyer_name });
+  return Response.json({ ok: true, msg: t.tip, eticheta, nume: t.buyer_name });
 }
