@@ -1407,7 +1407,6 @@ ul { list-style: none; }
 .curs-fact { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; color: var(--text); }
 .curs-fact svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); margin-top: 2px; }
 .curs-fact b { font-weight: 600; }
-.curs-fact em { display: block; font-style: normal; font-size: 14px; color: var(--text-muted); margin-top: 2px; }
 
 /* Descrierea pornește scurtată */
 .curs-desc-html { font-size: 16px; line-height: 1.75; color: var(--text); }
@@ -1422,7 +1421,7 @@ ul { list-style: none; }
 .curs-desc-toggle:hover { text-decoration: underline; }
 
 /* Jos: biletele, pe toată lățimea */
-.curs-bilete { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 30px 32px; }
+.curs-bilete { max-width: 860px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 30px 32px; }
 .curs-bilete h2 { font-size: 24px; margin-bottom: 6px; padding-bottom: 18px; border-bottom: 2px solid var(--accent); display: inline-block; }
 .curs-order-out { color: var(--text-muted); font-size: 15px; margin-top: 20px; }
 .bt-list { margin-top: 10px; }

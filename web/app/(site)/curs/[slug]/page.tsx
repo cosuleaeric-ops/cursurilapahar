@@ -9,14 +9,15 @@ import TicketPicker, { type PickerType } from "./TicketPicker";
 export const dynamic = "force-dynamic";
 
 const TZ = "Europe/Bucharest";
-const ziData = new Intl.DateTimeFormat("ro-RO", {
-  timeZone: TZ,
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+const ziData = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" });
 const oraFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+
+/** Accesul se face cu 30 de minute înainte de începere — se calculează, nu se scrie. */
+const ACCES_MIN = 30;
+const randDeData = (d: Date) => {
+  const acces = new Date(d.getTime() - ACCES_MIN * 60_000);
+  return `${ziData.format(d)}, ora ${oraFmt.format(d)} acces de la ${oraFmt.format(acces)}`;
+};
 const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 type Ev = {
@@ -127,10 +128,7 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 6v6l4 2" />
                   </svg>
-                  <span>
-                    {ziData.format(d)}
-                    <em>ora {oraFmt.format(d)}</em>
-                  </span>
+                  <span>{randDeData(d)}</span>
                 </div>
               )}
               {e.speaker_name && (
