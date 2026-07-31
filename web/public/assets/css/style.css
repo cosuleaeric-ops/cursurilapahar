@@ -1399,6 +1399,7 @@ ul { list-style: none; }
 
 /* Sus: afișul în stânga, tot restul în dreapta */
 .curs-top { display: grid; grid-template-columns: 320px 1fr; gap: 40px; align-items: start; margin-bottom: 48px; }
+.curs-col-poster { display: flex; flex-direction: column; gap: 12px; }
 .curs-poster { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-card); }
 .curs-poster img { width: 100%; height: auto; display: block; }
 .curs-poster-empty { width: 100%; aspect-ratio: 3/4; background: linear-gradient(135deg, #1a1a1a, #262626); }
@@ -1471,18 +1472,23 @@ ul { list-style: none; }
 
 @media (max-width: 900px) {
   .curs-top { grid-template-columns: 1fr; gap: 26px; }
-  .curs-poster { max-width: 320px; }
+  .curs-col-poster { max-width: 320px; }
   .curs-bilete { padding: 24px 20px; }
 }
 @media (max-width: 600px) {
   .curs-page, .cos-page { padding-top: 96px; }
-  .curs-poster { max-width: none; }
+  .curs-col-poster { max-width: none; }
   .bt-row { grid-template-columns: 1fr auto; }
   .bt-main { grid-column: 1 / -1; }
   .bt-price { text-align: left; }
   .bt-foot { justify-content: space-between; }
   .bt-cta { min-width: 0; flex: 1; }
 }
+/* Butonul de Instagram, sub afis */
+.curs-follow { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 18px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; transition: all var(--transition); }
+.curs-follow:hover { border-color: var(--accent); color: var(--accent); }
+.curs-follow svg { width: 22px; height: 22px; flex-shrink: 0; }
+
 /* Cod de reducere */
 .cod-activ { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 18px 0 4px; padding: 12px 16px; background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.35); border-radius: var(--radius); font-size: 14px; }
 .cod-activ strong { color: var(--accent); }
