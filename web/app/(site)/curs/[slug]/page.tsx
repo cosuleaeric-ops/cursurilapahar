@@ -3,6 +3,8 @@ import { sql } from "@/lib/db";
 import { descriereText } from "@/lib/descriere";
 import { pageMetadata } from "@/lib/metadata";
 import { checkoutPropriuActiv } from "@/lib/checkout";
+import { findDiscountCode } from "@/lib/bilete";
+import CodReducere from "./CodReducere";
 import DescriereToggle from "./DescriereToggle";
 import TicketPicker, { type PickerType } from "./TicketPicker";
 
@@ -63,16 +65,28 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   });
 }
 
-export default async function CursPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CursPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ cod?: string }>;
+}) {
   const { slug } = await params;
+  const { cod: codRaw } = await searchParams;
   const e = await getEvent(slug);
   if (!e || !e.active) notFound();
+
+  // Codul nu reduce prețul biletelor normale: arată alt set de bilete, cu
+  // seriile și tarifele lui, declarate separat la primărie.
+  const cod = codRaw ? await findDiscountCode(e.id, codRaw) : null;
+  const codGresit = codRaw && !cod ? codRaw.trim().toUpperCase() : undefined;
 
   const types = (await sql`
     SELECT t.id, t.name, t.description, t.price,
            COUNT(p.id) FILTER (WHERE p.status = 'liber')::int AS libere
     FROM ticket_types t LEFT JOIN ticket_pool p ON p.type_id = t.id
-    WHERE t.event_id = ${e.id}
+    WHERE t.event_id = ${e.id} AND t.discount_code_id IS NOT DISTINCT FROM ${cod?.id ?? null}
     GROUP BY t.id ORDER BY t.position, t.id
   `) as { id: number; name: string; description: string | null; price: string; libere: number }[];
 
@@ -149,10 +163,19 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
         <div className="curs-bilete" id="bilete">
           <h2>Comandă bilete</h2>
 
+          {cod && (
+            <div className="cod-activ">
+              <span>
+                Cod <strong>{cod.code}</strong> aplicat — reducere {Number(cod.percent)}%
+              </span>
+              <a href={`/curs/${e.slug}`}>Renunță</a>
+            </div>
+          )}
+
           {e.sold_out ? (
             <p className="curs-order-out">S-au epuizat biletele.</p>
           ) : checkoutPropriu && areStoc ? (
-            <TicketPicker eventId={e.id} types={picker} />
+            <TicketPicker eventId={e.id} types={picker} slug={e.slug} codAplicat={!!cod} codGresit={codGresit} />
           ) : e.livetickets_url ? (
             // Fără checkout propriu — sau fără pool definit pe cursul ăsta —
             // vânzarea rămâne pe LiveTickets, prin același /go/course care
@@ -170,7 +193,7 @@ export default async function CursPage({ params }: { params: Promise<{ slug: str
                 ))}
               </div>
               <div className="bt-foot">
-                <div className="bt-total" />
+                <div className="bt-total">{!cod && <CodReducere slug={e.slug} gresit={codGresit} />}</div>
                 <a href={`/go/course?id=${e.id}`} className="btn btn-primary bt-cta" target="_blank" rel="noopener">
                   Comandă bilete
                 </a>

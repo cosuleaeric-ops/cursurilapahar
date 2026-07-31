@@ -3,8 +3,20 @@ import { sql } from "@/lib/db";
 import { DEFAULT_TYPES, formatNumar, getTypes } from "@/lib/bilete";
 import { VIEW_CSS } from "../detalii/styles";
 import ConfirmButton from "../detalii/ConfirmButton";
-import { addDefaultTypes, addType, caseazaLibere, deleteType, setVandute, toggleVizat, updateCote, updateType } from "./actions";
-import { BILETE_CSS } from "./styles";
+import {
+  addDefaultTypes,
+  addDiscountCode,
+  addType,
+  caseazaLibere,
+  deleteDiscountCode,
+  deleteType,
+  setVandute,
+  toggleDiscountCode,
+  toggleVizat,
+  updateCote,
+  updateType,
+} from "./actions";
+import { BILETE_CSS, COD_CSS } from "./styles";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +58,24 @@ export default async function BiletePage({
   if (!event) notFound();
 
   const types = await getTypes(id);
+  const coduri = (await sql`
+    SELECT c.id, c.code, c.percent, c.active,
+           to_char(c.valid_until AT TIME ZONE 'Europe/Bucharest', 'DD.MM.YYYY HH24:MI') AS pana_la,
+           c.valid_until > now() AS in_termen,
+           COUNT(t.id)::int AS nr_tipuri
+    FROM discount_codes c LEFT JOIN ticket_types t ON t.discount_code_id = c.id
+    WHERE c.event_id = ${id}
+    GROUP BY c.id ORDER BY c.id
+  `) as {
+    id: number;
+    code: string;
+    percent: string;
+    active: boolean;
+    pana_la: string | null;
+    in_termen: boolean | null;
+    nr_tipuri: number;
+  }[];
+  const codById = new Map(coduri.map((c) => [c.id, c]));
   // un bilet oarecare, ca să poți vedea cum arată ce primește participantul
   const [exemplu] = (await sql`
     SELECT qr_token FROM ticket_pool WHERE event_id = ${id} ORDER BY status = 'vandut' DESC, id LIMIT 1
@@ -62,7 +92,7 @@ export default async function BiletePage({
   return (
     <>
       <link rel="stylesheet" href="/admin/statistici/style.css" />
-      <style dangerouslySetInnerHTML={{ __html: VIEW_CSS + BILETE_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: VIEW_CSS + BILETE_CSS + COD_CSS }} />
 
       <div className="course-wrap">
         {err && <div className="error-msg" style={{ display: "block", marginBottom: 16 }}>{err}</div>}
@@ -124,6 +154,9 @@ export default async function BiletePage({
                         <input name="stock" type="number" min={t.stock} defaultValue={t.stock} className="in-num" />
                         <button type="submit" className="mini-btn">Salveaza</button>
                       </form>
+                      {t.discount_code_id && codById.has(t.discount_code_id) && (
+                        <span className="cod-tag">cod {codById.get(t.discount_code_id)!.code}</span>
+                      )}
                     </td>
                     <td>
                       <span className="seria-badge">{t.serie}</span>
@@ -224,6 +257,84 @@ export default async function BiletePage({
             <p className="hint">
               Art. 481 Cod fiscal: 2% la spectacolele de la alin. (1), 5% la cele „cu caracter ocazional" de la alin.
               (2). Timbrele se scad din baza impozabilă — 0 dacă nu se aplică.
+            </p>
+          </div>
+        )}
+
+        {types.some((t) => !t.discount_code_id) && (
+          <div className="section-card">
+            <h3>Coduri de reducere</h3>
+
+            {coduri.length > 0 && (
+              <table className="bilete-table">
+                <thead>
+                  <tr>
+                    <th>Cod</th>
+                    <th className="num">Reducere</th>
+                    <th>Valabil</th>
+                    <th className="num">Bilete generate</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coduri.map((c) => (
+                    <tr key={c.id}>
+                      <td>
+                        <span className="seria-badge">{c.code}</span>
+                      </td>
+                      <td className="num">−{Number(c.percent)}%</td>
+                      <td>
+                        {c.pana_la ? `până ${c.pana_la}` : "fără termen"}
+                        {c.pana_la && c.in_termen === false && <span className="casate-tag">expirat</span>}
+                      </td>
+                      <td className="num">{c.nr_tipuri} tipuri</td>
+                      <td style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <form action={toggleDiscountCode} style={{ margin: 0 }}>
+                          <input type="hidden" name="id" value={id} />
+                          <input type="hidden" name="code_id" value={c.id} />
+                          <button type="submit" className="mini-btn">
+                            {c.active ? "Opreste" : "Porneste"}
+                          </button>
+                        </form>
+                        <form action={deleteDiscountCode} style={{ margin: 0 }}>
+                          <input type="hidden" name="id" value={id} />
+                          <input type="hidden" name="code_id" value={c.id} />
+                          <ConfirmButton
+                            message={`Stergi codul ${c.code} si biletele generate de el?`}
+                            className="x-btn"
+                            title="Sterge"
+                          >
+                            ×
+                          </ConfirmButton>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <form action={addDiscountCode} className="add-form">
+              <input type="hidden" name="id" value={id} />
+              <div className="f">
+                <label>Cod</label>
+                <input name="code" required style={{ width: 140, textTransform: "uppercase" }} />
+              </div>
+              <div className="f">
+                <label>Reducere (%)</label>
+                <input name="percent" type="number" min={1} max={99} step="0.01" required style={{ width: 100 }} />
+              </div>
+              <div className="f">
+                <label>Valabil până (optional)</label>
+                <input name="valid_until" type="datetime-local" style={{ width: 210 }} />
+              </div>
+              <button type="submit" className="add-btn">Genereaza biletele</button>
+            </form>
+            <p className="hint">
+              Codul nu scade prețul biletelor existente — generează bilete noi, cu serie și tarif propriu, pentru
+              fiecare tip normal. Altfel ai vinde la 32,50 lei un bilet dintr-o serie declarată la primărie cu 50 de
+              lei. Fă codurile <strong>înainte</strong> de a depune cererea de vizare, ca seriile reduse să intre în
+              ea.
             </p>
           </div>
         )}

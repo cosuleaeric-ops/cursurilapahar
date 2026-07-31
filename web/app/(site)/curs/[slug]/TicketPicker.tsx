@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import CodReducere from "./CodReducere";
+
 export type PickerType = { id: number; name: string; description: string | null; price: number; libere: number };
 
 const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -11,7 +13,19 @@ const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 
  * coșului, iar /cos recalculează tot din baza de date. Nimic din prețuri nu
  * trece prin browser, deci nu are ce fi falsificat.
  */
-export default function TicketPicker({ eventId, types }: { eventId: number; types: PickerType[] }) {
+export default function TicketPicker({
+  eventId,
+  types,
+  slug,
+  codAplicat,
+  codGresit,
+}: {
+  eventId: number;
+  types: PickerType[];
+  slug: string;
+  codAplicat: boolean;
+  codGresit?: string;
+}) {
   const [qty, setQty] = useState<Record<number, number>>({});
 
   const set = (id: number, n: number, max: number) =>
@@ -60,6 +74,7 @@ export default function TicketPicker({ eventId, types }: { eventId: number; type
 
       <div className="bt-foot">
         <div className="bt-total">
+          {!codAplicat && bucati === 0 && <CodReducere slug={slug} gresit={codGresit} />}
           {bucati > 0 && (
             <>
               <span>

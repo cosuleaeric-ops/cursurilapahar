@@ -32,3 +32,6 @@ export const BILETE_CSS = `
     .state-btn.on { border-color:#b2d9c0; background:var(--green-light); color:var(--green); font-weight:600; }
     @media(max-width:700px) { .bilete-table { display:block; overflow-x:auto; } }
 `;
+export const COD_CSS = `
+.cod-tag { display:inline-block; margin-top:5px; font-size:11px; font-weight:600; color:var(--accent); background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:2px 8px; }
+`;

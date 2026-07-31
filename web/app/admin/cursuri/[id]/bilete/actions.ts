@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { createTypes, DEFAULT_TYPES, syncPool } from "@/lib/bilete";
+import { createDiscountTypes, createTypes, DEFAULT_TYPES, syncPool } from "@/lib/bilete";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -135,6 +135,71 @@ export async function setVandute(formData: FormData): Promise<void> {
       )
     `;
   }
+  revalidatePath(`/admin/cursuri/${id}/bilete`);
+  back(id);
+}
+
+/**
+ * Un cod de reducere generează bilete noi, cu serie și tarif propriu, nu scade
+ * prețul celor existente. Trebuie făcut ÎNAINTE de a depune cererea de vizare:
+ * seriile reduse se declară la primărie ca oricare altele.
+ */
+export async function addDiscountCode(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  const code = g(formData, "code").toUpperCase();
+  const percent = Number(g(formData, "percent").replace(",", "."));
+  const until = g(formData, "valid_until");
+  if (!id || !code || !(percent > 0) || percent >= 100) back(id);
+
+  const [dubla] = (await sql`
+    SELECT id FROM discount_codes WHERE event_id = ${id} AND upper(code) = ${code}
+  `) as { id: number }[];
+  if (dubla) redirect(`/admin/cursuri/${id}/bilete?err=Codul ${code} există deja pe cursul ăsta.`);
+
+  const [cod] = (await sql`
+    INSERT INTO discount_codes (event_id, code, percent, valid_until)
+    VALUES (${id}, ${code}, ${percent}, ${until ? `${until.replace("T", " ")}` : null}::timestamptz)
+    RETURNING id
+  `) as { id: number }[];
+
+  const create = await createDiscountTypes(id, cod.id, percent);
+  if (!create) {
+    await sql`DELETE FROM discount_codes WHERE id = ${cod.id}`;
+    redirect(`/admin/cursuri/${id}/bilete?err=Defineşte întâi tipurile de bilete normale.`);
+  }
+
+  revalidatePath(`/admin/cursuri/${id}/bilete`);
+  back(id);
+}
+
+/** Șterge codul împreună cu biletele lui, dacă niciunul n-a fost vândut. */
+export async function deleteDiscountCode(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  const codeId = Number(g(formData, "code_id"));
+  if (!id || !codeId) back(id);
+
+  const [{ vandute }] = (await sql`
+    SELECT COUNT(*)::int AS vandute FROM ticket_pool p
+    JOIN ticket_types t ON t.id = p.type_id
+    WHERE t.discount_code_id = ${codeId} AND p.status = 'vandut'
+  `) as { vandute: number }[];
+  if (vandute > 0)
+    redirect(`/admin/cursuri/${id}/bilete?err=Codul are bilete vândute; dezactivează-l în loc să-l ştergi.`);
+
+  await sql`DELETE FROM discount_codes WHERE id = ${codeId} AND event_id = ${id}`;
+  revalidatePath(`/admin/cursuri/${id}/bilete`);
+  back(id);
+}
+
+/** Oprește sau repornește un cod fără să atingă biletele deja emise. */
+export async function toggleDiscountCode(formData: FormData): Promise<void> {
+  await requireAuth();
+  const id = Number(g(formData, "id"));
+  const codeId = Number(g(formData, "code_id"));
+  if (!id || !codeId) back(id);
+  await sql`UPDATE discount_codes SET active = NOT active WHERE id = ${codeId} AND event_id = ${id}`;
   revalidatePath(`/admin/cursuri/${id}/bilete`);
   back(id);
 }

@@ -14,6 +14,7 @@ export type TicketType = {
   stock: number;
   serie: string;
   position: number;
+  discount_code_id: number | null;
 };
 
 export type PoolStatus = "liber" | "vandut" | "casat";
@@ -94,12 +95,68 @@ export async function createTypes(
   }
 }
 
+export type DiscountCode = {
+  id: number;
+  event_id: number;
+  code: string;
+  percent: string;
+  active: boolean;
+  valid_until: string | null;
+};
+
+/** Prețul redus, rotunjit la ban. */
+export const pretRedus = (price: number, percent: number) => Math.round(price * (1 - percent / 100) * 100) / 100;
+
+/**
+ * Un cod de reducere nu scade prețul biletului existent: creează bilete noi, cu
+ * serie proprie și tarif propriu. Cererea de vizare declară tariful per serie,
+ * deci un bilet vândut cu 32,50 lei nu poate purta seria declarată la 50 de lei.
+ * Seriile astea intră automat în cererea de vizare, ca oricare altele.
+ */
+export async function createDiscountTypes(eventId: number, codeId: number, percent: number): Promise<number> {
+  const baza = (await sql`
+    SELECT name, description, price, stock, position FROM ticket_types
+    WHERE event_id = ${eventId} AND discount_code_id IS NULL
+    ORDER BY position, id
+  `) as { name: string; description: string | null; price: string; stock: number; position: number }[];
+  if (!baza.length) return 0;
+
+  const existing = (await sql`SELECT serie FROM ticket_types WHERE event_id = ${eventId}`) as { serie: string }[];
+  const taken = new Set(existing.map((r) => r.serie));
+  const [{ pos }] = (await sql`
+    SELECT COALESCE(MAX(position), -1) + 1 AS pos FROM ticket_types WHERE event_id = ${eventId}
+  `) as { pos: number }[];
+
+  for (const [i, b] of baza.entries()) {
+    const [t] = (await sql`
+      INSERT INTO ticket_types (event_id, name, description, price, stock, serie, position, discount_code_id)
+      VALUES (${eventId}, ${b.name}, ${b.description}, ${pretRedus(Number(b.price), percent)},
+              ${b.stock}, ${randomSerie(taken)}, ${pos + i}, ${codeId})
+      RETURNING id
+    `) as { id: number }[];
+    await syncPool(t.id);
+  }
+  return baza.length;
+}
+
+/** Codul valid pentru un curs, după text — pentru pagina publică. */
+export async function findDiscountCode(eventId: number, code: string): Promise<DiscountCode | null> {
+  const c = code.trim().toUpperCase();
+  if (!c) return null;
+  const rows = (await sql`
+    SELECT id, event_id, code, percent, active, valid_until FROM discount_codes
+    WHERE event_id = ${eventId} AND upper(code) = ${c} AND active = true
+      AND (valid_until IS NULL OR valid_until > now())
+  `) as DiscountCode[];
+  return rows[0] ?? null;
+}
+
 export type TypeRow = TicketType & { vandute: number; libere: number; casate: number };
 
 /** Tipurile de bilete ale unui curs, cu numărătoarea pe status. */
 export async function getTypes(eventId: number): Promise<TypeRow[]> {
   return (await sql`
-    SELECT t.id, t.event_id, t.name, t.price, t.stock, t.serie, t.position,
+    SELECT t.id, t.event_id, t.name, t.price, t.stock, t.serie, t.position, t.discount_code_id,
            COUNT(p.id) FILTER (WHERE p.status = 'vandut')::int AS vandute,
            COUNT(p.id) FILTER (WHERE p.status = 'liber')::int  AS libere,
            COUNT(p.id) FILTER (WHERE p.status = 'casat')::int  AS casate
