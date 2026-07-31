@@ -17,7 +17,10 @@ html {
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* `clip`, nu `hidden`: `hidden` face din body un container de scroll, iar
+     atunci `position: sticky` dinăuntru nu se mai activează niciodată. `clip`
+     taie la fel pe orizontală, dar nu creează scroll container. */
+  overflow-x: clip;
 }
 
 body {
