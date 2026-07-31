@@ -141,7 +141,17 @@ export default function BileteModal({
                         </div>
                       </div>
                       <div className="mb-tip-jos">
-                        <div className="mb-pret">{money(t.price)} lei</div>
+                        {/* La un pachet, tăiat e cât ar costa biletele la preț
+                            întreg, iar cifra mare e prețul pe bilet cu ofertă. */}
+                        <div className="mb-pret">
+                          {t.bundle > 1 && <s>{money(t.price * t.bundle)} lei</s>}
+                          <b>{money(t.price)} lei</b>
+                        </div>
+                        {t.bundle > 1 && (
+                          <div className="mb-perbilet">
+                            Prețul e pentru fiecare bilet. Adaugă {t.bundle} în coș ca să prinzi oferta.
+                          </div>
+                        )}
                         {t.dinData ? (
                           <div className="mb-nota">{t.dinData}</div>
                         ) : t.libere === 0 ? (

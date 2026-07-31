@@ -1570,7 +1570,10 @@ ul { list-style: none; }
 .mb-tip-sus { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid rgba(27,23,32,.12); }
 .mb-tip-sus h3 { font-size: 16px; font-weight: 700; margin: 0; }
 .mb-tip-jos { padding: 14px 18px 16px; }
-.mb-pret { font-size: 17px; font-weight: 700; }
+.mb-pret { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.mb-pret b { font-size: 19px; font-weight: 700; }
+.mb-pret s { font-size: 15px; font-weight: 400; color: #9a95a3; text-decoration-thickness: 1px; }
+.mb-perbilet { font-size: 13px; color: #6b6675; margin-top: 5px; }
 .mb-nota { font-size: 13px; color: #6b6675; margin-top: 3px; }
 .mb-tip-jos p { font-size: 14px; line-height: 1.55; color: #6b6675; margin: 10px 0 0; }
 .mb-step { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
