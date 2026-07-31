@@ -1393,8 +1393,8 @@ ul { list-style: none; }
 }
 
 /* ============ PAGINA DE CURS + COȘ ============ */
-.curs-page { padding-top: 120px; }
-.curs-back { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 28px; transition: color var(--transition); }
+.curs-page { padding-top: 40px; }
+.curs-back { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 20px; transition: color var(--transition); }
 .curs-back:hover { color: var(--accent); }
 
 /* Sus: afișul în stânga, tot restul în dreapta */
@@ -1445,7 +1445,7 @@ ul { list-style: none; }
 .bt-cta--off { opacity: .35; pointer-events: none; }
 
 /* Coș */
-.cos-page { padding-top: 120px; }
+.cos-page { padding-top: 40px; }
 .cos-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px 26px; }
 .cos-card--gol { text-align: center; }
 .cos-card--gol p { color: var(--text-muted); margin: 10px 0 22px; }
@@ -1476,7 +1476,7 @@ ul { list-style: none; }
   .curs-bilete { padding: 24px 20px; }
 }
 @media (max-width: 600px) {
-  .curs-page, .cos-page { padding-top: 96px; }
+  .curs-page, .cos-page { padding-top: 24px; }
   .curs-col-poster { max-width: none; }
   .bt-row { grid-template-columns: 1fr auto; }
   .bt-main { grid-column: 1 / -1; }
