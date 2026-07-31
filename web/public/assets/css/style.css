@@ -1420,7 +1420,7 @@ ul { list-style: none; }
 .eb-hero-in img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
 .eb-hero-gol { width: 100%; height: 100%; background: linear-gradient(135deg, #e9e6e0, #f5f3ef); }
 
-.eb-wrap { display: grid; grid-template-columns: minmax(0,1fr) 372px; gap: 48px; align-items: start; }
+.eb-wrap { display: grid; grid-template-columns: minmax(0,1fr) 372px; gap: 48px; align-items: stretch; }
 .eb-back { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 18px; }
 .eb-back:hover { color: var(--accent); }
 .eb-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .8px; padding: 5px 12px; border-radius: 4px; background: #C9A84C; color: #0D0D0D; margin-bottom: 14px; }
@@ -1448,8 +1448,8 @@ ul { list-style: none; }
 .eb-gol { color: var(--text-muted); font-size: 15px; }
 
 /* Cardul de conversie */
-.eb-side { position: sticky; top: 96px; }
-.eb-card { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); padding: 22px; }
+.eb-side { min-width: 0; }
+.eb-card { position: sticky; top: 96px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); padding: 22px; }
 .eb-card-pret { margin-bottom: 16px; }
 .eb-card-pret strong { display: block; font-size: 22px; font-weight: 700; }
 .eb-card-pret span { display: block; font-size: 14px; color: var(--text-muted); margin-top: 3px; }
@@ -1507,7 +1507,8 @@ ul { list-style: none; }
   .eb-wrap { grid-template-columns: 1fr; gap: 0; }
   /* Pe telefon cardul din dreapta devine bara fixa de jos, ca la paginile de
      eveniment: pretul in stanga, butonul mare in dreapta, mereu la indemana. */
-  .eb-side { position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 60; }
+  .eb-side { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; }
+  .eb-card { position: static; }
   .eb-card { display: flex; align-items: center; gap: 16px; border: none; border-top: 1px solid var(--border); border-radius: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.97); backdrop-filter: blur(12px); box-shadow: 0 -2px 18px rgba(27,23,32,.1); }
   .eb-card-pret { flex: 1; min-width: 0; margin-bottom: 0; }
   .eb-card-pret strong { font-size: 17px; }
