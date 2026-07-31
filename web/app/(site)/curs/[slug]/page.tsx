@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { descriereText } from "@/lib/descriere";
 import { pageMetadata } from "@/lib/metadata";
-import { checkoutPropriuActiv } from "@/lib/checkout";
 import { findDiscountCode } from "@/lib/bilete";
 import CodReducere from "./CodReducere";
 import DescriereToggle from "./DescriereToggle";
@@ -120,7 +119,6 @@ export default async function CursPage({
     dinData: t.sale_starts_at && new Date(t.sale_starts_at).getTime() > acum ? randDeVanzare(new Date(t.sale_starts_at)) : null,
   }));
   const areStoc = picker.some((t) => t.libere > 0 && !t.dinData);
-  const checkoutPropriu = await checkoutPropriuActiv();
   const d = e.starts_at ? new Date(e.starts_at) : null;
   const { loc, oras } = locOras(e.location);
 
@@ -210,7 +208,7 @@ export default async function CursPage({
 
           {e.sold_out ? (
             <p className="curs-order-out">S-au epuizat biletele.</p>
-          ) : checkoutPropriu && areStoc ? (
+          ) : areStoc ? (
             <TicketPicker eventId={e.id} types={picker} slug={e.slug} codAplicat={!!cod} codGresit={codGresit} />
           ) : e.livetickets_url ? (
             // Fără checkout propriu — sau fără pool definit pe cursul ăsta —
