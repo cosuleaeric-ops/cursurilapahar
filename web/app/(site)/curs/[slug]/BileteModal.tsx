@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { PickerType } from "./TicketPicker";
 
 // Selecția biletelor stă într-un modal, ca pe paginile de eveniment: butonul de
@@ -35,6 +36,11 @@ export default function BileteModal({
   ltUrl: string | null;
 }) {
   const [deschis, setDeschis] = useState(!!codGresit || !!codAplicat);
+  // Pe telefon, cardul devine bară fixă cu z-index propriu, ceea ce deschide un
+  // context de stivuire: modalul randat înăuntru ar rămâne sub navbar oricât de
+  // mare i-ar fi z-index-ul. De aceea se montează direct în <body>.
+  const [montat, setMontat] = useState(false);
+  useEffect(() => setMontat(true), []);
   const [qty, setQty] = useState<Record<number, number>>({});
   const [cod, setCod] = useState(codAplicat ?? codGresit ?? "");
 
@@ -85,7 +91,7 @@ export default function BileteModal({
         </button>
       </div>
 
-      {deschis && (
+      {deschis && montat && createPortal(
         <div className="mb-overlay" onClick={() => setDeschis(false)}>
           <div className="mb-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <button type="button" className="mb-x" onClick={() => setDeschis(false)} aria-label="Închide">
@@ -212,7 +218,8 @@ export default function BileteModal({
               </div>
             </aside>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
