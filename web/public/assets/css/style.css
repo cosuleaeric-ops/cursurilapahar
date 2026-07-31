@@ -1606,3 +1606,45 @@ ul { list-style: none; }
   .mb-foot { padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); }
   .mb-cta { min-width: 0; flex: 1; }
 }
+
+/* ---- Bine de știut ---- */
+.gtk { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.gtk-card { border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; }
+.gtk-card h3 { font-size: 16px; font-weight: 700; margin: 0 0 14px; }
+.gtk-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.gtk-card li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.45; }
+.gtk-card li svg { width: 19px; height: 19px; flex-shrink: 0; margin-top: 1px; color: var(--text-muted); }
+.gtk-card p { font-size: 15px; line-height: 1.6; color: var(--text-muted); margin: 0; }
+
+/* ---- Locația ---- */
+.loc { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.loc-txt strong { display: block; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.loc-txt p { font-size: 15px; color: var(--text-muted); margin: 0; }
+.loc-harta { position: relative; }
+.loc-harta iframe { width: 100%; height: 260px; border: 0; border-radius: 8px; display: block; }
+.loc-harta > button { width: 100%; height: 260px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface); color: var(--text); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.loc-harta > button:hover { border-color: var(--accent); color: var(--accent); }
+.loc-maps { display: inline-block; margin-top: 10px; font-size: 14px; color: var(--accent); text-decoration: none; }
+.loc-maps:hover { text-decoration: underline; }
+
+/* ---- Întrebări frecvente ---- */
+.faq-list { border-top: 1px solid var(--border); }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item > button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 18px 0; background: none; border: none; font-family: inherit; font-size: 16px; font-weight: 500; color: var(--text); text-align: left; cursor: pointer; }
+.faq-item > button svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); transition: transform var(--transition); }
+.faq-item.on > button svg { transform: rotate(180deg); }
+.faq-item p { font-size: 15px; line-height: 1.65; color: var(--text-muted); margin: -4px 0 20px; max-width: 70ch; }
+
+/* ---- Alte cursuri ---- */
+.alte { border-top: 1px solid var(--border); }
+.alt-curs { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; }
+.alt-curs:hover strong { color: var(--accent); }
+.alt-txt strong { display: block; font-size: 17px; font-weight: 700; line-height: 1.3; margin-bottom: 5px; }
+.alt-txt span { font-size: 14px; color: var(--text-muted); }
+.alt-curs img { width: 116px; height: 78px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+
+@media (max-width: 700px) {
+  .gtk, .loc { grid-template-columns: 1fr; gap: 14px; }
+  .loc-harta iframe, .loc-harta > button { height: 210px; }
+  .alt-curs img { width: 86px; height: 62px; }
+}

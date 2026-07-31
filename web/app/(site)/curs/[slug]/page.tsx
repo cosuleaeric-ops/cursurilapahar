@@ -4,6 +4,7 @@ import { descriereText } from "@/lib/descriere";
 import { pageMetadata } from "@/lib/metadata";
 import { findDiscountCode } from "@/lib/bilete";
 import BileteModal from "./BileteModal";
+import { Harta, Intrebari } from "./Sectiuni";
 import DescriereToggle from "./DescriereToggle";
 import { type PickerType } from "./TicketPicker";
 
@@ -21,6 +22,7 @@ const randDeData = (d: Date) => {
 };
 const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const vanzareFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+const scurtFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, weekday: "short", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 const randDeVanzare = (d: Date) => `în vânzare din ${vanzareFmt.format(d)}`;
 
 type Ev = {
@@ -124,6 +126,17 @@ export default async function CursPage({
   const d = e.starts_at ? new Date(e.starts_at) : null;
   const { loc, oras } = locOras(e.location);
 
+  const [locatie] = (await sql`
+    SELECT name, maps_link FROM locations WHERE name = ${e.location ?? ""} LIMIT 1
+  `) as { name: string; maps_link: string | null }[];
+
+  const alteCursuri = (await sql`
+    SELECT id, slug, title, starts_at, location, image_url
+    FROM events
+    WHERE active = true AND id <> ${e.id} AND starts_at > now()
+    ORDER BY starts_at LIMIT 4
+  `) as { id: number; slug: string | null; title: string; starts_at: string | null; location: string | null; image_url: string | null }[];
+
   const pretMin = picker.filter((t) => t.libere > 0).reduce((m, t) => Math.min(m, t.price), Infinity);
   const hero = e.image_landscape_url || e.image_url;
 
@@ -209,6 +222,104 @@ export default async function CursPage({
             </div>
           )}
 
+
+          <div className="eb-sec">
+            <h2>Bine de știut</h2>
+            <div className="gtk">
+              <div className="gtk-card">
+                <h3>Pe scurt</h3>
+                <ul>
+                  <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 2" />
+                    </svg>
+                    Durează 2 ore
+                  </li>
+                  <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Se ține pe viu, într-un bar
+                  </li>
+                  <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M4 6h16M4 12h16M4 18h10" />
+                    </svg>
+                    Accesul se face cu 30 de minute înainte
+                  </li>
+                </ul>
+              </div>
+              <div className="gtk-card">
+                <h3>Politica de retur</h3>
+                <p>
+                  Banii se returnează integral dacă anulezi cu cel puțin 24 de ore înainte de începerea cursului.
+                  După, biletul rămâne valabil, dar nu se mai restituie.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {e.location && (
+            <div className="eb-sec">
+              <h2>Locația</h2>
+              <div className="loc">
+                <div className="loc-txt">
+                  <strong>{loc}</strong>
+                  {oras && <p>{oras}</p>}
+                </div>
+                <Harta nume={loc} adresa={e.location} mapsLink={locatie?.maps_link ?? null} />
+              </div>
+            </div>
+          )}
+
+          <div className="eb-sec">
+            <h2>Întrebări frecvente</h2>
+            <Intrebari
+              items={[
+                {
+                  q: "Unde are loc cursul?",
+                  a: `${e.location ?? "Locația"} — adresa exactă și harta sunt mai sus, în secțiunea Locația.`,
+                },
+                {
+                  q: "Care e politica de retur?",
+                  a: "Îți dăm banii înapoi integral dacă anulezi cu cel puțin 24 de ore înainte de curs. Scrie-ne pe contact@cursurilapahar.ro.",
+                },
+                {
+                  q: "Cât durează?",
+                  a: "În jur de două ore, cu pauză. Accesul se face cu 30 de minute înainte de ora de start.",
+                },
+                {
+                  q: "Trebuie să vin cu cineva?",
+                  a: "Nu. Majoritatea vin singuri și pleacă cu oameni noi cunoscuți. Biletul standard presupune că stai la masă cu alți participanți.",
+                },
+              ]}
+            />
+          </div>
+
+          {alteCursuri.length > 0 && (
+            <div className="eb-sec">
+              <h2>Alte cursuri</h2>
+              <div className="alte">
+                {alteCursuri.map((c) => (
+                  <a key={c.id} className="alt-curs" href={c.slug ? `/curs/${c.slug}` : "/#cursuri"}>
+                    <div className="alt-txt">
+                      <strong>{curat(c.title)}</strong>
+                      <span>
+                        {c.starts_at ? scurtFmt.format(new Date(c.starts_at)) : ""}
+                        {c.location ? ` · ${c.location}` : ""}
+                      </span>
+                    </div>
+                    {c.image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.image_url} alt="" loading="lazy" />
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Cardul de conversie: lipit în dreapta pe desktop, bară fixă jos pe telefon. */}
