@@ -46,7 +46,17 @@ export function ranges(nums: number[]): [number, number][] {
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-/** Serie de 3 litere, unică între seriile deja folosite la același eveniment. */
+/**
+ * Toate seriile emise vreodată. Registrul de la primărie e ținut pe organizator,
+ * nu pe eveniment, deci două cursuri diferite nu au voie să declare aceeași
+ * serie — s-ar amesteca la decont și la casare.
+ */
+export async function seriiFolosite(): Promise<Set<string>> {
+  const rows = (await sql`SELECT DISTINCT serie FROM ticket_types`) as { serie: string }[];
+  return new Set(rows.map((r) => r.serie));
+}
+
+/** Serie de 3 litere, unică între seriile primite în `taken`. */
 export function randomSerie(taken: Set<string>): string {
   for (let i = 0; i < 200; i++) {
     let s = "";
@@ -93,8 +103,7 @@ export type TipNou = {
 
 /** Creează tipuri cu serii unice în cadrul cursului și le generează pool-ul. */
 export async function createTypes(eventId: number, defs: TipNou[]): Promise<void> {
-  const existing = (await sql`SELECT serie FROM ticket_types WHERE event_id = ${eventId}`) as { serie: string }[];
-  const taken = new Set(existing.map((r) => r.serie));
+  const taken = await seriiFolosite();
   const [{ pos }] = (await sql`
     SELECT COALESCE(MAX(position), -1) + 1 AS pos FROM ticket_types WHERE event_id = ${eventId}
   `) as { pos: number }[];
@@ -104,7 +113,8 @@ export async function createTypes(eventId: number, defs: TipNou[]): Promise<void
     const [type] = (await sql`
       INSERT INTO ticket_types (event_id, name, description, price, stock, serie, position,
                                 bundle_size, max_per_order)
-      VALUES (${eventId}, ${d.name}, ${d.description || null}, ${d.price}, ${d.stock}, ${serie}, ${pos + i},
+      VALUES (${eventId}, ${d.name}, ${d.description || null}, ${d.price},
+              ${rotunjitLaPachet(d.stock, d.bundleSize ?? 1)}, ${serie}, ${pos + i},
               ${Math.max(1, d.bundleSize ?? 1)}, ${Math.max(1, d.maxPerOrder ?? 10)})
       RETURNING id
     `) as { id: number }[];
@@ -120,6 +130,10 @@ export type DiscountCode = {
   active: boolean;
   valid_until: string | null;
 };
+
+/** Stocul urcă la următorul multiplu al pachetului, ca să nu rămână bilete nevandabile. */
+export const rotunjitLaPachet = (stock: number, bundle: number) =>
+  bundle > 1 ? Math.ceil(stock / bundle) * bundle : stock;
 
 /** Prețul redus, rotunjit la ban. */
 export const pretRedus = (price: number, percent: number) => Math.round(price * (1 - percent / 100) * 100) / 100;
@@ -138,8 +152,7 @@ export async function createDiscountTypes(eventId: number, codeId: number, perce
   `) as { name: string; description: string | null; price: string; stock: number; position: number }[];
   if (!baza.length) return 0;
 
-  const existing = (await sql`SELECT serie FROM ticket_types WHERE event_id = ${eventId}`) as { serie: string }[];
-  const taken = new Set(existing.map((r) => r.serie));
+  const taken = await seriiFolosite();
   const [{ pos }] = (await sql`
     SELECT COALESCE(MAX(position), -1) + 1 AS pos FROM ticket_types WHERE event_id = ${eventId}
   `) as { pos: number }[];

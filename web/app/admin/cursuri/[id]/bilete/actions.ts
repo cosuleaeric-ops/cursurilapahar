@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { createDiscountTypes, createTypes, DEFAULT_TYPES, syncPool } from "@/lib/bilete";
+import { createDiscountTypes, createTypes, DEFAULT_TYPES, rotunjitLaPachet, seriiFolosite, syncPool } from "@/lib/bilete";
 
 async function requireAuth(): Promise<void> {
   if (!(await getSession())) redirect("/login");
@@ -69,7 +69,7 @@ export async function updateType(formData: FormData): Promise<void> {
   await sql`
     UPDATE ticket_types SET
       name = ${name}, description = ${description}, price = ${price},
-      stock = GREATEST(stock, ${stock}), position = ${position},
+      stock = GREATEST(stock, ${rotunjitLaPachet(stock, bundle)}), position = ${position},
       max_per_order = ${maxOrder}, bundle_size = ${bundle}, only_with_code = ${onlyCode},
       sale_starts_at = ${ts("sale_starts_at")}::timestamptz,
       sale_ends_at = ${ts("sale_ends_at")}::timestamptz
@@ -84,10 +84,9 @@ export async function updateType(formData: FormData): Promise<void> {
       SELECT serie, serie_start FROM ticket_types WHERE id = ${typeId}
     `) as { serie: string; serie_start: number }[];
     if (curent && (curent.serie !== serie || curent.serie_start !== serieStart)) {
-      const [dubla] = (await sql`
-        SELECT id FROM ticket_types WHERE event_id = ${id} AND serie = ${serie} AND id <> ${typeId}
-      `) as { id: number }[];
-      if (dubla) redirect(`/admin/cursuri/${id}/bilete?err=Seria ${serie} e deja folosită pe cursul ăsta.`);
+      const luate = await seriiFolosite();
+      luate.delete(curent.serie);
+      if (luate.has(serie)) redirect(`/admin/cursuri/${id}/bilete?err=Seria ${serie} e deja folosită la alt curs.`);
       await sql`DELETE FROM ticket_pool WHERE type_id = ${typeId}`;
       await sql`UPDATE ticket_types SET serie = ${serie}, serie_start = ${serieStart} WHERE id = ${typeId}`;
     }
