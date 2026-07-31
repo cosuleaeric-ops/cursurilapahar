@@ -18,9 +18,11 @@ const oraFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, hour: "2-digit",
 const ACCES_MIN = 30;
 const randDeData = (d: Date) => {
   const acces = new Date(d.getTime() - ACCES_MIN * 60_000);
-  return `${ziData.format(d)}, ora ${oraFmt.format(d)} acces de la ${oraFmt.format(acces)}`;
+  return `${ziData.format(d)}, ora ${oraFmt.format(d)} (acces de la ora ${oraFmt.format(acces)})`;
 };
 const money = (v: number) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const vanzareFmt = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+const randDeVanzare = (d: Date) => `în vânzare din ${vanzareFmt.format(d)}`;
 
 type Ev = {
   id: number;
@@ -82,22 +84,42 @@ export default async function CursPage({
   const cod = codRaw ? await findDiscountCode(e.id, codRaw) : null;
   const codGresit = codRaw && !cod ? codRaw.trim().toUpperCase() : undefined;
 
+  // Biletele „doar cu cod" nu apar în lista normală; cele programate apar, dar
+  // cu ora de la care se pot lua, ca omul să știe când să revină.
   const types = (await sql`
-    SELECT t.id, t.name, t.description, t.price,
+    SELECT t.id, t.name, t.description, t.price, t.max_per_order, t.bundle_size,
+           t.sale_starts_at, t.sale_ends_at,
            COUNT(p.id) FILTER (WHERE p.status = 'liber')::int AS libere
     FROM ticket_types t LEFT JOIN ticket_pool p ON p.type_id = t.id
-    WHERE t.event_id = ${e.id} AND t.discount_code_id IS NOT DISTINCT FROM ${cod?.id ?? null}
+    WHERE t.event_id = ${e.id}
+      AND t.discount_code_id IS NOT DISTINCT FROM ${cod?.id ?? null}
+      AND (t.only_with_code = false OR ${cod?.id ?? null}::int IS NOT NULL)
+      AND (t.sale_ends_at IS NULL OR t.sale_ends_at > now())
     GROUP BY t.id ORDER BY t.position, t.id
-  `) as { id: number; name: string; description: string | null; price: string; libere: number }[];
+  `) as {
+    id: number;
+    name: string;
+    description: string | null;
+    price: string;
+    max_per_order: number;
+    bundle_size: number;
+    sale_starts_at: string | null;
+    sale_ends_at: string | null;
+    libere: number;
+  }[];
 
+  const acum = Date.now();
   const picker: PickerType[] = types.map((t) => ({
     id: t.id,
     name: t.name,
     description: t.description,
     price: Number(t.price),
     libere: t.libere,
+    maxPerOrder: t.max_per_order,
+    bundle: t.bundle_size,
+    dinData: t.sale_starts_at && new Date(t.sale_starts_at).getTime() > acum ? randDeVanzare(new Date(t.sale_starts_at)) : null,
   }));
-  const areStoc = picker.some((t) => t.libere > 0);
+  const areStoc = picker.some((t) => t.libere > 0 && !t.dinData);
   const checkoutPropriu = await checkoutPropriuActiv();
   const d = e.starts_at ? new Date(e.starts_at) : null;
   const { loc, oras } = locOras(e.location);
@@ -199,10 +221,16 @@ export default async function CursPage({
                 {picker.map((t) => (
                   <div key={t.id} className="bt-row">
                     <div className="bt-main">
-                      <h3>{t.name}</h3>
+                      <h3>
+                        {t.name}
+                        {t.bundle > 1 && <span className="bt-pachet">pentru {t.bundle} persoane</span>}
+                      </h3>
                       {t.description && <p>{t.description}</p>}
                     </div>
-                    <div className="bt-price">{money(t.price)} lei</div>
+                    <div className="bt-price">
+                      {money(t.price)} lei
+                      {t.dinData && <span className="bt-left">{t.dinData}</span>}
+                    </div>
                   </div>
                 ))}
               </div>

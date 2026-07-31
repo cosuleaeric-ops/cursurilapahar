@@ -15,6 +15,13 @@ export type TicketType = {
   serie: string;
   position: number;
   discount_code_id: number | null;
+  description: string | null;
+  sale_starts_at: string | null;
+  sale_ends_at: string | null;
+  max_per_order: number;
+  only_with_code: boolean;
+  serie_start: number;
+  bundle_size: number;
 };
 
 export type PoolStatus = "liber" | "vandut" | "casat";
@@ -157,6 +164,8 @@ export type TypeRow = TicketType & { vandute: number; libere: number; casate: nu
 export async function getTypes(eventId: number): Promise<TypeRow[]> {
   return (await sql`
     SELECT t.id, t.event_id, t.name, t.price, t.stock, t.serie, t.position, t.discount_code_id,
+           t.description, t.sale_starts_at, t.sale_ends_at, t.max_per_order, t.only_with_code,
+           t.serie_start, t.bundle_size,
            COUNT(p.id) FILTER (WHERE p.status = 'vandut')::int AS vandute,
            COUNT(p.id) FILTER (WHERE p.status = 'liber')::int  AS libere,
            COUNT(p.id) FILTER (WHERE p.status = 'casat')::int  AS casate
@@ -176,7 +185,7 @@ export async function syncPool(typeId: number): Promise<void> {
   await sql`
     INSERT INTO ticket_pool (event_id, type_id, serie, numar, qr_token)
     SELECT t.event_id, t.id, t.serie, g, replace(gen_random_uuid()::text, '-', '')
-    FROM ticket_types t, generate_series(1, t.stock) g
+    FROM ticket_types t, generate_series(t.serie_start, t.serie_start + t.stock - 1) g
     WHERE t.id = ${typeId}
     ON CONFLICT (event_id, serie, numar) DO NOTHING
   `;

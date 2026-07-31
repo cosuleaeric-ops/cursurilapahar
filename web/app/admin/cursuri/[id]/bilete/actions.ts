@@ -38,8 +38,10 @@ export async function addDefaultTypes(formData: FormData): Promise<void> {
 }
 
 /**
- * Schimbă numele, prețul sau stocul. Stocul poate doar să crească — biletele
- * deja vizate la primărie nu se pot retrage, se casează la final.
+ * Salvează toate setările unui tip. Stocul poate doar să crească — biletele
+ * deja vizate la primărie nu se retrag, se casează la final. Seria și numărul
+ * de start se pot schimba doar cât timp nu s-a vândut nimic din ele: sunt
+ * tipărite pe biletele deja emise.
  */
 export async function updateType(formData: FormData): Promise<void> {
   await requireAuth();
@@ -50,11 +52,47 @@ export async function updateType(formData: FormData): Promise<void> {
   const stock = Number(g(formData, "stock"));
   if (!id || !typeId || !name || !(price >= 0) || !(stock > 0)) back(id);
 
+  const description = g(formData, "description") || null;
+  const position = Number(g(formData, "position")) || 0;
+  const maxOrder = Math.max(1, Number(g(formData, "max_per_order")) || 10);
+  const bundle = Math.max(1, Number(g(formData, "bundle_size")) || 1);
+  const onlyCode = formData.get("only_with_code") != null;
+  const ts = (k: string) => {
+    const v = g(formData, k);
+    return v ? v.replace("T", " ") : null;
+  };
+
+  const [{ vandute }] = (await sql`
+    SELECT COUNT(*)::int AS vandute FROM ticket_pool WHERE type_id = ${typeId} AND status = 'vandut'
+  `) as { vandute: number }[];
+
   await sql`
-    UPDATE ticket_types
-    SET name = ${name}, price = ${price}, stock = GREATEST(stock, ${stock})
+    UPDATE ticket_types SET
+      name = ${name}, description = ${description}, price = ${price},
+      stock = GREATEST(stock, ${stock}), position = ${position},
+      max_per_order = ${maxOrder}, bundle_size = ${bundle}, only_with_code = ${onlyCode},
+      sale_starts_at = ${ts("sale_starts_at")}::timestamptz,
+      sale_ends_at = ${ts("sale_ends_at")}::timestamptz
     WHERE id = ${typeId} AND event_id = ${id}
   `;
+
+  // Seria și numerotarea se rescriu doar cât timp niciun bilet n-a plecat.
+  const serie = g(formData, "serie").toUpperCase();
+  const serieStart = Math.max(1, Number(g(formData, "serie_start")) || 1);
+  if (vandute === 0 && /^[A-Z]{3}$/.test(serie)) {
+    const [curent] = (await sql`
+      SELECT serie, serie_start FROM ticket_types WHERE id = ${typeId}
+    `) as { serie: string; serie_start: number }[];
+    if (curent && (curent.serie !== serie || curent.serie_start !== serieStart)) {
+      const [dubla] = (await sql`
+        SELECT id FROM ticket_types WHERE event_id = ${id} AND serie = ${serie} AND id <> ${typeId}
+      `) as { id: number }[];
+      if (dubla) redirect(`/admin/cursuri/${id}/bilete?err=Seria ${serie} e deja folosită pe cursul ăsta.`);
+      await sql`DELETE FROM ticket_pool WHERE type_id = ${typeId}`;
+      await sql`UPDATE ticket_types SET serie = ${serie}, serie_start = ${serieStart} WHERE id = ${typeId}`;
+    }
+  }
+
   await syncPool(typeId);
   revalidatePath(`/admin/cursuri/${id}/bilete`);
   back(id);

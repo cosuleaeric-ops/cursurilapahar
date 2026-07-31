@@ -16,13 +16,18 @@ import {
   updateCote,
   updateType,
 } from "./actions";
-import { BILETE_CSS, COD_CSS } from "./styles";
+import { BILETE_CSS, COD_CSS, TIP_CSS } from "./styles";
 
 export const dynamic = "force-dynamic";
 
 const TZ = "Europe/Bucharest";
 const roDate = new Intl.DateTimeFormat("ro-RO", { timeZone: TZ, day: "numeric", month: "long", year: "numeric" });
 const money = (v: number) => Number(v).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** timestamp → valoare pentru <input type="datetime-local">, ora Bucureşti */
+const dtFmt = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+});
+const dtLocal = (s: string | null) => (s ? dtFmt.format(new Date(s)).replace(" ", "T") : "");
 const luna = (s: string | null) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(s ?? "")).slice(0, 7);
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -92,7 +97,7 @@ export default async function BiletePage({
   return (
     <>
       <link rel="stylesheet" href="/admin/statistici/style.css" />
-      <style dangerouslySetInnerHTML={{ __html: VIEW_CSS + BILETE_CSS + COD_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: VIEW_CSS + BILETE_CSS + COD_CSS + TIP_CSS }} />
 
       <div className="course-wrap">
         {err && <div className="error-msg" style={{ display: "block", marginBottom: 16 }}>{err}</div>}
@@ -130,69 +135,121 @@ export default async function BiletePage({
               </p>
             </div>
           ) : (
-            <table className="bilete-table">
-              <thead>
-                <tr>
-                  <th>Tip</th>
-                  <th>Seria</th>
-                  <th className="num">Tarif</th>
-                  <th className="num">Stoc</th>
-                  <th className="num">Vândute</th>
-                  <th className="num">Libere</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {types.map((t) => (
-                  <tr key={t.id}>
-                    <td>
-                      <form action={updateType} className="row-form">
-                        <input type="hidden" name="id" value={id} />
-                        <input type="hidden" name="type_id" value={t.id} />
-                        <input name="name" defaultValue={t.name} className="in-name" />
-                        <input name="price" type="number" step="0.01" defaultValue={Number(t.price)} className="in-num" />
-                        <input name="stock" type="number" min={t.stock} defaultValue={t.stock} className="in-num" />
-                        <button type="submit" className="mini-btn">Salveaza</button>
-                      </form>
-                      {t.discount_code_id && codById.has(t.discount_code_id) && (
-                        <span className="cod-tag">cod {codById.get(t.discount_code_id)!.code}</span>
-                      )}
-                    </td>
-                    <td>
+            <div className="tip-list">
+              {types.map((t) => {
+                const cod = t.discount_code_id ? codById.get(t.discount_code_id) : null;
+                const programat = t.sale_starts_at && new Date(t.sale_starts_at) > new Date();
+                return (
+                  <details key={t.id} className="tip">
+                    <summary>
                       <span className="seria-badge">{t.serie}</span>
-                      <div className="serie-range">
-                        {formatNumar(1)} – {formatNumar(t.stock)}
+                      <strong>{t.name}</strong>
+                      <span className="tip-sum">
+                        {money(Number(t.price))} lei · {t.stock} bilete · {t.vandute} vandute
+                      </span>
+                      <span className="tip-badges">
+                        {cod && <em className="cod-tag">cod {cod.code}</em>}
+                        {programat && <em className="cod-tag">programat</em>}
+                        {t.only_with_code && !cod && <em className="cod-tag">doar cu cod</em>}
+                        {t.bundle_size > 1 && <em className="cod-tag">pachet {t.bundle_size}</em>}
+                      </span>
+                    </summary>
+
+                    <form action={updateType} className="tip-form">
+                      <input type="hidden" name="id" value={id} />
+                      <input type="hidden" name="type_id" value={t.id} />
+
+                      <label className="wide">
+                        <span>Nume bilet</span>
+                        <input name="name" defaultValue={t.name} required />
+                      </label>
+
+                      <label className="wide">
+                        <span>Scurta descriere</span>
+                        <textarea name="description" rows={3} defaultValue={t.description ?? ""} />
+                      </label>
+
+                      <label>
+                        <span>Pret (RON)</span>
+                        <input name="price" type="number" step="0.01" defaultValue={Number(t.price)} required />
+                      </label>
+                      <label>
+                        <span>Cantitate</span>
+                        <input name="stock" type="number" min={t.stock} defaultValue={t.stock} required />
+                        <small>Poate doar sa creasca</small>
+                      </label>
+                      <label>
+                        <span>Nr. ordine</span>
+                        <input name="position" type="number" defaultValue={t.position} />
+                      </label>
+
+                      <label>
+                        <span>Inceput vanzare</span>
+                        <input name="sale_starts_at" type="datetime-local" defaultValue={dtLocal(t.sale_starts_at)} />
+                      </label>
+                      <label>
+                        <span>Sfarsit vanzare</span>
+                        <input name="sale_ends_at" type="datetime-local" defaultValue={dtLocal(t.sale_ends_at)} />
+                        <small>Gol = pana la ora cursului</small>
+                      </label>
+                      <label>
+                        <span>Max pe comanda</span>
+                        <input name="max_per_order" type="number" min={1} defaultValue={t.max_per_order} />
+                      </label>
+
+                      <label>
+                        <span>Serie bilete</span>
+                        <input name="serie" defaultValue={t.serie} maxLength={3} disabled={t.vandute > 0} style={{ textTransform: "uppercase" }} />
+                      </label>
+                      <label>
+                        <span>Inceput serie</span>
+                        <input name="serie_start" type="number" min={1} defaultValue={t.serie_start} disabled={t.vandute > 0} />
+                        <small>
+                          {formatNumar(t.serie_start)} – {formatNumar(t.serie_start + t.stock - 1)}
+                          {t.vandute > 0 ? " · blocat, s-au emis bilete" : ""}
+                        </small>
+                      </label>
+                      <label>
+                        <span>Persoane per bilet</span>
+                        <input name="bundle_size" type="number" min={1} defaultValue={t.bundle_size} />
+                        <small>2 = un bilet, doua persoane</small>
+                      </label>
+
+                      <label className="check">
+                        <input type="checkbox" name="only_with_code" defaultChecked={t.only_with_code} />
+                        <span>Biletul apare doar cu cod</span>
+                      </label>
+
+                      <div className="tip-actions">
+                        <button type="submit" className="add-btn">Salveaza</button>
+                        <span className="tip-stat">
+                          {t.libere} libere{t.casate > 0 ? ` · ${t.casate} casate` : ""}
+                        </span>
                       </div>
-                    </td>
-                    <td className="num">{money(Number(t.price))}</td>
-                    <td className="num">{t.stock}</td>
-                    <td className="num">
+                    </form>
+
+                    <div className="tip-jos">
                       <form action={setVandute} className="row-form">
                         <input type="hidden" name="id" value={id} />
                         <input type="hidden" name="type_id" value={t.id} />
+                        <label style={{ fontSize: 11, color: "var(--muted)" }}>Vandute</label>
                         <input name="vandute" type="number" min={0} max={t.stock} defaultValue={t.vandute} className="in-num" />
                         <button type="submit" className="mini-btn">OK</button>
                       </form>
-                    </td>
-                    <td className="num">
-                      {t.libere}
-                      {t.casate > 0 && <span className="casate-tag">{t.casate} casate</span>}
-                    </td>
-                    <td>
                       {t.vandute === 0 && (
                         <form action={deleteType} style={{ margin: 0 }}>
                           <input type="hidden" name="id" value={id} />
                           <input type="hidden" name="type_id" value={t.id} />
                           <ConfirmButton message={`Stergi tipul «${t.name}»?`} className="x-btn" title="Sterge">
-                            ×
+                            × Sterge tipul
                           </ConfirmButton>
                         </form>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
           )}
 
           <form action={addType} className="add-form">
