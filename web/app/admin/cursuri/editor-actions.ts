@@ -6,7 +6,7 @@ import { put } from "@vercel/blob";
 import sharp from "sharp";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { createTypes } from "@/lib/bilete";
+import { createTypes, type TipNou } from "@/lib/bilete";
 import { cleanDescriere } from "@/lib/descriere";
 import { COURSE_TIMES } from "./times";
 
@@ -65,21 +65,28 @@ async function urcaImagine(fd: FormData, camp: string, latime: number): Promise<
   return url;
 }
 
-type TipNou = { name: string; price: number; stock: number; description: string };
-
 /** Rândurile de bilete din formular: `tip_name[]`, `tip_price[]`, … */
 function tipuriDinForm(fd: FormData): TipNou[] {
   const nume = fd.getAll("tip_name").map(String);
   const preturi = fd.getAll("tip_price").map(String);
   const stocuri = fd.getAll("tip_stock").map(String);
   const descrieri = fd.getAll("tip_description").map(String);
+  const pachete = fd.getAll("tip_bundle").map(String);
+  const maxime = fd.getAll("tip_max").map(String);
   const out: TipNou[] = [];
   for (let i = 0; i < nume.length; i++) {
     const name = nume[i]?.trim();
     const price = Number((preturi[i] ?? "").replace(",", "."));
     const stock = Number(stocuri[i] ?? "");
     if (!name || !(price >= 0) || !(stock > 0)) continue;
-    out.push({ name, price, stock, description: (descrieri[i] ?? "").trim() });
+    out.push({
+      name,
+      price,
+      stock,
+      description: (descrieri[i] ?? "").trim(),
+      bundleSize: Math.max(1, Number(pachete[i] ?? 1) || 1),
+      maxPerOrder: Math.max(1, Number(maxime[i] ?? 10) || 10),
+    });
   }
   return out;
 }
@@ -146,14 +153,6 @@ export async function saveCourseFull(formData: FormData): Promise<void> {
 
   const tipuri = tipuriDinForm(formData);
   if (tipuri.length) await createTypes(created.id, tipuri);
-  // descrierile biletelor nu trec prin createTypes — le punem după, pe poziție
-  for (const [i, t] of tipuri.entries()) {
-    if (!t.description) continue;
-    await sql`
-      UPDATE ticket_types SET description = ${t.description}
-      WHERE event_id = ${created.id} AND position = ${i}
-    `;
-  }
 
   revalidatePath("/admin/cursuri");
   revalidatePath("/");

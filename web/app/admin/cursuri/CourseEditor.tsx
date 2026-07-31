@@ -167,13 +167,15 @@ export default function CourseEditor({
   const [speakerId, setSpeakerId] = useState(data?.speaker_id ?? 0);
   const [location, setLocation] = useState(data?.location ?? "");
   const [activ, setActiv] = useState(data?.active ?? false);
-  const [tipuri, setTipuri] = useState(
+  const [tipuri, setTipuri] = useState<
+    { name: string; price: number; stock: number; description: string; bundle: number; max: number }[]
+  >(
     data?.tipuri?.length
-      ? data.tipuri
+      ? data.tipuri.map((t) => ({ ...t, bundle: 1, max: 10 }))
       : [
-          { name: "Bilet standard", price: 50, stock: 55, description: "" },
-          { name: "Bilet student", price: 30, stock: 25, description: "" },
-          { name: "Bilet 1+1 GRATIS", price: 50, stock: 8, description: "" },
+          { name: "Bilet standard", price: 50, stock: 55, description: "", bundle: 1, max: 10 },
+          { name: "Bilet student", price: 30, stock: 25, description: "", bundle: 1, max: 10 },
+          { name: "Bilet 1+1 GRATIS", price: 50, stock: 8, description: "", bundle: 2, max: 1 },
         ],
   );
   const [activa, setActiva] = useState("despre");
@@ -371,13 +373,37 @@ export default function CourseEditor({
                         ×
                       </button>
                     </div>
-                    <div className="ce-field">
-                      <label>Scurtă descriere</label>
-                      <input
-                        name="tip_description"
-                        value={t.description}
-                        onChange={(e) => setTip(i, { description: e.target.value })}
-                      />
+                    <div className="ce-row">
+                      <div className="ce-field ce-field--mic">
+                        <label>Persoane</label>
+                        <input
+                          name="tip_bundle"
+                          type="number"
+                          min={1}
+                          value={t.bundle}
+                          onChange={(e) => setTip(i, { bundle: Number(e.target.value) })}
+                        />
+                        <small>{t.bundle > 1 ? `intră ${t.bundle} pe un bilet` : "un bilet, o persoană"}</small>
+                      </div>
+                      <div className="ce-field ce-field--mic">
+                        <label>Max / comandă</label>
+                        <input
+                          name="tip_max"
+                          type="number"
+                          min={1}
+                          value={t.max}
+                          onChange={(e) => setTip(i, { max: Number(e.target.value) })}
+                        />
+                        <small>cât poate lua cineva odată</small>
+                      </div>
+                      <div className="ce-field">
+                        <label>Scurtă descriere</label>
+                        <input
+                          name="tip_description"
+                          value={t.description}
+                          onChange={(e) => setTip(i, { description: e.target.value })}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -385,7 +411,9 @@ export default function CourseEditor({
               <button
                 type="button"
                 className="ce-add"
-                onClick={() => setTipuri((t) => [...t, { name: "", price: 50, stock: 20, description: "" }])}
+                onClick={() =>
+                  setTipuri((t) => [...t, { name: "", price: 50, stock: 20, description: "", bundle: 1, max: 10 }])
+                }
               >
                 + Încă un tip de bilet
               </button>

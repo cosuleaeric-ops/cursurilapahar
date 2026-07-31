@@ -80,11 +80,19 @@ export const DEFAULT_TYPES: { name: string; price: number; stock: number }[] = [
   { name: "Bilet 1+1 GRATIS", price: 50, stock: 8 },
 ];
 
+export type TipNou = {
+  name: string;
+  price: number;
+  stock: number;
+  description?: string;
+  /** Câte persoane intră pe un bilet: 2 = 1+1, 3 = 2+1. */
+  bundleSize?: number;
+  /** Câte bucăți poate lua cineva într-o comandă. */
+  maxPerOrder?: number;
+};
+
 /** Creează tipuri cu serii unice în cadrul cursului și le generează pool-ul. */
-export async function createTypes(
-  eventId: number,
-  defs: { name: string; price: number; stock: number }[],
-): Promise<void> {
+export async function createTypes(eventId: number, defs: TipNou[]): Promise<void> {
   const existing = (await sql`SELECT serie FROM ticket_types WHERE event_id = ${eventId}`) as { serie: string }[];
   const taken = new Set(existing.map((r) => r.serie));
   const [{ pos }] = (await sql`
@@ -94,8 +102,10 @@ export async function createTypes(
   for (const [i, d] of defs.entries()) {
     const serie = randomSerie(taken);
     const [type] = (await sql`
-      INSERT INTO ticket_types (event_id, name, price, stock, serie, position)
-      VALUES (${eventId}, ${d.name}, ${d.price}, ${d.stock}, ${serie}, ${pos + i})
+      INSERT INTO ticket_types (event_id, name, description, price, stock, serie, position,
+                                bundle_size, max_per_order)
+      VALUES (${eventId}, ${d.name}, ${d.description || null}, ${d.price}, ${d.stock}, ${serie}, ${pos + i},
+              ${Math.max(1, d.bundleSize ?? 1)}, ${Math.max(1, d.maxPerOrder ?? 10)})
       RETURNING id
     `) as { id: number }[];
     await syncPool(type.id);
