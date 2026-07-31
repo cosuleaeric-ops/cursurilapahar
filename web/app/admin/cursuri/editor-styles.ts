@@ -23,9 +23,12 @@ export const EDITOR_CSS = `
     .ce-field--mic { max-width:110px; }
     .ce-row { display:flex; gap:14px; align-items:flex-start; }
     .ce-row > .ce-field { flex:1; }
-    .ce-suggest { position:absolute; top:100%; left:0; right:0; z-index:20; background:var(--card); border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow); overflow:hidden; margin-top:3px; }
-    .ce-suggest button { display:block; width:100%; text-align:left; padding:9px 12px; border:none; background:none; font-size:13px; cursor:pointer; font-family:inherit; }
-    .ce-suggest button:hover { background:var(--green-light); }
+    .ce-combo { position:relative; }
+    .ce-combo--open { z-index:60; }
+    .ce-combo-anchor { position:relative; }
+    .ce-suggest { position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:70; background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.16); overflow-y:auto; max-height:280px; padding:4px; }
+    .ce-suggest button { display:block; width:100%; text-align:left; padding:9px 11px; border:none; background:none; font-size:13px; cursor:pointer; font-family:inherit; border-radius:7px; color:var(--text); }
+    .ce-suggest button:hover { background:var(--green-light); color:var(--green); }
     .ce-imgs { display:grid; grid-template-columns:1fr 1.6fr; gap:18px; }
     .ce-img-head { margin-bottom:8px; }
     .ce-img-head strong { display:block; font-size:13px; }

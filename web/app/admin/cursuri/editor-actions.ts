@@ -93,7 +93,6 @@ export async function saveCourseFull(formData: FormData): Promise<void> {
   const time = g(formData, "time");
   const speakerId = Number(g(formData, "speaker_id")) || 0;
   const location = g(formData, "location");
-  const ltUrl = g(formData, "livetickets_url");
   const descriere = cleanDescriere(g(formData, "description"));
   const activ = formData.get("active") != null;
 
@@ -123,14 +122,10 @@ export async function saveCourseFull(formData: FormData): Promise<void> {
         title = ${title}, slug = ${slug},
         starts_at = (${startsAt}::timestamp AT TIME ZONE ${TZ}),
         speaker_id = ${speakerId}, speaker_name = ${speaker.name},
-        location = ${location || null}, livetickets_url = ${ltUrl || null},
+        location = ${location || null},
         description = ${descriere || null}, active = ${activ},
         image_url = COALESCE(NULLIF(${portret}, ''), image_url),
         image_landscape_url = COALESCE(NULLIF(${landscape}, ''), image_landscape_url),
-        link_added_at = CASE
-          WHEN ${ltUrl} = '' THEN link_added_at
-          WHEN coalesce(livetickets_url, '') = '' THEN now()
-          ELSE link_added_at END,
         updated_at = now()
       WHERE id = ${id}
     `;
@@ -142,11 +137,10 @@ export async function saveCourseFull(formData: FormData): Promise<void> {
   const cardId = `c${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
   const [created] = (await sql`
     INSERT INTO events (title, slug, legacy_card_id, starts_at, speaker_id, speaker_name, location,
-                        livetickets_url, image_url, image_landscape_url, description, active, link_added_at)
+                        image_url, image_landscape_url, description, active)
     VALUES (${title}, ${slug}, ${cardId}, (${startsAt}::timestamp AT TIME ZONE ${TZ}), ${speakerId},
-            ${speaker.name}, ${location || null}, ${ltUrl || null}, ${portret || null},
-            ${landscape || null}, ${descriere || null}, ${activ},
-            CASE WHEN ${ltUrl} = '' THEN NULL ELSE now() END)
+            ${speaker.name}, ${location || null}, ${portret || null},
+            ${landscape || null}, ${descriere || null}, ${activ})
     RETURNING id
   `) as { id: number }[];
 

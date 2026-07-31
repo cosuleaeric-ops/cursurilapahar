@@ -65,37 +65,41 @@ function Combobox({
   const matches = options.filter((o) => !q || o.name.toLowerCase().includes(q));
 
   return (
-    <div className="ce-field" ref={box} style={{ position: "relative" }}>
+    <div className={`ce-field ce-combo${open ? " ce-combo--open" : ""}`} ref={box}>
       <label>{label}</label>
-      <input
-        type="text"
-        autoComplete="off"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-      />
+      {/* Lista se ancorează de input, nu de tot câmpul: altfel pornea sub textul
+          ajutător și acoperea eticheta câmpului următor. */}
+      <div className="ce-combo-anchor">
+        <input
+          type="text"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+        />
+        {open && matches.length > 0 && (
+          <div className="ce-suggest">
+            {matches.map((o) => (
+              <button
+                type="button"
+                key={o.id}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onChange(o.name);
+                  onPick?.(o);
+                  setOpen(false);
+                }}
+              >
+                {o.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       {placeholderHint && <small>{placeholderHint}</small>}
-      {open && matches.length > 0 && (
-        <div className="ce-suggest">
-          {matches.slice(0, 8).map((o) => (
-            <button
-              type="button"
-              key={o.id}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                onChange(o.name);
-                onPick?.(o);
-                setOpen(false);
-              }}
-            >
-              {o.name}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -410,11 +414,6 @@ export default function CourseEditor({
               <em>Nebifat, rămâne ciornă și nu apare nicăieri.</em>
             </span>
           </label>
-          <div className="ce-field">
-            <label>Link LiveTickets (cât timp vinzi acolo)</label>
-            <input name="livetickets_url" defaultValue={data?.livetickets_url ?? ""} />
-            <small>Gol = butonul de pe pagina cursului duce la coșul propriu.</small>
-          </div>
           {data?.slug && (
             <div className="ce-field">
               <label>Adresa paginii</label>
