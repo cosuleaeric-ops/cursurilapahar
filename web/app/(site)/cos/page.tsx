@@ -30,9 +30,9 @@ function parseSelectie(t: string): { typeId: number; qty: number }[] {
 export default async function CosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ e?: string; t?: string }>;
+  searchParams: Promise<{ e?: string; t?: string; err?: string }>;
 }) {
-  const { e: eStr, t: tStr } = await searchParams;
+  const { e: eStr, t: tStr, err } = await searchParams;
   const eventId = Number(eStr);
   const selectie = parseSelectie(tStr ?? "");
   if (!eventId || !selectie.length) return <CosGol />;
@@ -99,6 +99,8 @@ export default async function CosPage({
               )}
             </div>
           </div>
+
+          {err && <p className="cos-warn">{err}</p>}
 
           {redus && (
             <p className="cos-warn">
