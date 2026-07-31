@@ -124,127 +124,157 @@ export default async function CursPage({
   const d = e.starts_at ? new Date(e.starts_at) : null;
   const { loc, oras } = locOras(e.location);
 
+  const pretMin = picker.filter((t) => t.libere > 0).reduce((m, t) => Math.min(m, t.price), Infinity);
+  const hero = e.image_landscape_url || e.image_url;
+
   return (
-    <section className="section curs-page">
-      <div className="container">
-        <a href="/#cursuri" className="curs-back">
-          ← Toate cursurile
-        </a>
-
-        <div className="curs-top">
-          <div className="curs-col-poster">
-          <div className="curs-poster">
-            {e.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={e.image_url} alt={curat(e.title)} />
-            ) : (
-              <div className="curs-poster-empty" />
-            )}
-            {e.sold_out && <div className="sold-out-badge">SOLD OUT</div>}
-          </div>
-
-          <a
-            className="curs-follow"
-            href="https://www.instagram.com/cursurilapahar"
-            target="_blank"
-            rel="noopener"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-            </svg>
-            Follow Cursuri la Pahar
-          </a>
-          </div>
-
-          <div className="curs-head">
-            <h1 className="curs-title">{curat(e.title)}</h1>
-
-            <div className="curs-facts">
-              {e.location && (
-                <div className="curs-fact">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span>
-                    <b>{loc}</b>
-                    {oras && `, ${oras}`}
-                  </span>
-                </div>
-              )}
-              {d && (
-                <div className="curs-fact">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                  </svg>
-                  <span>{randDeData(d)}</span>
-                </div>
-              )}
-              {e.speaker_name && (
-                <div className="curs-fact">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  <span>{e.speaker_name}</span>
-                </div>
-              )}
-            </div>
-
-            {e.description && <DescriereToggle html={e.description} />}
-          </div>
-        </div>
-
-        <div className="curs-bilete" id="bilete">
-          <h2>Comandă bilete</h2>
-
-          {cod && (
-            <div className="cod-activ">
-              <span>
-                Cod <strong>{cod.code}</strong> aplicat — reducere {Number(cod.percent)}%
-              </span>
-              <a href={`/curs/${e.slug}`}>Renunță</a>
-            </div>
-          )}
-
-          {e.sold_out ? (
-            <p className="curs-order-out">S-au epuizat biletele.</p>
-          ) : areStoc ? (
-            <TicketPicker eventId={e.id} types={picker} slug={e.slug} codAplicat={!!cod} codGresit={codGresit} />
-          ) : e.livetickets_url ? (
-            // Fără checkout propriu — sau fără pool definit pe cursul ăsta —
-            // vânzarea rămâne pe LiveTickets, prin același /go/course care
-            // numără clicul și conversia testului A/B.
-            <>
-              <div className="bt-list">
-                {picker.map((t) => (
-                  <div key={t.id} className="bt-row">
-                    <div className="bt-main">
-                      <h3>
-                        {t.name}
-                        {t.bundle > 1 && <span className="bt-pachet">se iau câte {t.bundle}</span>}
-                      </h3>
-                      {t.description && <p>{t.description}</p>}
-                    </div>
-                    <div className="bt-price">
-                      {money(t.price)} lei
-                      {t.dinData && <span className="bt-left">{t.dinData}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="bt-foot">
-                <div className="bt-total">{!cod && <CodReducere slug={e.slug} gresit={codGresit} />}</div>
-                <a href={`/go/course?id=${e.id}`} className="btn btn-primary bt-cta" target="_blank" rel="noopener">
-                  Comandă bilete
-                </a>
-              </div>
-            </>
+    <section className="curs-page">
+      {/* Hero pe toată lățimea, cu fundal blurat din aceeași imagine — ca pe
+          paginile de eveniment: afișul se vede întreg, fără tăieturi. */}
+      <div className="eb-hero">
+        {hero && <div className="eb-hero-bg" style={{ backgroundImage: `url(${hero})` }} />}
+        <div className="eb-hero-in">
+          {hero ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={hero} alt={curat(e.title)} />
           ) : (
-            <p className="curs-order-out">Biletele nu sunt încă puse în vânzare.</p>
+            <div className="eb-hero-gol" />
           )}
         </div>
+      </div>
+
+      <div className="container eb-wrap">
+        <div className="eb-main">
+          <a href="/#cursuri" className="eb-back">
+            ← Toate cursurile
+          </a>
+
+          {e.sold_out && <span className="eb-badge">SOLD OUT</span>}
+
+          <h1 className="eb-title">{curat(e.title)}</h1>
+
+          <div className="eb-org">
+            <span className="eb-avatar" aria-hidden="true">
+              CP
+            </span>
+            <div className="eb-org-txt">
+              <em>ORGANIZATOR</em>
+              <strong>Cursuri la Pahar</strong>
+            </div>
+            <a className="eb-follow" href="https://www.instagram.com/cursurilapahar" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+              </svg>
+              Urmărește
+            </a>
+          </div>
+
+          <div className="eb-facts">
+            {e.location && (
+              <div className="eb-fact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span>
+                  {loc}
+                  {oras && <i> · {oras}</i>}
+                </span>
+              </div>
+            )}
+            {d && (
+              <div className="eb-fact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 11h18" />
+                </svg>
+                <span>{randDeData(d)}</span>
+              </div>
+            )}
+            {e.speaker_name && (
+              <div className="eb-fact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>{e.speaker_name}</span>
+              </div>
+            )}
+          </div>
+
+          {e.description && (
+            <div className="eb-sec">
+              <h2>Despre curs</h2>
+              <DescriereToggle html={e.description} />
+            </div>
+          )}
+
+          <div className="eb-sec" id="bilete">
+            <h2>Bilete</h2>
+
+            {cod && (
+              <div className="cod-activ">
+                <span>
+                  Cod <strong>{cod.code}</strong> aplicat — reducere {Number(cod.percent)}%
+                </span>
+                <a href={`/curs/${e.slug}`}>Renunță</a>
+              </div>
+            )}
+
+            {e.sold_out ? (
+              <p className="eb-gol">S-au epuizat biletele.</p>
+            ) : areStoc ? (
+              <TicketPicker eventId={e.id} types={picker} slug={e.slug} codAplicat={!!cod} codGresit={codGresit} />
+            ) : e.livetickets_url ? (
+              <>
+                <div className="bt-list">
+                  {picker.map((t) => (
+                    <div key={t.id} className="bt-row">
+                      <div className="bt-main">
+                        <h3>
+                          {t.name}
+                          {t.bundle > 1 && <span className="bt-pachet">se iau câte {t.bundle}</span>}
+                        </h3>
+                        {t.description && <p>{t.description}</p>}
+                      </div>
+                      <div className="bt-price">
+                        {money(t.price)} lei
+                        {t.dinData && <span className="bt-left">{t.dinData}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bt-foot">
+                  <div className="bt-total" />
+                  <a href={`/go/course?id=${e.id}`} className="eb-cta" target="_blank" rel="noopener">
+                    Ia bilete
+                  </a>
+                </div>
+              </>
+            ) : (
+              <p className="eb-gol">Biletele nu sunt încă puse în vânzare.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Cardul de conversie: lipit în dreapta pe desktop, bară fixă jos pe telefon. */}
+        <aside className="eb-side">
+          <div className="eb-card">
+            <div className="eb-card-pret">
+              {Number.isFinite(pretMin) ? (
+                <>
+                  <strong>de la {money(pretMin)} lei</strong>
+                  <span>{d ? ziData.format(d) : ""}</span>
+                </>
+              ) : (
+                <strong>{e.sold_out ? "Sold out" : "În curând"}</strong>
+              )}
+            </div>
+            <a href="#bilete" className="eb-cta">
+              {e.sold_out ? "S-au epuizat" : "Ia bilete"}
+            </a>
+          </div>
+        </aside>
       </div>
     </section>
   );

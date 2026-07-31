@@ -1392,56 +1392,71 @@ ul { list-style: none; }
   .newsletter-fields button { width: 100%; }
 }
 
-/* ============ PAGINA DE CURS + COȘ ============ */
-.curs-page { padding-top: 40px; }
-.curs-back { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 20px; transition: color var(--transition); }
-.curs-back:hover { color: var(--accent); }
+/* ============ PAGINA DE CURS (structura de pagina de eveniment) ============ */
+.curs-page { padding-bottom: 60px; }
 
-/* Sus: afișul în stânga, tot restul în dreapta */
-.curs-top { display: grid; grid-template-columns: 320px 1fr; gap: 40px; align-items: start; margin-bottom: 48px; }
-.curs-col-poster { display: flex; flex-direction: column; gap: 12px; }
-.curs-poster { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-card); }
-.curs-poster img { width: 100%; height: auto; display: block; }
-.curs-poster-empty { width: 100%; aspect-ratio: 3/4; background: linear-gradient(135deg, #1a1a1a, #262626); }
-.curs-title { font-family: var(--font-heading); font-size: clamp(28px, 4vw, 44px); line-height: 1.15; margin-bottom: 24px; }
-.curs-facts { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
-.curs-fact { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; color: var(--text); }
-.curs-fact svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); margin-top: 2px; }
-.curs-fact b { font-weight: 600; }
+/* Hero: imaginea intreaga, pe un fundal blurat din ea insasi */
+.eb-hero { position: relative; overflow: hidden; background: #0a0a0a; margin-bottom: 32px; }
+.eb-hero-bg { position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(40px) saturate(1.2); opacity: .45; }
+.eb-hero-in { position: relative; max-width: 1180px; margin: 0 auto; height: clamp(280px, 46vw, 560px); display: flex; align-items: center; justify-content: center; }
+.eb-hero-in img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
+.eb-hero-gol { width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a, #262626); }
 
-/* Descrierea pornește scurtată */
-.curs-desc-html { font-size: 16px; line-height: 1.75; color: var(--text); }
-.curs-desc-html--scurt { max-height: 168px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
-.curs-desc-html p { margin-bottom: 16px; }
-.curs-desc-html p:last-child { margin-bottom: 0; }
-.curs-desc-html strong { color: #fff; }
-.curs-desc-html ul, .curs-desc-html ol { margin: 0 0 16px 20px; }
-.curs-desc-html li { margin-bottom: 8px; }
-.curs-desc-html a { color: var(--accent); }
-.curs-desc-toggle { margin-top: 12px; background: none; border: none; padding: 0; color: var(--accent); font-size: 15px; font-family: inherit; cursor: pointer; }
-.curs-desc-toggle:hover { text-decoration: underline; }
+.eb-wrap { display: grid; grid-template-columns: minmax(0,1fr) 372px; gap: 48px; align-items: start; }
+.eb-back { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 18px; }
+.eb-back:hover { color: var(--accent); }
+.eb-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .8px; padding: 5px 12px; border-radius: 4px; background: var(--accent); color: #0D0D0D; margin-bottom: 14px; }
 
-/* Jos: biletele, pe toată lățimea */
-.curs-bilete { max-width: 860px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 30px 32px; }
-.curs-bilete h2 { font-size: 24px; margin-bottom: 6px; padding-bottom: 18px; border-bottom: 2px solid var(--accent); display: inline-block; }
-.curs-order-out { color: var(--text-muted); font-size: 15px; margin-top: 20px; }
-.bt-list { margin-top: 10px; }
-.bt-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px 32px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--border); }
+.eb-title { font-family: var(--font-heading); font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; line-height: 1.1; letter-spacing: -.4px; margin: 0 0 26px; }
+
+/* Randul cu organizatorul */
+.eb-org { display: flex; align-items: center; gap: 14px; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--border); }
+.eb-avatar { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: #0D0D0D; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center; letter-spacing: .5px; }
+.eb-org-txt { flex: 1; min-width: 0; }
+.eb-org-txt em { display: block; font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--text-muted); }
+.eb-org-txt strong { display: block; font-size: 16px; font-weight: 600; margin-top: 2px; }
+.eb-follow { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: all var(--transition); }
+.eb-follow:hover { border-color: var(--accent); color: var(--accent); }
+.eb-follow svg { width: 18px; height: 18px; }
+
+/* Data, locatia, speakerul */
+.eb-facts { display: flex; flex-direction: column; gap: 12px; margin-bottom: 34px; }
+.eb-fact { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; line-height: 1.45; }
+.eb-fact svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; color: var(--text-muted); }
+.eb-fact i { font-style: normal; color: var(--text-muted); }
+
+.eb-sec { margin-bottom: 40px; }
+.eb-sec h2 { font-family: var(--font-heading); font-size: 26px; font-weight: 800; letter-spacing: -.2px; margin: 0 0 18px; }
+.eb-gol { color: var(--text-muted); font-size: 15px; }
+
+/* Cardul de conversie */
+.eb-side { position: sticky; top: 96px; }
+.eb-card { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); padding: 22px; }
+.eb-card-pret { margin-bottom: 16px; }
+.eb-card-pret strong { display: block; font-size: 22px; font-weight: 700; }
+.eb-card-pret span { display: block; font-size: 14px; color: var(--text-muted); margin-top: 3px; }
+.eb-cta { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 15px 24px; background: var(--accent); color: #0D0D0D; border: none; border-radius: 4px; font-size: 18px; font-weight: 700; font-family: inherit; text-decoration: none; cursor: pointer; transition: filter var(--transition); }
+.eb-cta:hover { filter: brightness(1.08); }
+
+/* Lista de bilete */
+.bt-list { border-top: 1px solid var(--border); }
+.bt-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px 28px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--border); }
 .bt-row--out { opacity: .45; }
-.bt-main h3 { font-size: 18px; font-weight: 500; margin: 0 0 6px; }
-.bt-main p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; max-width: 62ch; }
-.bt-price { font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
-.bt-left { display: block; font-size: 12px; color: var(--accent); margin-top: 4px; font-variant-numeric: normal; }
+.bt-main h3 { font-size: 17px; font-weight: 600; margin: 0 0 5px; }
+.bt-main p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; max-width: 60ch; }
+.bt-price { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.bt-left { display: block; font-size: 12px; font-weight: 400; color: var(--accent); margin-top: 4px; }
 .bt-left--out { color: var(--text-muted); }
-.bt-stepper { display: flex; align-items: center; gap: 6px; }
-.bt-stepper button { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text); font-size: 20px; cursor: pointer; line-height: 1; transition: all var(--transition); }
+.bt-pachet { display: inline-block; margin-left: 10px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(201,168,76,.4); border-radius: 4px; padding: 2px 8px; vertical-align: middle; }
+.bt-stepper { display: flex; align-items: center; gap: 4px; }
+.bt-stepper button { width: 38px; height: 38px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text); font-size: 20px; cursor: pointer; line-height: 1; transition: all var(--transition); }
 .bt-stepper button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .bt-stepper button:disabled { opacity: .3; cursor: default; }
 .bt-stepper span { min-width: 32px; text-align: center; font-variant-numeric: tabular-nums; font-size: 17px; }
-.bt-foot { display: flex; justify-content: flex-end; align-items: center; gap: 24px; padding-top: 24px; flex-wrap: wrap; }
+.bt-foot { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 24px; flex-wrap: wrap; }
 .bt-total { display: flex; align-items: baseline; gap: 12px; color: var(--text-muted); font-size: 15px; }
-.bt-total strong { font-size: 26px; color: var(--text); font-variant-numeric: tabular-nums; }
-.bt-cta { min-width: 220px; justify-content: center; text-align: center; }
+.bt-total strong { font-size: 24px; color: var(--text); font-variant-numeric: tabular-nums; }
+.bt-cta { min-width: 200px; justify-content: center; text-align: center; }
 .bt-cta--off { opacity: .35; pointer-events: none; }
 
 /* Coș */
@@ -1470,24 +1485,36 @@ ul { list-style: none; }
 .cos-f small { display: block; font-size: 12px; color: var(--text-faint); margin-top: 6px; }
 .cos-cta { width: 100%; justify-content: center; margin-top: 6px; }
 
-@media (max-width: 900px) {
-  .curs-top { grid-template-columns: 1fr; gap: 26px; }
-  .curs-col-poster { max-width: 320px; }
-  .curs-bilete { padding: 24px 20px; }
+@media (max-width: 1000px) {
+  .eb-wrap { grid-template-columns: 1fr; gap: 0; }
+  /* Pe telefon cardul din dreapta devine bara fixa de jos, ca la paginile de
+     eveniment: pretul in stanga, butonul mare in dreapta, mereu la indemana. */
+  .eb-side { position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 60; }
+  .eb-card { display: flex; align-items: center; gap: 16px; border: none; border-top: 1px solid var(--border); border-radius: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(13,13,13,.96); backdrop-filter: blur(12px); }
+  .eb-card-pret { flex: 1; min-width: 0; margin-bottom: 0; }
+  .eb-card-pret strong { font-size: 17px; }
+  .eb-card-pret span { font-size: 12px; }
+  .eb-cta { width: auto; flex-shrink: 0; padding: 13px 26px; font-size: 16px; }
+  .curs-page { padding-bottom: 96px; }
 }
-@media (max-width: 600px) {
-  .curs-page, .cos-page { padding-top: 24px; }
-  .curs-col-poster { max-width: none; }
-  .bt-row { grid-template-columns: 1fr auto; }
+@media (max-width: 700px) {
+  .eb-hero { margin-bottom: 22px; }
+  .eb-hero-in { height: auto; }
+  .eb-hero-in img { width: 100%; max-height: 60vh; }
+  .eb-title { margin-bottom: 20px; }
+  .eb-org { gap: 12px; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+  .eb-avatar { width: 44px; height: 44px; font-size: 13px; }
+  .eb-follow { padding: 9px 14px; font-size: 13px; }
+  .eb-facts { gap: 14px; margin-bottom: 28px; }
+  .eb-fact { font-size: 15px; }
+  .eb-sec h2 { font-size: 22px; }
+  .bt-row { grid-template-columns: 1fr auto; gap: 8px 16px; padding: 18px 0; }
   .bt-main { grid-column: 1 / -1; }
   .bt-price { text-align: left; }
   .bt-foot { justify-content: space-between; }
   .bt-cta { min-width: 0; flex: 1; }
+  .cos-page { padding-top: 24px; }
 }
-/* Butonul de Instagram, sub afis */
-.curs-follow { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 18px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; transition: all var(--transition); }
-.curs-follow:hover { border-color: var(--accent); color: var(--accent); }
-.curs-follow svg { width: 22px; height: 22px; flex-shrink: 0; }
 
 /* Cod de reducere */
 .cod-activ { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 18px 0 4px; padding: 12px 16px; background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.35); border-radius: var(--radius); font-size: 14px; }
