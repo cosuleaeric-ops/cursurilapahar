@@ -1,8 +1,10 @@
 name: Deploy via FTP
 
+# Dezactivat 1 aug 2026: cursurilapahar.ro e servit integral de Next pe Vercel
+# (inclusiv /admin), care deployează automat la push pe main. FTP-ul ducea PHP-ul
+# legacy pe Hostico, unde nu mai intră nimeni. Rămâne pornibil manual din Actions.
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
