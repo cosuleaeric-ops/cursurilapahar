@@ -1507,7 +1507,7 @@ ul { list-style: none; }
   .eb-wrap { grid-template-columns: 1fr; gap: 0; }
   /* Pe telefon cardul din dreapta devine bara fixa de jos, ca la paginile de
      eveniment: pretul in stanga, butonul mare in dreapta, mereu la indemana. */
-  .eb-side { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; }
+  .eb-side { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; }
   .eb-card { position: static; }
   .eb-card { display: flex; align-items: center; gap: 16px; border: none; border-top: 1px solid var(--border); border-radius: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.97); backdrop-filter: blur(12px); box-shadow: 0 -2px 18px rgba(27,23,32,.1); }
   .eb-card-pret { flex: 1; min-width: 0; margin-bottom: 0; }
@@ -1549,7 +1549,7 @@ ul { list-style: none; }
 .bt-pachet { display: inline-block; margin-left: 10px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(201,168,76,.4); border-radius: 10px; padding: 2px 9px; vertical-align: middle; }
 
 /* ============ MODALUL DE BILETE ============ */
-.mb-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.8); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.mb-overlay { position: fixed; inset: 0; z-index: 1200; background: rgba(0,0,0,.8); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .mb-panel { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 400px; width: 100%; max-width: 1120px; height: min(86vh, 880px); background: #fff; color: #1b1720; border-radius: 8px; overflow: hidden; }
 .mb-x { position: absolute; top: 12px; right: 14px; z-index: 3; width: 36px; height: 36px; border: none; background: none; font-size: 30px; line-height: 1; color: #6b6675; cursor: pointer; border-radius: 50%; }
 .mb-x:hover { background: rgba(0,0,0,.06); }
@@ -1584,7 +1584,7 @@ ul { list-style: none; }
 .mb-cta { width: auto; min-width: 190px; }
 .mb-cta--off { opacity: .35; pointer-events: none; }
 .mb-sumar { border-left: 1px solid rgba(27,23,32,.12); background: #faf9f7; display: flex; flex-direction: column; min-height: 0; }
-.mb-sumar > img { width: 100%; height: 190px; object-fit: cover; display: block; }
+.mb-sumar > img { width: 100%; max-height: 240px; object-fit: contain; display: block; background: #efede8; padding: 14px; }
 .mb-sumar-in { flex: 1; min-height: 0; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; }
 .mb-cos-gol { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9a95a3; gap: 10px; }
 .mb-cos-gol svg { width: 46px; height: 46px; }
