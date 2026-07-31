@@ -154,6 +154,7 @@ CREATE TABLE vote_courses (
     emoji       TEXT,
     description TEXT,
     likes       INTEGER NOT NULL DEFAULT 0,
+    views       INTEGER NOT NULL DEFAULT 0,
     active      BOOLEAN NOT NULL DEFAULT true,
     position    INTEGER,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()

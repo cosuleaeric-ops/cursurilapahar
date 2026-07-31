@@ -2,6 +2,20 @@
 
 Audit din 25 iulie 2026 pe 6 zone. 52 diferențe confirmate de un verificator independent.
 
+## Stare la 1 august 2026: 50 din 52 închise
+
+Reverificare a fiecărei intrări față de codul curent din `web/`. Ce a mai rămas:
+
+- **Subtile 5** — formularul de contact nu forțează cheile de checkbox goale în payload-ul
+  salvat (`contact-action.ts`); `colaborare-form.tsx:32` o face. Efect practic: zero.
+- **Subtile 16** — portul scrie în plus variabila CSS `--bg-surface` din `color_surface`.
+  Abatere voită a portului, inofensivă.
+
+**Nu mai sunt diferențe, deși scrie mai jos că sunt:** *Subtile 6* și *Subtile 14*
+(notificarea internă pe email către contact@cursurilapahar.ro). A fost scoasă și din PHP
+pe 30 iulie 2026, commit `6cf79c6` — deci ambele părți se comportă la fel. Restul
+intrărilor din document descriu starea de la 25 iulie și sunt istorie.
+
 ## Vizibile (28)
 
 ### 1. Card curs — badge-ul SOLD OUT

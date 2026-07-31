@@ -4,6 +4,17 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## 0. Structura repo-ului (citește întâi)
+
+- **`web/`** = site-ul LIVE. Next.js pe Vercel, baza de date Neon. Aici se lucrează.
+  Deploy: push pe `main` (automat) sau `npx vercel deploy --prod` din **rădăcină**.
+- **PHP-ul din rădăcină** (`index.php`, `admin/`, `lib/`, `api/`, `cron/`, `assets/`,
+  `includes/`) = **legacy, nu mai e servit nicăieri**. A rulat pe Hostico până în iulie
+  2026. Se păstrează doar ca referință pentru ultimele diferențe de paritate din
+  `web/PARITATE-SITE.md` și `web/PARITATE-ADMIN.md`. Nu-l modifica pentru bug-uri „de pe
+  site" — alea sunt în `web/`.
+- **`migration/`** = scripturile de migrare Hostico → Neon, rulate o singură dată.
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**

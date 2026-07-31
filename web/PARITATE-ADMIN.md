@@ -5,6 +5,25 @@ Rezultatul auditului automat din 25 iulie 2026: 14 zone comparate linie cu linie
 
 Ordinea: întâi ce se vede pe ecran.
 
+## Stare la 1 august 2026: 106 din 113 închise
+
+Reverificare a fiecărei intrări față de codul curent din `web/`. Ce a mai rămas:
+
+- **Vizibile 13** — la egalitate de participări, `web/lib/statistici.ts` sortează cu
+  `localeCompare(..., "ro")`, PHP-ul compara binar. Ordine ușor diferită în listă.
+- **Vizibile 33** — în Bibliotecă, butonul ✕ lipsește la cele 3 foldere statice
+  (`imagini/page.tsx:24`, `deletable: false`). Probabil corect: pe Vercel alea vin din
+  build, nu din Blob, deci nici n-ar avea ce șterge.
+- **Subtile 22** — la upload de favicon lipsesc două mesaje de eroare („prea mare" și
+  codul de upload); restul ramurilor există.
+
+**Abateri intenționate, a nu se „repara":** *Vizibile 31*, *Cosmetice 4, 7, 18* — lipsa
+atributelor `placeholder`, care e politică explicită în proiect. *Cosmetice 16* — textul
+„contul tău … în baza Neon", adaptat la stack-ul actual.
+
+*Vizibile 29* (coloana `views` lipsă din `migration/neon_schema.sql`) a fost reparată pe
+1 august 2026. Restul intrărilor descriu starea de la 25 iulie și sunt istorie.
+
 ## Vizibile (55)
 
 ### 1. Card „To-dos" — care 5 to-do-uri apar și în ce ordine
