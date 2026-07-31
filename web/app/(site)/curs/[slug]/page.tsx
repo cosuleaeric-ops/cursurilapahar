@@ -247,7 +247,7 @@ export default async function CursPage({
                 <div className="bt-foot">
                   <div className="bt-total" />
                   <a href={`/go/course?id=${e.id}`} className="eb-cta" target="_blank" rel="noopener">
-                    Ia bilete
+                    Cumpără bilete
                   </a>
                 </div>
               </>
@@ -271,7 +271,7 @@ export default async function CursPage({
               )}
             </div>
             <a href="#bilete" className="eb-cta">
-              {e.sold_out ? "S-au epuizat" : "Ia bilete"}
+              {e.sold_out ? "S-au epuizat" : "Cumpără bilete"}
             </a>
           </div>
         </aside>
