@@ -3,9 +3,9 @@ import { sql } from "@/lib/db";
 import { descriereText } from "@/lib/descriere";
 import { pageMetadata } from "@/lib/metadata";
 import { findDiscountCode } from "@/lib/bilete";
-import CodReducere from "./CodReducere";
+import BileteModal from "./BileteModal";
 import DescriereToggle from "./DescriereToggle";
-import TicketPicker, { type PickerType } from "./TicketPicker";
+import { type PickerType } from "./TicketPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -209,71 +209,23 @@ export default async function CursPage({
             </div>
           )}
 
-          <div className="eb-sec" id="bilete">
-            <h2>Bilete</h2>
-
-            {cod && (
-              <div className="cod-activ">
-                <span>
-                  Cod <strong>{cod.code}</strong> aplicat — reducere {Number(cod.percent)}%
-                </span>
-                <a href={`/curs/${e.slug}`}>Renunță</a>
-              </div>
-            )}
-
-            {e.sold_out ? (
-              <p className="eb-gol">S-au epuizat biletele.</p>
-            ) : areStoc ? (
-              <TicketPicker eventId={e.id} types={picker} slug={e.slug} codAplicat={!!cod} codGresit={codGresit} />
-            ) : e.livetickets_url ? (
-              <>
-                <div className="bt-list">
-                  {picker.map((t) => (
-                    <div key={t.id} className="bt-row">
-                      <div className="bt-main">
-                        <h3>
-                          {t.name}
-                          {t.bundle > 1 && <span className="bt-pachet">se iau câte {t.bundle}</span>}
-                        </h3>
-                        {t.description && <p>{t.description}</p>}
-                      </div>
-                      <div className="bt-price">
-                        {money(t.price)} lei
-                        {t.dinData && <span className="bt-left">{t.dinData}</span>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="bt-foot">
-                  <div className="bt-total" />
-                  <a href={`/go/course?id=${e.id}`} className="eb-cta" target="_blank" rel="noopener">
-                    Cumpără bilete
-                  </a>
-                </div>
-              </>
-            ) : (
-              <p className="eb-gol">Biletele nu sunt încă puse în vânzare.</p>
-            )}
-          </div>
         </div>
 
         {/* Cardul de conversie: lipit în dreapta pe desktop, bară fixă jos pe telefon. */}
         <aside className="eb-side">
-          <div className="eb-card">
-            <div className="eb-card-pret">
-              {Number.isFinite(pretMin) ? (
-                <>
-                  <strong>de la {money(pretMin)} lei</strong>
-                  <span>{d ? ziData.format(d) : ""}</span>
-                </>
-              ) : (
-                <strong>{e.sold_out ? "Sold out" : "În curând"}</strong>
-              )}
-            </div>
-            <a href="#bilete" className="eb-cta">
-              {e.sold_out ? "S-au epuizat" : "Cumpără bilete"}
-            </a>
-          </div>
+          <BileteModal
+            eventId={e.id}
+            slug={e.slug}
+            titlu={curat(e.title)}
+            cand={d ? randDeData(d) : ""}
+            imagine={hero}
+            types={picker}
+            pretMin={Number.isFinite(pretMin) ? pretMin : null}
+            soldOut={e.sold_out || !areStoc}
+            codAplicat={cod ? cod.code : null}
+            codGresit={codGresit}
+            ltUrl={e.livetickets_url}
+          />
         </aside>
       </div>
     </section>
