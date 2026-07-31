@@ -30,6 +30,7 @@ type Ev = {
   starts_at: string | null;
   location: string | null;
   image_url: string | null;
+  image_landscape_url: string | null;
   speaker_name: string | null;
   description: string | null;
   sold_out: boolean;
@@ -39,7 +40,7 @@ type Ev = {
 
 async function getEvent(slug: string): Promise<Ev | null> {
   const rows = (await sql`
-    SELECT id, slug, title, starts_at, location, image_url, speaker_name, description,
+    SELECT id, slug, title, starts_at, location, image_url, image_landscape_url, speaker_name, description,
            sold_out, livetickets_url, active
     FROM events WHERE slug = ${slug}
   `) as Ev[];
@@ -62,7 +63,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${curat(e.title)} — Curs la Pahar`,
     description: e.description ? descriereText(e.description) : "Un curs la un pahar, într-un bar din București.",
     path: `/curs/${e.slug}`,
-    ogImage: e.image_url ?? undefined,
+    // landscape-ul e făcut pentru share; posterul portret rămâne pe pagină
+    ogImage: e.image_landscape_url ?? e.image_url ?? undefined,
   });
 }
 

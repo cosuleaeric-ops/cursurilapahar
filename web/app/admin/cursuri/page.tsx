@@ -125,7 +125,15 @@ export default async function CursuriPage({
 
   return (
     <>
-      <h1 className="wp-page-title">Cursuri</h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <h1 className="wp-page-title" style={{ marginBottom: 0 }}>Cursuri</h1>
+        <a
+          href="/admin/cursuri/nou"
+          style={{ padding: "10px 20px", background: "var(--accent)", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}
+        >
+          + Curs nou
+        </a>
+      </div>
 
       {sp.saved && <div className="notice notice-success">Curs salvat.</div>}
 
