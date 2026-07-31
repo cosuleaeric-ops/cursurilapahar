@@ -117,8 +117,8 @@ export async function getTypes(eventId: number): Promise<TypeRow[]> {
  */
 export async function syncPool(typeId: number): Promise<void> {
   await sql`
-    INSERT INTO ticket_pool (event_id, type_id, serie, numar)
-    SELECT t.event_id, t.id, t.serie, g
+    INSERT INTO ticket_pool (event_id, type_id, serie, numar, qr_token)
+    SELECT t.event_id, t.id, t.serie, g, replace(gen_random_uuid()::text, '-', '')
     FROM ticket_types t, generate_series(1, t.stock) g
     WHERE t.id = ${typeId}
     ON CONFLICT (event_id, serie, numar) DO NOTHING

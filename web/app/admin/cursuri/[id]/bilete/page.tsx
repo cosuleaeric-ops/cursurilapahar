@@ -46,6 +46,10 @@ export default async function BiletePage({
   if (!event) notFound();
 
   const types = await getTypes(id);
+  // un bilet oarecare, ca să poți vedea cum arată ce primește participantul
+  const [exemplu] = (await sql`
+    SELECT qr_token FROM ticket_pool WHERE event_id = ${id} ORDER BY status = 'vandut' DESC, id LIMIT 1
+  `) as { qr_token: string | null }[];
   const totalPool = types.reduce((s, t) => s + t.stock, 0);
   const totalVandute = types.reduce((s, t) => s + t.vandute, 0);
   const totalLibere = types.reduce((s, t) => s + t.libere, 0);
@@ -221,6 +225,24 @@ export default async function BiletePage({
               Art. 481 Cod fiscal: 2% la spectacolele de la alin. (1), 5% la cele „cu caracter ocazional" de la alin.
               (2). Timbrele se scad din baza impozabilă — 0 dacă nu se aplică.
             </p>
+          </div>
+        )}
+
+        {totalPool > 0 && (
+          <div className="section-card">
+            <h3>La intrare</h3>
+            <div className="doc-list">
+              <a className="doc" href={`/admin/cursuri/${id}/checkin`}>
+                <strong>Scaneaza biletele</strong>
+                <span>Deschide camera telefonului · {totalVandute} bilete vandute</span>
+              </a>
+              {exemplu?.qr_token && (
+                <a className="doc" href={`/bilet/${exemplu.qr_token}`} target="_blank" rel="noopener">
+                  <strong>Vezi un bilet</strong>
+                  <span>Exact ce primeste participantul</span>
+                </a>
+              )}
+            </div>
           </div>
         )}
 
