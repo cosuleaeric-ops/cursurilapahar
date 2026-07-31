@@ -81,12 +81,19 @@ export async function toggleCampaign(formData: FormData): Promise<void> {
   const id = String(formData.get("campaign_id") ?? "");
   const status = String(formData.get("status") ?? "") === "ACTIVE" ? "ACTIVE" : "PAUSED";
 
-  let campaign: MetaCampaign | undefined;
+  // Schimbarea de status înaintea citirii: e un singur apel, deci butonul
+  // răspunde imediat. Citirea pentru jurnal (3 apeluri) vine după.
   try {
-    campaign = (await getCampaigns()).find((c) => c.id === id);
     await setCampaignStatus(id, status);
   } catch (e) {
     back(e instanceof Error ? e.message : "Eroare Meta API");
+  }
+
+  let campaign: MetaCampaign | undefined;
+  try {
+    campaign = (await getCampaigns()).find((c) => c.id === id);
+  } catch {
+    // Jurnalul rămâne fără cifre, dar campania e deja oprită/pornită.
   }
 
   await logDecision({
@@ -96,6 +103,8 @@ export async function toggleCampaign(formData: FormData): Promise<void> {
     detail: status === "ACTIVE" ? "pornită" : "pusă pe pauză",
     context: snapshot(campaign),
     actor: session.username,
+    // Clicurile repetate pe același buton sunt aceeași decizie, nu trei.
+    dedupeSeconds: 120,
   });
 
   revalidatePath("/admin/meta-ads");

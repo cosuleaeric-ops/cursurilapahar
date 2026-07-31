@@ -43,9 +43,22 @@ export async function logDecision(e: {
   detail?: string | null;
   context?: Record<string, unknown>;
   actor?: string | null;
+  /** Sări peste scriere dacă aceeași acțiune pe aceeași campanie e deja notată
+   *  în ultimele N secunde — clicurile repetate sunt o singură decizie. */
+  dedupeSeconds?: number;
 }): Promise<void> {
   try {
     await ensureTable();
+    if (e.dedupeSeconds && e.dedupeSeconds > 0) {
+      const recent = (await sql`
+        SELECT 1 FROM meta_ads_log
+        WHERE campaign_id = ${e.campaignId}
+          AND action = ${e.action}
+          AND created_at > now() - make_interval(secs => ${e.dedupeSeconds})
+        LIMIT 1
+      `) as unknown[];
+      if (recent.length > 0) return;
+    }
     await sql`
       INSERT INTO meta_ads_log (campaign_id, campaign_name, action, detail, context, actor)
       VALUES (

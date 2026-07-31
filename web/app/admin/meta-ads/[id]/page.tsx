@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getCampaignCreatives, getCampaignCosts, getCampaignBudget, metaToken, DAILY_CAP_BANI } from "@/lib/meta";
 import { saveBudget } from "../actions";
+import SubmitButton from "../SubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -144,9 +145,7 @@ export default async function CampaignDetailPage({
                     style={{ width: 90, padding: "6px 8px", fontSize: 15, fontWeight: 700 }}
                   />
                   <span style={{ fontSize: 13, color: "var(--text-muted)" }}>lei/zi</span>
-                  <button type="submit" className="btn btn-primary btn-sm">
-                    Salvează
-                  </button>
+                  <SubmitButton className="btn btn-primary btn-sm" label="Salvează" pendingLabel="Se salvează…" />
                 </div>
               </div>
             </form>

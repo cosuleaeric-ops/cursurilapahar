@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { getCampaigns, metaToken, DAILY_CAP_BANI, type MetaCampaign } from "@/lib/meta";
 import { getLog, type LogEntry } from "@/lib/meta-log";
 import { toggleCampaign } from "./actions";
+import SubmitButton from "./SubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Meta Ads — Admin" };
@@ -47,9 +48,11 @@ function Row({ c }: { c: MetaCampaign }) {
         <form action={toggleCampaign}>
           <input type="hidden" name="campaign_id" value={c.id} />
           <input type="hidden" name="status" value={active ? "PAUSED" : "ACTIVE"} />
-          <button type="submit" className={active ? "btn btn-sm" : "btn btn-sm btn-primary"}>
-            {active ? "Pauză" : "Pornește"}
-          </button>
+          <SubmitButton
+            className={active ? "btn btn-sm" : "btn btn-sm btn-primary"}
+            label={active ? "Pauză" : "Pornește"}
+            pendingLabel={active ? "Se oprește…" : "Pornește…"}
+          />
         </form>
       </td>
     </tr>
