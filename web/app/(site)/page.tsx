@@ -27,6 +27,7 @@ export const metadata: Metadata = pageMetadata({
 
 type EventRow = {
   id: number;
+  slug: string | null;
   title: string;
   starts_at: string | null;
   location: string | null;
@@ -197,7 +198,7 @@ export default async function Home() {
   // cursurile „NOU" (link pus în ultimele 48h) apar primele, apoi pe dată.
   const todayBucharest = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
   const events = (await sql`
-    SELECT id, title, starts_at, location, image_url, livetickets_url, sold_out, sold_out_checked_at,
+    SELECT id, slug, title, starts_at, location, image_url, livetickets_url, sold_out, sold_out_checked_at,
            link_added_at, discount_percent, discount_ends_at
     FROM events
     WHERE active = true
@@ -256,8 +257,12 @@ export default async function Home() {
                   !!e.discount_percent &&
                   !!e.discount_ends_at &&
                   new Date(e.discount_ends_at).getTime() > Date.now();
-                const linkProps =
-                  soldOut || !e.livetickets_url
+                // Cardul duce acum la pagina cursului, nu direct la LiveTickets:
+                // clicul „vreau bilete" (și conversia A/B) se numără mai departe
+                // în /go/course, de pe butonul din pagina aia.
+                const linkProps = e.slug
+                  ? { href: `/curs/${e.slug}` }
+                  : soldOut || !e.livetickets_url
                     ? {}
                     : { href: `/go/course?id=${e.id}`, target: "_blank", rel: "noopener" };
                 return (
