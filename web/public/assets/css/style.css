@@ -1448,6 +1448,18 @@ ul { list-style: none; }
 .eb-fact i { font-style: normal; color: var(--text-muted); }
 
 .eb-sec { margin-bottom: 40px; }
+
+/* Descrierea pornește scurtată, cu text care se stinge spre final */
+.curs-desc-html { font-size: 16px; line-height: 1.75; color: var(--text); }
+.curs-desc-html--scurt { max-height: 300px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 58%, transparent 97%); mask-image: linear-gradient(#000 58%, transparent 97%); }
+.curs-desc-html p { margin-bottom: 16px; }
+.curs-desc-html p:last-child { margin-bottom: 0; }
+.curs-desc-html strong { color: var(--text); font-weight: 700; }
+.curs-desc-html ul, .curs-desc-html ol { margin: 0 0 16px 20px; }
+.curs-desc-html li { margin-bottom: 8px; }
+.curs-desc-html a { color: var(--cta, #e5484d); }
+.curs-desc-toggle { margin-top: 14px; background: none; border: none; padding: 0; color: var(--cta, #e5484d); font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.curs-desc-toggle:hover { text-decoration: underline; }
 .eb-sec h2 { font-family: var(--font-heading); font-size: 26px; font-weight: 800; letter-spacing: -.2px; margin: 0 0 18px; }
 .eb-gol { color: var(--text-muted); font-size: 15px; }
 
