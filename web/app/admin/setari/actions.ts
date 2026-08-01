@@ -62,7 +62,19 @@ export async function saveMetaAds(formData: FormData): Promise<void> {
 
 export async function saveCheckout(formData: FormData): Promise<void> {
   await requireOwner();
-  await setSetting("checkout_propriu", citesteMod(g(formData, "checkout_propriu")));
+  const mod = citesteMod(g(formData, "checkout_propriu"));
+
+  // Fără cheia publică nu putem verifica notificările Netopia, deci nicio plată
+  // nu s-ar confirma: clientul ar plăti și n-ar primi biletul. Mai bine nu se
+  // aprinde deloc decât să se aprindă rupt.
+  if (mod === "on") {
+    const lipsa = (["NETOPIA_API_KEY", "NETOPIA_SIGNATURE", "NETOPIA_PUBLIC_KEY"] as const).filter(
+      (k) => !(process.env[k] ?? "").trim(),
+    );
+    if (lipsa.length) redirect(`/admin/setari?cfg=${encodeURIComponent(lipsa.join(", "))}`);
+  }
+
+  await setSetting("checkout_propriu", mod);
   // Coșul și pagina de curs se randează la cerere, dar layout-ul public ține
   // setările memoizate — golim cache-ul ca schimbarea să se vadă imediat.
   revalidatePath("/", "layout");

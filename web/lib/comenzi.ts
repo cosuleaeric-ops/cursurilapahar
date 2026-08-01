@@ -8,18 +8,22 @@ export type Linie = { typeId: number; qty: number };
 /** Rezervările mai vechi de atât se eliberează singure la următoarea comandă. */
 const MINUTE_REZERVARE = 30;
 
+// Și comenzile eșuate țin biletele până la expirare: pagina Netopia lasă omul
+// să reîncerce cu alt card, pe același orderID, iar dacă am elibera la primul
+// refuz ar plăti a doua oară pe bilete care nu mai sunt ale lui.
 export async function elibereazaRezervariVechi(): Promise<number> {
   const rows = (await sql`
     UPDATE ticket_pool p SET status = 'liber', order_id = NULL
     FROM orders o
     WHERE p.order_id = o.id AND p.status = 'rezervat'
-      AND o.status = 'noua' AND o.created_at < now() - ${`${MINUTE_REZERVARE} minutes`}::interval
+      AND o.status IN ('noua', 'esuata')
+      AND o.created_at < now() - ${`${MINUTE_REZERVARE} minutes`}::interval
     RETURNING p.id
   `) as { id: number }[];
   if (rows.length) {
     await sql`
       UPDATE orders SET status = 'expirata'
-      WHERE status = 'noua' AND created_at < now() - ${`${MINUTE_REZERVARE} minutes`}::interval
+      WHERE status IN ('noua', 'esuata') AND created_at < now() - ${`${MINUTE_REZERVARE} minutes`}::interval
     `;
   }
   return rows.length;
@@ -72,25 +76,46 @@ export async function creeazaComanda(
     RETURNING id, cod
   `) as { id: number; cod: string }[];
 
+  // Ce s-a comandat se scrie separat de rezervare. Rezervarea e volatilă — o
+  // încercare de plată eșuată o poate desface — dar liniile rămân, ca să știm
+  // ce avem de emis când intră banii.
+  for (const l of linii) {
+    const t = tipuri.find((x) => x.id === l.typeId)!;
+    await sql`
+      INSERT INTO order_items (order_id, type_id, qty, unit_price)
+      VALUES (${comanda.id}, ${l.typeId}, ${l.qty}, ${t.price})
+    `;
+  }
+
   // Rezervarea merge tip cu tip, pe cele mai mici numere libere. Dacă între timp
   // altcineva le-a luat, comanda se anulează întreagă.
   for (const l of linii) {
-    const luate = (await sql`
-      UPDATE ticket_pool SET status = 'rezervat', order_id = ${comanda.id}
-      WHERE id IN (
-        SELECT id FROM ticket_pool
-        WHERE type_id = ${l.typeId} AND status = 'liber'
-        ORDER BY numar LIMIT ${l.qty}
-      )
-      RETURNING id
-    `) as { id: number }[];
-    if (luate.length < l.qty) {
+    if ((await rezerva(comanda.id, l.typeId, l.qty)) < l.qty) {
       await anuleazaComanda(comanda.id, "Biletele au fost luate între timp.");
       return { ok: false, mesaj: "Biletele au fost luate între timp. Încearcă din nou." };
     }
   }
 
   return { ok: true, orderId: comanda.id, cod: comanda.cod, total };
+}
+
+/** Pune pe comandă cele mai mici numere libere dintr-un tip. Câte a apucat. */
+async function rezerva(orderId: number, typeId: number, qty: number): Promise<number> {
+  const luate = (await sql`
+    UPDATE ticket_pool SET status = 'rezervat', order_id = ${orderId}
+    WHERE id IN (
+      SELECT id FROM ticket_pool
+      WHERE type_id = ${typeId} AND status = 'liber'
+      ORDER BY numar LIMIT ${qty}
+    )
+    RETURNING id
+  `) as { id: number }[];
+  return luate.length;
+}
+
+/** Plata a fost refuzată, dar biletele rămân rezervate până la expirare. */
+export async function marcheazaEsec(orderId: number, motiv: string): Promise<void> {
+  await sql`UPDATE orders SET status = 'esuata', eroare = ${motiv} WHERE id = ${orderId} AND status = 'noua'`;
 }
 
 /** Eliberează biletele și marchează comanda. */
@@ -102,7 +127,14 @@ export async function anuleazaComanda(orderId: number, motiv: string, status = "
   await sql`UPDATE orders SET status = ${status}, eroare = ${motiv} WHERE id = ${orderId}`;
 }
 
-/** Plata a intrat: biletele devin vândute și primesc numele cumpărătorului. */
+/**
+ * Plata a intrat: biletele devin vândute și primesc numele cumpărătorului.
+ *
+ * Rezervarea poate să nu mai fie acolo — o încercare eșuată pe aceeași comandă
+ * o desface, iar expirarea la fel. În cazul ăla o refacem din liniile comenzii.
+ * Dacă nici așa nu iese, comanda NU se marchează plătită normal: am încasat
+ * bani fără să dăm bilete, și asta trebuie să se vadă, nu să treacă tăcut.
+ */
 export async function confirmaComanda(orderId: number, ntpID: string): Promise<boolean> {
   const [o] = (await sql`SELECT id, status, buyer_name, buyer_email FROM orders WHERE id = ${orderId}`) as {
     id: number;
@@ -112,6 +144,37 @@ export async function confirmaComanda(orderId: number, ntpID: string): Promise<b
   }[];
   if (!o) return false;
   if (o.status === "platita") return true; // IPN-ul poate veni de mai multe ori
+
+  const [{ n }] = (await sql`
+    SELECT count(*)::int AS n FROM ticket_pool WHERE order_id = ${orderId} AND status = 'rezervat'
+  `) as { n: number }[];
+
+  if (n === 0) {
+    const items = (await sql`
+      SELECT type_id, qty FROM order_items WHERE order_id = ${orderId}
+    `) as { type_id: number; qty: number }[];
+
+    if (!items.length) {
+      await sql`
+        UPDATE orders SET status = 'platita_fara_bilete', paid_at = now(), ntp_id = ${ntpID},
+               eroare = 'Plata a intrat, dar comanda nu are linii de emis.'
+        WHERE id = ${orderId}
+      `;
+      return false;
+    }
+
+    for (const it of items) {
+      const luate = await rezerva(orderId, it.type_id, it.qty);
+      if (luate < it.qty) {
+        await sql`
+          UPDATE orders SET status = 'platita_fara_bilete', paid_at = now(), ntp_id = ${ntpID},
+                 eroare = ${`Plata a intrat, dar nu mai sunt bilete libere la tipul ${it.type_id}.`}
+          WHERE id = ${orderId}
+        `;
+        return false;
+      }
+    }
+  }
 
   await sql`
     UPDATE ticket_pool SET status = 'vandut', sold_at = now(),

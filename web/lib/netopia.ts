@@ -90,3 +90,38 @@ export async function startPayment(opts: {
  * că banii nu au intrat.
  */
 export const PLATIT = new Set([3, 5]);
+
+/**
+ * Verifică că notificarea chiar vine de la Netopia. Fără asta, oricine își
+ * pornește o comandă, își vede codul și își trimite singur un „am plătit".
+ *
+ * Netopia semnează fiecare notificare cu un JWT în headerul `Verification-token`:
+ * `iss` = „NETOPIA Payments", `aud` = semnătura noastră POS, iar `sub` e hash-ul
+ * corpului exact așa cum a venit — deci se verifică pe textul brut, nu pe JSON-ul
+ * reparsat.
+ */
+export async function verificaNotificare(raw: string, token: string | null): Promise<boolean> {
+  const pem = (process.env.NETOPIA_PUBLIC_KEY ?? "").replace(/\\n/g, "\n").trim();
+  const posSignature = process.env.NETOPIA_SIGNATURE ?? "";
+  if (!token || !pem || !posSignature) return false;
+
+  try {
+    const { importSPKI, importX509, jwtVerify, decodeProtectedHeader } = await import("jose");
+    const { createHash } = await import("node:crypto");
+
+    const alg = decodeProtectedHeader(token).alg ?? "RS512";
+    const key = pem.includes("BEGIN CERTIFICATE")
+      ? await importX509(pem, alg)
+      : await importSPKI(pem, alg);
+
+    const { payload } = await jwtVerify(token, key, { algorithms: [alg] });
+    if (payload.iss !== "NETOPIA Payments") return false;
+
+    const aud = Array.isArray(payload.aud) ? payload.aud[0] : payload.aud;
+    if (aud !== posSignature) return false;
+
+    return payload.sub === createHash("sha512").update(raw, "utf8").digest("base64");
+  } catch {
+    return false;
+  }
+}

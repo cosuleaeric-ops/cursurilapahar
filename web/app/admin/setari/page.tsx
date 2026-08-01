@@ -12,13 +12,13 @@ export const dynamic = "force-dynamic";
 export default async function SetariPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string; rec?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; rec?: string; cfg?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "owner") redirect("/admin");
 
-  const { saved, error, rec } = await searchParams;
+  const { saved, error, rec, cfg } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
     WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu')
@@ -39,6 +39,12 @@ export default async function SetariPage({
 
       {saved && <div className="notice notice-success">Setările au fost salvate.</div>}
       {error && <div className="notice notice-error">Parolele nu coincid sau sunt prea scurte (minim 6 caractere).</div>}
+      {cfg && (
+        <div className="notice notice-error">
+          Nu pot porni plata pe site: lipsesc din Vercel {cfg}. Fără ele nu se poate verifica notificarea de plată,
+          iar clienții ar plăti fără să primească biletele. Setarea a rămas neschimbată.
+        </div>
+      )}
 
       <form action={saveCheckout}>
         <div className="card">

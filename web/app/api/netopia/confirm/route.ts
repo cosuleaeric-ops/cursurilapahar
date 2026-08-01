@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
-import { anuleazaComanda, confirmaComanda } from "@/lib/comenzi";
-import { PLATIT } from "@/lib/netopia";
+import { marcheazaEsec, confirmaComanda } from "@/lib/comenzi";
+import { PLATIT, verificaNotificare } from "@/lib/netopia";
 import { trimiteEmailComanda, trimiteEmailPlataEsuata } from "@/lib/trimite";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,16 @@ export const dynamic = "force-dynamic";
 // errorCode 0, altfel o retrimit la nesfârșit.
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as {
+    // Corpul brut, nu JSON-ul reparsat: semnătura acoperă exact octeții primiți.
+    const raw = await req.text();
+    if (!(await verificaNotificare(raw, req.headers.get("verification-token")))) {
+      // 1, nu 0: dacă e o notificare reală și noi avem cheia greșită, Netopia
+      // reîncearcă și se repară singur după ce corectăm. Pe una falsă nu are
+      // cine reîncerca.
+      return Response.json({ errorCode: 1 }, { status: 400 });
+    }
+
+    const body = JSON.parse(raw) as {
       order?: { orderID?: string };
       payment?: { status?: number; ntpID?: string; message?: string; code?: string };
     };
@@ -26,10 +35,14 @@ export async function POST(req: Request) {
     const status = Number(body.payment?.status ?? 0);
     if (PLATIT.has(status)) {
       const nou = o.status !== "platita";
-      await confirmaComanda(o.id, String(body.payment?.ntpID ?? ""));
-      if (nou) await trimiteEmailComanda(o.id);
+      const emise = await confirmaComanda(o.id, String(body.payment?.ntpID ?? ""));
+      // Fără bilete emise nu plecă niciun email cu bilete: comanda rămâne
+      // marcată `platita_fara_bilete`, ca s-o prindem manual.
+      if (emise && nou) await trimiteEmailComanda(o.id);
     } else if (o.status === "noua") {
-      await anuleazaComanda(o.id, body.payment?.message || `status ${status}`, "esuata");
+      // Biletele rămân rezervate: omul e încă pe pagina Netopia și poate
+      // reîncerca cu alt card, pe același orderID.
+      await marcheazaEsec(o.id, body.payment?.message || `status ${status}`);
       await trimiteEmailPlataEsuata(o.id);
     }
     return Response.json({ errorCode: 0 });
