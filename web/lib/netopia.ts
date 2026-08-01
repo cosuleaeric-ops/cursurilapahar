@@ -92,6 +92,45 @@ export async function startPayment(opts: {
 export const PLATIT = new Set([3, 5]);
 
 /**
+ * Ce vede aplicația despre configurarea Netopia. Din afară nu se poate afla:
+ * `vercel env pull` nu întoarce valorile variabilelor sensibile, așa că singurul
+ * loc din care se poate răspunde e chiar procesul care le folosește.
+ *
+ * Întoarce doar forme — lungimi și da/nu — niciodată conținutul.
+ */
+export async function diagnostic() {
+  const val = (k: string) => (process.env[k] ?? "").trim();
+  const pem = val("NETOPIA_PUBLIC_KEY").replace(/\\n/g, "\n").trim();
+
+  let cheiaSeCiteste: boolean | null = null;
+  let felCheie = "lipsește";
+  if (pem) {
+    felCheie = pem.includes("BEGIN CERTIFICATE")
+      ? "certificat X.509"
+      : pem.includes("BEGIN PUBLIC KEY")
+        ? "cheie publică PEM"
+        : "text simplu, fără antet PEM";
+    try {
+      const { importSPKI, importX509 } = await import("jose");
+      await (pem.includes("BEGIN CERTIFICATE") ? importX509(pem, "RS512") : importSPKI(pem, "RS512"));
+      cheiaSeCiteste = true;
+    } catch {
+      cheiaSeCiteste = false;
+    }
+  }
+
+  return {
+    apiKey: val("NETOPIA_API_KEY").length,
+    semnatura: val("NETOPIA_SIGNATURE").length,
+    sandbox: val("NETOPIA_SANDBOX") === "1",
+    baza: BAZA,
+    cheieLungime: pem.length,
+    felCheie,
+    cheiaSeCiteste,
+  };
+}
+
+/**
  * Verifică că notificarea chiar vine de la Netopia. Fără asta, oricine își
  * pornește o comandă, își vede codul și își trimite singur un „am plătit".
  *

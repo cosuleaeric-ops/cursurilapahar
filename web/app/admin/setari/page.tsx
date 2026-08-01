@@ -3,6 +3,7 @@ import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, saveCheckout, changePassword } from "./actions";
 import { citesteMod } from "@/lib/checkout";
+import { diagnostic } from "@/lib/netopia";
 import SyncToken from "./SyncToken";
 import QuickLinksEditor, { type QuickLink } from "./QuickLinksEditor";
 import RecurringEditor, { type RecTask } from "./RecurringEditor";
@@ -32,6 +33,7 @@ export default async function SetariPage({
   const str = (k: string) => (typeof s[k] === "string" ? (s[k] as string) : "");
   const quickLinks = Array.isArray(s.quick_links) ? (s.quick_links as QuickLink[]) : [];
   const modCheckout = citesteMod(s.checkout_propriu);
+  const netopia = await diagnostic();
 
   return (
     <>
@@ -45,6 +47,43 @@ export default async function SetariPage({
           iar clienții ar plăti fără să primească biletele. Setarea a rămas neschimbată.
         </div>
       )}
+
+      <div className="card">
+        <div className="card-title">🔌 Netopia - ce vede aplicația</div>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+          Citit din interiorul serverului, nu din panoul Vercel - variabilele sensibile nu se pot citi înapoi de
+          acolo. Se arată doar dacă sunt puse și ce formă au, niciodată conținutul. După ce schimbi ceva în Vercel,
+          trebuie un redeploy ca să se vadă aici.
+        </p>
+        <table className="wp-table">
+          <tbody>
+            <tr>
+              <td>Cheie API</td>
+              <td>{netopia.apiKey ? `pusă (${netopia.apiKey} caractere)` : "❌ lipsește"}</td>
+            </tr>
+            <tr>
+              <td>Semnătură POS</td>
+              <td>{netopia.semnatura ? `pusă (${netopia.semnatura} caractere)` : "❌ lipsește"}</td>
+            </tr>
+            <tr>
+              <td>Cheie publică</td>
+              <td>
+                {netopia.cheieLungime === 0
+                  ? "❌ lipsește"
+                  : `${netopia.felCheie}, ${netopia.cheieLungime} caractere - ${
+                      netopia.cheiaSeCiteste ? "✅ se citește" : "❌ nu se poate citi ca cheie"
+                    }`}
+              </td>
+            </tr>
+            <tr>
+              <td>Mediu</td>
+              <td>
+                {netopia.sandbox ? "sandbox (NETOPIA_SANDBOX=1)" : "live"} - cerem la <code>{netopia.baza}</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <form action={saveCheckout}>
         <div className="card">
