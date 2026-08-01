@@ -139,10 +139,14 @@ export async function diagnostic() {
  * corpului exact așa cum a venit — deci se verifică pe textul brut, nu pe JSON-ul
  * reparsat.
  */
-export async function verificaNotificare(raw: string, token: string | null): Promise<boolean> {
+export type Verificare = { ok: boolean; motiv: string };
+
+export async function verificaNotificare(raw: string, token: string | null): Promise<Verificare> {
   const pem = (process.env.NETOPIA_PUBLIC_KEY ?? "").replace(/\\n/g, "\n").trim();
   const posSignature = process.env.NETOPIA_SIGNATURE ?? "";
-  if (!token || !pem || !posSignature) return false;
+  if (!token) return { ok: false, motiv: "lipsește headerul Verification-token" };
+  if (!pem) return { ok: false, motiv: "NETOPIA_PUBLIC_KEY nu e setată" };
+  if (!posSignature) return { ok: false, motiv: "NETOPIA_SIGNATURE nu e setată" };
 
   try {
     const { importSPKI, importX509, jwtVerify, decodeProtectedHeader } = await import("jose");
@@ -154,13 +158,19 @@ export async function verificaNotificare(raw: string, token: string | null): Pro
       : await importSPKI(pem, alg);
 
     const { payload } = await jwtVerify(token, key, { algorithms: [alg] });
-    if (payload.iss !== "NETOPIA Payments") return false;
+
+    if (payload.iss !== "NETOPIA Payments") return { ok: false, motiv: `emitent neașteptat: ${payload.iss}` };
 
     const aud = Array.isArray(payload.aud) ? payload.aud[0] : payload.aud;
-    if (aud !== posSignature) return false;
+    if (aud !== posSignature) return { ok: false, motiv: "audiența nu e semnătura noastră POS" };
 
-    return payload.sub === createHash("sha512").update(raw, "utf8").digest("base64");
-  } catch {
-    return false;
+    if (payload.sub !== createHash("sha512").update(raw, "utf8").digest("base64")) {
+      return { ok: false, motiv: "hash-ul corpului nu se potrivește" };
+    }
+    return { ok: true, motiv: "ok" };
+  } catch (e) {
+    // Cazul cel mai probabil aici: cheia publică e alta decât cea cu care
+    // semnează Netopia — semnătura nu se validează.
+    return { ok: false, motiv: `semnătura nu se validează: ${e instanceof Error ? e.message : "eroare"}` };
   }
 }

@@ -34,6 +34,9 @@ export default async function SetariPage({
   const quickLinks = Array.isArray(s.quick_links) ? (s.quick_links as QuickLink[]) : [];
   const modCheckout = citesteMod(s.checkout_propriu);
   const netopia = await diagnostic();
+  const notificari = (await sql`
+    SELECT created_at, ok, motiv, cod, status FROM webhook_log ORDER BY created_at DESC LIMIT 5
+  `) as { created_at: string; ok: boolean; motiv: string; cod: string | null; status: number | null }[];
 
   return (
     <>
@@ -83,6 +86,34 @@ export default async function SetariPage({
             </tr>
           </tbody>
         </table>
+
+        <div style={{ marginTop: 20, fontSize: 13, fontWeight: 700 }}>Ultimele notificări primite</div>
+        {notificari.length === 0 ? (
+          <p className="form-desc" style={{ marginTop: 6 }}>
+            Nicio notificare până acum. Dacă ai plătit și aici e gol, Netopia nu a ajuns deloc la noi.
+          </p>
+        ) : (
+          <table className="wp-table" style={{ marginTop: 8 }}>
+            <tbody>
+              {notificari.map((n, i) => (
+                <tr key={i}>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {new Intl.DateTimeFormat("ro-RO", {
+                      timeZone: "Europe/Bucharest",
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }).format(new Date(n.created_at))}
+                  </td>
+                  <td>{n.ok ? "✅" : "❌"}</td>
+                  <td>{n.cod ?? "-"}</td>
+                  <td>{n.motiv}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <form action={saveCheckout}>

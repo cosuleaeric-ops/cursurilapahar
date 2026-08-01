@@ -8,11 +8,33 @@ export const dynamic = "force-dynamic";
 // Notificarea de la Netopia. Vine server-la-server, poate veni de mai multe ori
 // pentru aceeași comandă, deci totul e idempotent. Răspundem mereu 200 cu
 // errorCode 0, altfel o retrimit la nesfârșit.
+/** Fiecare notificare lasă urmă, altfel o respingere e invizibilă. */
+async function noteaza(ok: boolean, motiv: string, cod?: string, status?: number): Promise<void> {
+  try {
+    await sql`
+      INSERT INTO webhook_log (ok, motiv, cod, status)
+      VALUES (${ok}, ${motiv.slice(0, 300)}, ${cod ?? null}, ${status ?? null})
+    `;
+  } catch {
+    // Jurnalul nu are voie să rupă plata.
+  }
+}
+
 export async function POST(req: Request) {
   try {
     // Corpul brut, nu JSON-ul reparsat: semnătura acoperă exact octeții primiți.
     const raw = await req.text();
-    if (!(await verificaNotificare(raw, req.headers.get("verification-token")))) {
+    const codBrut = (() => {
+      try {
+        return (JSON.parse(raw) as { order?: { orderID?: string } }).order?.orderID;
+      } catch {
+        return undefined;
+      }
+    })();
+
+    const v = await verificaNotificare(raw, req.headers.get("verification-token"));
+    if (!v.ok) {
+      await noteaza(false, v.motiv, codBrut);
       // 1, nu 0: dacă e o notificare reală și noi avem cheia greșită, Netopia
       // reîncearcă și se repară singur după ce corectăm. Pe una falsă nu are
       // cine reîncerca.
@@ -45,8 +67,10 @@ export async function POST(req: Request) {
       await marcheazaEsec(o.id, body.payment?.message || `status ${status}`);
       await trimiteEmailPlataEsuata(o.id);
     }
+    await noteaza(true, body.payment?.message || "ok", cod, status);
     return Response.json({ errorCode: 0 });
-  } catch {
+  } catch (e) {
+    await noteaza(false, `eroare la procesare: ${e instanceof Error ? e.message : "necunoscută"}`);
     return Response.json({ errorCode: 1 });
   }
 }
