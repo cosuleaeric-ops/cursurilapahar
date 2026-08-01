@@ -7,6 +7,7 @@ import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
 import { citesteMod } from "@/lib/checkout";
+import { startPayment } from "@/lib/netopia";
 
 async function requireOwner(): Promise<Session> {
   const s = await getSession();
@@ -79,6 +80,28 @@ export async function saveCheckout(formData: FormData): Promise<void> {
   // setările memoizate — golim cache-ul ca schimbarea să se vadă imediat.
   revalidatePath("/", "layout");
   redirect("/admin/setari?saved=1");
+}
+
+/**
+ * Cere Netopiei o plată de probă și raportează ce a răspuns. Nu creează comandă
+ * și nu rezervă bilete — doar arată dacă cheia și adresa sunt bune, fără să
+ * treci prin tot coșul.
+ */
+export async function testeazaNetopia(): Promise<void> {
+  await requireOwner();
+  const cod = `TEST-${randomBytes(4).toString("hex").toUpperCase()}`;
+  const r = await startPayment({
+    cod,
+    suma: 1,
+    descriere: "Test conexiune",
+    nume: "Test Test",
+    email: "test@cursurilapahar.ro",
+    redirectUrl: "https://cursurilapahar.ro/cos/plata",
+    notifyUrl: "https://cursurilapahar.ro/api/netopia/confirm",
+  });
+  const mesaj = r.ok ? `✅ Conexiune reușită - Netopia a dat pagina de plată (${r.ntpID})` : `❌ ${r.mesaj}`;
+  await sql`INSERT INTO webhook_log (ok, motiv, cod) VALUES (${r.ok}, ${`test conexiune: ${mesaj}`.slice(0, 300)}, ${cod})`;
+  redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
 }
 
 export async function saveHeadScripts(formData: FormData): Promise<void> {

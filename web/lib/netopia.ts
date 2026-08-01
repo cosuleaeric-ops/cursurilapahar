@@ -79,16 +79,25 @@ export async function startPayment(opts: {
       headers: { "Content-Type": "application/json", Authorization: apiKey },
       body: JSON.stringify(body),
     });
-    const json = (await res.json()) as {
+    // Textul brut întâi: la erori (401 etc.) răspunsul poate să nu fie JSON, iar
+    // atunci `res.json()` aruncă și pierdem exact explicația de care avem nevoie.
+    const text = await res.text();
+    let json: {
       payment?: { paymentURL?: string; ntpID?: string; status?: number };
       error?: { code?: string; message?: string };
-    };
+    } = {};
+    try {
+      json = JSON.parse(text);
+    } catch {
+      /* răspuns care nu e JSON — rămâne în `text` */
+    }
 
     const url = json.payment?.paymentURL;
     if (url && (!json.error?.code || json.error.code === COD_REDIRECT || json.error.code === "00")) {
       return { ok: true, paymentURL: url, ntpID: String(json.payment?.ntpID ?? "") };
     }
-    return { ok: false, mesaj: json.error?.message || `Netopia a răspuns ${res.status} la ${BAZA}` };
+    const detaliu = json.error?.message || text.slice(0, 200) || "fără corp";
+    return { ok: false, mesaj: `${res.status} de la ${BAZA}: ${detaliu}` };
   } catch (e) {
     return { ok: false, mesaj: e instanceof Error ? e.message : "Nu s-a putut porni plata." };
   }

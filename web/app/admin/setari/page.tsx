@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, saveCheckout, changePassword } from "./actions";
+import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, saveCheckout, testeazaNetopia, changePassword } from "./actions";
 import { citesteMod } from "@/lib/checkout";
 import { diagnostic } from "@/lib/netopia";
 import SyncToken from "./SyncToken";
@@ -13,13 +13,13 @@ export const dynamic = "force-dynamic";
 export default async function SetariPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string; rec?: string; cfg?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; rec?: string; cfg?: string; net?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "owner") redirect("/admin");
 
-  const { saved, error, rec, cfg } = await searchParams;
+  const { saved, error, rec, cfg, net } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
     WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu')
@@ -86,6 +86,20 @@ export default async function SetariPage({
             </tr>
           </tbody>
         </table>
+
+        <form action={testeazaNetopia} style={{ marginTop: 16 }}>
+          <button type="submit" className="btn">
+            Testează conexiunea
+          </button>
+          <span className="form-desc" style={{ marginLeft: 10 }}>
+            Cere o plată de probă. Nu creează comandă și nu rezervă bilete.
+          </span>
+        </form>
+        {net && (
+          <p style={{ marginTop: 12, fontSize: 13, wordBreak: "break-word" }}>
+            <strong>{net}</strong>
+          </p>
+        )}
 
         <div style={{ marginTop: 20, fontSize: 13, fontWeight: 700 }}>Ultimele notificări primite</div>
         {notificari.length === 0 ? (
