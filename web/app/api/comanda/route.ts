@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { creeazaComanda, anuleazaComanda, type Linie } from "@/lib/comenzi";
 import { startPayment } from "@/lib/netopia";
+import { checkoutPropriuActiv } from "@/lib/checkout";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,10 @@ export async function POST(req: Request) {
 
   const inapoi = (m: string) =>
     NextResponse.redirect(`${SITE}/cos?e=${eventId}&t=${fd.get("t") ?? ""}&err=${encodeURIComponent(m)}`, 303);
+
+  // Comutatorul din setări trebuie să oprească vânzarea, nu doar s-o ascundă:
+  // altfel se poate porni o plată trimițând direct formularul aici.
+  if (!(await checkoutPropriuActiv())) return inapoi("Plata pe site nu e activă.");
 
   if (!eventId || !linii.length) return inapoi("Comanda e goală.");
   if (!nume) return inapoi("Scrie-ți numele.");
