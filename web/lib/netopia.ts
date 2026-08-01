@@ -2,9 +2,12 @@
 // pleacă fără date de card, iar ei ne dau un URL de 3-D Secure la care trimitem
 // omul. Nu atingem niciodată numărul cardului, deci rămânem în afara PCI-DSS.
 
+// Adresele sunt cele din SDK-ul lor oficial (netopia_sdk/config.py). Nu le
+// ghici: sandbox-ul e cu cratimă, iar producția e pe alt domeniu cu tot cu
+// prefixul de cale.
 const BAZA = process.env.NETOPIA_SANDBOX === "1"
-  ? "https://secure.sandbox.netopia-payments.com"
-  : "https://secure.netopia-payments.com";
+  ? "https://secure-sandbox.netopia-payments.com"
+  : "https://secure.mobilpay.ro/pay";
 
 export type StartRezultat =
   | { ok: true; paymentURL: string; ntpID: string }
@@ -79,7 +82,7 @@ export async function startPayment(opts: {
     if (url && (!json.error?.code || json.error.code === COD_REDIRECT || json.error.code === "00")) {
       return { ok: true, paymentURL: url, ntpID: String(json.payment?.ntpID ?? "") };
     }
-    return { ok: false, mesaj: json.error?.message || `Netopia a răspuns ${res.status}` };
+    return { ok: false, mesaj: json.error?.message || `Netopia a răspuns ${res.status} la ${BAZA}` };
   } catch (e) {
     return { ok: false, mesaj: e instanceof Error ? e.message : "Nu s-a putut porni plata." };
   }

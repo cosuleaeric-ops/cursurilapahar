@@ -58,6 +58,12 @@ export async function POST(req: Request) {
 
   if (!plata.ok) {
     await anuleazaComanda(c.orderId, plata.mesaj, "esuata");
+    // În același jurnal cu notificările: dacă plata nici nu pornește, motivul
+    // trebuie să rămână scris undeva, nu doar pe ecranul cuiva.
+    await sql`
+      INSERT INTO webhook_log (ok, motiv, cod)
+      VALUES (false, ${`start plată: ${plata.mesaj}`.slice(0, 300)}, ${c.cod})
+    `;
     return inapoi(`Nu am putut porni plata: ${plata.mesaj}`);
   }
 
