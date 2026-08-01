@@ -8,12 +8,24 @@ export const dynamic = "force-dynamic";
 // Notificarea de la Netopia. Vine server-la-server, poate veni de mai multe ori
 // pentru aceeași comandă, deci totul e idempotent. Răspundem mereu 200 cu
 // errorCode 0, altfel o retrimit la nesfârșit.
-/** Fiecare notificare lasă urmă, altfel o respingere e invizibilă. */
-async function noteaza(ok: boolean, motiv: string, cod?: string, status?: number): Promise<void> {
+/**
+ * Fiecare notificare lasă urmă, altfel o respingere e invizibilă. La eșec
+ * păstrăm și tokenul și corpul exact: fără ele nu se poate afla offline care
+ * cheie ar fi verificat semnătura, iar fiecare ipoteză ar costa o plată nouă.
+ */
+async function noteaza(
+  ok: boolean,
+  motiv: string,
+  cod?: string,
+  status?: number,
+  token?: string | null,
+  corp?: string,
+): Promise<void> {
   try {
     await sql`
-      INSERT INTO webhook_log (ok, motiv, cod, status)
-      VALUES (${ok}, ${motiv.slice(0, 300)}, ${cod ?? null}, ${status ?? null})
+      INSERT INTO webhook_log (ok, motiv, cod, status, token, corp)
+      VALUES (${ok}, ${motiv.slice(0, 300)}, ${cod ?? null}, ${status ?? null},
+              ${ok ? null : (token ?? null)}, ${ok ? null : (corp ?? null)})
     `;
   } catch {
     // Jurnalul nu are voie să rupă plata.
@@ -32,9 +44,10 @@ export async function POST(req: Request) {
       }
     })();
 
-    const v = await verificaNotificare(raw, req.headers.get("verification-token"));
+    const token = req.headers.get("verification-token");
+    const v = await verificaNotificare(raw, token);
     if (!v.ok) {
-      await noteaza(false, v.motiv, codBrut);
+      await noteaza(false, v.motiv, codBrut, undefined, token, raw.slice(0, 4000));
       // 1, nu 0: dacă e o notificare reală și noi avem cheia greșită, Netopia
       // reîncearcă și se repară singur după ce corectăm. Pe una falsă nu are
       // cine reîncerca.
