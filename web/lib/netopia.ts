@@ -3,17 +3,23 @@
 // omul. Nu atingem niciodată numărul cardului, deci rămânem în afara PCI-DSS.
 
 /**
- * API-ul stă la aceeași adresă pentru ambele medii — mediul îl decide cheia.
+ * Adresele API, verificate una câte una cu o cheie invalidă:
  *
- * Verificat pe cont: aceeași cheie primește 200 și un `paymentURL` la
- * `secure.netopia-payments.com`, dar 401 la `secure-sandbox.netopia-payments.com`,
- * iar plata apare în panoul de sandbox. `secure-sandbox` servește doar pagina
- * de card (`/ui/card`), nu API-ul — de aceea nu se cere niciodată acolo.
+ * - `secure.sandbox.netopia-payments.com`  → 401 JSON, și cheia noastră de test
+ *   chiar trece pe aici (plata din 1 aug a apărut în panoul de sandbox);
+ * - `secure-sandbox.netopia-payments.com`  → 401 JSON, dar cheia noastră e
+ *   respinsă: e alt mediu, nu al nostru;
+ * - `secure.netopia-payments.com`          → 302 spre site. Nu e API.
  *
- * `NETOPIA_BASE` e portița dacă Netopia mută API-ul: se schimbă din Vercel,
- * fără deploy de cod.
+ * Producția e cea din SDK-ul lor (`netopia_sdk/config.py`). `NETOPIA_BASE`
+ * pasează peste amândouă, dacă Netopia mută ceva.
  */
-const BAZA = (process.env.NETOPIA_BASE || "https://secure.netopia-payments.com").replace(/\/+$/, "");
+const BAZA = (
+  process.env.NETOPIA_BASE ||
+  (process.env.NETOPIA_SANDBOX === "1"
+    ? "https://secure.sandbox.netopia-payments.com"
+    : "https://secure.mobilpay.ro/pay")
+).replace(/\/+$/, "");
 
 export type StartRezultat =
   | { ok: true; paymentURL: string; ntpID: string }
