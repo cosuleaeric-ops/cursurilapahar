@@ -7,7 +7,9 @@ import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
 import { citesteMod } from "@/lib/checkout";
-import { startPayment, diagnostic, verificaNotificare } from "@/lib/netopia";
+import { startPayment, diagnostic, verificaNotificare, statusPlata, PLATIT } from "@/lib/netopia";
+import { confirmaComanda } from "@/lib/comenzi";
+import { trimiteEmailComanda } from "@/lib/trimite";
 
 async function requireOwner(): Promise<Session> {
   const s = await getSession();
@@ -130,6 +132,48 @@ export async function verificaUltimaNotificare(): Promise<void> {
   const mesaj = v.ok
     ? `✅ Semnătura notificării ${r.cod} se verifică cu cheia de acum (${d.felCheie})`
     : `❌ ${r.cod}: ${v.motiv} — cheia de acum e ${d.felCheie}`;
+  redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
+}
+
+/**
+ * Întreabă Netopia despre fiecare comandă rămasă neconfirmată și le închide pe
+ * cele plătite. Plasa de siguranță pentru notificările pierdute: banii au intrat,
+ * dar noi n-am aflat.
+ */
+export async function recupereazaComenzi(): Promise<void> {
+  await requireOwner();
+  const comenzi = (await sql`
+    SELECT id, cod, ntp_id FROM orders
+    WHERE status IN ('noua', 'esuata') AND ntp_id IS NOT NULL AND ntp_id <> ''
+      AND created_at > now() - interval '7 days'
+    ORDER BY id
+  `) as { id: number; cod: string; ntp_id: string }[];
+
+  let platite = 0;
+  let emise = 0;
+  const note: string[] = [];
+  for (const c of comenzi) {
+    const s = await statusPlata(c.ntp_id, c.cod);
+    if (!s.ok) {
+      note.push(`${c.cod}: ${s.mesaj}`);
+      continue;
+    }
+    if (!PLATIT.has(s.status)) {
+      note.push(`${c.cod}: status ${s.status}, neplătită`);
+      continue;
+    }
+    platite++;
+    if (await confirmaComanda(c.id, c.ntp_id)) {
+      emise++;
+      await trimiteEmailComanda(c.id);
+    } else {
+      note.push(`${c.cod}: plătită, dar nu s-au putut emite biletele`);
+    }
+  }
+
+  const mesaj = comenzi.length
+    ? `Verificate ${comenzi.length}: ${platite} plătite, ${emise} cu bilete emise. ${note.join("; ")}`.slice(0, 400)
+    : "Nu e nicio comandă neconfirmată din ultimele 7 zile.";
   redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
 }
 

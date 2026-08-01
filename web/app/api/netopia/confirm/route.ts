@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { marcheazaEsec, confirmaComanda } from "@/lib/comenzi";
-import { PLATIT, verificaNotificare } from "@/lib/netopia";
+import { PLATIT, verificaNotificare, statusPlata } from "@/lib/netopia";
 import { trimiteEmailComanda, trimiteEmailPlataEsuata } from "@/lib/trimite";
 
 export const dynamic = "force-dynamic";
@@ -44,15 +44,11 @@ export async function POST(req: Request) {
       }
     })();
 
+    // Semnătura e un semnal, nu poarta. Poarta e întrebarea pe care i-o punem
+    // noi Netopiei mai jos, pe canal autentificat: corpul ăsta poate fi trimis
+    // de oricine, răspunsul lor nu poate fi falsificat fără cheia noastră API.
     const token = req.headers.get("verification-token");
     const v = await verificaNotificare(raw, token);
-    if (!v.ok) {
-      await noteaza(false, v.motiv, codBrut, undefined, token, raw.slice(0, 4000));
-      // 1, nu 0: dacă e o notificare reală și noi avem cheia greșită, Netopia
-      // reîncearcă și se repară singur după ce corectăm. Pe una falsă nu are
-      // cine reîncerca.
-      return Response.json({ errorCode: 1 }, { status: 400 });
-    }
 
     const body = JSON.parse(raw) as {
       order?: { orderID?: string };
@@ -67,7 +63,16 @@ export async function POST(req: Request) {
     }[];
     if (!o) return Response.json({ errorCode: 1 });
 
-    const status = Number(body.payment?.status ?? 0);
+    // Nu ne uităm la `payment.status` din corp — îl cerem de la ei.
+    const adevar = await statusPlata(String(body.payment?.ntpID ?? ""), cod);
+    if (!adevar.ok) {
+      await noteaza(false, `nu am putut afla statusul: ${adevar.mesaj}`, cod, undefined, token, raw.slice(0, 4000));
+      // Nu decidem nimic pe nesigur: 1 înseamnă „reîncearcă".
+      return Response.json({ errorCode: 1 }, { status: 503 });
+    }
+
+    const status = adevar.status;
+    const semn = v.ok ? "semnătură validă" : `semnătură neverificată (${v.motiv})`;
     if (PLATIT.has(status)) {
       const nou = o.status !== "platita";
       const emise = await confirmaComanda(o.id, String(body.payment?.ntpID ?? ""));
@@ -80,7 +85,7 @@ export async function POST(req: Request) {
       await marcheazaEsec(o.id, body.payment?.message || `status ${status}`);
       await trimiteEmailPlataEsuata(o.id);
     }
-    await noteaza(true, body.payment?.message || "ok", cod, status);
+    await noteaza(true, `status ${status} confirmat de Netopia - ${semn}`, cod, status);
     return Response.json({ errorCode: 0 });
   } catch (e) {
     await noteaza(false, `eroare la procesare: ${e instanceof Error ? e.message : "necunoscută"}`);

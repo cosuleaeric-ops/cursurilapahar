@@ -9,6 +9,7 @@ import {
   saveCheckout,
   testeazaNetopia,
   verificaUltimaNotificare,
+  recupereazaComenzi,
   changePassword,
 } from "./actions";
 import { citesteMod } from "@/lib/checkout";
@@ -107,11 +108,17 @@ export default async function SetariPage({
               Reverifică ultima notificare
             </button>
           </form>
+          <form action={recupereazaComenzi}>
+            <button type="submit" className="btn">
+              Recuperează comenzile neconfirmate
+            </button>
+          </form>
         </div>
         <p className="form-desc" style={{ marginTop: 6 }}>
           Primul cere o plată de probă - nu creează comandă și nu rezervă bilete. Al doilea reia ultima notificare
-          respinsă și o verifică din nou cu cheia publică de acum, ca să poți proba o cheie nouă fără să mai treacă
-          nimeni printr-o plată.
+          respinsă și o verifică din nou cu cheia publică de acum. Al treilea întreabă Netopia despre fiecare comandă
+          rămasă neconfirmată din ultimele 7 zile și emite biletele pentru cele plătite - plasa de siguranță când o
+          notificare se pierde.
         </p>
         {net && (
           <p style={{ marginTop: 12, fontSize: 13, wordBreak: "break-word" }}>

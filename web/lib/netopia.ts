@@ -115,6 +115,46 @@ export async function startPayment(opts: {
  */
 export const PLATIT = new Set([3, 5]);
 
+export type StatusPlata = { ok: true; status: number; mesaj: string } | { ok: false; mesaj: string };
+
+/**
+ * Întreabă Netopia care e starea reală a unei plăți, pe un canal autentificat
+ * cu cheia noastră API.
+ *
+ * Asta e sursa de adevăr, nu corpul notificării: cine vrea poate trimite un
+ * „am plătit" oricând la ruta noastră, dar nu poate falsifica răspunsul de aici,
+ * pentru că nu are cheia. Verificarea semnăturii rămâne un semnal în plus, nu
+ * singura barieră — mai ales cât timp nu avem cheia publică potrivită.
+ */
+export async function statusPlata(ntpID: string, orderID: string): Promise<StatusPlata> {
+  const apiKey = process.env.NETOPIA_API_KEY;
+  const posID = process.env.NETOPIA_SIGNATURE;
+  if (!apiKey || !posID) return { ok: false, mesaj: "Plata nu e configurată." };
+
+  try {
+    const res = await fetch(`${BAZA}/operation/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: apiKey },
+      body: JSON.stringify({ posID, ntpID, orderID }),
+    });
+    const text = await res.text();
+    let json: { payment?: { status?: number }; error?: { code?: string; message?: string } } = {};
+    try {
+      json = JSON.parse(text);
+    } catch {
+      return { ok: false, mesaj: `${res.status}: răspuns care nu e JSON` };
+    }
+
+    const status = Number(json.payment?.status ?? NaN);
+    if (!Number.isFinite(status)) {
+      return { ok: false, mesaj: json.error?.message || `${res.status}: fără status în răspuns` };
+    }
+    return { ok: true, status, mesaj: json.error?.message || "ok" };
+  } catch (e) {
+    return { ok: false, mesaj: e instanceof Error ? e.message : "eroare de rețea" };
+  }
+}
+
 /**
  * Ce vede aplicația despre configurarea Netopia. Din afară nu se poate afla:
  * `vercel env pull` nu întoarce valorile variabilelor sensibile, așa că singurul
