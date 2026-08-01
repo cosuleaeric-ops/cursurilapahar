@@ -2,12 +2,18 @@
 // pleacă fără date de card, iar ei ne dau un URL de 3-D Secure la care trimitem
 // omul. Nu atingem niciodată numărul cardului, deci rămânem în afara PCI-DSS.
 
-// Adresele sunt cele din SDK-ul lor oficial (netopia_sdk/config.py). Nu le
-// ghici: sandbox-ul e cu cratimă, iar producția e pe alt domeniu cu tot cu
-// prefixul de cale.
-const BAZA = process.env.NETOPIA_SANDBOX === "1"
-  ? "https://secure-sandbox.netopia-payments.com"
-  : "https://secure.mobilpay.ro/pay";
+/**
+ * API-ul stă la aceeași adresă pentru ambele medii — mediul îl decide cheia.
+ *
+ * Verificat pe cont: aceeași cheie primește 200 și un `paymentURL` la
+ * `secure.netopia-payments.com`, dar 401 la `secure-sandbox.netopia-payments.com`,
+ * iar plata apare în panoul de sandbox. `secure-sandbox` servește doar pagina
+ * de card (`/ui/card`), nu API-ul — de aceea nu se cere niciodată acolo.
+ *
+ * `NETOPIA_BASE` e portița dacă Netopia mută API-ul: se schimbă din Vercel,
+ * fără deploy de cod.
+ */
+const BAZA = (process.env.NETOPIA_BASE || "https://secure.netopia-payments.com").replace(/\/+$/, "");
 
 export type StartRezultat =
   | { ok: true; paymentURL: string; ntpID: string }
@@ -125,7 +131,6 @@ export async function diagnostic() {
   return {
     apiKey: val("NETOPIA_API_KEY").length,
     semnatura: val("NETOPIA_SIGNATURE").length,
-    sandbox: val("NETOPIA_SANDBOX") === "1",
     baza: BAZA,
     cheieLungime: pem.length,
     felCheie,

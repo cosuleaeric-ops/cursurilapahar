@@ -79,9 +79,9 @@ export default async function SetariPage({
               </td>
             </tr>
             <tr>
-              <td>Mediu</td>
+              <td>Cerem la</td>
               <td>
-                {netopia.sandbox ? "sandbox (NETOPIA_SANDBOX=1)" : "live"} - cerem la <code>{netopia.baza}</code>
+                <code>{netopia.baza}</code> - mediul (test sau real) îl decide cheia API, nu adresa
               </td>
             </tr>
           </tbody>
