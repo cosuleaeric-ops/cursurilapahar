@@ -135,8 +135,10 @@ export async function diagnostic() {
         ? "cheie publică PEM"
         : "text simplu, fără antet PEM";
     try {
-      const { importSPKI, importX509 } = await import("jose");
-      await (pem.includes("BEGIN CERTIFICATE") ? importX509(pem, "RS512") : importSPKI(pem, "RS512"));
+      const { createPublicKey, X509Certificate } = await import("node:crypto");
+      const k = pem.includes("BEGIN CERTIFICATE") ? new X509Certificate(pem).publicKey : createPublicKey(pem);
+      const biti = k.asymmetricKeyDetails?.modulusLength;
+      if (biti) felCheie += `, RSA ${biti} biți`;
       cheiaSeCiteste = true;
     } catch {
       cheiaSeCiteste = false;
@@ -161,6 +163,12 @@ export async function diagnostic() {
  * `iss` = „NETOPIA Payments", `aud` = semnătura noastră POS, iar `sub` e hash-ul
  * corpului exact așa cum a venit — deci se verifică pe textul brut, nu pe JSON-ul
  * reparsat.
+ *
+ * Verificarea e pe `node:crypto`, nu pe `jose`, dinadins: certificatele de
+ * sandbox ale Netopiei au cheie RSA de 1024 de biți, iar `jose` refuză din
+ * politică proprie orice cheie sub 2048 la RS512 („RS512 requires key
+ * modulusLength to be 2048 bits or larger"). Semnătura e validă, doar
+ * biblioteca era mai strictă decât emitentul.
  */
 export type Verificare = { ok: boolean; motiv: string };
 
@@ -172,28 +180,47 @@ export async function verificaNotificare(raw: string, token: string | null): Pro
   if (!posSignature) return { ok: false, motiv: "NETOPIA_SIGNATURE nu e setată" };
 
   try {
-    const { importSPKI, importX509, jwtVerify, decodeProtectedHeader } = await import("jose");
-    const { createHash } = await import("node:crypto");
+    const parti = token.split(".");
+    if (parti.length !== 3) return { ok: false, motiv: "token care nu are trei părți" };
 
-    const alg = decodeProtectedHeader(token).alg ?? "RS512";
-    const key = pem.includes("BEGIN CERTIFICATE")
-      ? await importX509(pem, alg)
-      : await importSPKI(pem, alg);
+    const antet = JSON.parse(Buffer.from(parti[0], "base64url").toString("utf8")) as { alg?: string };
+    const alg = antet.alg ?? "RS512";
+    const hash = ({ RS256: "sha256", RS384: "sha384", RS512: "sha512" } as const)[
+      alg as "RS256" | "RS384" | "RS512"
+    ];
+    if (!hash) return { ok: false, motiv: `algoritm nesuportat: ${alg}` };
 
-    const { payload } = await jwtVerify(token, key, { algorithms: [alg] });
+    const { createHash, createPublicKey, createVerify, X509Certificate } = await import("node:crypto");
+    const cheie = pem.includes("BEGIN CERTIFICATE") ? new X509Certificate(pem).publicKey : createPublicKey(pem);
+
+    const v = createVerify(hash);
+    v.update(`${parti[0]}.${parti[1]}`);
+    v.end();
+    if (!v.verify(cheie, Buffer.from(parti[2], "base64url"))) {
+      return { ok: false, motiv: "semnătura nu se potrivește cu cheia publică" };
+    }
+
+    const payload = JSON.parse(Buffer.from(parti[1], "base64url").toString("utf8")) as {
+      iss?: string;
+      aud?: string | string[];
+      sub?: string;
+      exp?: number;
+    };
 
     if (payload.iss !== "NETOPIA Payments") return { ok: false, motiv: `emitent neașteptat: ${payload.iss}` };
 
     const aud = Array.isArray(payload.aud) ? payload.aud[0] : payload.aud;
     if (aud !== posSignature) return { ok: false, motiv: "audiența nu e semnătura noastră POS" };
 
+    if (payload.exp && payload.exp * 1000 < Date.now() - 60_000) {
+      return { ok: false, motiv: "token expirat" };
+    }
+
     if (payload.sub !== createHash("sha512").update(raw, "utf8").digest("base64")) {
       return { ok: false, motiv: "hash-ul corpului nu se potrivește" };
     }
     return { ok: true, motiv: "ok" };
   } catch (e) {
-    // Cazul cel mai probabil aici: cheia publică e alta decât cea cu care
-    // semnează Netopia — semnătura nu se validează.
-    return { ok: false, motiv: `semnătura nu se validează: ${e instanceof Error ? e.message : "eroare"}` };
+    return { ok: false, motiv: `verificare picată: ${e instanceof Error ? e.message : "eroare"}` };
   }
 }
