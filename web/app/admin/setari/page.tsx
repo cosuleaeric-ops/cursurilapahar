@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, changePassword } from "./actions";
+import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, saveCheckout, changePassword } from "./actions";
+import { citesteMod } from "@/lib/checkout";
 import SyncToken from "./SyncToken";
 import QuickLinksEditor, { type QuickLink } from "./QuickLinksEditor";
 import RecurringEditor, { type RecTask } from "./RecurringEditor";
@@ -20,7 +21,7 @@ export default async function SetariPage({
   const { saved, error, rec } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
-    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token')
+    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu')
   `) as { key: string; value: unknown }[];
   const recTasks = (await sql`
     SELECT id, type, system_key, assigned_to, title, schedule, description, days
@@ -30,6 +31,7 @@ export default async function SetariPage({
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   const str = (k: string) => (typeof s[k] === "string" ? (s[k] as string) : "");
   const quickLinks = Array.isArray(s.quick_links) ? (s.quick_links as QuickLink[]) : [];
+  const modCheckout = citesteMod(s.checkout_propriu);
 
   return (
     <>
@@ -37,6 +39,36 @@ export default async function SetariPage({
 
       {saved && <div className="notice notice-success">Setările au fost salvate.</div>}
       {error && <div className="notice notice-error">Parolele nu coincid sau sunt prea scurte (minim 6 caractere).</div>}
+
+      <form action={saveCheckout}>
+        <div className="card">
+          <div className="card-title">🎟️ Vânzarea biletelor</div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+            Unde ajunge cineva care apasă „Cumpără bilete". Prețurile de pe pagina de curs se văd la fel în toate
+            cele trei cazuri - se schimbă doar unde se plătește.
+          </p>
+          {(
+            [
+              ["off", "LiveTickets", "Cumpărătorii merg pe LiveTickets, ca până acum."],
+              ["test", "Doar pentru mine (test)", "Plata pe site apare doar dacă ești logat în admin. Cumpărătorii merg tot pe LiveTickets."],
+              ["on", "Plata pe site", "Toată lumea plătește cu cardul direct la noi, prin Netopia."],
+            ] as const
+          ).map(([val, titlu, desc]) => (
+            <label key={val} className="form-group" style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
+              <input type="radio" name="checkout_propriu" value={val} defaultChecked={modCheckout === val} style={{ marginTop: 3 }} />
+              <span>
+                <strong>{titlu}</strong>
+                <p className="form-desc" style={{ margin: 0 }}>
+                  {desc}
+                </p>
+              </span>
+            </label>
+          ))}
+          <button type="submit" className="btn btn-primary">
+            Salvează
+          </button>
+        </div>
+      </form>
 
       <div className="card">
         <div className="card-title">🔗 Linkuri rapide - Dashboard</div>

@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
+import { citesteMod } from "@/lib/checkout";
 
 async function requireOwner(): Promise<Session> {
   const s = await getSession();
@@ -56,6 +57,15 @@ export async function saveBrevo(formData: FormData): Promise<void> {
 export async function saveMetaAds(formData: FormData): Promise<void> {
   await requireOwner();
   await setSetting("meta_ads_token", g(formData, "meta_ads_token"));
+  redirect("/admin/setari?saved=1");
+}
+
+export async function saveCheckout(formData: FormData): Promise<void> {
+  await requireOwner();
+  await setSetting("checkout_propriu", citesteMod(g(formData, "checkout_propriu")));
+  // Coșul și pagina de curs se randează la cerere, dar layout-ul public ține
+  // setările memoizate — golim cache-ul ca schimbarea să se vadă imediat.
+  revalidatePath("/", "layout");
   redirect("/admin/setari?saved=1");
 }
 
