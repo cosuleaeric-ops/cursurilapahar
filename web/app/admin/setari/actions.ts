@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
 import { citesteMod } from "@/lib/checkout";
-import { startPayment, diagnostic } from "@/lib/netopia";
+import { startPayment, diagnostic, verificaNotificare } from "@/lib/netopia";
 
 async function requireOwner(): Promise<Session> {
   const s = await getSession();
@@ -108,6 +108,28 @@ export async function testeazaNetopia(): Promise<void> {
     INSERT INTO webhook_log (ok, motiv, cod)
     VALUES (${r.ok}, ${`test conexiune: ${mesaj} ${forme}`.slice(0, 300)}, ${cod})
   `;
+  redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
+}
+
+/**
+ * Reia ultima notificare respinsă și o verifică din nou cu cheia publică de
+ * acum. Așa se poate proba o cheie nouă fără să mai treacă cineva printr-o
+ * plată: notificarea e păstrată exact cum a venit.
+ */
+export async function verificaUltimaNotificare(): Promise<void> {
+  await requireOwner();
+  const [r] = (await sql`
+    SELECT cod, token, corp FROM webhook_log
+    WHERE token IS NOT NULL AND corp IS NOT NULL ORDER BY id DESC LIMIT 1
+  `) as { cod: string | null; token: string; corp: string }[];
+
+  if (!r) redirect(`/admin/setari?net=${encodeURIComponent("Nu am nicio notificare păstrată de reverificat.")}`);
+
+  const v = await verificaNotificare(r.corp, r.token);
+  const d = await diagnostic();
+  const mesaj = v.ok
+    ? `✅ Semnătura notificării ${r.cod} se verifică cu cheia de acum (${d.felCheie})`
+    : `❌ ${r.cod}: ${v.motiv} — cheia de acum e ${d.felCheie}`;
   redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
 }
 

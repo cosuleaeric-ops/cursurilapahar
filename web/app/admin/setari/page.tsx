@@ -1,7 +1,16 @@
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { saveKit, saveBrevo, saveMetaAds, saveHeadScripts, saveCheckout, testeazaNetopia, changePassword } from "./actions";
+import {
+  saveKit,
+  saveBrevo,
+  saveMetaAds,
+  saveHeadScripts,
+  saveCheckout,
+  testeazaNetopia,
+  verificaUltimaNotificare,
+  changePassword,
+} from "./actions";
 import { citesteMod } from "@/lib/checkout";
 import { diagnostic } from "@/lib/netopia";
 import SyncToken from "./SyncToken";
@@ -87,14 +96,23 @@ export default async function SetariPage({
           </tbody>
         </table>
 
-        <form action={testeazaNetopia} style={{ marginTop: 16 }}>
-          <button type="submit" className="btn">
-            Testează conexiunea
-          </button>
-          <span className="form-desc" style={{ marginLeft: 10 }}>
-            Cere o plată de probă. Nu creează comandă și nu rezervă bilete.
-          </span>
-        </form>
+        <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+          <form action={testeazaNetopia}>
+            <button type="submit" className="btn">
+              Testează conexiunea
+            </button>
+          </form>
+          <form action={verificaUltimaNotificare}>
+            <button type="submit" className="btn">
+              Reverifică ultima notificare
+            </button>
+          </form>
+        </div>
+        <p className="form-desc" style={{ marginTop: 6 }}>
+          Primul cere o plată de probă - nu creează comandă și nu rezervă bilete. Al doilea reia ultima notificare
+          respinsă și o verifică din nou cu cheia publică de acum, ca să poți proba o cheie nouă fără să mai treacă
+          nimeni printr-o plată.
+        </p>
         {net && (
           <p style={{ marginTop: 12, fontSize: 13, wordBreak: "break-word" }}>
             <strong>{net}</strong>
