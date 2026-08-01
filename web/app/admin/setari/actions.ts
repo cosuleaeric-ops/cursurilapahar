@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
 import { citesteMod } from "@/lib/checkout";
-import { startPayment } from "@/lib/netopia";
+import { startPayment, diagnostic } from "@/lib/netopia";
 
 async function requireOwner(): Promise<Session> {
   const s = await getSession();
@@ -100,7 +100,14 @@ export async function testeazaNetopia(): Promise<void> {
     notifyUrl: "https://cursurilapahar.ro/api/netopia/confirm",
   });
   const mesaj = r.ok ? `✅ Conexiune reușită - Netopia a dat pagina de plată (${r.ntpID})` : `❌ ${r.mesaj}`;
-  await sql`INSERT INTO webhook_log (ok, motiv, cod) VALUES (${r.ok}, ${`test conexiune: ${mesaj}`.slice(0, 300)}, ${cod})`;
+  // Formele cheilor intră în jurnal odată cu rezultatul: la un refuz, prima
+  // întrebare e mereu „ce e de fapt în variabile", iar din afară nu se poate citi.
+  const d = await diagnostic();
+  const forme = `[apiKey ${d.apiKey}c, semnătură ${d.semnatura}c, cheie publică ${d.felCheie} ${d.cheieLungime}c]`;
+  await sql`
+    INSERT INTO webhook_log (ok, motiv, cod)
+    VALUES (${r.ok}, ${`test conexiune: ${mesaj} ${forme}`.slice(0, 300)}, ${cod})
+  `;
   redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
 }
 
