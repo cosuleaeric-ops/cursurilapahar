@@ -177,6 +177,16 @@ export async function recupereazaComenzi(): Promise<void> {
   redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
 }
 
+/**
+ * Generează o cheie nouă de previzualizare a plății. Cea veche moare pe loc,
+ * deci linkurile date până acum nu mai deschid nimic.
+ */
+export async function regenereazaPreview(): Promise<void> {
+  await requireOwner();
+  await setSetting("checkout_preview_token", randomBytes(16).toString("hex"));
+  redirect("/admin/setari?saved=1");
+}
+
 export async function saveHeadScripts(formData: FormData): Promise<void> {
   await requireOwner();
   await setSetting("head_scripts", String(formData.get("head_scripts") ?? ""));

@@ -10,6 +10,7 @@ import {
   testeazaNetopia,
   verificaUltimaNotificare,
   recupereazaComenzi,
+  regenereazaPreview,
   changePassword,
 } from "./actions";
 import { citesteMod } from "@/lib/checkout";
@@ -32,7 +33,7 @@ export default async function SetariPage({
   const { saved, error, rec, cfg, net } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
-    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu')
+    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu', 'checkout_preview_token')
   `) as { key: string; value: unknown }[];
   const recTasks = (await sql`
     SELECT id, type, system_key, assigned_to, title, schedule, description, days
@@ -182,6 +183,36 @@ export default async function SetariPage({
           <button type="submit" className="btn btn-primary">
             Salvează
           </button>
+
+          <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Link de previzualizare</div>
+            <p className="form-desc" style={{ marginTop: 0 }}>
+              Cine deschide linkul ăsta vede fluxul de plată pe site, chiar dacă restul lumii e trimisă la
+              LiveTickets. Pentru verificatorul de la Netopia, care trebuie să vadă drumul complet. Duce la cursul de
+              test, ca să nu consume bilete reale, și ține 30 de zile.
+            </p>
+            {str("checkout_preview_token") ? (
+              <input
+                type="text"
+                readOnly
+                value={`https://cursurilapahar.ro/previzualizare-plata?cheie=${str("checkout_preview_token")}`}
+                style={{ width: "100%", fontFamily: "monospace", fontSize: 12 }}
+              />
+            ) : (
+              <p className="form-desc">Nu există încă o cheie. Apasă butonul de mai jos.</p>
+            )}
+          </div>
+        </div>
+      </form>
+
+      <form action={regenereazaPreview}>
+        <div className="card" style={{ marginTop: -8 }}>
+          <button type="submit" className="btn">
+            {str("checkout_preview_token") ? "Generează un link nou" : "Generează linkul de previzualizare"}
+          </button>
+          <span className="form-desc" style={{ marginLeft: 10 }}>
+            Linkul vechi încetează să funcționeze imediat.
+          </span>
         </div>
       </form>
 
