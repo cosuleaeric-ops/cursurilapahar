@@ -1,9 +1,16 @@
 // Footerul din includes/footer.php — pe PHP e inclus pe TOATE cele 7 pagini
 // publice (index, voteaza-cursuri, gazduieste, prezinta, propune, parteneri,
 // cursuri-posibile), de aceea îl randăm din layout, nu din pagini.
+//
+// Datele firmei, linkurile ANPC și sigla procesatorului sunt condiții pe care
+// NETOPIA le verifică înainte să aprobe contul de plăți. Trebuie să fie pe
+// toate paginile, de aceea stau aici și nu pe o pagină separată.
 
-export default function SiteFooter() {
+import { getOrganizator } from "@/lib/bilete";
+
+export default async function SiteFooter() {
   const year = new Date().getFullYear();
+  const o = await getOrganizator();
 
   return (
     <footer className="footer">
@@ -46,6 +53,38 @@ export default function SiteFooter() {
             </a>
           </div>
         </div>
+        <div className="footer-legal">
+          <div className="footer-legal-links">
+            <a href="/termeni-si-conditii">Termeni și condiții</a>
+            <a href="/politica-de-confidentialitate">Confidențialitate și GDPR</a>
+            <a href="/politica-de-livrare">Livrare</a>
+            <a href="/politica-de-anulare">Anulare și rambursare</a>
+          </div>
+
+          <p className="footer-firma">
+            {o.nume} · CUI {o.cui} · Reg. Com. {o.regCom}
+            <br />
+            {o.sediu}
+            <br />
+            <a href={`tel:${o.telefon}`}>{o.telefon}</a> · <a href={`mailto:${o.email}`}>{o.email}</a>
+          </p>
+
+          <div className="footer-anpc">
+            <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener">
+              ANPC - Soluționarea alternativă a litigiilor
+            </a>
+            <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">
+              Soluționarea online a litigiilor
+            </a>
+          </div>
+
+          <div className="footer-plata">
+            <span>Plăți securizate prin</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/images/netopia-logo.svg" alt="NETOPIA Payments" width={120} height={28} />
+          </div>
+        </div>
+
         <div className="footer-bottom">
           <p>&copy; {year} Cursuri la Pahar. Toate drepturile rezervate.</p>
         </div>
