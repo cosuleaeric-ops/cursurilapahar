@@ -37,6 +37,10 @@ export default function TermeniPage() {
         adăugăm comisioane, taxe de procesare sau alte costuri la final: cât scrie pe pagina cursului, atât plătești.
       </p>
       <p>
+        Societatea este <strong>neplătitoare de TVA</strong>, deci prețurile afișate nu conțin TVA și nu se adaugă
+        TVA la plată.
+      </p>
+      <p>
         Unele tipuri de bilet se vând la pachet, de exemplu „1+1". În cazul lor, prețul afișat este{" "}
         <strong>prețul pentru fiecare bilet</strong>, iar oferta se aplică atunci când adaugi în coș numărul de bilete
         din pachet. Suma totală o vezi întotdeauna în coș, înainte să plătești.
