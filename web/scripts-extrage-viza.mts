@@ -3,8 +3,8 @@
  *
  * De rulat DUPĂ `npm run migrate` și `npm run migrate-files -- --apply`:
  * migrate golește viza_subtips și pune la loc ce e în SQLite (83 de serii), dar
- * parserul din port scoate mai multe (87) — prinde și seriile partajate între
- * produse, și formatul nou iaBilet, pe care PHP-ul nu le prinde.
+ * parserul din port scoate mai multe — prinde și seriile partajate între
+ * produse, pe care PHP-ul nu le prinde.
  *
  *   cd web && DATABASE_URL=... npx tsx scripts-extrage-viza.mts
  */

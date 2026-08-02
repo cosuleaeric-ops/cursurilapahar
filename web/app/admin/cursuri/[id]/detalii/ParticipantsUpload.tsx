@@ -41,23 +41,6 @@ export default function ParticipantsUpload({ id, hasList }: { id: number; hasLis
     document.body.appendChild(s);
   }, []);
 
-  /** Raport comisioane iaBilet: „Ion Pop - 2 bilete" în coloana „Comanda". */
-  function parseIaBilet(list: Row[], hs: string[]): string[] | null {
-    const c = hs.find((h) => /^comand[aă]$/i.test(h.trim()));
-    if (!c) return null;
-    const statusCol = hs.find((h) => /^status/i.test(h.trim()));
-    const out: string[] = [];
-    let matched = 0;
-    for (const r of list) {
-      const m = String(r[c] ?? "").trim().match(/^(.+)\s+-\s+(\d+)\s+bilete?$/i);
-      if (!m) continue;
-      matched++;
-      if (statusCol && !/finalizat/i.test(String(r[statusCol] ?? ""))) continue;
-      for (let i = 0; i < parseInt(m[2], 10); i++) out.push(m[1]);
-    }
-    return matched ? out : null;
-  }
-
   function apply(list: string[], from: string) {
     setNames(list);
     setUsedCol(from);
@@ -90,11 +73,6 @@ export default function ParticipantsUpload({ id, hasList }: { id: number; hasLis
         setRows(parsed);
         setHeaders(hs);
 
-        const ia = parseIaBilet(parsed, hs);
-        if (ia) {
-          apply(ia, "Comanda");
-          return;
-        }
         const detected = DETECT.map((re) => hs.find((h) => re.test(h.trim()))).find(Boolean);
         if (detected) applyCol(detected, parsed);
         else {

@@ -276,7 +276,7 @@ export default function CourseAddForm({
               onChange={setLocation}
             />
             <div className="form-group" style={{ position: "relative" }}>
-              <label htmlFor="f_lt_url">Link bilete (LiveTickets / iaBilet)</label>
+              <label htmlFor="f_lt_url">Link bilete (LiveTickets)</label>
               <input
                 type="url"
                 name="livetickets_url"

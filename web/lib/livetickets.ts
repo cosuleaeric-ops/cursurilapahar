@@ -1,5 +1,5 @@
-// Port din lib/livetickets.php + lib/iabilet.php — meta unui curs dintr-un link
-// de bilete (LiveTickets via API publică, iaBilet via og:image).
+// Port din lib/livetickets.php — meta unui curs dintr-un link de bilete
+// LiveTickets, via API publică.
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -83,20 +83,6 @@ function ltImageUrl(images: LtImage[]): string {
   return fallback;
 }
 
-function ogContent(html: string, property: string): string {
-  const re = new RegExp(
-    `<meta[^>]+(?:property|name)=["']${property}["'][^>]*content=["']([^"']+)["']`,
-    "i",
-  );
-  const m = html.match(re);
-  if (m) return m[1];
-  const re2 = new RegExp(
-    `<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']${property}["']`,
-    "i",
-  );
-  return html.match(re2)?.[1] ?? "";
-}
-
 /**
  * Port lt_get_event_by_url(): evenimentul după slug; dacă `items` lipsește din
  * getbyurl, biletele vin separat de la get-tickets.
@@ -155,21 +141,10 @@ export function ltIsSoldOut(event: LtEvent): boolean {
   return event.remaining_count === 0 && Number.isFinite(total) && total > 0;
 }
 
-const EMPTY: CourseMeta = { title: "", date_raw: "", time: "", location: "", image_url: "" };
-
-async function iabiletFetch(url: string): Promise<MetaResult> {
-  const html = await httpGet(url);
-  if (!html) return { success: false, message: "Nu s-a putut accesa pagina iaBilet." };
-  const image = ogContent(html, "og:image");
-  if (!image) return { success: false, message: "Nu s-a găsit imaginea pe pagina iaBilet." };
-  return { success: true, data: { ...EMPTY, title: ogContent(html, "og:title"), image_url: image } };
-}
-
-/** Rutează după provider, ca clp_fetch_course_meta_by_url(). */
+/** Meta cursului dintr-un link LiveTickets, ca clp_fetch_course_meta_by_url(). */
 export async function fetchCourseMeta(rawUrl: string): Promise<MetaResult> {
   const url = rawUrl.trim();
   if (!url) return { success: false, message: "URL lipsă." };
-  if (/iabilet\.ro/i.test(url)) return iabiletFetch(url);
 
   const ev = await ltGetEventByUrl(url);
   if (!ev) return { success: false, message: "Evenimentul nu a fost găsit în LiveTickets." };

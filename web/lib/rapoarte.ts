@@ -1,4 +1,4 @@
-// Parsare rapoarte iaBilet/LiveTickets (XLSX) și extragere serii din PDF-ul de viză.
+// Parsare rapoarte LiveTickets (XLSX) și extragere serii din PDF-ul de viză.
 // Port din JS-ul de upload (view.php) + parse_viza_subtips() din admin/statistici/db.php.
 // Rulează pe server (Node), nu în browser ca în PHP.
 
@@ -77,7 +77,7 @@ export function parseReportXlsx(buf: ArrayBuffer): ParsedReport | { error: strin
 
 export type VizaSubtip = { seria: string; tarif: number; nr_unitati: number; de_la: string; pana_la: string };
 
-/** Extrage seriile din textul PDF-ului de viză — formatele din parse_viza_subtips() plus pass 6 (format nou iaBilet). */
+/** Extrage seriile din textul PDF-ului de viză — formatele din parse_viza_subtips(). */
 export function parseVizaSubtips(raw: string): VizaSubtip[] {
   const text = raw.replace(/\r\n?/g, "\n");
   const out: VizaSubtip[] = [];
@@ -102,17 +102,7 @@ export function parseVizaSubtips(raw: string): VizaSubtip[] {
     out.push({ nr_unitati: Number(m[1]), tarif: toNum(m[2]), seria: m[3].trim(), de_la: m[4], pana_la: m[5] });
   }
 
-  // 3) Format iaBilet (cerere vizare DITL): serie numerică lungă, fără litere
-  const numRe = /^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+(\d{8,})\s*-\s*(\d{8,})\s*$/gmu;
-  for (const m of text.matchAll(numRe)) {
-    const seria = m[3].slice(0, 6); // primele 6 cifre = ID-ul evenimentului iaBilet
-    const key = `${seria}_${m[3]}_${toNum(m[2])}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ nr_unitati: Number(m[1]), tarif: toNum(m[2]), seria, de_la: m[3], pana_la: m[4] });
-  }
-
-  // 4) Rând căruia îi lipsește „La nr." de pe linie, fiindcă celula seriei se rupe în PDF:
+  // 3) Rând căruia îi lipsește „La nr." de pe linie, fiindcă celula seriei se rupe în PDF:
   //    „Bilet standard - ONLINE 55 50.00 2,750.00 WAD 0001 - WAD" … „0055"
   const partialRe = /^.+?\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s+([A-Z]{2,})\s+(\d+)\s+-\s+[A-Z]{2,}\s*$/gmu;
   for (const m of text.matchAll(partialRe)) {
@@ -127,7 +117,7 @@ export function parseVizaSubtips(raw: string): VizaSubtip[] {
     out.push({ nr_unitati: Number(m[1]), tarif: toNum(m[2]), seria, de_la: m[4], pana_la: nm[1] });
   }
 
-  // 5) Seria stă pe linii proprii, în jurul rândului cu cifre:
+  // 4) Seria stă pe linii proprii, în jurul rândului cu cifre:
   //    „WAD 0001 - WAD" / „Bilet standard - ONLINE 55 50.00 2,750.00" / „0055"
   const lines = text.split("\n");
   for (let i = 0; i < lines.length; i++) {
@@ -165,20 +155,6 @@ export function parseVizaSubtips(raw: string): VizaSubtip[] {
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ nr_unitati: Number(row[1]), tarif: toNum(row[2]), seria, de_la: deLa, pana_la: pana });
-  }
-
-  // 6) Format nou iaBilet („Situatia biletelor si abonamentelor"): coloanele sunt
-  //    „de_la pana_la nr pret_unitar total", separate prin spațiu, fără liniuță între serii:
-  //    „12880600100001 12880600100037 37 51.86 1918.82"
-  //    ATENȚIE: pass adăugat peste paritatea cu PHP — parse_viza_subtips() din
-  //    admin/statistici/db.php nu prinde formatul ăsta (dă 0 serii).
-  const iaBiletRe = /^\s*(\d{8,})\s+(\d{8,})\s+(\d+)\s+([\d,.]+)\s+[\d,.]+\s*$/gmu;
-  for (const m of text.matchAll(iaBiletRe)) {
-    const seria = m[1].slice(0, 6); // primele 6 cifre = ID-ul evenimentului iaBilet, ca la pass 3
-    const key = `${seria}_${m[1]}_${toNum(m[4])}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ nr_unitati: Number(m[3]), tarif: toNum(m[4]), seria, de_la: m[1], pana_la: m[2] });
   }
 
   return out;

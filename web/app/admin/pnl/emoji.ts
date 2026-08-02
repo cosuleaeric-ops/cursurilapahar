@@ -22,7 +22,6 @@ export const CHELTUIALA_EMOJI: Record<string, string> = {
   "Fast-food": "🍔",
   Teambuilding: "☘️",
   Fun: "🤘",
-  "Promovare iaBilet": "🎟️",
   Backlinks: "🔗",
 };
 
@@ -47,6 +46,5 @@ export const CHELTUIALA_EMOJI_KEYWORDS: Record<string, string> = {
   decont: "🧾",
   "rata pc": "🖥️",
   fun: "🤘",
-  iabilet: "🎟️",
   backlink: "🔗",
 };
