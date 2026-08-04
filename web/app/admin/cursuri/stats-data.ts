@@ -36,7 +36,7 @@ export async function fetchMonthStats(year: number, month: number) {
   // se arată doar cursurile venite din courses.json (aici: legacy_card_id) sau cele fără
   // external_id care au statistici (raport / bilete / viză) și nu cad în aceeași zi cu un card.
   const allRows = (await sql`
-    SELECT e.id, e.title, e.starts_at, e.external_id,
+    SELECT e.id, e.title, e.speaker_name, e.location, e.starts_at, e.external_id,
            to_char(e.starts_at AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS date,
            (SELECT count(*)::int FROM tickets t WHERE t.event_id = e.id) AS total_tickets,
            (SELECT count(*)::int FROM event_files f WHERE f.event_id = e.id AND f.file_type = 'viza') AS viza_files,
@@ -64,6 +64,8 @@ export async function fetchMonthStats(year: number, month: number) {
   `) as {
     id: number;
     title: string;
+    speaker_name: string | null;
+    location: string | null;
     starts_at: string;
     external_id: string | null;
     date: string;
@@ -128,6 +130,8 @@ export async function fetchMonthStats(year: number, month: number) {
     return {
       id: Number(r.id),
       name: r.title,
+      speaker_name: r.speaker_name,
+      location: r.location,
       date_ro: r.starts_at ? dateRoFmt.format(new Date(r.starts_at)) : "",
       total_tickets: Number(r.total_tickets),
       has_report: hasReport,

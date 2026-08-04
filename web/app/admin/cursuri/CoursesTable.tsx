@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { deleteCourse, saveDiscount, toggleActive } from "./actions";
+import { courseMeta } from "./meta";
 
 // Port din clp_render_admin_courses_table() (lib/courses_admin.php).
 
@@ -10,6 +11,7 @@ export type CourseRow = {
   id: number;
   title: string;
   speaker_name: string | null;
+  location: string | null;
   date_display: string;
   date_raw: string | null;
   livetickets_url: string | null;
@@ -78,6 +80,7 @@ export default function CoursesTable({ list }: { list: CourseRow[] }) {
 
 function RowPair({ c, open, onToggle }: { c: CourseRow; open: boolean; onToggle: () => void }) {
   const hasDisc = c.discount_percent != null && c.discount_ends_local != null;
+  const meta = courseMeta(c.speaker_name, c.location);
 
   return (
     <>
@@ -100,12 +103,10 @@ function RowPair({ c, open, onToggle }: { c: CourseRow; open: boolean; onToggle:
               ) : (
                 c.title
               )}
+              {meta && (
+                <span style={{ fontWeight: 400, color: "var(--text-muted)" }}> · {meta}</span>
+              )}
             </div>
-            {c.speaker_name ? (
-              <div style={{ fontSize: 12, fontWeight: 400, color: "var(--text-muted)", marginTop: 2 }}>
-                {c.speaker_name}
-              </div>
-            ) : null}
             {hasDisc && (
               <span className={`discount-tag ${c.discount_active ? "discount-tag--active" : "discount-tag--expired"}`}>
                 −{c.discount_percent}%{c.discount_active ? "" : " (expirată)"}

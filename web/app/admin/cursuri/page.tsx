@@ -66,6 +66,7 @@ export default async function CursuriPage({
       id: c.id,
       title: c.title,
       speaker_name: c.speaker_name,
+      location: c.location,
       // lib/courses_admin.php:107 — `$c['date_display'] ?? $c['date_raw'] ?? ''`: când lipsește
       // textul STOCAT se arată data BRUTĂ („2026-08-11"), nu una reformatată.
       date_display: c.date_display ?? c.date_raw ?? "",

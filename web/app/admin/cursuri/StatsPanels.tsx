@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import type { Participant } from "@/lib/statistici";
+import { courseMeta } from "./meta";
 
 export type MonthCourse = {
   id: number;
   name: string;
+  speaker_name: string | null;
+  location: string | null;
   date_ro: string;
   total_tickets: number;
   has_report: boolean;
@@ -74,6 +77,7 @@ export function CoursesPanel({ courses, sumIncasari, sumDitlBase }: { courses: M
 
 function FragmentRow({ c, open, onToggle }: { c: MonthCourse; open: boolean; onToggle: () => void }) {
   const dash = <span style={{ color: "#d1d5db" }}>-</span>;
+  const meta = courseMeta(c.speaker_name, c.location);
   return (
     <>
       <tr style={{ cursor: "pointer" }} onClick={() => (location.href = `/admin/cursuri/${c.id}/detalii`)}>
@@ -91,6 +95,7 @@ function FragmentRow({ c, open, onToggle }: { c: MonthCourse; open: boolean; onT
           ) : (
             c.name
           )}
+          {meta && <span style={{ fontWeight: 400, color: "var(--text-muted)" }}> · {meta}</span>}
         </td>
         <td style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>{c.date_ro}</td>
         <td style={{ textAlign: "right" }}>{c.total_tickets}</td>
