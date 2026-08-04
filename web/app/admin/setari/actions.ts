@@ -132,6 +132,11 @@ export async function verificaUltimaNotificare(): Promise<void> {
   const mesaj = v.ok
     ? `✅ Semnătura notificării ${r.cod} se verifică cu cheia de acum (${d.felCheie})`
     : `❌ ${r.cod}: ${v.motiv} — cheia de acum e ${d.felCheie}`;
+  // Și în jurnal, nu doar pe ecran: altfel rezultatul se pierde odată cu pagina.
+  await sql`
+    INSERT INTO webhook_log (ok, motiv, cod)
+    VALUES (${v.ok}, ${`reverificare: ${mesaj}`.slice(0, 300)}, ${r.cod})
+  `;
   redirect(`/admin/setari?net=${encodeURIComponent(mesaj)}`);
 }
 

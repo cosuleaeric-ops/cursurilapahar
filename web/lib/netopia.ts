@@ -164,7 +164,7 @@ export async function statusPlata(ntpID: string, orderID: string): Promise<Statu
  */
 export async function diagnostic() {
   const val = (k: string) => (process.env[k] ?? "").trim();
-  const pem = val("NETOPIA_PUBLIC_KEY").replace(/\\n/g, "\n").trim();
+  const pem = pemNormalizat(val("NETOPIA_PUBLIC_KEY"));
 
   let cheiaSeCiteste: boolean | null = null;
   let felCheie = "lipsește";
@@ -212,8 +212,22 @@ export async function diagnostic() {
  */
 export type Verificare = { ok: boolean; motiv: string };
 
+/**
+ * Cheia din variabilele de mediu, adusă la un PEM valid. Panourile de hosting
+ * strică des blocurile PEM: fie scapă `\n` ca text, fie pierd rândurile de tot.
+ * Al doilea caz nu se mai parsează, așa că îl reconstruim la 64 de caractere.
+ */
+export function pemNormalizat(brut: string): string {
+  const v = brut.replace(/\\n/g, "\n").trim();
+  if (!v || v.includes("\n")) return v;
+  const m = /^-----BEGIN ([A-Z ]+)-----\s*(.*?)\s*-----END \1-----$/.exec(v);
+  if (!m) return v;
+  const corp = m[2].replace(/\s+/g, "").replace(/(.{64})/g, "$1\n").trim();
+  return `-----BEGIN ${m[1]}-----\n${corp}\n-----END ${m[1]}-----`;
+}
+
 export async function verificaNotificare(raw: string, token: string | null): Promise<Verificare> {
-  const pem = (process.env.NETOPIA_PUBLIC_KEY ?? "").replace(/\\n/g, "\n").trim();
+  const pem = pemNormalizat(process.env.NETOPIA_PUBLIC_KEY ?? "");
   const posSignature = process.env.NETOPIA_SIGNATURE ?? "";
   if (!token) return { ok: false, motiv: "lipsește headerul Verification-token" };
   if (!pem) return { ok: false, motiv: "NETOPIA_PUBLIC_KEY nu e setată" };
