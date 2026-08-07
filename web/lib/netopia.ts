@@ -14,12 +14,23 @@
  * Producția e cea din SDK-ul lor (`netopia_sdk/config.py`). `NETOPIA_BASE`
  * pasează peste amândouă, dacă Netopia mută ceva.
  */
+const SANDBOX = process.env.NETOPIA_SANDBOX === "1";
+
 const BAZA = (
   process.env.NETOPIA_BASE ||
-  (process.env.NETOPIA_SANDBOX === "1"
-    ? "https://secure.sandbox.netopia-payments.com"
-    : "https://secure.mobilpay.ro/pay")
+  (SANDBOX ? "https://secure.sandbox.netopia-payments.com" : "https://secure.mobilpay.ro/pay")
 ).replace(/\/+$/, "");
+
+/**
+ * Cheia potrivită mediului. Cele două chei stau amândouă în Vercel, iar
+ * comutarea se face doar din `NETOPIA_SANDBOX` — altfel, la fiecare du-te-vino
+ * între test și producție trebuie rescrisă cheia, și e ușor să rămână cea
+ * greșită (ne-a costat deja câteva ore de 401).
+ */
+function cheiaApi(): string | undefined {
+  if (SANDBOX && process.env.NETOPIA_API_KEY_SANDBOX) return process.env.NETOPIA_API_KEY_SANDBOX;
+  return process.env.NETOPIA_API_KEY;
+}
 
 export type StartRezultat =
   | { ok: true; paymentURL: string; ntpID: string }
@@ -38,7 +49,7 @@ export async function startPayment(opts: {
   redirectUrl: string;
   notifyUrl: string;
 }): Promise<StartRezultat> {
-  const apiKey = process.env.NETOPIA_API_KEY;
+  const apiKey = cheiaApi();
   const posSignature = process.env.NETOPIA_SIGNATURE;
   if (!apiKey || !posSignature) return { ok: false, mesaj: "Plata nu e configurată." };
 
@@ -127,7 +138,7 @@ export type StatusPlata = { ok: true; status: number; mesaj: string } | { ok: fa
  * singura barieră — mai ales cât timp nu avem cheia publică potrivită.
  */
 export async function statusPlata(ntpID: string, orderID: string): Promise<StatusPlata> {
-  const apiKey = process.env.NETOPIA_API_KEY;
+  const apiKey = cheiaApi();
   const posID = process.env.NETOPIA_SIGNATURE;
   if (!apiKey || !posID) return { ok: false, mesaj: "Plata nu e configurată." };
 
@@ -186,7 +197,9 @@ export async function diagnostic() {
   }
 
   return {
-    apiKey: val("NETOPIA_API_KEY").length,
+    apiKey: (cheiaApi() ?? "").trim().length,
+    cheieFolosita: SANDBOX && process.env.NETOPIA_API_KEY_SANDBOX ? "NETOPIA_API_KEY_SANDBOX" : "NETOPIA_API_KEY",
+    mediu: SANDBOX ? "sandbox" : "producție",
     semnatura: val("NETOPIA_SIGNATURE").length,
     baza: BAZA,
     cheieLungime: pem.length,

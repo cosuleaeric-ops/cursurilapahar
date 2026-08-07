@@ -73,7 +73,17 @@ export default async function SetariPage({
           <tbody>
             <tr>
               <td>Cheie API</td>
-              <td>{netopia.apiKey ? `pusă (${netopia.apiKey} caractere)` : "❌ lipsește"}</td>
+              <td>
+                {netopia.apiKey
+                  ? `pusă (${netopia.apiKey} caractere), din ${netopia.cheieFolosita}`
+                  : "❌ lipsește"}
+              </td>
+            </tr>
+            <tr>
+              <td>Mediu</td>
+              <td>
+                <strong>{netopia.mediu}</strong>
+              </td>
             </tr>
             <tr>
               <td>Semnătură POS</td>
