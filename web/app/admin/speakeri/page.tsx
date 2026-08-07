@@ -155,13 +155,14 @@ export default async function SpeakeriPage({
     hour12: false,
   });
 
+  const formRowsOf = (payload: Record<string, string>) =>
+    Object.entries(payload)
+      .filter(([k]) => !["trimis de pe", "data"].includes(k.toLowerCase()))
+      .map(([k, v]) => ({ label: SUSTINE_LABELS[k] ?? k, value: String(v) }));
+
   const speakers: Speaker[] = rows.map((s) => {
     const sub = formBySpeaker.get(s.id);
-    const form_rows = sub
-      ? Object.entries(sub.payload)
-          .filter(([k]) => !["trimis de pe", "data"].includes(k.toLowerCase()))
-          .map(([k, v]) => ({ label: SUSTINE_LABELS[k] ?? k, value: String(v) }))
-      : [];
+    const form_rows = sub ? formRowsOf(sub.payload) : [];
     return {
       id: s.id,
       name: s.name,
@@ -184,6 +185,8 @@ export default async function SpeakeriPage({
       name: m.name || m.payload.Name || m.payload.Nume || "-",
       email: m.email,
       phone: phoneOf(m.payload) || null,
+      form_date: dFmt.format(new Date(m.created_at)),
+      form_rows: formRowsOf(m.payload),
     }));
 
   return (

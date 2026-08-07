@@ -19,7 +19,14 @@ export type Speaker = {
   meet: Record<string, string>;
 };
 
-export type Lead = { id: number; name: string; email: string | null; phone: string | null };
+export type Lead = {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  form_date: string;
+  form_rows: { label: string; value: string }[];
+};
 
 const FILTERS = ["all", "URMEAZĂ", "RECURENT", "MID", "NOPE", "CONTACTAT"] as const;
 
@@ -37,6 +44,24 @@ function CheckIcon() {
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
+  );
+}
+
+function DetailsBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="btn btn-sm btn-secondary"
+      style={{ padding: 5, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, lineHeight: 0 }}
+      onClick={onClick}
+      title="Detalii"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+    </button>
   );
 }
 
@@ -71,6 +96,8 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
   const [leadEdit, setLeadEdit] = useState(false);
   const [adding, setAdding] = useState(false);
   const [details, setDetails] = useState<Speaker | null>(null);
+  // lead-ul n-are id de speaker, deci tabul Cursuri (saveTopics) nu are ce salva
+  const [detailsLead, setDetailsLead] = useState(false);
   const [statusFor, setStatusFor] = useState<number | null>(null);
 
   const showLeads = filter === "all" || filter === "CONTACTAT";
@@ -118,7 +145,29 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
                 {showLeads &&
                   leads.map((c) => (
                     <tr key={`lead-${c.id}`}>
-                      <td style={{ fontWeight: 600 }}>{c.name}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <DetailsBtn
+                            onClick={() => {
+                              // lead-ul n-are fișă de speaker: doar tabul Formular
+                              setDetailsLead(true);
+                              setDetails({
+                                id: 0,
+                                name: c.name,
+                                email: c.email,
+                                phone: c.phone,
+                                status: "CONTACTAT",
+                                notes: "",
+                                topics: [],
+                                form_date: c.form_date,
+                                form_rows: c.form_rows,
+                                meet: {},
+                              });
+                            }}
+                          />
+                          <div>{c.name}</div>
+                        </div>
+                      </td>
                       <td style={{ fontSize: 13 }}>
                         {c.email && <Contact value={c.email} />}
                         {c.phone && <Contact value={c.phone} />}
@@ -167,19 +216,7 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
                   <tr key={sp.id}>
                     <td style={{ fontWeight: 600 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-secondary"
-                          style={{ padding: 5, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, lineHeight: 0 }}
-                          onClick={() => setDetails(sp)}
-                          title="Detalii"
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="16" x2="12" y2="12" />
-                            <line x1="12" y1="8" x2="12.01" y2="8" />
-                          </svg>
-                        </button>
+                        <DetailsBtn onClick={() => setDetails(sp)} />
                         <div>
                           {sp.name}
                           {sp.notes && (
@@ -260,7 +297,13 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
           onClose={() => { setEdit(null); setAdding(false); setLeadEdit(false); }}
         />
       )}
-      {details && <DetailsModal sp={details} onClose={() => setDetails(null)} />}
+      {details && (
+        <DetailsModal
+          sp={details}
+          showCourses={!detailsLead}
+          onClose={() => { setDetails(null); setDetailsLead(false); }}
+        />
+      )}
     </>
   );
 }
@@ -367,7 +410,7 @@ function SpeakerModal({ sp, editLabels, onClose }: { sp: Speaker | null; editLab
   );
 }
 
-function DetailsModal({ sp, onClose }: { sp: Speaker; onClose: () => void }) {
+function DetailsModal({ sp, showCourses, onClose }: { sp: Speaker; showCourses: boolean; onClose: () => void }) {
   const [tab, setTab] = useState<"formular" | "cursuri">("formular");
   const [topics, setTopics] = useState<string[]>(sp.topics.length ? sp.topics : [""]);
   const listRef = useRef<HTMLDivElement>(null);
@@ -397,14 +440,16 @@ function DetailsModal({ sp, onClose }: { sp: Speaker; onClose: () => void }) {
     <div style={overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="card" style={{ width: "min(640px,95vw)", maxHeight: "90vh", overflowY: "auto", margin: 0, position: "relative" }}>
         <div className="card-title">Detalii: {sp.name}</div>
-        <div style={{ display: "flex", gap: 4, background: "#f1f5f9", borderRadius: 8, padding: 3, marginBottom: 20, width: "fit-content" }}>
-          <button type="button" style={tabBtn(tab === "formular")} onClick={() => setTab("formular")}>
-            Formular
-          </button>
-          <button type="button" style={tabBtn(tab === "cursuri")} onClick={() => setTab("cursuri")}>
-            Cursuri
-          </button>
-        </div>
+        {showCourses && (
+          <div style={{ display: "flex", gap: 4, background: "#f1f5f9", borderRadius: 8, padding: 3, marginBottom: 20, width: "fit-content" }}>
+            <button type="button" style={tabBtn(tab === "formular")} onClick={() => setTab("formular")}>
+              Formular
+            </button>
+            <button type="button" style={tabBtn(tab === "cursuri")} onClick={() => setTab("cursuri")}>
+              Cursuri
+            </button>
+          </div>
+        )}
 
         {/* ambele taburi rămân în DOM, se comută doar display-ul (ca în speakeri-tab.php) */}
         <div style={tab === "formular" ? undefined : { display: "none" }}>
@@ -425,7 +470,7 @@ function DetailsModal({ sp, onClose }: { sp: Speaker; onClose: () => void }) {
             ))
           )}
         </div>
-        <div style={tab === "cursuri" ? undefined : { display: "none" }}>
+        <div style={showCourses && tab === "cursuri" ? undefined : { display: "none" }}>
           <form action={saveTopics}>
             <input type="hidden" name="id" value={sp.id} />
             <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
