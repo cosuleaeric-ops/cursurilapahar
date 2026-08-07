@@ -102,7 +102,8 @@ export default async function SetariPage({
             <tr>
               <td>Cerem la</td>
               <td>
-                <code>{netopia.baza}</code> - mediul (test sau real) îl decide cheia API, nu adresa
+                <code>{netopia.baza}</code> - adresa și cheia se schimbă împreună, din{" "}
+                <code>NETOPIA_SANDBOX</code>
               </td>
             </tr>
           </tbody>
