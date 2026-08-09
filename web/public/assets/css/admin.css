@@ -72,7 +72,7 @@ body {
 .wp-header-site-link:hover { background: rgba(255, 255, 255, 0.1); color: #fff; border-color: rgba(255, 255, 255, 0.3); }
 
 /* ── Layout ── */
-.wp-layout { display: flex; min-height: calc(100vh - 56px); margin-top: 56px; }
+.wp-layout { display: flex; min-height: calc(100vh - 56px); margin-top: 56px; margin-left: 220px; }
 
 /* ── Sidebar ── */
 .wp-sidebar {
@@ -120,75 +120,22 @@ body {
 .nav-new-badge { margin-left: auto; background: #e8a317; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
 
 /* ── Main content ── */
-.wp-main { flex: 1; min-width: 0; padding: 0 24px 80px; background: var(--bg); }
+.wp-main { flex: 1; min-width: 0; padding: 0 24px 40px; background: var(--bg); }
 
-/* ── Bottom nav bar (Basecamp-style) ── */
-.bc-botnav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
-    height: 48px;
-    background: var(--shell);
-    border-top: 1px solid var(--shell-border);
-    padding: 0 16px;
+/* Sub 900px sidebar-ul intră în flux, deasupra conținutului. */
+@media (max-width: 900px) {
+    .wp-layout { margin-left: 0; margin-top: 0; }
+    .wp-sidebar {
+        position: static;
+        width: auto;
+        height: auto;
+        margin-top: 56px;
+        padding-bottom: 8px;
+    }
+    .wp-sidebar nav { display: flex; flex-wrap: wrap; gap: 2px; }
+    .wp-sidebar nav a { margin: 0; }
+    .sidebar-section { width: 100%; }
 }
-.bc-botnav a {
-    color: var(--shell-muted);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 7px 14px;
-    border-radius: var(--radius-btn);
-    transition: background .15s, color .15s;
-    white-space: nowrap;
-}
-.bc-botnav a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
-.bc-botnav a.active { color: #fff; background: var(--accent); font-weight: 600; }
-
-/* ── Nav dropdowns (hover → submeniu în sus) ── */
-.bc-nav-group { position: relative; display: flex; }
-.bc-nav-trigger {
-    color: var(--shell-muted);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 7px 14px;
-    border-radius: var(--radius-btn);
-    cursor: default;
-    white-space: nowrap;
-    transition: background .15s, color .15s;
-}
-.bc-nav-group:hover .bc-nav-trigger { color: #fff; background: rgba(255, 255, 255, 0.08); }
-.bc-nav-trigger.active { color: #fff; background: var(--accent); font-weight: 600; }
-.bc-nav-dropdown {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    display: none;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 150px;
-    padding: 6px;
-    background: var(--shell);
-    border: 1px solid var(--shell-border);
-    border-radius: var(--radius-btn);
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
-    z-index: 101;
-}
-.bc-nav-dropdown::before {
-    content: '';
-    position: absolute;
-    left: 0; right: 0;
-    bottom: -8px;
-    height: 8px;
-}
-.bc-nav-group:hover .bc-nav-dropdown { display: flex; }
-.bc-nav-dropdown a { display: block; width: 100%; }
 
 /* ── Basecamp document wrapper ── */
 .bc-doc {
@@ -929,7 +876,7 @@ html { scroll-behavior: smooth; }
 :root { --ease: cubic-bezier(.2, .7, .3, 1); --t-fast: .12s; --t: .18s; }
 
 a, button, .btn, .ql-btn, .msg-tab, .sp-filter-btn, .msg-eval-filter-btn,
-.bc-botnav a, .bc-card, .dash-card, .dash-section, .wp-header-site-link,
+.wp-sidebar nav a, .bc-card, .dash-card, .dash-section, .wp-header-site-link,
 input, textarea, select, summary, .todo-item, .todo-assign-pick .todo-assign,
 .todo-del, .todo-add-link {
     transition-timing-function: var(--ease);
@@ -938,7 +885,7 @@ input, textarea, select, summary, .todo-item, .todo-assign-pick .todo-assign,
 .btn, .ql-btn, .btn-logout, .wp-header-site-link {
     transition: background var(--t), border-color var(--t), color var(--t), transform var(--t-fast), box-shadow var(--t);
 }
-.btn:active, .ql-btn:active, .bc-botnav a:active, .btn-logout:active { transform: translateY(1px); }
+.btn:active, .ql-btn:active, .wp-sidebar nav a:active, .btn-logout:active { transform: translateY(1px); }
 
 .bc-card { transition: box-shadow var(--t), transform var(--t), border-color var(--t); }
 .bc-card:active { transform: translateY(0) scale(.995); }

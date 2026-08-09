@@ -1,11 +1,12 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Structura din admin/partials/layout-nav.php: linkuri simple + două grupuri cu
-// dropdown („Organizare" și „Site"). Cursuri, To-dos și Mesaje se accesează din
-// dashboard, ca pe site-ul live.
+// Structura din admin/partials/layout-nav.php: linkuri simple + două grupuri
+// („Organizare" și „Site"), afișate ca secțiuni în sidebar. Cursuri, To-dos și
+// Mesaje se accesează din dashboard, ca pe site-ul live.
 type Item = { href: string; label: string; exact?: boolean; owner?: boolean };
 type Group = { label: string; items: Item[] };
 type Entry = Item | Group;
@@ -58,31 +59,31 @@ export default function AdminNav({ role }: { role: string }) {
   };
 
   return (
-    <nav className="bc-botnav">
-      {NAV.map((entry) => {
-        if (isGroup(entry)) {
-          const items = entry.items.filter((t) => !t.owner || role === "owner");
-          if (!items.length) return null;
-          return (
-            <div className="bc-nav-group" key={entry.label}>
-              <span className={`bc-nav-trigger${items.some(isActive) ? " active" : ""}`}>{entry.label}</span>
-              <div className="bc-nav-dropdown">
+    <aside className="wp-sidebar">
+      <nav>
+        {NAV.map((entry) => {
+          if (isGroup(entry)) {
+            const items = entry.items.filter((t) => !t.owner || role === "owner");
+            if (!items.length) return null;
+            return (
+              <Fragment key={entry.label}>
+                <div className="sidebar-section">{entry.label}</div>
                 {items.map((t) => (
                   <Link key={t.href} href={t.href} className={isActive(t) ? "active" : ""}>
                     {t.label}
                   </Link>
                 ))}
-              </div>
-            </div>
+              </Fragment>
+            );
+          }
+          if (entry.owner && role !== "owner") return null;
+          return (
+            <Link key={entry.href} href={entry.href} className={isActive(entry) ? "active" : ""}>
+              {entry.label}
+            </Link>
           );
-        }
-        if (entry.owner && role !== "owner") return null;
-        return (
-          <Link key={entry.href} href={entry.href} className={isActive(entry) ? "active" : ""}>
-            {entry.label}
-          </Link>
-        );
-      })}
-    </nav>
+        })}
+      </nav>
+    </aside>
   );
 }
