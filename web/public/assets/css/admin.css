@@ -132,9 +132,11 @@ body {
         margin-top: 56px;
         padding-bottom: 8px;
     }
-    .wp-sidebar nav { display: flex; flex-wrap: wrap; gap: 2px; }
+    .wp-sidebar nav,
+    .wp-sidebar .sidebar-collapse-content { display: flex; flex-wrap: wrap; gap: 2px; }
     .wp-sidebar nav a { margin: 0; }
-    .sidebar-section { width: 100%; }
+    .sidebar-section, .sidebar-collapse-content { width: 100%; }
+    .sidebar-collapse-content.collapsed { display: none; }
 }
 
 /* ── Basecamp document wrapper ── */

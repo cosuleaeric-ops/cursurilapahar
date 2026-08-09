@@ -1,12 +1,11 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Structura din admin/partials/layout-nav.php: linkuri simple + două grupuri
-// („Organizare" și „Site"), afișate ca secțiuni în sidebar. Cursuri, To-dos și
-// Mesaje se accesează din dashboard, ca pe site-ul live.
+// Linkuri simple + două grupuri pliabile („Organizare" și „Site"). To-dos rămâne
+// doar pe dashboard.
 type Item = { href: string; label: string; exact?: boolean; owner?: boolean };
 type Group = { label: string; items: Item[] };
 type Entry = Item | Group;
@@ -15,6 +14,8 @@ const isGroup = (e: Entry): e is Group => "items" in e;
 
 const NAV: Entry[] = [
   { href: "/admin", label: "Dashboard", exact: true },
+  { href: "/admin/cursuri", label: "Cursuri" },
+  { href: "/admin/mesaje", label: "Mesaje" },
   { href: "/admin/marketing", label: "Marketing" },
   { href: "/admin/speakeri", label: "Speakeri" },
   {
@@ -49,13 +50,16 @@ export const isStatsPage = (path: string) => STATS_PAGES.some((re) => re.test(pa
 
 export default function AdminNav({ role }: { role: string }) {
   const path = usePathname();
-  // layout-nav.php:53 + :58 — pe paginile de statistici se aprind simultan „Dashboard"
-  // (tab-ul e 'dashboard') și „Test A/B" (deci și triggerul „Site", :55).
-  const abActive = isStatsPage(path);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  // layout-nav.php:53 + :58 — pe Test A/B se aprind simultan „Dashboard" (tab-ul e
+  // 'dashboard') și linkul „Test A/B". Detaliile unui curs rămân pe „Cursuri", care
+  // acum are link propriu în meniu.
+  const abActive = path === "/admin/ab";
   const isActive = (t: Item) => {
     if (t.href === "/admin/ab") return abActive;
     if (t.exact) return path === t.href || abActive;
-    return path.startsWith(t.href);
+    // Fără boundary, „/admin/cursuri" ar aprinde și „/admin/cursuri-posibile".
+    return path === t.href || path.startsWith(`${t.href}/`);
   };
 
   return (
@@ -65,14 +69,23 @@ export default function AdminNav({ role }: { role: string }) {
           if (isGroup(entry)) {
             const items = entry.items.filter((t) => !t.owner || role === "owner");
             if (!items.length) return null;
+            // Grupul stă închis, dar se deschide singur pe pagina lui.
+            const isOpen = open[entry.label] ?? items.some(isActive);
             return (
               <Fragment key={entry.label}>
-                <div className="sidebar-section">{entry.label}</div>
-                {items.map((t) => (
-                  <Link key={t.href} href={t.href} className={isActive(t) ? "active" : ""}>
-                    {t.label}
-                  </Link>
-                ))}
+                <div
+                  className={`sidebar-section collapsible${isOpen ? "" : " collapsed"}`}
+                  onClick={() => setOpen((o) => ({ ...o, [entry.label]: !isOpen }))}
+                >
+                  {entry.label}
+                </div>
+                <div className={`sidebar-collapse-content${isOpen ? "" : " collapsed"}`}>
+                  {items.map((t) => (
+                    <Link key={t.href} href={t.href} className={isActive(t) ? "active" : ""}>
+                      {t.label}
+                    </Link>
+                  ))}
+                </div>
               </Fragment>
             );
           }
