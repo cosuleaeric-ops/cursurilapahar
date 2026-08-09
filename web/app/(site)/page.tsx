@@ -188,9 +188,21 @@ export default async function Home() {
   const contactSubtitle = str("contact_subtitle");
 
   const firstCourseBenefits = [
-    "Vei învăța ceva nou într-un mediu relaxat",
-    "Vei cunoaște oameni cu aceleași curiozități ca și tine",
-    "Vei transforma o simplă ieșire în oraș într-o experiență memorabilă",
+    {
+      img: "gallery-11",
+      alt: "Sală de curs într-un local, cu oamenii așezați la mese în fața ecranului",
+      text: "Vei învăța ceva nou într-un mediu relaxat",
+    },
+    {
+      img: "gallery-29",
+      alt: "Participanți cu ecusoane, care discută între ei la mese",
+      text: "Vei cunoaște oameni cu aceleași curiozități ca și tine",
+    },
+    {
+      img: "gallery-01",
+      alt: "Grup de prieteni la o masă, cu pahare în față, într-un bar",
+      text: "Vei transforma o simplă ieșire în oraș într-o experiență memorabilă",
+    },
   ];
 
   const collabCards = [
@@ -340,11 +352,15 @@ export default async function Home() {
         <div className="container">
           <h2 className="section-title">Cum te vei simți după primul curs?</h2>
           <div className="primul-curs-grid">
-            {firstCourseBenefits.map((text, i) => (
-              <div className="step" key={text}>
-                <span className="step-number">{i + 1}</span>
-                <h3>{text}</h3>
-              </div>
+            {firstCourseBenefits.map((b, i) => (
+              <figure className="primul-curs-card" key={b.img}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/assets/images/gallery/${b.img}.webp`} alt={b.alt} loading="lazy" />
+                <span className="primul-curs-num" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <figcaption>{b.text}</figcaption>
+              </figure>
             ))}
           </div>
         </div>

@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 // nimic — exact ca pe PHP. main.js e încărcat pe toate paginile publice, așa că
 // stă în layout; pathname re-rulează observer-ul la navigarea client-side.
 const SELECTOR =
-  ".step, .collab-card, .faq-item, .section-title, .section-subtitle, .newsletter-form, .contact-form";
+  ".step, .collab-card, .primul-curs-card, .faq-item, .section-title, .section-subtitle, .newsletter-form, .contact-form";
 
 export default function ScrollReveal() {
   const pathname = usePathname();
