@@ -187,6 +187,12 @@ export default async function Home() {
   const contactTitle = str("contact_title", "CONTACT");
   const contactSubtitle = str("contact_subtitle");
 
+  const firstCourseBenefits = [
+    "Vei învăța ceva nou într-un mediu relaxat",
+    "Vei cunoaște oameni cu aceleași curiozități ca și tine",
+    "Vei transforma o simplă ieșire în oraș într-o experiență memorabilă",
+  ];
+
   const collabCards = [
     { href: "/prezinta-un-curs", img: "sustine", title: "Prezintă un curs", text: "Ai expertiză într-un domeniu care te pasionează? Vino să susții un curs în fața comunității noastre." },
     { href: "/gazduieste-un-curs", img: "gazduieste", title: "Găzduiește un curs", text: "Ai o locație cu vibe fain? Transformă-o în spațiul unde se nasc conexiunile și ideile noi." },
@@ -329,6 +335,20 @@ export default async function Home() {
 
       {/* index.php:332-334 randează banda necondiționat, chiar și cu textul gol */}
       <div className="announcement-banner">{announcement}</div>
+
+      <section className="section" id="primul-curs">
+        <div className="container">
+          <h2 className="section-title">Cum te vei simți după primul curs?</h2>
+          <div className="primul-curs-grid">
+            {firstCourseBenefits.map((text, i) => (
+              <div className="step" key={text}>
+                <span className="step-number">{i + 1}</span>
+                <h3>{text}</h3>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="section section-dark section-bg-blur" id="newsletter" {...newsletterBg.attrs}>
         <div className="container container-narrow">
