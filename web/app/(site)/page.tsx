@@ -189,18 +189,18 @@ export default async function Home() {
 
   const firstCourseBenefits = [
     {
-      img: "gallery-11",
-      alt: "Sală de curs într-un local, cu oamenii așezați la mese în fața ecranului",
+      img: "primul-curs-1",
+      alt: "Public așezat la mese într-un local, cu pahare în față, atent la speaker",
       text: "Vei învăța ceva nou într-un mediu relaxat",
     },
     {
-      img: "gallery-29",
-      alt: "Participanți cu ecusoane, care discută între ei la mese",
+      img: "primul-curs-2",
+      alt: "Doi participanți râd în timpul unui exercițiu, cu sala plină în spate",
       text: "Vei cunoaște oameni cu aceleași curiozități ca și tine",
     },
     {
-      img: "gallery-01",
-      alt: "Grup de prieteni la o masă, cu pahare în față, într-un bar",
+      img: "primul-curs-3",
+      alt: "Grup de prietene la o masă de bar, seara, cu cocktailuri în față",
       text: "Vei transforma o simplă ieșire în oraș într-o experiență memorabilă",
     },
   ];
@@ -355,7 +355,7 @@ export default async function Home() {
             {firstCourseBenefits.map((b, i) => (
               <figure className="primul-curs-card" key={b.img}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/assets/images/gallery/${b.img}.webp`} alt={b.alt} loading="lazy" />
+                <img src={`/assets/images/primul-curs/${b.img}.webp`} alt={b.alt} loading="lazy" />
                 <span className="primul-curs-num" aria-hidden="true">
                   {String(i + 1).padStart(2, "0")}
                 </span>
