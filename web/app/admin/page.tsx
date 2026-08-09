@@ -57,8 +57,11 @@ export default async function AdminHome() {
   const todayStr = ymdFmt.format(new Date());
   const templates = Array.isArray(tplRow?.value) ? (tplRow.value as { icon?: string; label?: string; text?: string }[]) : [];
   const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
-  const canva = quickLinks.filter((q) => (q.url ?? "").includes("canva.com"));
-  const general = quickLinks.filter((q) => !(q.url ?? "").includes("canva.com"));
+  const isCanva = (q: QuickLink) => (q.url ?? "").includes("canva.com");
+  const isDrive = (q: QuickLink) => /(drive|docs)\.google\.com/.test(q.url ?? "");
+  const canva = quickLinks.filter(isCanva);
+  const drive = quickLinks.filter((q) => !isCanva(q) && isDrive(q));
+  const general = quickLinks.filter((q) => !isCanva(q) && !isDrive(q));
 
   return (
     <>
@@ -169,20 +172,38 @@ export default async function AdminHome() {
         </div>
       )}
 
-      <div className="dash-section" style={{ marginBottom: 24 }}>
-        <div className="dash-section-title">
-          <span>Templates</span>
-          <Link href="/admin/templates">Editează →</Link>
+      <div className="ql-grid">
+        <div className="dash-section" style={{ margin: 0 }}>
+          <div className="dash-section-title">
+            <span>Templates</span>
+            <Link href="/admin/templates">Editează →</Link>
+          </div>
+          {templates.length === 0 ? (
+            <p className="bc-card-empty">
+              Niciun template încă. <Link href="/admin/templates" style={{ color: "var(--accent)" }}>Adaugă unul</Link>.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {templates.map((t, i) => (
+                <CopyButton key={i} className="ql-btn" text={t.text ?? ""} label={t.label ?? ""} icon={t.icon ?? "📋"} />
+              ))}
+            </div>
+          )}
         </div>
-        {templates.length === 0 ? (
-          <p className="bc-card-empty">
-            Niciun template încă. <Link href="/admin/templates" style={{ color: "var(--accent)" }}>Adaugă unul</Link>.
-          </p>
-        ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {templates.map((t, i) => (
-              <CopyButton key={i} className="ql-btn" text={t.text ?? ""} label={t.label ?? ""} icon={t.icon ?? "📋"} />
-            ))}
+
+        {drive.length > 0 && (
+          <div className="dash-section" style={{ margin: 0 }}>
+            <div className="dash-section-title">
+              <span>Drive</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {drive.map((q, i) => (
+                <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
+                  <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
+                  {q.label}
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>
