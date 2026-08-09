@@ -190,7 +190,7 @@ export default async function Home() {
   const firstCourseBenefits = [
     {
       img: "primul-curs-1",
-      alt: "Public așezat la mese într-un local, cu pahare în față, atent la speaker",
+      alt: "Speaker cu microfon în prim-plan, cu publicul la mese în spate",
       text: "Vei învăța ceva nou într-un mediu relaxat",
     },
     {
