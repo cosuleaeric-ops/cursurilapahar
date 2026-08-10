@@ -18,9 +18,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const fromCron = !!secret && auth === `Bearer ${secret}`;
   if (!fromCron && !(await getSession())) return new NextResponse("Forbidden", { status: 403 });
 
+  // Același filtru ca homepage-ul: doar cursurile care încă nu au trecut.
   const [ev] = (await sql`
     SELECT id, title, livetickets_url, sold_out, sold_out_checked_at
-    FROM events WHERE livetickets_url IS NOT NULL AND active = true
+    FROM events
+    WHERE livetickets_url IS NOT NULL AND active = true
+      AND to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
+          >= to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
     ORDER BY starts_at ASC LIMIT 1
   `) as { id: number; title: string; livetickets_url: string; sold_out: boolean; sold_out_checked_at: string }[];
   if (!ev) return NextResponse.json({ error: "niciun eveniment cu link" });
