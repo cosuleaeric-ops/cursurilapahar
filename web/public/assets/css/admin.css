@@ -394,6 +394,10 @@ body {
 .clr-alpha { display: none !important; }
 .ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-btn);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
 .ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
+/* Butoanele din panouri pe 2 coloane, ca panourile să nu se lungească */
+.ql-btns { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.ql-btns .ql-btn { min-width:0;padding:9px 12px; }
+@media (max-width: 700px) { .ql-btns { grid-template-columns:1fr; } }
 /* auto-fit: 4 panouri pe lat, 2 pe mediu, 1 pe îngust */
 .ql-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px;align-items:start; }
 .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }

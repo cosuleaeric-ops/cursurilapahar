@@ -144,7 +144,7 @@ export default async function AdminHome() {
             <div className="dash-section-title">
               <span>Linkuri utile</span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <div className="ql-btns">
               {general.map((q, i) => (
                 <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
                   <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
@@ -160,7 +160,7 @@ export default async function AdminHome() {
             <div className="dash-section-title">
               <span>Canva</span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <div className="ql-btns">
               {canva.map((q, i) => (
                 <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
                   <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
@@ -181,7 +181,7 @@ export default async function AdminHome() {
               Niciun template încă. <Link href="/admin/templates" style={{ color: "var(--accent)" }}>Adaugă unul</Link>.
             </p>
           ) : (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <div className="ql-btns">
               {templates.map((t, i) => (
                 <CopyButton key={i} className="ql-btn" text={t.text ?? ""} label={t.label ?? ""} icon={t.icon ?? "📋"} />
               ))}
@@ -194,7 +194,7 @@ export default async function AdminHome() {
             <div className="dash-section-title">
               <span>Drive</span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <div className="ql-btns">
               {drive.map((q, i) => (
                 <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
                   <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
