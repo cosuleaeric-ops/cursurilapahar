@@ -16,12 +16,12 @@ export type MetaResult = { success: true; data: CourseMeta } | { success: false;
 
 async function httpGet(url: string): Promise<string | null> {
   try {
-    // CURLOPT_TIMEOUT = 12 în lib/livetickets.php: LiveTickets blocat nu are voie
-    // să țină pagina publică, degradează în „nu e sold out"
+    // 6s, nu 12 ca în PHP: verificarea de sold-out stă acum pe calea de randare
+    // a homepage-ului, deci LiveTickets lent nu are voie să țină regenerarea.
     const res = await fetch(url, {
       headers: { "User-Agent": UA, Accept: "*/*" },
       cache: "no-store",
-      signal: AbortSignal.timeout(12_000),
+      signal: AbortSignal.timeout(6_000),
     });
     return res.ok ? await res.text() : null;
   } catch {

@@ -121,6 +121,8 @@ async function refreshSoldOut(events: EventRow[]): Promise<void> {
       // reîncercăm la randarea următoare, altfel o secundă de indisponibilitate
       // la LiveTickets ștergea un sold-out real pentru tot TTL-ul.
       if (sold === null) return;
+      // Randarea curentă folosește direct valoarea proaspătă, nu pe cea din SELECT.
+      e.sold_out = sold;
       await sql`UPDATE events SET sold_out = ${sold}, sold_out_checked_at = now() WHERE id = ${e.id}`;
     }),
   );
@@ -229,12 +231,13 @@ export default async function Home() {
   `) as EventRow[];
   const nextLabel = heroNextLabel(events, todayBucharest);
 
-  // Cele două tururi la LiveTickets (poster lipsă + sold-out) plus scrierile lor în
-  // baza de date se mută după răspuns. `after` nu face ruta dinamică: pe o pagină
-  // cache-uită rulează la fiecare regenerare.
-  after(async () => {
-    await Promise.all([backfillImages(), refreshSoldOut(events)]);
-  });
+  // Sold-out-ul se verifică ÎN randare, nu în `after()`: apelurile către
+  // LiveTickets din `after()` nu se finalizau pe Vercel, așa că fiecare tur ieșea
+  // „nu știu" și badge-ul nu apărea niciodată. Pagina e ISR (revalidate 120), deci
+  // vizitatorii primesc versiunea veche cât timp se regenerează — costul nu cade
+  // pe cererea lor. Backfill-ul de imagini rămâne după răspuns, nu e urgent.
+  await refreshSoldOut(events);
+  after(backfillImages);
 
   return (
     <>
