@@ -137,21 +137,37 @@ export default async function AdminHome() {
         </Link>
       </div>
 
-      {/* Cele patru panouri stau într-o singură grilă, ca să umple lățimea */}
+      {/* Panourile stau într-o singură grilă, ca să umple lățimea. Drive e
+          subsecțiune în „Linkuri utile", nu panou separat. */}
       <div className="ql-grid">
-        {general.length > 0 && (
+        {(general.length > 0 || drive.length > 0) && (
           <div className="dash-section" style={{ margin: 0 }}>
             <div className="dash-section-title">
               <span>Linkuri utile</span>
             </div>
-            <div className="ql-btns">
-              {general.map((q, i) => (
-                <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
-                  <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
-                  {q.label}
-                </a>
-              ))}
-            </div>
+            {general.length > 0 && (
+              <div className="ql-btns">
+                {general.map((q, i) => (
+                  <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
+                    <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
+                    {q.label}
+                  </a>
+                ))}
+              </div>
+            )}
+            {drive.length > 0 && (
+              <>
+                <div className="ql-subtitle">Drive</div>
+                <div className="ql-btns">
+                  {drive.map((q, i) => (
+                    <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
+                      <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
+                      {q.label}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -189,21 +205,6 @@ export default async function AdminHome() {
           )}
         </div>
 
-        {drive.length > 0 && (
-          <div className="dash-section" style={{ margin: 0 }}>
-            <div className="dash-section-title">
-              <span>Drive</span>
-            </div>
-            <div className="ql-btns">
-              {drive.map((q, i) => (
-                <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
-                  <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
-                  {q.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <MiniCal

@@ -394,6 +394,8 @@ body {
 .clr-alpha { display: none !important; }
 .ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-btn);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
 .ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
+/* Titlu de subsecțiune în interiorul unui panou (ex. Drive în Linkuri utile) */
+.ql-subtitle { margin:18px 0 10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted); }
 /* Butoanele umplu lățimea panoului, egale între ele */
 .ql-btns { display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px; }
 .ql-btns .ql-btn { min-width:0;padding:9px 12px; }
