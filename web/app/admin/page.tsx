@@ -137,42 +137,40 @@ export default async function AdminHome() {
         </Link>
       </div>
 
-      {quickLinks.length > 0 && (
-        <div className="ql-grid">
-          {general.length > 0 && (
-            <div className="dash-section" style={{ margin: 0 }}>
-              <div className="dash-section-title">
-                <span>Linkuri utile</span>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {general.map((q, i) => (
-                  <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
-                    <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
-                    {q.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-          {canva.length > 0 && (
-            <div className="dash-section" style={{ margin: 0 }}>
-              <div className="dash-section-title">
-                <span>Canva</span>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {canva.map((q, i) => (
-                  <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
-                    <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
-                    {q.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
+      {/* Cele patru panouri stau într-o singură grilă, ca să umple lățimea */}
       <div className="ql-grid">
+        {general.length > 0 && (
+          <div className="dash-section" style={{ margin: 0 }}>
+            <div className="dash-section-title">
+              <span>Linkuri utile</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {general.map((q, i) => (
+                <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
+                  <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
+                  {q.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {canva.length > 0 && (
+          <div className="dash-section" style={{ margin: 0 }}>
+            <div className="dash-section-title">
+              <span>Canva</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {canva.map((q, i) => (
+                <a key={i} href={q.url} target="_blank" rel="noopener" className="ql-btn">
+                  <span style={{ fontSize: 17 }}>{q.icon ?? "🔗"}</span>
+                  {q.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="dash-section" style={{ margin: 0 }}>
           <div className="dash-section-title">
             <span>Templates</span>

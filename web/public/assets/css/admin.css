@@ -149,7 +149,8 @@ body {
     padding: 40px 46px 52px;
     box-shadow: var(--shadow);
 }
-.bc-doc--home { max-width: 1180px; }
+/* Dashboard-ul se întinde pe toată lățimea; restul paginilor rămân pe coloană. */
+.bc-doc--home { max-width: none; }
 .bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .01em; margin: -20px -46px 14px; padding: 0 46px 11px; border-bottom: 1px solid var(--border); }
 .bc-doc-top .bc-doc-sep { opacity: .5; margin: 0 2px; }
 .bc-home-link { color: var(--accent); text-decoration: none; }
@@ -395,8 +396,8 @@ body {
 .clr-alpha { display: none !important; }
 .ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-btn);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
 .ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
-.ql-grid { display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px; }
-@media (max-width: 900px) { .ql-grid { grid-template-columns:1fr; } }
+/* auto-fit: 4 panouri pe lat, 2 pe mediu, 1 pe îngust */
+.ql-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px;align-items:start; }
 .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
 .dash-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow-sm); }
 .dash-card .dash-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
