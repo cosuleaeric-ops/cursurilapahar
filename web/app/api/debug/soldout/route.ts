@@ -1,16 +1,14 @@
 // TEMPORAR — diagnostic pentru sold-out: rulează pe Vercel exact lanțul de
-// apeluri către LiveTickets și arată ce vede serverul, nu laptopul.
-// Protejat cu CRON_SECRET, ca /api/cron/daily. De șters după investigație.
+// apeluri către LiveTickets, o dată în cerere și o dată în after(), ca să vedem
+// dacă diferența e contextul. Protejat cu CRON_SECRET. De șters după.
 
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { ltGetEventByUrl, ltIsSoldOut } from "@/lib/livetickets";
 
 export const dynamic = "force-dynamic";
-
-const UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const auth = req.headers.get("authorization");
@@ -29,23 +27,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   `) as { id: number; title: string; livetickets_url: string; sold_out: boolean; sold_out_checked_at: string }[];
   if (!ev) return NextResponse.json({ error: "niciun eveniment cu link" });
 
-  const slug = new URL(ev.livetickets_url).pathname.split("/").filter(Boolean).pop() ?? "";
-  const probe = async (url: string) => {
+  const probe = async () => {
     try {
-      const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "*/*" }, cache: "no-store", signal: AbortSignal.timeout(12_000) });
-      const body = await r.text();
-      return { status: r.status, ok: r.ok, len: body.length, head: body.slice(0, 160) };
+      const parsed = await ltGetEventByUrl(ev.livetickets_url);
+      if (!parsed) return { rezultat: "ltGetEventByUrl null" };
+      return {
+        items: Array.isArray(parsed.items) ? (parsed.items as unknown[]).length : null,
+        ticket_count: parsed.ticket_count ?? null,
+        soldOut: ltIsSoldOut(parsed),
+      };
     } catch (e) {
-      return { error: String(e) };
+      return { eroare: String(e) };
     }
   };
 
-  const parsed = await ltGetEventByUrl(ev.livetickets_url);
-  return NextResponse.json({
-    event: { id: ev.id, title: ev.title, sold_out: ev.sold_out, checked_at: ev.sold_out_checked_at },
-    getbyurl: await probe(`https://api.livetickets.ro/public/events/getbyurl?url=${encodeURIComponent(slug)}`),
-    getTickets: await probe(`https://api.livetickets.ro/public/events/get-tickets?url=${encodeURIComponent(slug)}`),
-    parsedItems: Array.isArray(parsed?.items) ? (parsed.items as unknown[]).length : null,
-    ltIsSoldOut: parsed ? ltIsSoldOut(parsed) : "ltGetEventByUrl a intors null",
+  const inRequest = await probe();
+
+  // Aceeași verificare, dar în after() — exact contextul din homepage.
+  after(async () => {
+    const r = await probe();
+    await sql`
+      INSERT INTO settings (key, value) VALUES ('debug_soldout_after', ${JSON.stringify(r)}::jsonb)
+      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    `;
   });
+
+  const [prev] = (await sql`SELECT value FROM settings WHERE key = 'debug_soldout_after'`) as { value: unknown }[];
+  return NextResponse.json({ event: ev.id, inRequest, inAfterPrecedent: prev?.value ?? null });
 }
