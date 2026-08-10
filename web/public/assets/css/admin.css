@@ -141,7 +141,7 @@ body {
 
 /* ── Basecamp document wrapper ── */
 .bc-doc {
-    max-width: 1180px;
+    max-width: none;
     margin: 34px auto 60px;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -149,8 +149,6 @@ body {
     padding: 40px 46px 52px;
     box-shadow: var(--shadow);
 }
-/* Dashboard-ul se întinde pe toată lățimea; restul paginilor rămân pe coloană. */
-.bc-doc--home { max-width: none; }
 .bc-doc-top { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .01em; margin: -20px -46px 14px; padding: 0 46px 11px; border-bottom: 1px solid var(--border); }
 .bc-doc-top .bc-doc-sep { opacity: .5; margin: 0 2px; }
 .bc-home-link { color: var(--accent); text-decoration: none; }

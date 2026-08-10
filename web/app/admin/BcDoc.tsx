@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { isStatsPage } from "./AdminNav";
 
-// Wrapper-ul de conținut din admin/partials/layout-nav.php: pe dashboard clasa
-// `bc-doc--home`, pe restul paginilor breadcrumb-ul „Dashboard".
+// Wrapper-ul de conținut din admin/partials/layout-nav.php: pe dashboard fără
+// breadcrumb, pe restul paginilor breadcrumb-ul „Dashboard".
 // Include și scurtăturile de tastatură: C = Cursuri, M = Mesaje, D = Dashboard.
 export default function BcDoc({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -34,7 +34,7 @@ export default function BcDoc({ children }: { children: React.ReactNode }) {
   }, [router, isPnl]);
 
   return (
-    <div className={`bc-doc${isHome ? " bc-doc--home" : ""}`}>
+    <div className="bc-doc">
       {!isHome && (
         <div className="bc-doc-top">
           <Link href="/admin" className="bc-home-link">
