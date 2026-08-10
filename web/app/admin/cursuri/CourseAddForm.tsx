@@ -310,18 +310,24 @@ export default function CourseAddForm({
             </div>
           </div>
 
-          {msg && (
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 13,
-                // admin-course-form.js: gri la încărcare, verde la reușită, roșu la eroare.
-                color: msg.tone === "ok" ? "var(--success)" : msg.tone === "err" ? "var(--danger)" : "var(--text-muted)",
-              }}
-            >
-              {msg.text}
-            </div>
-          )}
+          {/* Rândul de mesaj se randează mereu, cu înălțime rezervată. Când apărea
+              abia la blur, clickul pe „Salvează" declanșa întâi blur-ul de pe câmpul
+              de link, mesajul „Se preia imaginea…" împingea butonul în jos, iar
+              mouse-ul se ridica lângă buton: primul click se pierdea și trebuia dat
+              încă unul ca să se salveze. */}
+          <div
+            style={{
+              marginTop: 8,
+              minHeight: 20,
+              lineHeight: "20px",
+              fontSize: 13,
+              // admin-course-form.js: gri la încărcare, verde la reușită, roșu la eroare.
+              color:
+                msg?.tone === "ok" ? "var(--success)" : msg?.tone === "err" ? "var(--danger)" : "var(--text-muted)",
+            }}
+          >
+            {msg?.text ?? ""}
+          </div>
 
           <div className="course-preview" id="coursePreview" style={{ display: showPreview ? "flex" : "none" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
