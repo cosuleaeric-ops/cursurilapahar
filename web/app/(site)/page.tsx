@@ -112,11 +112,15 @@ async function refreshSoldOut(events: EventRow[]): Promise<void> {
     events.map(async (e) => {
       const url = e.livetickets_url?.trim() ?? "";
       if (!url) return;
-      const ttl = e.sold_out ? 60_000 : 600_000;
+      const ttl = e.sold_out ? 60_000 : 120_000;
       const checkedAt = e.sold_out_checked_at ? new Date(e.sold_out_checked_at).getTime() : 0;
       if (now - checkedAt < ttl) return;
       const ev = await ltGetEventByUrl(url);
-      const sold = ev ? ltIsSoldOut(ev) : false;
+      const sold = ev ? ltIsSoldOut(ev) : null;
+      // Apel picat sau răspuns fără bilete = nu știm. Păstrăm valoarea veche și
+      // reîncercăm la randarea următoare, altfel o secundă de indisponibilitate
+      // la LiveTickets ștergea un sold-out real pentru tot TTL-ul.
+      if (sold === null) return;
       await sql`UPDATE events SET sold_out = ${sold}, sold_out_checked_at = now() WHERE id = ${e.id}`;
     }),
   );

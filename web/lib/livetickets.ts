@@ -102,15 +102,15 @@ export async function ltGetEventByUrl(rawUrl: string): Promise<LtEvent | null> {
   }
   if (!ev || typeof ev !== "object" || ev.id === undefined || ev.id === null) return null;
 
-  if (!Array.isArray(ev.items) || ev.items.length === 0) {
-    const tresp = await httpGet(`https://api.livetickets.ro/public/events/get-tickets?url=${encodeURIComponent(slug)}`);
-    if (tresp) {
-      try {
-        const tickets = JSON.parse(tresp);
-        if (Array.isArray(tickets)) ev.items = tickets;
-      } catch {
-        // răspuns invalid — rămânem fără items, ca în PHP
-      }
+  // get-tickets e lista de bilete la zi; getbyurl întoarce `items` inconstant
+  // (uneori lipsă, alteori învechit), deci întrebăm mereu și preferăm răspunsul lui.
+  const tresp = await httpGet(`https://api.livetickets.ro/public/events/get-tickets?url=${encodeURIComponent(slug)}`);
+  if (tresp) {
+    try {
+      const tickets = JSON.parse(tresp);
+      if (Array.isArray(tickets) && tickets.length > 0) ev.items = tickets;
+    } catch {
+      // răspuns invalid — rămânem cu ce avem din getbyurl
     }
   }
 
@@ -123,10 +123,15 @@ export function ltImageUrlFromEvent(event: LtEvent): string {
 }
 
 /**
- * Port lt_is_sold_out(): epuizat dacă TOATE biletele au soldout; fără items,
- * dacă remaining_count e 0 iar ticket_count > 0.
+ * Epuizat dacă TOATE biletele au soldout. Fără listă de bilete ne bazăm pe
+ * remaining_count/ticket_count, iar dacă nici alea nu spun nimic întoarcem
+ * `null` = „nu se poate ști”.
+ *
+ * `null` contează: LiveTickets trimite `ticket_count: 0` și pentru evenimente
+ * care chiar au bilete, deci vechiul „0 rămase din 0 → nu e epuizat” transforma
+ * un răspuns fără informație într-un fals „mai sunt locuri”.
  */
-export function ltIsSoldOut(event: LtEvent): boolean {
+export function ltIsSoldOut(event: LtEvent): boolean | null {
   const items = Array.isArray(event.items) ? (event.items as LtItem[]) : [];
   if (items.length > 0) {
     for (const item of items) {
@@ -138,7 +143,8 @@ export function ltIsSoldOut(event: LtEvent): boolean {
   }
 
   const total = Number(event.ticket_count);
-  return event.remaining_count === 0 && Number.isFinite(total) && total > 0;
+  if (!Number.isFinite(total) || total <= 0) return null;
+  return event.remaining_count === 0;
 }
 
 /** Meta cursului dintr-un link LiveTickets, ca clp_fetch_course_meta_by_url(). */
