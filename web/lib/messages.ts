@@ -70,11 +70,14 @@ export async function loadGroupedMessages(): Promise<{
   byCat: Record<string, Msg[]>;
   tabCounts: Record<string, number>;
 }> {
-  const rows = (await sql`
-    SELECT id, category, name, email, payload, read, rating, contacted, comments, created_at
-    FROM messages ORDER BY created_at DESC
-  `) as Row[];
-  const speakers = (await sql`SELECT email, phone FROM speakers`) as { email: string | null; phone: string | null }[];
+  // Cele două interogări nu depind una de alta, deci merg în paralel.
+  const [rows, speakers] = (await Promise.all([
+    sql`
+      SELECT id, category, name, email, payload, read, rating, contacted, comments, created_at
+      FROM messages ORDER BY created_at DESC
+    `,
+    sql`SELECT email, phone FROM speakers`,
+  ])) as [Row[], { email: string | null; phone: string | null }[]];
 
   const isSpeaker = (email: string, phone: string) =>
     speakers.some(

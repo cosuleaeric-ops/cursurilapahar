@@ -43,7 +43,9 @@ export default async function CursuriPage({
   const nextM = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 };
   const tabHref = (t: string, y = year, m = month) => `/admin/cursuri?ctab=${t}&year=${y}&month=${m}`;
 
-  const rows = (await sql`
+  // Toate patru sunt independente, deci un singur dus-întors ca durată, nu patru.
+  const [rows, speakers, locations, settingRows] = (await Promise.all([
+    sql`
     SELECT id, title, speaker_id, speaker_name, location, image_url, livetickets_url, active, clicks,
       date_display,
       to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS date_raw,
@@ -58,7 +60,32 @@ export default async function CursuriPage({
     -- clp_load_courses_for_admin(); evenimentele doar-din-statistici n-au card
     WHERE legacy_card_id IS NOT NULL
     ORDER BY starts_at ASC
-  `) as Row[];
+  `,
+    // load_speakers_for_picker() (lib/speakers.php:138-141): aceeași ordine ca în tabul
+    // Speakeri — întâi rangul statusului, apoi numele case-insensitive; fără nume gol.
+    sql`
+    SELECT id, name, status FROM speakers
+    WHERE trim(name) <> ''
+    ORDER BY
+      CASE
+        WHEN status IS NULL OR status = '' THEN 3
+        WHEN status = 'CONTACTAT' THEN 0
+        WHEN status = 'URMEAZĂ' THEN 1
+        WHEN status = 'RECURENT' THEN 2
+        WHEN status = 'MID' THEN 3
+        WHEN status = 'NOPE' THEN 4
+        ELSE 2 END,
+      lower(name)
+  `,
+    sql`SELECT id, name FROM locations ORDER BY name`,
+    // clp_load_ig_posts() — postările Instagram marcate pe zile, pentru chipurile din calendar.
+    sql`SELECT value FROM settings WHERE key = 'instagram_posts'`,
+  ])) as [
+    Row[],
+    { id: number; name: string; status: string | null }[],
+    { id: number; name: string }[],
+    { value: unknown }[],
+  ];
 
   const upcoming: CourseRow[] = rows
     .filter((c) => c.upcoming)
@@ -97,32 +124,8 @@ export default async function CursuriPage({
       }
     : null;
 
-  // load_speakers_for_picker() (lib/speakers.php:138-141): aceeași ordine ca în tabul
-  // Speakeri — întâi rangul statusului, apoi numele case-insensitive; fără nume gol.
-  const speakers = (await sql`
-    SELECT id, name, status FROM speakers
-    WHERE trim(name) <> ''
-    ORDER BY
-      CASE
-        WHEN status IS NULL OR status = '' THEN 3
-        WHEN status = 'CONTACTAT' THEN 0
-        WHEN status = 'URMEAZĂ' THEN 1
-        WHEN status = 'RECURENT' THEN 2
-        WHEN status = 'MID' THEN 3
-        WHEN status = 'NOPE' THEN 4
-        ELSE 2 END,
-      lower(name)
-  `) as {
-    id: number;
-    name: string;
-    status: string | null;
-  }[];
-  const locations = (await sql`SELECT id, name FROM locations ORDER BY name`) as { id: number; name: string }[];
-
-  // clp_load_ig_posts() — postările Instagram marcate pe zile, pentru chipurile din calendar.
-  const [igRow] = (await sql`SELECT value FROM settings WHERE key = 'instagram_posts'`) as { value: unknown }[];
-  const igPosts =
-    igRow?.value && typeof igRow.value === "object" ? (igRow.value as Record<string, string[]>) : {};
+  const igValue = settingRows[0]?.value;
+  const igPosts = igValue && typeof igValue === "object" ? (igValue as Record<string, string[]>) : {};
 
   return (
     <>

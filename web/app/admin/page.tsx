@@ -18,45 +18,54 @@ const RO_MONTHS = ["", "Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iun
 const ymdFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" });
 export default async function AdminHome() {
   const session = await getSession();
-  // Dashboard-ul PHP citește doar cardurile din courses.json (clp_load_courses_for_admin),
-  // nu și cursurile venite din statistici → în Neon acelea sunt rândurile fără legacy_card_id.
-  const upcoming = (await sql`
-    SELECT id, title, starts_at, date_display FROM events
-    WHERE legacy_card_id IS NOT NULL
-      AND to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
-          >= to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
-    ORDER BY starts_at ASC LIMIT 4
-  `) as EventRow[];
 
-  // PHP ia primele 5 din todos.json (ordine de inserare) = cele mai VECHI 5 necompletate.
-  const todos = (await sql`
-    SELECT id, title FROM todos
-    WHERE completed = false AND assigned_to = ${session?.username ?? ""}
-    ORDER BY id ASC LIMIT 5
-  `) as TodoRow[];
+  // Clientul Neon merge pe HTTP, deci fiecare interogare e un drum dus-întors.
+  // Rulate în serie însumau latențele; în paralel costă cât cea mai lentă.
+  const [upcoming, todos, msgData, settingRows, calRows] = await Promise.all([
+    // Dashboard-ul PHP citește doar cardurile din courses.json (clp_load_courses_for_admin),
+    // nu și cursurile venite din statistici → în Neon acelea sunt rândurile fără legacy_card_id.
+    sql`
+      SELECT id, title, starts_at, date_display FROM events
+      WHERE legacy_card_id IS NOT NULL
+        AND to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
+            >= to_char(now() AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD')
+      ORDER BY starts_at ASC LIMIT 4
+    `,
+    // PHP ia primele 5 din todos.json (ordine de inserare) = cele mai VECHI 5 necompletate.
+    sql`
+      SELECT id, title FROM todos
+      WHERE completed = false AND assigned_to = ${session?.username ?? ""}
+      ORDER BY id ASC LIMIT 5
+    `,
+    // Aceleași numere ca tab_counts din Mesaje: Speakeri = neevaluați (fără cei
+    // care au deja fișă de speaker), restul = necitite.
+    loadGroupedMessages(),
+    // Cele trei setări într-o singură interogare, nu trei.
+    sql`
+      SELECT key, value FROM settings
+      WHERE key = ANY(${["quick_links", "templates", "instagram_posts"]})
+    `,
+    // Calendarul de pe dashboard: doar cardurile din courses.json (legacy_card_id), grupate pe zi (ora București).
+    sql`
+      SELECT title, to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS d
+      FROM events WHERE starts_at IS NOT NULL AND legacy_card_id IS NOT NULL
+    `,
+  ]) as [EventRow[], TodoRow[], Awaited<ReturnType<typeof loadGroupedMessages>>, { key: string; value: unknown }[], { title: string; d: string }[]];
+  const { tabCounts } = msgData;
+
   const todoDot = session?.username === "andy" ? "#16a34a" : "#2563eb";
-
-  // Aceleași numere ca tab_counts din Mesaje: Speakeri = neevaluați (fără cei
-  // care au deja fișă de speaker), restul = necitite.
-  const { tabCounts } = await loadGroupedMessages();
   const msgLines = CATS.filter((c) => (tabCounts[c.key] ?? 0) > 0).map((c) => ({ label: c.label, n: tabCounts[c.key] }));
 
-  const [qlRow] = (await sql`SELECT value FROM settings WHERE key = 'quick_links'`) as { value: unknown }[];
-  const [tplRow] = (await sql`SELECT value FROM settings WHERE key = 'templates'`) as { value: unknown }[];
-  const [igRow] = (await sql`SELECT value FROM settings WHERE key = 'instagram_posts'`) as { value: unknown }[];
-
-  // Calendarul de pe dashboard: doar cardurile din courses.json (legacy_card_id), grupate pe zi (ora București).
-  const calRows = (await sql`
-    SELECT title, to_char(starts_at AT TIME ZONE 'Europe/Bucharest', 'YYYY-MM-DD') AS d
-    FROM events WHERE starts_at IS NOT NULL AND legacy_card_id IS NOT NULL
-  `) as { title: string; d: string }[];
+  const setting = (k: string) => settingRows.find((r) => r.key === k)?.value;
+  const qlValue = setting("quick_links");
+  const tplValue = setting("templates");
+  const igValue = setting("instagram_posts");
   const coursesByDay: Record<string, string[]> = {};
   for (const r of calRows) (coursesByDay[r.d] ??= []).push(r.title);
-  const igPosts =
-    igRow?.value && typeof igRow.value === "object" ? (igRow.value as Record<string, string[]>) : {};
+  const igPosts = igValue && typeof igValue === "object" ? (igValue as Record<string, string[]>) : {};
   const todayStr = ymdFmt.format(new Date());
-  const templates = Array.isArray(tplRow?.value) ? (tplRow.value as { icon?: string; label?: string; text?: string }[]) : [];
-  const quickLinks: QuickLink[] = Array.isArray(qlRow?.value) ? (qlRow.value as QuickLink[]) : [];
+  const templates = Array.isArray(tplValue) ? (tplValue as { icon?: string; label?: string; text?: string }[]) : [];
+  const quickLinks: QuickLink[] = Array.isArray(qlValue) ? (qlValue as QuickLink[]) : [];
   const isCanva = (q: QuickLink) => (q.url ?? "").includes("canva.com");
   const isDrive = (q: QuickLink) => /(drive|docs)\.google\.com/.test(q.url ?? "");
   const canva = quickLinks.filter(isCanva);

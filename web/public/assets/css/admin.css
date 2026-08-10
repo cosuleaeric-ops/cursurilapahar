@@ -394,6 +394,19 @@ body {
 .clr-alpha { display: none !important; }
 .ql-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-btn);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:border-color .15s,background .15s,color .15s; }
 .ql-btn:hover { border-color:var(--accent);background:var(--accent);color:#fff; }
+/* ── Schelet de încărcare (app/admin/loading.tsx) ── */
+.sk {
+    border-radius: var(--radius);
+    background: linear-gradient(90deg, var(--bg-warm) 25%, #eef2f7 37%, var(--bg-warm) 63%);
+    background-size: 400% 100%;
+    animation: sk-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes sk-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.sk-title { height: 34px; width: 240px; margin-bottom: 26px; }
+.sk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.sk-block { height: 150px; }
+@media (max-width: 900px) { .sk-grid { grid-template-columns: 1fr; } }
+
 /* Titlu de subsecțiune în interiorul unui panou (ex. Drive în Linkuri utile) */
 .ql-subtitle { margin:18px 0 10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted); }
 /* Butoanele umplu lățimea panoului, egale între ele */
