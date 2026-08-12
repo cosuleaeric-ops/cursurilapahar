@@ -433,6 +433,9 @@ export async function createFullCampaign(input: NewCampaignInput): Promise<{ cam
     status: "PAUSED",
     special_ad_categories: "[]",
     buying_type: "AUCTION",
+    // Buget la nivel de set, fără partajare între seturi — comportament previzibil,
+    // ca la campania șablon (un singur set per campanie oricum).
+    is_adset_budget_sharing_enabled: "false",
   });
 
   // 3. Setul de reclame — configurația șablonului, bugetul nou.
