@@ -475,8 +475,17 @@ export async function createFullCampaign(input: NewCampaignInput): Promise<{ cam
       call_to_action_types: ["BUY_TICKETS"],
       link_urls: [{ website_url: input.link }],
     }),
+    // Pachetul standard_enhancements a fost retras din API — funcțiile se setează
+    // individual. Oprim tot ce schimbă pixelii afișului sau rescrie textul;
+    // rămân active (ca în campania validată) doar comentariile relevante și CTA-ul.
     degrees_of_freedom_spec: JSON.stringify({
-      creative_features_spec: { standard_enhancements: { enroll_status: "OPT_OUT" } },
+      creative_features_spec: {
+        image_brightness_and_contrast: { enroll_status: "OPT_OUT" },
+        image_touchups: { enroll_status: "OPT_OUT" },
+        image_templates: { enroll_status: "OPT_OUT" },
+        image_uncrop: { enroll_status: "OPT_OUT" },
+        text_optimizations: { enroll_status: "OPT_OUT" },
+      },
     }),
   });
 
