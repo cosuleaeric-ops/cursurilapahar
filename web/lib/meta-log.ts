@@ -3,7 +3,7 @@
 
 import { sql } from "@/lib/db";
 
-export type LogAction = "pause" | "resume" | "budget";
+export type LogAction = "pause" | "resume" | "budget" | "create";
 
 export type LogEntry = {
   id: number;

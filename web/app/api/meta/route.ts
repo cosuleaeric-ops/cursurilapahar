@@ -9,11 +9,12 @@ import {
   getCampaignCreatives,
   getCampaignDemographics,
   getCampaignBreakdown,
+  createFullCampaign,
   placementLabel,
   deviceLabel,
   regionLabel,
 } from "@/lib/meta";
-import { getLog } from "@/lib/meta-log";
+import { getLog, logDecision } from "@/lib/meta-log";
 
 // Citire read-only a stării Meta Ads, ca JSON — același conținut ca paginile din
 // /admin/meta-ads, dar consumabil cu curl. Autentificare: sesiune de owner SAU
@@ -103,6 +104,65 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     return NextResponse.json(payload);
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Eroare Meta API" }, { status: 502 });
+  }
+}
+
+/**
+ * Creare de campanie prin token — SINGURA scriere permisă pe ruta asta, și
+ * intenționat inofensivă: campania se creează întotdeauna PE PAUZĂ, deci nu
+ * cheltuie nimic până n-o pornește cineva din admin. Body JSON:
+ * { name, budget_lei, link, bodies: [..], titles: [..], description?, image_base64 }
+ */
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  if (!(await authorized(req))) {
+    return NextResponse.json({ error: "Neautorizat" }, { status: 401 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "Body JSON invalid" }, { status: 400 });
+  }
+
+  const s = (k: string) => String(body[k] ?? "").trim();
+  const arr = (k: string) =>
+    Array.isArray(body[k]) ? (body[k] as unknown[]).map((x) => String(x).trim()).filter(Boolean) : [];
+
+  const name = s("name");
+  const lei = Number(body.budget_lei);
+  const link = s("link");
+  const bodies = arr("bodies");
+  const titles = arr("titles");
+  const imageBase64 = s("image_base64");
+
+  if (!name || !Number.isFinite(lei) || lei < 1 || !/^https:\/\//.test(link) || !bodies.length || !titles.length || !imageBase64) {
+    return NextResponse.json(
+      { error: "Câmpuri lipsă: name, budget_lei, link (https), bodies[], titles[], image_base64" },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const { campaignId } = await createFullCampaign({
+      name,
+      dailyBudgetBani: Math.round(lei * 100),
+      link,
+      bodies,
+      titles,
+      description: s("description"),
+      imageBase64,
+    });
+    await logDecision({
+      campaignId,
+      campaignName: name,
+      action: "create",
+      detail: `creată prin API · ${lei.toFixed(0)} lei/zi · pe pauză`,
+      actor: "api",
+    });
+    return NextResponse.json({ ok: true, campaignId, status: "PAUSED" });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Eroare Meta API" }, { status: 502 });
   }

@@ -368,6 +368,126 @@ export async function getCampaignDemographics(campaignId: string): Promise<DemoR
     .sort((a, b) => b.spend - a.spend);
 }
 
+// ---------------------------------------------------------------- creare campanie
+
+/** POST cu corpul în form-body (nu în query) — pentru payload-uri mari (imagine, targeting). */
+async function graphForm<T>(path: string, params: Record<string, string>): Promise<T> {
+  const token = await metaToken();
+  if (!token) throw new Error("Tokenul Meta Ads nu e setat (admin → Setări).");
+  const body = new URLSearchParams({ ...params, access_token: token });
+  const res = await fetch(`${API}/${path}`, { method: "POST", body, cache: "no-store" });
+  const json = (await res.json()) as { error?: { message?: string; error_user_msg?: string } } & T;
+  if (!res.ok || json.error) throw new Error(json.error?.error_user_msg ?? json.error?.message ?? `Meta API ${res.status}`);
+  return json;
+}
+
+/**
+ * Campania-șablon: „4 august - Checkout" — singura configurație validată cu achiziții.
+ * Noile campanii îi copiază targetarea (seed-uri + Advantage+), evenimentul de
+ * optimizare și identitatea (pagină + Instagram), ca să nu reconstruim manual
+ * setările care au funcționat.
+ */
+const TEMPLATE_CAMPAIGN_ID = "52572343843703";
+
+type TemplateAdset = {
+  targeting?: Record<string, unknown>;
+  promoted_object?: Record<string, unknown>;
+  optimization_goal?: string;
+  billing_event?: string;
+  bid_strategy?: string;
+};
+
+export type NewCampaignInput = {
+  name: string;
+  dailyBudgetBani: number;
+  link: string;
+  bodies: string[];
+  titles: string[];
+  description: string;
+  /** PNG/JPG în base64, fără prefixul data: */
+  imageBase64: string;
+};
+
+export async function createFullCampaign(input: NewCampaignInput): Promise<{ campaignId: string }> {
+  // 1. Șablonul: set de reclame + identitatea din reclamă.
+  const [adsets, ads] = await Promise.all([
+    graph<{ data: TemplateAdset[] }>(`${TEMPLATE_CAMPAIGN_ID}/adsets`, {
+      fields: "targeting,promoted_object,optimization_goal,billing_event,bid_strategy",
+      limit: "5",
+    }),
+    graph<{ data: { creative?: { object_story_spec?: { page_id?: string; instagram_user_id?: string; instagram_actor_id?: string } } }[] }>(
+      `${TEMPLATE_CAMPAIGN_ID}/ads`,
+      { fields: "creative{object_story_spec}", limit: "5" },
+    ),
+  ]);
+  const tpl = adsets.data[0];
+  const story = ads.data[0]?.creative?.object_story_spec;
+  if (!tpl?.targeting || !tpl.promoted_object || !story?.page_id) {
+    throw new Error("Șablonul (campania 4 august) nu mai are targetarea sau pagina — nu pot copia configurația.");
+  }
+
+  // 2. Campania (pornește pe pauză — activarea e un pas explicit, din panou).
+  const camp = await graphForm<{ id: string }>(`${ACT}/campaigns`, {
+    name: input.name,
+    objective: "OUTCOME_SALES",
+    status: "PAUSED",
+    special_ad_categories: "[]",
+    buying_type: "AUCTION",
+  });
+
+  // 3. Setul de reclame — configurația șablonului, bugetul nou.
+  const adset = await graphForm<{ id: string }>(`${ACT}/adsets`, {
+    name: input.name,
+    campaign_id: camp.id,
+    daily_budget: String(input.dailyBudgetBani),
+    billing_event: tpl.billing_event ?? "IMPRESSIONS",
+    optimization_goal: tpl.optimization_goal ?? "OFFSITE_CONVERSIONS",
+    bid_strategy: tpl.bid_strategy ?? "LOWEST_COST_WITHOUT_CAP",
+    promoted_object: JSON.stringify(tpl.promoted_object),
+    targeting: JSON.stringify(tpl.targeting),
+    status: "ACTIVE",
+  });
+
+  // 4. Imaginea.
+  const img = await graphForm<{ images: Record<string, { hash: string }> }>(`${ACT}/adimages`, {
+    bytes: input.imageBase64,
+  });
+  const hash = Object.values(img.images)[0]?.hash;
+  if (!hash) throw new Error("Meta nu a acceptat imaginea.");
+
+  // 5. Creativa: toate variantele de text, CTA Cumpără bilete, îmbunătățirile AI oprite.
+  const identity: Record<string, string> = { page_id: story.page_id };
+  if (story.instagram_user_id) identity.instagram_user_id = story.instagram_user_id;
+  else if (story.instagram_actor_id) identity.instagram_actor_id = story.instagram_actor_id;
+
+  const creative = await graphForm<{ id: string }>(`${ACT}/adcreatives`, {
+    name: input.name,
+    object_story_spec: JSON.stringify(identity),
+    asset_feed_spec: JSON.stringify({
+      images: [{ hash }],
+      bodies: input.bodies.filter((t) => t.trim()).map((text) => ({ text })),
+      titles: input.titles.filter((t) => t.trim()).map((text) => ({ text })),
+      descriptions: input.description.trim() ? [{ text: input.description.trim() }] : [],
+      ad_formats: ["SINGLE_IMAGE"],
+      call_to_action_types: ["BUY_TICKETS"],
+      link_urls: [{ website_url: input.link }],
+    }),
+    degrees_of_freedom_spec: JSON.stringify({
+      creative_features_spec: { standard_enhancements: { enroll_status: "OPT_OUT" } },
+    }),
+  });
+
+  // 6. Reclama.
+  await graphForm<{ id: string }>(`${ACT}/ads`, {
+    name: `Reclama ${input.name}`,
+    adset_id: adset.id,
+    creative: JSON.stringify({ creative_id: creative.id }),
+    status: "ACTIVE",
+  });
+
+  return { campaignId: camp.id };
+}
+
 export async function setCampaignStatus(campaignId: string, status: "ACTIVE" | "PAUSED"): Promise<void> {
   await graph(campaignId, { status }, { method: "POST" });
 }

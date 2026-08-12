@@ -81,6 +81,7 @@ const ACTION_LABEL: Record<string, { icon: string; text: string; color: string }
   pause: { icon: "⏸", text: "Pauză", color: "#b45309" },
   resume: { icon: "▶", text: "Pornire", color: "#1a7f37" },
   budget: { icon: "💰", text: "Buget", color: "#2563eb" },
+  create: { icon: "✨", text: "Creată", color: "#7a2733" },
 };
 
 const stamp = new Intl.DateTimeFormat("ro-RO", {
@@ -194,7 +195,12 @@ export default async function MetaAdsPage({ searchParams }: { searchParams: Prom
       )}
 
       <div className="card">
-        <div className="card-title">📣 Campanii active</div>
+        <div className="card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>📣 Campanii active</span>
+          <Link href="/admin/meta-ads/noua" className="btn btn-primary btn-sm">
+            + Campanie nouă
+          </Link>
+        </div>
         <p style={{ marginBottom: 14, fontSize: 13 }}>
           Buget zilnic: <strong>{lei(activeBudget)}</strong> din plafonul de {lei(DAILY_CAP_BANI)} · Cheltuit azi:{" "}
           <strong>{lei2(spendToday)}</strong>
