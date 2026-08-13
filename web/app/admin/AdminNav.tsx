@@ -17,6 +17,7 @@ const NAV: Entry[] = [
   { href: "/admin/cursuri", label: "Cursuri" },
   { href: "/admin/mesaje", label: "Mesaje" },
   { href: "/admin/marketing", label: "Marketing" },
+  { href: "/admin/meta-ads", label: "Meta Ads", owner: true },
   { href: "/admin/speakeri", label: "Speakeri" },
   {
     label: "Organizare",
@@ -36,8 +37,8 @@ const NAV: Entry[] = [
       { href: "/admin/ab", label: "Test A/B" },
     ],
   },
-  // Meta Ads (/admin/meta-ads) și Videoclipuri (/admin/videoclipuri) rămân
-  // accesibile direct pe URL, dar scoase din meniu.
+  // Videoclipuri (/admin/videoclipuri) rămâne accesibil direct pe URL, dar scos din
+  // meniu.
   { href: "/admin/pnl", label: "P&L", owner: true },
   { href: "/admin/setari", label: "Setări", owner: true },
 ];
