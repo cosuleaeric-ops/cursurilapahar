@@ -1,4 +1,4 @@
-# CLAUDE.md
+# Ghid de lucru (CLAUDE.md / AGENTS.md)
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
@@ -14,6 +14,17 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
   `web/PARITATE-SITE.md` și `web/PARITATE-ADMIN.md`. Nu-l modifica pentru bug-uri „de pe
   site" — alea sunt în `web/`.
 - **`migration/`** = scripturile de migrare Hostico → Neon, rulate o singură dată.
+  **Nu le mai rula.** `npm run migrate` face TRUNCATE + reload dintr-un endpoint mort
+  (Hostico dă 403), deci ar goli tabelele live.
+
+## 0.1 Reguli fixe în proiectul ăsta
+
+- **Push după fiecare commit**, direct pe `main`, fără să întrebi. Push = deploy pe Vercel.
+- **Fără `placeholder`** pe `<input>` sau `<textarea>`. E politică explicită, nu preferință
+  de moment (excepție documentată: pagina de marketing din admin, port 1:1).
+- **Nu porni servere dev** pe mașina userului fără să ceri voie. Verifică pe deploy.
+- **Starea reală vine din Neon sau de pe live**, niciodată din `data/*.json` sau `*.sqlite`
+  din repo — alea sunt resturi înghețate de pe Hostico.
 
 ## 1. Think Before Coding
 
