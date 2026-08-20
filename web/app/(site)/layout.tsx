@@ -103,12 +103,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </noscript>
       <script async src={PLAUSIBLE_SRC} />
       <script dangerouslySetInnerHTML={{ __html: PLAUSIBLE_INIT }} />
-      <script
-        defer
-        data-website-id="dfid_a1e25f0ab3"
-        data-domain="cursurilapahar.ro"
-        src="https://www.ericcosulea.ro/js/script.js"
-      />
       {favicon && <link rel="icon" href={favicon} />}
       {/* clasa e ținta regulii din AdminBar: cu bara de admin, padding-ul urcă la 120px */}
       <div className="clp-site-shell" style={vars as React.CSSProperties}>
