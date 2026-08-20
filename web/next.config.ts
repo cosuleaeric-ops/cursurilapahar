@@ -24,10 +24,22 @@ const nextConfig: NextConfig = {
   },
   // Upload-urile vechi de pe PHP au fost copiate în Blob (scripts/copy-uploads-to-blob.mjs);
   // referințele /assets/images/uploads/* din settings rămân valabile prin fallback.
+  // API-ul PostHog cere căi CU slash final (/ingest/e/).
+  skipTrailingSlashRedirect: true,
   async rewrites() {
     return {
       beforeFiles: [],
-      afterFiles: [],
+      // PostHog proxy-uit same-origin, ca adblockerele să nu taie telemetria.
+      afterFiles: [
+        {
+          source: "/ingest/static/:path*",
+          destination: "https://eu-assets.i.posthog.com/static/:path*",
+        },
+        {
+          source: "/ingest/:path*",
+          destination: "https://eu.i.posthog.com/:path*",
+        },
+      ],
       fallback: [
         {
           source: "/assets/images/uploads/:path*",

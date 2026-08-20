@@ -5,6 +5,7 @@ import SiteFooter from "./SiteFooter";
 import HeadScripts from "./HeadScripts";
 import ScrollReveal from "./ScrollReveal";
 import AdminBar from "./AdminBar";
+import { PostHogInit } from "./PostHogInit";
 
 // Meta OG/Twitter se construiesc per pagină cu pageMetadata() din lib/metadata.ts
 // (Next înlocuiește integral openGraph/twitter, nu le merge-uiește).
@@ -112,6 +113,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       {/* clasa e ținta regulii din AdminBar: cu bara de admin, padding-ul urcă la 120px */}
       <div className="clp-site-shell" style={vars as React.CSSProperties}>
         <AdminBar />
+        <PostHogInit />
         <SiteNav brand={brand} logo={str("logo_path", "/assets/images/logo.webp")} links={links} />
         {children}
         <SiteFooter />
