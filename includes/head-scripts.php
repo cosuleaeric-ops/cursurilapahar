@@ -23,3 +23,11 @@ if (!empty($settings['head_scripts'])) {
   window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script>
+
+<!-- analytics (self-hosted pe ericcosulea.ro) -->
+<script
+  defer
+  data-website-id="dfid_a1e25f0ab3"
+  data-domain="cursurilapahar.ro"
+  src="https://www.ericcosulea.ro/js/script.js">
+</script>
