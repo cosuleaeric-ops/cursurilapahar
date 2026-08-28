@@ -7,6 +7,7 @@ import { randomBytes } from "node:crypto";
 import { sql } from "@/lib/db";
 import { getSession, type Session } from "@/lib/auth";
 import { citesteMod } from "@/lib/checkout";
+import { normalizeMarketingCompetitors } from "@/lib/marketing-competitors";
 import { startPayment, diagnostic, verificaNotificare, statusPlata, PLATIT } from "@/lib/netopia";
 import { confirmaComanda } from "@/lib/comenzi";
 import { trimiteEmailComanda } from "@/lib/trimite";
@@ -42,6 +43,27 @@ export async function saveQuickLinks(formData: FormData): Promise<void> {
   await setSetting("quick_links", links);
   revalidatePath("/admin");
   redirect("/admin/setari?saved=1");
+}
+
+export async function saveMarketingCompetitors(formData: FormData): Promise<void> {
+  await requireOwner();
+  const names = formData.getAll("comp_name").map(String);
+  const igs = formData.getAll("comp_ig").map(String);
+  const tts = formData.getAll("comp_tt").map(String);
+  const webs = formData.getAll("comp_web").map(String);
+  const competitors = normalizeMarketingCompetitors(
+    names.map((name, i) => ({
+      name,
+      ig: igs[i] ?? "",
+      tt: tts[i] ?? "",
+      web: webs[i] ?? "",
+    })),
+  );
+
+  await setSetting("marketing_competitors", competitors ?? []);
+  revalidatePath("/admin/marketing");
+  revalidatePath("/admin/setari");
+  redirect("/admin/setari?saved=1#competitori");
 }
 
 export async function saveKit(formData: FormData): Promise<void> {

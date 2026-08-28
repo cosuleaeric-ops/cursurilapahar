@@ -15,9 +15,11 @@ import {
 } from "./actions";
 import { citesteMod } from "@/lib/checkout";
 import { diagnostic } from "@/lib/netopia";
+import { marketingCompetitorsFromSetting } from "@/lib/marketing-competitors";
 import SyncToken from "./SyncToken";
 import QuickLinksEditor, { type QuickLink } from "./QuickLinksEditor";
 import RecurringEditor, { type RecTask } from "./RecurringEditor";
+import CompetitorsEditor from "./CompetitorsEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,7 @@ export default async function SetariPage({
   const { saved, error, rec, cfg, net } = await searchParams;
   const rows = (await sql`
     SELECT key, value FROM settings
-    WHERE key IN ('quick_links', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu', 'checkout_preview_token')
+    WHERE key IN ('quick_links', 'marketing_competitors', 'kit_api_key', 'kit_form_id', 'brevo_api_key', 'meta_ads_token', 'head_scripts', 'sync_token', 'checkout_propriu', 'checkout_preview_token')
   `) as { key: string; value: unknown }[];
   const recTasks = (await sql`
     SELECT id, type, system_key, assigned_to, title, schedule, description, days
@@ -43,6 +45,7 @@ export default async function SetariPage({
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   const str = (k: string) => (typeof s[k] === "string" ? (s[k] as string) : "");
   const quickLinks = Array.isArray(s.quick_links) ? (s.quick_links as QuickLink[]) : [];
+  const competitors = marketingCompetitorsFromSetting(s.marketing_competitors);
   const modCheckout = citesteMod(s.checkout_propriu);
   const netopia = await diagnostic();
   const notificari = (await sql`
@@ -236,6 +239,14 @@ export default async function SetariPage({
       </div>
 
       <RecurringEditor tasks={recTasks} users={users} notice={rec} />
+
+      <div className="card" id="competitori">
+        <div className="card-title">👀 Competitori - Marketing</div>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+          Aceste carduri apar jos în pagina Marketing. Ordinea de aici este ordinea din grid.
+        </p>
+        <CompetitorsEditor competitors={competitors} />
+      </div>
 
       <form action={saveKit}>
         <div className="card">
