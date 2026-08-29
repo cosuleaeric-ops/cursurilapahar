@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { getCampaignCreatives, getCampaignCosts, getCampaignBudget, metaToken, DAILY_CAP_BANI } from "@/lib/meta";
+import { getCampaignCreatives, getCampaignCosts, getCampaignBudget, getCampaignMetricComparisons, metaToken, DAILY_CAP_BANI } from "@/lib/meta";
+import MetricComparison from "../MetricComparison";
 import { saveBudget } from "../actions";
 import SubmitButton from "../SubmitButton";
 
@@ -64,25 +65,19 @@ export default async function CampaignDetailPage({
   let budget = null as Awaited<ReturnType<typeof getCampaignBudget>> | null;
   let costs = null as Awaited<ReturnType<typeof getCampaignCosts>> | null;
   let ads: Awaited<ReturnType<typeof getCampaignCreatives>> = [];
+  let comparisons: Awaited<ReturnType<typeof getCampaignMetricComparisons>> = [];
   let apiError: string | null = null;
   try {
-    [budget, costs, ads] = await Promise.all([
+    [budget, costs, ads, comparisons] = await Promise.all([
       getCampaignBudget(id),
       getCampaignCosts(id),
       getCampaignCreatives(id),
+      getCampaignMetricComparisons(),
     ]);
   } catch (e) {
     apiError = e instanceof Error ? e.message : "Eroare Meta API";
   }
   const name = budget?.name ?? id;
-
-  const cpaColor = !costs?.costPerPurchase
-    ? undefined
-    : costs.costPerPurchase <= 30
-      ? "#1a7f37"
-      : costs.costPerPurchase > 50
-        ? "#d63638"
-        : "#b45309";
 
   return (
     <>
@@ -166,52 +161,25 @@ export default async function CampaignDetailPage({
                 value={nr(costs.purchases)}
                 hint={costs.purchaseValue > 0 ? `${lei(costs.purchaseValue)} încasați` : undefined}
               />
-              <Stat
-                label="Cost / achiziție"
-                value={costs.purchases ? lei(costs.costPerPurchase) : "-"}
-                color={cpaColor}
-                hint="sub 30 lei = bine"
-              />
+              <MetricComparison campaignId={id} comparisons={comparisons} metrics={["costPerPurchase"]} />
               <Stat
                 label="Checkout începute"
                 value={nr(costs.checkouts)}
                 hint={costs.checkouts ? `${lei(costs.costPerCheckout)} bucata` : undefined}
               />
-              <Stat
-                label="ROAS"
-                value={costs.spend > 0 && costs.purchaseValue > 0 ? (costs.purchaseValue / costs.spend).toFixed(2) : "-"}
-                hint="lei încasați / leu cheltuit"
-              />
+              <MetricComparison campaignId={id} comparisons={comparisons} metrics={["roas"]} />
             </div>
 
             <h3 style={{ fontSize: 13, marginTop: 22, marginBottom: 10 }}>Costuri de livrare</h3>
             <div style={GRID}>
-              <Stat label="CPM" value={lei(costs.cpm)} hint="cost / 1000 afișări" />
-              <Stat label="CPC pe link" value={lei(costs.cpcLink)} hint={`${nr(costs.linkClicks)} clicuri pe link`} />
-              <Stat
-                label="CPC toate clicurile"
-                value={lei(costs.cpcAll)}
-                hint={`${nr(costs.clicksAll)} clicuri (și like-uri, expandări)`}
-              />
-              <Stat
-                label="Cost / vizualizare pagină"
-                value={costs.landingViews ? lei(costs.costPerLandingView) : "-"}
-                hint={`${nr(costs.landingViews)} au ajuns pe site`}
-              />
+              <MetricComparison campaignId={id} comparisons={comparisons} metrics={["cpm", "cpcLink", "cpcAll", "costPerLandingView"]} />
             </div>
 
             <h3 style={{ fontSize: 13, marginTop: 22, marginBottom: 10 }}>Livrare</h3>
             <div style={GRID}>
               <Stat label="Afișări" value={nr(costs.impressions)} />
               <Stat label="Persoane atinse" value={nr(costs.reach)} />
-              <Stat
-                label="Frecvență"
-                value={costs.frequency.toFixed(2)}
-                hint="de câte ori a văzut-o fiecare"
-                color={costs.frequency > 3 ? "#d63638" : undefined}
-              />
-              <Stat label="CTR pe link" value={pct(costs.ctrLink)} />
-              <Stat label="CTR total" value={pct(costs.ctrAll)} />
+              <MetricComparison campaignId={id} comparisons={comparisons} metrics={["frequency", "ctrLink", "ctrAll"]} />
             </div>
 
             {costs.linkClicks > 0 && costs.landingViews > 0 && (

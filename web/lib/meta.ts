@@ -120,6 +120,60 @@ export async function getCampaigns(): Promise<MetaCampaign[]> {
   });
 }
 
+export type CampaignMetricKey =
+  | "roas"
+  | "costPerPurchase"
+  | "cpm"
+  | "cpcLink"
+  | "cpcAll"
+  | "costPerLandingView"
+  | "frequency"
+  | "ctrLink"
+  | "ctrAll";
+
+export type CampaignMetricComparison = {
+  id: string;
+  name: string;
+  metrics: Record<CampaignMetricKey, number | null>;
+};
+
+const positive = (value: number): number | null => (value > 0 ? value : null);
+
+/** Costurile tuturor campaniilor, pentru comparația din modalul de metrică. */
+export async function getCampaignMetricComparisons(): Promise<CampaignMetricComparison[]> {
+  const [campaigns, insights] = await Promise.all([
+    graph<{ data: RawCampaign[] }>(`${ACT}/campaigns`, {
+      fields: "id,name,effective_status",
+      limit: "50",
+    }),
+    graph<{ data: RawCostInsight[] }>(`${ACT}/insights`, {
+      level: "campaign",
+      date_preset: "maximum",
+      fields: `campaign_id,${COST_FIELDS}`,
+      limit: "100",
+    }),
+  ]);
+  const byCampaign = new Map(insights.data.map((i) => [i.campaign_id, toCost(i)]));
+  return campaigns.data.map((campaign) => {
+    const costs = byCampaign.get(campaign.id) ?? toCost(undefined);
+    return {
+      id: campaign.id,
+      name: campaign.name,
+      metrics: {
+        roas: costs.spend > 0 && costs.purchaseValue > 0 ? costs.purchaseValue / costs.spend : null,
+        costPerPurchase: positive(costs.costPerPurchase),
+        cpm: positive(costs.cpm),
+        cpcLink: positive(costs.cpcLink),
+        cpcAll: positive(costs.cpcAll),
+        costPerLandingView: positive(costs.costPerLandingView),
+        frequency: positive(costs.frequency),
+        ctrLink: positive(costs.ctrLink),
+        ctrAll: positive(costs.ctrAll),
+      },
+    };
+  });
+}
+
 // ---------------------------------------------------------------- detalii campanie
 
 export type AdCreative = {
