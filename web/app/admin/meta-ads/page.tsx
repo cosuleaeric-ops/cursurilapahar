@@ -18,6 +18,7 @@ const NUM: React.CSSProperties = { textAlign: "right", whiteSpace: "nowrap" };
 function Row({ c }: { c: MetaCampaign }) {
   const active = c.status === "ACTIVE";
   const cpa = c.purchases > 0 ? c.spend / c.purchases : null;
+  const cpc = c.linkClicks > 0 ? c.spend / c.linkClicks : null;
   const cpaColor = cpa == null ? undefined : cpa <= 30 ? "#1a7f37" : cpa > 50 ? "#d63638" : "#b45309";
   return (
     <tr>
@@ -44,6 +45,7 @@ function Row({ c }: { c: MetaCampaign }) {
       </td>
       <td style={NUM}>{c.checkouts || "-"}</td>
       <td style={NUM}>{c.linkClicks || "-"}</td>
+      <td style={NUM}>{cpc != null ? lei2(cpc) : "-"}</td>
       <td style={{ whiteSpace: "nowrap" }}>
         <form action={toggleCampaign}>
           <input type="hidden" name="campaign_id" value={c.id} />
@@ -71,6 +73,7 @@ function Head() {
         <th style={{ textAlign: "right" }}>Cost/achiz.</th>
         <th style={{ textAlign: "right" }}>Checkout</th>
         <th style={{ textAlign: "right" }}>Clicuri</th>
+        <th style={{ textAlign: "right" }}>Cost/clic</th>
         <th></th>
       </tr>
     </thead>
@@ -95,55 +98,65 @@ const stamp = new Intl.DateTimeFormat("ro-RO", {
 function Journal({ entries }: { entries: LogEntry[] }) {
   return (
     <div className="card">
-      <div className="card-title">📋 Jurnal de decizii</div>
-      {entries.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-          Nicio modificare încă. Aici apare fiecare pauză, pornire sau schimbare de buget făcută din panoul ăsta,
-          cu cifrele campaniei din acel moment.
-        </p>
-      ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table className="wp-table">
-            <thead>
-              <tr>
-                <th>Când</th>
-                <th>Campanie</th>
-                <th>Acțiune</th>
-                <th>Cifrele la acel moment</th>
-                <th>De cine</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => {
-                const a = ACTION_LABEL[e.action] ?? { icon: "•", text: e.action, color: undefined as string | undefined };
-                const ctx = e.context ?? {};
-                return (
-                  <tr key={e.id}>
-                    <td style={{ whiteSpace: "nowrap", fontSize: 12 }}>{stamp.format(new Date(e.created_at))}</td>
-                    <td style={{ minWidth: 180 }}>
-                      <Link href={`/admin/meta-ads/${e.campaign_id}`}>{e.campaign_name ?? e.campaign_id}</Link>
-                    </td>
-                    <td style={{ whiteSpace: "nowrap", color: a.color, fontWeight: 600 }}>
-                      {a.icon} {e.detail ?? a.text}
-                    </td>
-                    <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                      {ctx.spend != null ? (
-                        <>
-                          {lei2(ctx.spend)} cheltuiți · {ctx.purchases ?? 0} achiziții
-                          {ctx.cpa != null && ` · ${lei2(ctx.cpa)}/achiziție`}
-                        </>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td style={{ fontSize: 12 }}>{e.actor === "auto" ? "🤖 automat" : (e.actor ?? "-")}</td>
+      <details>
+        <summary className="card-title" style={{ cursor: "pointer", marginBottom: 0 }}>
+          📋 Jurnal de decizii ({entries.length})
+        </summary>
+        <div style={{ marginTop: 16 }}>
+          {entries.length === 0 ? (
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+              Nicio modificare încă. Aici apare fiecare pauză, pornire sau schimbare de buget făcută din panoul ăsta,
+              cu cifrele campaniei din acel moment.
+            </p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table className="wp-table">
+                <thead>
+                  <tr>
+                    <th>Când</th>
+                    <th>Campanie</th>
+                    <th>Acțiune</th>
+                    <th>Cifrele la acel moment</th>
+                    <th>De cine</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {entries.map((e) => {
+                    const a = ACTION_LABEL[e.action] ?? {
+                      icon: "•",
+                      text: e.action,
+                      color: undefined as string | undefined,
+                    };
+                    const ctx = e.context ?? {};
+                    return (
+                      <tr key={e.id}>
+                        <td style={{ whiteSpace: "nowrap", fontSize: 12 }}>{stamp.format(new Date(e.created_at))}</td>
+                        <td style={{ minWidth: 180 }}>
+                          <Link href={`/admin/meta-ads/${e.campaign_id}`}>{e.campaign_name ?? e.campaign_id}</Link>
+                        </td>
+                        <td style={{ whiteSpace: "nowrap", color: a.color, fontWeight: 600 }}>
+                          {a.icon} {e.detail ?? a.text}
+                        </td>
+                        <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          {ctx.spend != null ? (
+                            <>
+                              {lei2(ctx.spend)} cheltuiți · {ctx.purchases ?? 0} achiziții
+                              {ctx.cpa != null && ` · ${lei2(ctx.cpa)}/achiziție`}
+                            </>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td style={{ fontSize: 12 }}>{e.actor === "auto" ? "🤖 automat" : (e.actor ?? "-")}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+      </details>
     </div>
   );
 }
@@ -220,7 +233,7 @@ export default async function MetaAdsPage({ searchParams }: { searchParams: Prom
               ))}
               {live.length === 0 && !apiError && (
                 <tr>
-                  <td colSpan={9}>Nicio campanie activă.</td>
+                  <td colSpan={10}>Nicio campanie activă.</td>
                 </tr>
               )}
             </tbody>
