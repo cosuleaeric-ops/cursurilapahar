@@ -1,5 +1,5 @@
 // Redirect către pagina de bilete + contorizare — port din go/course.php.
-// Click pe card SAU pe butonul „Vreau să vin" = același redirect (aceeași metrică).
+// Click pe card SAU pe butonul „Vezi detalii & bilete" = același redirect (aceeași metrică).
 
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";

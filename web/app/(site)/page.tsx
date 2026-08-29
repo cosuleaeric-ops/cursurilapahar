@@ -289,6 +289,7 @@ export default async function Home() {
                   <a
                     key={e.id}
                     {...linkProps}
+                    data-ph-label={cardTitle(e.title)}
                     className={`event-card${soldOut ? " event-card--soldout" : ""}`}
                   >
                     {soldOut && <div className="sold-out-badge">SOLD OUT</div>}
@@ -337,7 +338,7 @@ export default async function Home() {
                           se face din CSS-ul inline al layout-ului, pe data-ab-btn. */}
                       {!soldOut && (
                         <span className="event-card-cta">
-                          Vreau să vin
+                          Vezi detalii & bilete
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14M13 6l6 6-6 6" />
                           </svg>

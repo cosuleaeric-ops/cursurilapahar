@@ -10,7 +10,7 @@ import { PostHogInit } from "./PostHogInit";
 // Meta OG/Twitter se construiesc per pagină cu pageMetadata() din lib/metadata.ts
 // (Next înlocuiește integral openGraph/twitter, nu le merge-uiește).
 
-// Test A/B buton „Vreau să vin". Atribuirea variantei stătea în proxy.ts și se
+// Test A/B buton „Vezi detalii & bilete". Atribuirea variantei stătea în proxy.ts și se
 // citea la render; homepage-ul fiind acum cache-uit, HTML-ul e identic pentru toți,
 // deci varianta se aplică în browser. Scriptul rulează în <head>, înainte de orice
 // pixel desenat, așa că butonul nu apare și dispare. Aceeași împărțire 50/50 și

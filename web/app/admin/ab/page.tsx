@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Test A/B Buton - Admin" };
 const VARIANTS: [string, string][] = [
   ["off", "cardurile ca înainte (fără buton)"],
   // ab_headline.php:12 închide citatul cu ghilimea dreaptă ASCII, nu cu una curbă.
-  ["on", 'cardurile cu butonul „Vreau să vin"'],
+  ["on", 'cardurile cu butonul „Vezi detalii & bilete"'],
 ];
 const LABEL: Record<string, string> = { on: "Cu buton", off: "Fără buton" };
 
@@ -32,9 +32,9 @@ export default async function AbPage() {
 
   return (
     <>
-      <h1 className="wp-page-title">Test A/B - Buton „Vreau să vin&quot;</h1>
+      <h1 className="wp-page-title">Test A/B - Buton „Vezi detalii &amp; bilete&quot;</h1>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>
-        Jumătate din vizitatori (aleatoriu, cookie 90 de zile) văd un buton galben „Vreau să vin&quot; pe fiecare card
+        Jumătate din vizitatori (aleatoriu, cookie 90 de zile) văd un buton galben „Vezi detalii &amp; bilete&quot; pe fiecare card
         de curs, jumătate nu. Click = ajungere pe pagina de bilete prin card sau buton. Boții și prefetch-urile nu sunt
         numărate.
       </p>
