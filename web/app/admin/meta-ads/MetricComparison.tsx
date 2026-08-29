@@ -43,7 +43,6 @@ function MetricButton({ metric, value, onClick }: { metric: CampaignMetricKey; v
         {definition.label}
       </div>
       <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{value == null ? "-" : definition.format(value)}</div>
-      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Compară cu restul campaniilor →</div>
     </button>
   );
 }
