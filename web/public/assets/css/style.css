@@ -772,9 +772,21 @@ ul { list-style: none; }
 }
 .newsletter-fields input[type="email"]:focus { border-color: var(--accent); }
 .newsletter-note {
-  margin-top: 14px;
-  font-size: .82rem;
-  color: var(--text-faint);
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 18px auto 0;
+  padding: 8px 16px;
+  border: 1px solid rgba(201,168,76,.55);
+  border-radius: 999px;
+  background: rgba(201,168,76,.13);
+  color: var(--text);
+  font-size: .92rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.newsletter-note strong {
+  color: var(--accent);
 }
 
 /* ══════════════════════════════════════════

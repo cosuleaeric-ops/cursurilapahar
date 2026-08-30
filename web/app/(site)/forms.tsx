@@ -56,7 +56,9 @@ export function NewsletterForm() {
           {pending ? "Se trimite…" : "Anunță-mă"}
         </button>
       </div>
-      <p className="newsletter-note">100% gratuit. Te poți dezabona oricând.</p>
+      <p className="newsletter-note">
+        <strong>100% gratuit.</strong> Te poți dezabona oricând.
+      </p>
       <div className={msgClass(msg)} aria-live="polite">
         {msg?.text ?? ""}
       </div>

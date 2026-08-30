@@ -356,6 +356,21 @@ export default async function Home() {
       {/* index.php:332-334 randează banda necondiționat, chiar și cu textul gol */}
       <div className="announcement-banner">{announcement}</div>
 
+      <section className="section section-dark section-bg-blur" id="newsletter" {...newsletterBg.attrs}>
+        <div className="container container-narrow">
+          {/* index.php:343-345 - plicul auriu de 44px de deasupra titlului */}
+          <div className="newsletter-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m2 6 10 7L22 6" />
+            </svg>
+          </div>
+          <h2 className="section-title">{newsletterTitle}</h2>
+          <p className="newsletter-desc">{newsletterDesc}</p>
+          <NewsletterForm />
+        </div>
+      </section>
+
       <section className="section" id="primul-curs">
         <div className="container">
           <h2 className="section-title">Cum te vei simți după primul curs?</h2>
@@ -371,21 +386,6 @@ export default async function Home() {
               </figure>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="section section-dark section-bg-blur" id="newsletter" {...newsletterBg.attrs}>
-        <div className="container container-narrow">
-          {/* index.php:343-345 - plicul auriu de 44px de deasupra titlului */}
-          <div className="newsletter-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path d="m2 6 10 7L22 6" />
-            </svg>
-          </div>
-          <h2 className="section-title">{newsletterTitle}</h2>
-          <p className="newsletter-desc">{newsletterDesc}</p>
-          <NewsletterForm />
         </div>
       </section>
 
