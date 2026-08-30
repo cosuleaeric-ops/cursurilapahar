@@ -4,8 +4,6 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getCampaigns, metaToken, DAILY_CAP_BANI, type MetaCampaign } from "@/lib/meta";
 import { getLog, type LogEntry } from "@/lib/meta-log";
-import { toggleCampaign } from "./actions";
-import SubmitButton from "./SubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Meta Ads - Admin" };
@@ -46,17 +44,6 @@ function Row({ c }: { c: MetaCampaign }) {
       <td style={NUM}>{c.checkouts || "-"}</td>
       <td style={NUM}>{c.linkClicks || "-"}</td>
       <td style={NUM}>{cpc != null ? lei2(cpc) : "-"}</td>
-      <td style={{ whiteSpace: "nowrap" }}>
-        <form action={toggleCampaign}>
-          <input type="hidden" name="campaign_id" value={c.id} />
-          <input type="hidden" name="status" value={active ? "PAUSED" : "ACTIVE"} />
-          <SubmitButton
-            className={active ? "btn btn-sm" : "btn btn-sm btn-primary"}
-            label={active ? "Pauză" : "Pornește"}
-            pendingLabel={active ? "Se oprește…" : "Pornește…"}
-          />
-        </form>
-      </td>
     </tr>
   );
 }
@@ -74,7 +61,6 @@ function Head() {
         <th style={{ textAlign: "right" }}>Checkout</th>
         <th style={{ textAlign: "right" }}>Clicuri</th>
         <th style={{ textAlign: "right" }}>Cost/clic</th>
-        <th></th>
       </tr>
     </thead>
   );
@@ -233,7 +219,7 @@ export default async function MetaAdsPage({ searchParams }: { searchParams: Prom
               ))}
               {live.length === 0 && !apiError && (
                 <tr>
-                  <td colSpan={10}>Nicio campanie activă.</td>
+                  <td colSpan={9}>Nicio campanie activă.</td>
                 </tr>
               )}
             </tbody>
