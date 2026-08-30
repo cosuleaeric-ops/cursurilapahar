@@ -10,7 +10,7 @@ import { jwtVerify } from "jose";
 // anonimi (fără cookie de sesiune și fără marcaj): niciun Set-Cookie pe răspuns,
 // deci homepage-ul rămâne cache-uibil. Varianta testului A/B se atribuie pe client.
 const BAR_COOKIE = "clp_bar";
-const BAR_MAX_AGE = 60 * 60 * 24 * 7; // cât sesiunea (lib/auth.ts)
+const BAR_MAX_AGE = 60 * 60 * 24 * 365 * 10; // cât sesiunea (lib/auth.ts)
 
 async function isOwner(token: string | undefined): Promise<boolean> {
   if (!token || !process.env.AUTH_SECRET) return false;

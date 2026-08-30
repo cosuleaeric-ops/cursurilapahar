@@ -4,7 +4,9 @@ import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
 
 const COOKIE = "clp_session";
-const MAX_AGE = 60 * 60 * 24 * 7; // 7 zile
+// Sesiunea nu mai expiră după o săptămână; cookie-ul rămâne persistent practic
+// nelimitat pentru utilizarea normală a adminului.
+const MAX_AGE = 60 * 60 * 24 * 365 * 10; // 10 ani
 const MAGIC_AUD = "clp-magic";
 
 export const SESSION_COOKIE = COOKIE;
@@ -42,7 +44,6 @@ export async function signSession(s: Session): Promise<string> {
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(s.username)
     .setIssuedAt()
-    .setExpirationTime("7d")
     .sign(secretKey());
 }
 
