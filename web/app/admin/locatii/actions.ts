@@ -30,16 +30,26 @@ export async function updateLocation(formData: FormData): Promise<void> {
   const name = g(formData, "name");
   if (!id || !name) return;
   await sql`
-    UPDATE locations SET
-      name = ${name},
-      phone = ${g(formData, "phone") || null},
-      maps_link = ${g(formData, "maps_link") || null},
-      days = ${g(formData, "days") || null},
-      notes = ${g(formData, "notes") || null},
-      updated_at = now()
-    WHERE id = ${id}
+    WITH old_location AS (
+      SELECT name FROM locations WHERE id = ${id}
+    ), updated_location AS (
+      UPDATE locations SET
+        name = ${name},
+        phone = ${g(formData, "phone") || null},
+        maps_link = ${g(formData, "maps_link") || null},
+        days = ${g(formData, "days") || null},
+        notes = ${g(formData, "notes") || null},
+        updated_at = now()
+      WHERE id = ${id}
+      RETURNING name
+    )
+    UPDATE events
+    SET location = updated_location.name, updated_at = now()
+    FROM old_location, updated_location
+    WHERE events.location = old_location.name
   `;
   revalidatePath("/admin/locatii");
+  revalidatePath("/", "layout");
   redirect("/admin/locatii?saved=1");
 }
 
