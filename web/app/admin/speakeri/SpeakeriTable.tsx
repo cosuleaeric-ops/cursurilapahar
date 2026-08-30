@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { SPEAKER_STATUSES, STATUS_COLOR } from "./statuses";
 import { deleteSpeaker, saveSpeaker, saveTopics, setStatus, unmarkContacted } from "./actions";
 
@@ -98,7 +100,37 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
   const [details, setDetails] = useState<Speaker | null>(null);
   // lead-ul n-are id de speaker, deci tabul Cursuri (saveTopics) nu are ce salva
   const [detailsLead, setDetailsLead] = useState(false);
-  const [statusFor, setStatusFor] = useState<number | null>(null);
+  const [statusMenu, setStatusMenu] = useState<{ id: number; left: number; top: number } | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!statusMenu) return;
+    const close = (e: MouseEvent) => {
+      const target = e.target;
+      if (target instanceof Element && !target.closest("[data-speaker-status-menu]")) setStatusMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setStatusMenu(null);
+    };
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [statusMenu]);
+
+  function toggleStatusMenu(id: number, e: React.MouseEvent<HTMLButtonElement>) {
+    if (statusMenu?.id === id) {
+      setStatusMenu(null);
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    const menuHeight = 180;
+    const top = r.bottom + 4 + menuHeight > window.innerHeight - 8 ? Math.max(8, r.top - menuHeight - 4) : r.bottom + 4;
+    const left = Math.min(r.left, window.innerWidth - 128);
+    setStatusMenu({ id, left: Math.max(8, left), top });
+  }
 
   const showLeads = filter === "all" || filter === "CONTACTAT";
   const visible = speakers.filter((s) => filter === "all" || (s.status ?? "MID") === filter);
@@ -233,35 +265,17 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
                       {sp.phone && <Contact value={sp.phone} />}
                     </td>
                     <td>
-                      <span
+                      <button
+                        type="button"
                         className="crm-status-badge"
-                        style={{ background: STATUS_COLOR[sp.status ?? "MID"] ?? "#6b7280", cursor: "pointer", userSelect: "none", position: "relative" }}
-                        onClick={() => setStatusFor(statusFor === sp.id ? null : sp.id)}
+                        aria-label={`Schimbă statusul pentru ${sp.name}`}
+                        aria-haspopup="menu"
+                        aria-expanded={statusMenu?.id === sp.id}
+                        style={{ background: STATUS_COLOR[sp.status ?? "MID"] ?? "#6b7280", cursor: "pointer", userSelect: "none", border: "none", font: "inherit" }}
+                        onClick={(e) => toggleStatusMenu(sp.id, e)}
                       >
                         {sp.status ?? "MID"}
-                        {/* fără display inline: clasa .sp-status-popover dă flex-direction:column */}
-                        {statusFor === sp.id && (
-                          <span className="sp-status-popover" style={{ position: "absolute", top: "100%", left: 0, zIndex: 60 }}>
-                            {SPEAKER_STATUSES.map((s) => (
-                              <button
-                                key={s}
-                                type="button"
-                                style={{ color: STATUS_COLOR[s] }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setStatusFor(null);
-                                  const fd = new FormData();
-                                  fd.set("id", String(sp.id));
-                                  fd.set("status", s);
-                                  void setStatus(fd);
-                                }}
-                              >
-                                {s}
-                              </button>
-                            ))}
-                          </span>
-                        )}
-                      </span>
+                      </button>
                     </td>
                     <td>
                       <div className="row-actions">
@@ -303,6 +317,34 @@ export default function SpeakeriTable({ speakers, leads }: { speakers: Speaker[]
           showCourses={!detailsLead}
           onClose={() => { setDetails(null); setDetailsLead(false); }}
         />
+      )}
+      {statusMenu && typeof document !== "undefined" && createPortal(
+        <div
+          className="sp-status-popover"
+          data-speaker-status-menu
+          role="menu"
+          style={{ position: "fixed", left: statusMenu.left, top: statusMenu.top, zIndex: 9999 }}
+        >
+          {SPEAKER_STATUSES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="menuitem"
+              style={{ color: STATUS_COLOR[s] }}
+              onClick={async () => {
+                const fd = new FormData();
+                fd.set("id", String(statusMenu.id));
+                fd.set("status", s);
+                setStatusMenu(null);
+                await setStatus(fd);
+                router.refresh();
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>,
+        document.body,
       )}
     </>
   );
