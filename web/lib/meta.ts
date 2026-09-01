@@ -207,6 +207,8 @@ export type CostBreakdown = {
   costPerLandingView: number;
   checkouts: number;
   costPerCheckout: number;
+  /** urmăritori noi raportați de Meta pentru campaniile Instagram */
+  follows: number;
   purchases: number;
   costPerPurchase: number;
   purchaseValue: number;
@@ -292,6 +294,13 @@ function toCost(i: RawCostInsight | undefined): CostBreakdown {
     "offsite_conversion.fb_pixel_initiate_checkout",
   );
   const purchases = pickAction(i?.actions, "omni_purchase", "purchase", "offsite_conversion.fb_pixel_purchase");
+  const follows = pickAction(
+    i?.actions,
+    "onsite_conversion.instagram_profile_follow",
+    "instagram_profile_follow",
+    "onsite_conversion.instagram_profile_follows",
+    "instagram_profile_follows",
+  );
   return {
     spend,
     impressions: num(i?.impressions),
@@ -308,6 +317,7 @@ function toCost(i: RawCostInsight | undefined): CostBreakdown {
     costPerLandingView: landingViews ? spend / landingViews : 0,
     checkouts,
     costPerCheckout: checkouts ? spend / checkouts : 0,
+    follows,
     purchases,
     costPerPurchase: purchases ? spend / purchases : 0,
     purchaseValue: pickAction(i?.action_values, "omni_purchase", "purchase", "offsite_conversion.fb_pixel_purchase"),

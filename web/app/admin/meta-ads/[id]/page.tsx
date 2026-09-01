@@ -161,6 +161,7 @@ export default async function CampaignDetailPage({
                 value={nr(costs.purchases)}
                 hint={costs.purchaseValue > 0 ? `${lei(costs.purchaseValue)} încasați` : undefined}
               />
+              <Stat label="Urmăritori noi" value={nr(costs.follows)} hint="raportați de Meta/Instagram" />
               <MetricComparison campaignId={id} comparisons={comparisons} metrics={["costPerPurchase"]} />
               <Stat
                 label="Checkout începute"
