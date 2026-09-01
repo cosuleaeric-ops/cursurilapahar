@@ -628,7 +628,7 @@ function openEdit(row) {
     document.getElementById('cheltuialaData').value = row.data;
     document.getElementById('cheltuialaSuma').value = row.suma;
     document.getElementById('cheltuialaServiceFee').value = '';
-    document.getElementById('serviceFeeGroup').style.display = 'none';
+    document.getElementById('serviceFeeGroup').style.display = '';
     document.getElementById('cheltuialaDetalii').value = row.detalii || '';
     document.getElementById('errorCheltuiala').style.display = 'none';
     document.getElementById('cheltuialaCategorie').value = row.categorie;
@@ -718,6 +718,10 @@ document.getElementById('formCheltuiala').addEventListener('submit', async e => 
 
   if (res.success || res.id) {
     if (id) {
+      const fee = parseFloat(document.getElementById('cheltuialaServiceFee').value);
+      if (fee > 0) {
+        await post('add_cheltuiala', { data: body.data, categorie: 'Banca', suma: fee });
+      }
       closeModal('modalCheltuiala');
     } else {
       setLastDate(body.data);
