@@ -143,17 +143,7 @@ function initCategorieCombobox(inputId, boxId, getCats) {
   // Un singur click (când câmpul nu era deja focusat) selectează tot textul.
   input.addEventListener('mousedown', () => { input.dataset.selectAll = (document.activeElement !== input) ? '1' : ''; });
   input.addEventListener('mouseup', (e) => { if (input.dataset.selectAll) { e.preventDefault(); input.select(); input.dataset.selectAll = ''; } });
-  input.addEventListener('input', (e) => {
-    // Inline autocomplete: complete to the first matching category, selecting the added part.
-    const isInsert = !e.inputType || e.inputType.indexOf('insert') === 0;
-    const val = input.value;
-    if (isInsert && val.length >= 2) {
-      const match = getCats().find(c => c.toLowerCase().startsWith(val.toLowerCase()));
-      if (match && match.length > val.length) {
-        input.value = match;
-        input.setSelectionRange(val.length, match.length);
-      }
-    }
+  input.addEventListener('input', () => {
     renderCategorieSuggestions(inputId, boxId, getCats(), withEmoji);
     syncOpen();
   });
