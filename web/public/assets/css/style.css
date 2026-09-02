@@ -301,6 +301,12 @@ ul { list-style: none; }
     min-height: 200px !important;
     max-height: 750px;
   }
+  /* Crop mobil: fotografia are speakerul in partea de jos, sub textul hero. */
+  .hero-slide {
+    background-position: 50% 100%;
+    transform: scale(1.55);
+    transform-origin: 50% 100%;
+  }
 }
 
 /* ── Announcement Banner ─────────────────── */
