@@ -303,9 +303,9 @@ ul { list-style: none; }
   }
   /* Crop mobil: fotografia are speakerul in partea de jos, sub textul hero. */
   .hero-slide {
-    background-position: 20% 100% !important;
-    transform: translateY(-40px) scale(1.20) !important;
-    transform-origin: 20% 100% !important;
+    background-position: 8% 100% !important;
+    transform: translateY(-20px) scale(1.05) !important;
+    transform-origin: 8% 100% !important;
   }
 }
 
