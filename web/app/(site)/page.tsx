@@ -336,14 +336,15 @@ export default async function Home() {
                       )}
                       {/* Vizibil doar în varianta „on" a testului A/B - comutarea
                           se face din CSS-ul inline al layout-ului, pe data-ab-btn. */}
-                      {!soldOut && (
-                        <span className="event-card-cta">
-                          Vezi detalii & bilete
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14M13 6l6 6-6 6" />
-                          </svg>
-                        </span>
-                      )}
+                      <span
+                        className={`event-card-cta${soldOut ? " event-card-cta--disabled" : ""}`}
+                        aria-disabled={soldOut || undefined}
+                      >
+                        Vezi detalii & bilete
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14M13 6l6 6-6 6" />
+                        </svg>
+                      </span>
                     </div>
                   </a>
                 );

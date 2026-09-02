@@ -303,9 +303,9 @@ ul { list-style: none; }
   }
   /* Crop mobil: fotografia are speakerul in partea de jos, sub textul hero. */
   .hero-slide {
-    background-position: 50% 100%;
-    transform: scale(1.55);
-    transform-origin: 50% 100%;
+    background-position: 20% 100% !important;
+    transform: translateY(-40px) scale(1.20) !important;
+    transform-origin: 20% 100% !important;
   }
 }
 
@@ -677,6 +677,12 @@ ul { list-style: none; }
 }
 .event-card-cta svg { width: 17px; height: 17px; flex: none; }
 .event-card:hover .event-card-cta { background: var(--btn-hover, #b8922e); }
+.event-card--soldout .event-card-cta--disabled {
+  background: var(--accent);
+  color: #0D0D0D;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .meta-item {
   display: flex;
   align-items: center;
