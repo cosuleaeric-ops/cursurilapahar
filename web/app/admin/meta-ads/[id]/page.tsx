@@ -144,7 +144,7 @@ export default async function CampaignDetailPage({
                 </div>
               </div>
             </form>
-            <form action={toggleCampaign}>
+            <form action={toggleCampaign} style={{ display: "flex", alignItems: "center" }}>
               <input type="hidden" name="campaign_id" value={id} />
               <input type="hidden" name="status" value={budget.status === "ACTIVE" ? "PAUSED" : "ACTIVE"} />
               <SubmitButton
