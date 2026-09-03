@@ -13,10 +13,6 @@ async function requireOwner(): Promise<Session> {
   return s;
 }
 
-function back(msg?: string): never {
-  redirect(msg ? `/admin/meta-ads?err=${encodeURIComponent(msg)}` : "/admin/meta-ads");
-}
-
 /** Cifrele campaniei în momentul deciziei — ca jurnalul să spună și „de ce", nu doar „ce". */
 const snapshot = (c: MetaCampaign | undefined) => ({
   spend: c?.spend ?? null,
@@ -86,7 +82,7 @@ export async function toggleCampaign(formData: FormData): Promise<void> {
   try {
     await setCampaignStatus(id, status);
   } catch (e) {
-    back(e instanceof Error ? e.message : "Eroare Meta API");
+    backToCampaign(id, e instanceof Error ? e.message : "Eroare Meta API");
   }
 
   let campaign: MetaCampaign | undefined;
@@ -108,6 +104,6 @@ export async function toggleCampaign(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/admin/meta-ads");
-  redirect("/admin/meta-ads");
+  revalidatePath(`/admin/meta-ads/${id}`);
+  backToCampaign(id);
 }
-

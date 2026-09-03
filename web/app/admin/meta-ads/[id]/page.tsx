@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getCampaignCreatives, getCampaignCosts, getCampaignBudget, getCampaignMetricComparisons, metaToken, DAILY_CAP_BANI } from "@/lib/meta";
 import MetricComparison from "../MetricComparison";
-import { saveBudget } from "../actions";
+import { saveBudget, toggleCampaign } from "../actions";
 import SubmitButton from "../SubmitButton";
 
 export const dynamic = "force-dynamic";
@@ -143,6 +143,15 @@ export default async function CampaignDetailPage({
                   <SubmitButton className="btn btn-primary btn-sm" label="Salvează" pendingLabel="Se salvează…" />
                 </div>
               </div>
+            </form>
+            <form action={toggleCampaign}>
+              <input type="hidden" name="campaign_id" value={id} />
+              <input type="hidden" name="status" value={budget.status === "ACTIVE" ? "PAUSED" : "ACTIVE"} />
+              <SubmitButton
+                className={`btn btn-sm ${budget.status === "ACTIVE" ? "btn-danger" : "btn-primary"}`}
+                label={budget.status === "ACTIVE" ? "Pune pe pauză" : "Pornește"}
+                pendingLabel={budget.status === "ACTIVE" ? "Se oprește…" : "Se pornește…"}
+              />
             </form>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, paddingBottom: 6 }}>
               Plafon total pe campaniile active: {lei(DAILY_CAP_BANI / 100)}. Creșterile peste 20% pe zi resetează faza
