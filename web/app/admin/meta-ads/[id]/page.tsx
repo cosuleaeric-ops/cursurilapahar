@@ -113,24 +113,24 @@ export default async function CampaignDetailPage({
               borderBottom: "1px solid var(--border)",
             }}
           >
-            <form action={saveBudget} style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-              <input type="hidden" name="object_id" value={budget.budgetObjectId} />
-              <input type="hidden" name="campaign_id" value={id} />
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: 10,
-                    textTransform: "uppercase",
-                    letterSpacing: ".05em",
-                    color: "var(--text-muted)",
-                    fontWeight: 700,
-                    marginBottom: 4,
-                  }}
-                >
-                  Buget zilnic
-                </label>
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: ".05em",
+                  color: "var(--text-muted)",
+                  fontWeight: 700,
+                  marginBottom: 4,
+                }}
+              >
+                Buget zilnic
+              </label>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <form action={saveBudget} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <input type="hidden" name="object_id" value={budget.budgetObjectId} />
+                  <input type="hidden" name="campaign_id" value={id} />
                   <input
                     type="number"
                     name="budget_lei"
@@ -141,18 +141,18 @@ export default async function CampaignDetailPage({
                   />
                   <span style={{ fontSize: 13, color: "var(--text-muted)" }}>lei/zi</span>
                   <SubmitButton className="btn btn-primary btn-sm" label="Salvează" pendingLabel="Se salvează…" />
-                </div>
+                </form>
+                <form action={toggleCampaign} style={{ display: "flex", alignItems: "center" }}>
+                  <input type="hidden" name="campaign_id" value={id} />
+                  <input type="hidden" name="status" value={budget.status === "ACTIVE" ? "PAUSED" : "ACTIVE"} />
+                  <SubmitButton
+                    className={`btn btn-sm ${budget.status === "ACTIVE" ? "btn-danger" : "btn-primary"}`}
+                    label={budget.status === "ACTIVE" ? "Pune pe pauză" : "Pornește"}
+                    pendingLabel={budget.status === "ACTIVE" ? "Se oprește…" : "Se pornește…"}
+                  />
+                </form>
               </div>
-            </form>
-            <form action={toggleCampaign} style={{ display: "flex", alignItems: "center" }}>
-              <input type="hidden" name="campaign_id" value={id} />
-              <input type="hidden" name="status" value={budget.status === "ACTIVE" ? "PAUSED" : "ACTIVE"} />
-              <SubmitButton
-                className={`btn btn-sm ${budget.status === "ACTIVE" ? "btn-danger" : "btn-primary"}`}
-                label={budget.status === "ACTIVE" ? "Pune pe pauză" : "Pornește"}
-                pendingLabel={budget.status === "ACTIVE" ? "Se oprește…" : "Se pornește…"}
-              />
-            </form>
+            </div>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, paddingBottom: 6 }}>
               Plafon total pe campaniile active: {lei(DAILY_CAP_BANI / 100)}. Creșterile peste 20% pe zi resetează faza
               de învățare a campaniei.
